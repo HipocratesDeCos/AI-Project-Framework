@@ -3,7 +3,7 @@
 ## EIOS — Enterprise Intelligent Operations System
 
 **Versión:** 2.0  
-**Estado:** MVP — Propuesta para aprobación  
+**Estado:** APROBADO
 **Ubicación:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
 ---
