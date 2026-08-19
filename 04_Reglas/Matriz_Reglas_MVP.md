@@ -2,9 +2,9 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.1  
-**Estado:** En desarrollo  
-**Última actualización:** 09/08/2026
+**Versión:** 2.0  
+**Estado:** APROBADO — Baseline EIOS Vertical MVP  
+**Última actualización:** 19/08/2026
 
 ---
 
@@ -20,6 +20,8 @@ Constituye el puente entre:
 - las reglas;
 - las excepciones;
 - y la decisión final.
+
+**Autoridad de resolución:** La Matriz define las reglas y sus resultados individuales. La resolución de conflictos entre reglas corresponde a `04_Reglas/Capa_resolucion_conflictos.md` (CRC v2.0). Esta matriz no constituye un segundo motor de resolución.
 
 ---
 
@@ -60,55 +62,35 @@ La recomendación deberá considerar, cuando estén disponibles:
 
 ---
 
-# 4. JERARQUÍA DE DECISIÓN
+# 4. CLASIFICACIÓN DE LAS REGLAS
 
-Las reglas se organizan inicialmente por niveles de prioridad.
+La versión 2.0 separa dos conceptos que en la versión anterior estaban mezclados:
 
-## NIVEL 1 — CRÍTICO
+- **Efecto de la regla:** qué capacidad tiene el resultado para intervenir en la decisión.
+- **Severidad:** importancia o gravedad del resultado.
 
-Puede impedir la compra.
+## 4.1 Efecto de la regla
 
-Principalmente:
+| Código | Efecto | Descripción |
+|---|---|---|
+| R0 | BLOQUEO | Puede impedir la compra |
+| R1 | CONDICIONANTE | Puede generar una compra condicionada |
+| R2 | NEGOCIACIÓN | Recomienda mejorar una condición |
+| R3 | INFORMATIVA | Aporta contexto sin modificar necesariamente la decisión |
 
-- riesgo financiero grave;
-- incapacidad prevista para atender pagos;
-- incumplimiento de condiciones financieras mínimas.
+## 4.2 Severidad
 
-## NIVEL 2 — MUY ALTO
+| Severidad | Significado |
+|---|---|
+| CRÍTICA | Puede comprometer la viabilidad de la operación |
+| ALTA | Puede generar un perjuicio importante |
+| MEDIA | Requiere atención |
+| BAJA | Desviación menor |
+| INFORMATIVA | Contexto sin impacto directo |
 
-Puede impedir la compra o exigir condiciones.
+La severidad no sustituye al efecto y el efecto no sustituye a la severidad.
 
-Principalmente:
-
-- margen insuficiente;
-- exceso de stock grave;
-- compra incompatible con la situación operativa.
-
-## NIVEL 3 — ALTO
-
-Normalmente genera negociación o compra condicionada.
-
-Principalmente:
-
-- precio elevado;
-- condiciones de pago desfavorables;
-- riesgo relevante de stock.
-
-## NIVEL 4 — MEDIO
-
-Puede modificar la recomendación.
-
-Principalmente:
-
-- diferencias históricas;
-- proveedor alternativo;
-- rotación;
-- descuentos;
-- rappels.
-
-## NIVEL 5 — INFORMATIVO
-
-Aporta contexto sin modificar por sí mismo la decisión.
+La CRC utiliza ambos conceptos junto con las salvaguardas, condiciones y excepciones aplicables.
 
 ---
 
@@ -124,9 +106,9 @@ Si la compra provoca que la capacidad prevista de atender pagos quede por debajo
 
 **NO COMPRAR**
 
-### Prioridad
+### Efecto / severidad
 
-1 — CRÍTICA
+**R0 — BLOQUEO / CRÍTICA**
 
 ### Bloqueo
 
@@ -148,9 +130,9 @@ Si después de considerar la operación el fondo de maniobra queda por debajo de
 
 **NO COMPRAR** o **COMPRAR CONDICIONADO**, según la severidad configurada.
 
-### Prioridad
+### Efecto / severidad
 
-1 — CRÍTICA
+**R0 — BLOQUEO / CRÍTICA**
 
 ### Bloqueo
 
@@ -168,9 +150,9 @@ La operación reduce significativamente el margen de seguridad financiera de la 
 
 **COMPRAR CONDICIONADO** o **NO COMPRAR**
 
-### Prioridad
+### Efecto / severidad
 
-1 — CRÍTICA
+**R1 — CONDICIONANTE / ALTA**, pudiendo escalar a **R0 — BLOQUEO / CRÍTICA** cuando la condición financiera no sea resoluble.
 
 ### Posibles condiciones
 
@@ -201,9 +183,9 @@ o
 
 cuando exista posibilidad razonable de modificar las condiciones.
 
-### Prioridad
+### Efecto / severidad
 
-2 — MUY ALTA
+**R1 — CONDICIONANTE / ALTA**; podrá escalar a R0 cuando el margen negativo o el límite empresarial aplicable constituya un bloqueo no resoluble.
 
 ---
 
@@ -217,9 +199,9 @@ El margen se encuentra ligeramente por debajo del objetivo, pero dentro de la to
 
 **NEGOCIAR** o **COMPRAR CONDICIONADO**
 
-### Prioridad
+### Efecto / severidad
 
-2 — MUY ALTA
+**R2 — NEGOCIACIÓN / MEDIA**
 
 ---
 
@@ -237,6 +219,10 @@ No genera una decisión por sí mismo.
 
 Actúa como condición favorable.
 
+### Efecto / severidad
+
+**R3 — INFORMATIVA / INFORMATIVA**
+
 ---
 
 # 7. REGLAS DE PRECIO
@@ -247,27 +233,17 @@ Actúa como condición favorable.
 
 El precio propuesto supera el precio de una operación comparable reciente en el porcentaje configurado.
 
-Ejemplo:
-
-Precio anterior:
-
-17,20 €
-
-Precio propuesto:
-
-18,50 €
-
-Diferencia:
-
-+7,56 %
-
 ### Resultado
 
 **NEGOCIAR**
 
-### Prioridad
+### Efecto / severidad
 
-3 — ALTA
+**R2 — NEGOCIACIÓN / ALTA**
+
+### Evidencia
+
+La referencia deberá proceder de una operación comparable y suficientemente reciente conforme a los parámetros configurados.
 
 ---
 
@@ -281,9 +257,9 @@ El precio supera el umbral crítico configurado.
 
 **NEGOCIAR** o **NO COMPRAR**
 
-### Prioridad
+### Efecto / severidad
 
-2 — MUY ALTA
+**R1 — CONDICIONANTE / ALTA**, pudiendo escalar a R0 si el límite es no negociable.
 
 ### Observación
 
@@ -310,6 +286,10 @@ No genera bloqueo.
 
 Puede contribuir favorablemente a la decisión.
 
+### Efecto / severidad
+
+**R3 — INFORMATIVA / INFORMATIVA**
+
 ---
 
 # 8. REGLAS DE ANTIGÜEDAD DEL HISTÓRICO
@@ -328,6 +308,10 @@ No utilizar automáticamente como referencia principal.
 
 Buscar referencias más recientes.
 
+### Efecto / severidad
+
+**R3 — INFORMATIVA / MEDIA**
+
 ---
 
 ## HIS-002 — Histórico insuficiente
@@ -339,12 +323,11 @@ No existe el número mínimo de operaciones comparables establecido.
 ### Resultado
 
 **INFORMACIÓN INSUFICIENTE**
-
 o análisis con advertencia.
 
-### Prioridad
+### Efecto / severidad
 
-5 — INFORMATIVA
+**R3 — INFORMATIVA / INFORMATIVA**, salvo que la política de evidencia determine que la ausencia de histórico constituye un bloqueo de fiabilidad.
 
 ---
 
@@ -372,6 +355,10 @@ Reducir el nivel de fiabilidad de la referencia.
 
 Considerarse automáticamente equivalente a una operación comparable.
 
+### Efecto / severidad
+
+**R3 — INFORMATIVA / MEDIA**
+
 ---
 
 # 10. REGLAS DE STOCK
@@ -386,9 +373,9 @@ La proyección indica que el stock puede agotarse antes de que llegue una nueva 
 
 **COMPRAR** o **COMPRAR CONDICIONADO**
 
-### Prioridad
+### Efecto / severidad
 
-3 — ALTA
+**R1 — CONDICIONANTE / ALTA**
 
 ### Observación
 
@@ -405,14 +392,12 @@ La cobertura prevista supera ampliamente el nivel configurado y no existen neces
 ### Resultado
 
 **NO COMPRAR**
-
 o
-
 **NEGOCIAR CANTIDAD**
 
-### Prioridad
+### Efecto / severidad
 
-2 — MUY ALTA
+**R2 — NEGOCIACIÓN / ALTA**; podrá escalar a R0 si existe un bloqueo empresarial explícito contra la compra.
 
 ---
 
@@ -425,14 +410,12 @@ El stock después de la compra supera el nivel máximo configurado.
 ### Resultado
 
 **NEGOCIAR**
-
 o
-
 **NO COMPRAR**
 
-### Prioridad
+### Efecto / severidad
 
-2 — MUY ALTA
+**R2 — NEGOCIACIÓN / ALTA**, pudiendo escalar según la severidad configurada.
 
 ---
 
@@ -455,16 +438,14 @@ La regla de exceso de stock queda mitigada.
 ### Resultado final posible
 
 **COMPRAR**
-
 o
-
 **COMPRAR CONDICIONADO**
 
 según el resto de reglas.
 
-### Prioridad
+### Efecto / severidad
 
-2 — MUY ALTA
+**R1 — CONDICIONANTE / ALTA**
 
 ### Tipo
 
@@ -482,15 +463,13 @@ La rotación se encuentra por debajo del umbral establecido.
 
 ### Resultado
 
-**NEGOCIAR CANTIDAD**
-
+**NEGOCIAR**
 o
-
 **NO COMPRAR**
 
-### Prioridad
+### Efecto / severidad
 
-3 — ALTA
+**R2 — NEGOCIACIÓN / ALTA**
 
 ---
 
@@ -505,6 +484,10 @@ No existen ventas durante el periodo configurado.
 **NO COMPRAR**
 
 salvo excepción.
+
+### Efecto / severidad
+
+**R1 — CONDICIONANTE / ALTA**, pudiendo escalar a R0 cuando la política aplicable establezca bloqueo.
 
 ### Excepciones posibles
 
@@ -527,9 +510,9 @@ La fecha prevista de entrega es posterior a la fecha estimada de agotamiento del
 
 **NEGOCIAR**
 
-### Prioridad
+### Efecto / severidad
 
-3 — ALTA
+**R2 — NEGOCIACIÓN / ALTA**
 
 ### Posibles recomendaciones
 
@@ -552,9 +535,9 @@ El proveedor ofrece un plazo inferior al establecido como objetivo.
 
 **NEGOCIAR**
 
-### Prioridad
+### Efecto / severidad
 
-3 — ALTA
+**R2 — NEGOCIACIÓN / ALTA**
 
 ---
 
@@ -572,6 +555,10 @@ La operación puede ser viable únicamente si se amplía el plazo de pago.
 
 La operación únicamente será recomendable si se consigue el plazo de pago mínimo establecido.
 
+### Efecto / severidad
+
+**R1 — CONDICIONANTE / ALTA**
+
 ---
 
 # 15. REGLAS DE PROVEEDORES
@@ -586,9 +573,9 @@ Existe uno o más proveedores alternativos con condiciones potencialmente mejore
 
 **NEGOCIAR**
 
-### Prioridad
+### Efecto / severidad
 
-4 — MEDIA
+**R2 — NEGOCIACIÓN / MEDIA**
 
 ---
 
@@ -608,9 +595,11 @@ Existe una alternativa comparable que mejora significativamente:
 
 **NEGOCIAR**
 
-o
+La evaluación de un proveedor alternativo se documenta como **acción secundaria**, no como resultado oficial adicional.
 
-**EVALUAR PROVEEDOR ALTERNATIVO**
+### Efecto / severidad
+
+**R2 — NEGOCIACIÓN / ALTA**
 
 ---
 
@@ -630,6 +619,10 @@ Incluir en la negociación.
 
 Modificar automáticamente la recomendación si no se conoce su aplicación real.
 
+### Efecto / severidad
+
+**R2 — NEGOCIACIÓN / MEDIA**
+
 ---
 
 ## COM-002 — Rappel disponible
@@ -642,9 +635,9 @@ La operación puede mejorar el coste efectivo mediante rappel.
 
 Calcular, cuando sea posible, el coste efectivo.
 
-### Prioridad
+### Efecto / severidad
 
-4 — MEDIA
+**R3 — INFORMATIVA / MEDIA**
 
 ---
 
@@ -659,6 +652,10 @@ Los datos se encuentran dentro del periodo máximo permitido.
 ### Resultado
 
 Continuar análisis normalmente.
+
+### Efecto / severidad
+
+**R3 — INFORMATIVA / INFORMATIVA**
 
 ---
 
@@ -676,6 +673,10 @@ Mostrar advertencia.
 
 Puede continuar si la política lo permite.
 
+### Efecto / severidad
+
+**R3 — INFORMATIVA / MEDIA**
+
 ---
 
 ## DAT-003 — Datos insuficientes
@@ -688,9 +689,9 @@ No existe información suficiente para realizar una evaluación fiable.
 
 **INFORMACIÓN INSUFICIENTE**
 
-### Prioridad
+### Efecto / severidad
 
-1 — CRÍTICA respecto a la fiabilidad.
+**R0 — BLOQUEO / CRÍTICA respecto a la fiabilidad**
 
 ### Principio
 
@@ -698,7 +699,27 @@ EIOS no debe inventar una recomendación cuando los datos no permiten sostenerla
 
 ---
 
-# 18. REGLA DE CONFLICTO FINANCIERO
+# 18. REGLAS DE INTERACCIÓN Y CONFLICTO
+
+Las reglas `CON-*` conservan los casos de conflicto definidos en la v1.0. En v2.0 documentan **situaciones de interacción y resultados esperados**; no constituyen un segundo sistema de resolución.
+
+Cuando varias reglas se activan simultáneamente:
+
+```text
+REGLAS INDIVIDUALES
+       ↓
+EVALUACIÓN
+       ↓
+CRC
+       ↓
+RESULTADO CONSOLIDADO
+```
+
+La CRC aplica la jerarquía oficial, salvaguardas, excepciones y condiciones.
+
+---
+
+# 19. REGLA DE CONFLICTO FINANCIERO
 
 ## CON-001
 
@@ -716,17 +737,17 @@ pero compromete la capacidad financiera de la empresa.
 
 **NO COMPRAR**
 
-### Prioridad
+### Efecto / severidad
 
-1 — CRÍTICA
+**R0 — BLOQUEO / CRÍTICA**
 
 ### Principio
 
-La solvencia y capacidad de pago prevalecen sobre ventajas operativas o comerciales de menor prioridad.
+La solvencia y capacidad de pago prevalecen sobre ventajas operativas o comerciales de menor autoridad.
 
 ---
 
-# 19. REGLA DE CONFLICTO STOCK / PRECIO
+# 20. REGLA DE CONFLICTO STOCK / PRECIO
 
 ## CON-002
 
@@ -745,9 +766,13 @@ Existe riesgo de rotura, pero el precio es superior al objetivo.
 - reducir cantidad;
 - buscar proveedor alternativo.
 
+### Efecto / severidad
+
+**R2 — NEGOCIACIÓN / ALTA**
+
 ---
 
-# 20. REGLA DE CONFLICTO STOCK / FINANZAS
+# 21. REGLA DE CONFLICTO STOCK / FINANZAS
 
 ## CON-003
 
@@ -769,9 +794,13 @@ salvo que se encuentre una condición que elimine el riesgo financiero.
 - financiación;
 - solución financiera previamente aprobada.
 
+### Efecto / severidad
+
+**R0 — BLOQUEO / CRÍTICA**, salvo que la condición alternativa elimine el bloqueo y la CRC determine un resultado condicionable.
+
 ---
 
-# 21. REGLA DE CONFLICTO STOCK / PEDIDO CONFIRMADO
+# 22. REGLA DE CONFLICTO STOCK / PEDIDO CONFIRMADO
 
 ## CON-004
 
@@ -792,379 +821,402 @@ Dependerá de:
 - situación financiera;
 - plazo de entrega.
 
+### Efecto / severidad
+
+**R1 — CONDICIONANTE / ALTA**
+
 ---
 
-# 22. REGLA DE CONFLICTO PRECIO / MARGEN
+# 23. REGLA DE CONFLICTO PRECIO / MARGEN
 
 ## CON-005
 
 ### Situación
 
-El precio de compra es elevado respecto al histórico, pero el precio de venta permite mantener el margen mínimo.
+El precio de compra es elevado pero el margen final continúa dentro de los parámetros aceptables.
 
 ### Resultado
 
 **NEGOCIAR**
 
-No necesariamente:
+o
 
-**NO COMPRAR**
+**COMPRAR**
 
-### Motivo
+según el resto de reglas.
 
-Un precio superior al histórico no implica automáticamente que la operación sea inviable.
+### Efecto / severidad
+
+**R2 — NEGOCIACIÓN / MEDIA**
 
 ---
 
-# 23. REGLA DE CONFLICTO PRECIO / PROVEEDOR ALTERNATIVO
+# 24. REGLA DE CONFLICTO HISTÓRICO / MERCADO
 
 ## CON-006
 
 ### Situación
 
-El proveedor actual presenta un precio superior y existe alternativa comparable.
+El precio histórico es inferior al precio actual, pero el mercado ha experimentado un incremento de costes.
 
 ### Resultado
 
-**NEGOCIAR**
+No utilizar automáticamente el histórico como bloqueo.
 
-### Información mostrada
+### Acción
 
-- precio actual;
-- precio alternativo;
-- diferencia;
-- condiciones;
-- plazo;
-- posibles ventajas e inconvenientes.
+Comparar con:
 
----
+- referencias recientes;
+- proveedores alternativos;
+- evolución del mercado;
+- costes actuales.
 
-# 24. REGLA DE CONFLICTO PRECIO / PLAZO DE PAGO
+### Efecto / severidad
 
-## CON-007
-
-### Situación
-
-El precio es superior al objetivo, pero el proveedor ofrece mejores condiciones de pago.
-
-### Resultado
-
-Calcular impacto económico-financiero antes de decidir.
-
-### Posible resultado
-
-**COMPRAR CONDICIONADO**
-
-si las mejores condiciones de pago compensan suficientemente la diferencia de precio según los criterios configurados.
+**R3 — INFORMATIVA / MEDIA**
 
 ---
 
-# 25. REGLA DE COMPRA CONDICIONADA
+# 25. RESULTADOS OFICIALES
 
-## CON-008
+Los resultados oficiales de EIOS son únicamente:
 
-Una compra podrá clasificarse como:
+| Resultado | Significado |
+|---|---|
+| COMPRAR | Operación viable conforme a las reglas aplicables |
+| NEGOCIAR | Existe margen para mejorar condiciones |
+| COMPRAR CONDICIONADO | La compra puede ser viable si se cumple una condición |
+| NO COMPRAR | Existe un bloqueo o la operación no resulta viable |
+| INFORMACIÓN INSUFICIENTE | La evidencia disponible no permite una recomendación fiable |
 
-**COMPRAR CONDICIONADO**
+Expresiones como **NEGOCIAR CANTIDAD** o **EVALUAR PROVEEDOR ALTERNATIVO** son acciones secundarias, no resultados oficiales.
 
-cuando la operación sea potencialmente viable pero dependa de una condición concreta.
+---
+
+# 26. ESTRUCTURA OBLIGATORIA DE UNA REGLA
+
+Cada regla deberá poder documentarse mediante:
+
+```text
+Rule_ID
+Dominio
+Nombre
+Condición
+Efecto (R0-R3)
+Severidad
+Resultado
+Parámetros
+Evidencia
+Excepciones
+Explicación
+```
+
+Opcionalmente:
+
+```text
+Dependencias
+Reglas relacionadas
+Escenarios
+Observaciones
+```
+
+---
+
+# 27. PARÁMETROS
+
+Las reglas no deberán fijar valores rígidos cuando estos deban ser configurables.
 
 Ejemplos:
 
-- precio máximo;
-- plazo mínimo;
-- cantidad máxima;
-- descuento;
-- rappel;
-- entrega anticipada;
-- confirmación de pedido;
-- solución financiera.
+- margen mínimo;
+- stock mínimo;
+- stock máximo;
+- antigüedad máxima de datos;
+- plazo mínimo de pago;
+- límite de precio;
+- umbral de impacto financiero;
+- número mínimo de comparables.
 
-La condición deberá mostrarse explícitamente.
-
----
-
-# 26. REGLA DE NO COMPRA
-
-## CON-009
-
-Una operación deberá clasificarse como:
-
-**NO COMPRAR**
-
-cuando:
-
-- existe riesgo financiero crítico;
-- el margen es inaceptable;
-- existe exceso de stock injustificado;
-- la operación es claramente inviable;
-- o se incumple una regla crítica de bloqueo.
-
-La explicación deberá indicar el motivo principal.
+Los valores deberán proceder del catálogo de parámetros correspondiente.
 
 ---
 
-# 27. REGLA DE COMPRA
+# 28. EVIDENCIA
 
-## CON-010
+Toda regla que influya en una recomendación deberá poder identificar la evidencia utilizada.
 
-Una operación podrá clasificarse como:
+La evidencia deberá respetar el contrato de evidencia definido para EIOS.
 
-**COMPRAR**
-
-cuando:
-
-- no existen bloqueos críticos;
-- el margen cumple;
-- la situación financiera es viable;
-- el stock está justificado;
-- el precio se encuentra dentro de los límites;
-- las condiciones son aceptables;
-- la calidad de datos es suficiente.
+Cuando la evidencia requerida sea insuficiente, la regla no deberá producir una recomendación que exceda la fiabilidad permitida.
 
 ---
 
-# 28. REGLA DE INFORMACIÓN INSUFICIENTE
+# 29. EXCEPCIONES
 
-## CON-011
+Las excepciones deberán estar explícitamente definidas.
 
-Cuando la información disponible no permita realizar una evaluación fiable:
+Una excepción debe indicar:
 
-### Resultado
+```text
+Exception_ID
+Rule_ID
+Condición de aplicación
+Autoridad
+Resultado permitido
+Trazabilidad
+```
 
-**INFORMACIÓN INSUFICIENTE**
+No se permitirán excepciones implícitas.
 
-### EIOS deberá indicar:
+Las salvaguardas clasificadas como no anulables no podrán ser neutralizadas por una excepción ordinaria.
 
-- qué dato falta;
-- por qué es importante;
-- qué decisión queda afectada;
-- qué información debería obtenerse.
+---
+
+# 30. NO COMPENSACIÓN AUTOMÁTICA
+
+Una regla favorable no debe compensar automáticamente una regla crítica desfavorable.
 
 Ejemplo:
 
-> No existe histórico suficiente del artículo para evaluar el precio propuesto.
+```text
+Precio        → favorable
+Margen        → favorable
+Proveedor     → favorable
+Tesorería     → CRÍTICA
+```
+
+El resultado no se determina mediante suma de puntos.
+
+La CRC resolverá el conflicto según la autoridad correspondiente.
 
 ---
 
-# 29. ORDEN DE EVALUACIÓN
+# 31. RELACIÓN CON VIABILITY FRONTIER
 
-El flujo inicial será:
+Las reglas pueden aportar restricciones o condiciones a la determinación de viabilidad.
 
-1. Validación de datos.
-2. Calidad y antigüedad.
-3. Situación financiera.
-4. Margen.
-5. Stock y demanda.
-6. Plazo de entrega.
-7. Precio.
-8. Condiciones de pago.
-9. Proveedores alternativos.
-10. Descuentos y rappels.
-11. Excepciones.
-12. Resolución de conflictos.
-13. Decisión final.
+La **Viability Frontier** determina si una alternativa se encuentra dentro o fuera de la frontera de viabilidad definida.
 
-Este orden podrá evolucionar durante las pruebas.
+La matriz de reglas no debe duplicar esa metodología.
 
 ---
 
-# 30. REGLA DE BLOQUEO
+# 32. RELACIÓN CON ESCENARIOS
 
-Una regla crítica de bloqueo no podrá ser anulada por una regla favorable de menor prioridad.
+Cuando una regla pueda resolverse mediante una modificación de:
+
+- precio;
+- cantidad;
+- plazo;
+- proveedor;
+- condiciones comerciales;
+
+podrá generar una condición o alternativa para evaluación mediante escenarios.
+
+El escenario determinará si la modificación propuesta permite recuperar la viabilidad.
+
+---
+
+# 33. RELACIÓN CON NEGOCIACIÓN
+
+Las reglas R2 pueden producir una recomendación de negociación.
 
 Ejemplo:
 
-### Precio excelente
+```text
+PRE-001
+→ NEGOCIAR
 
-🟢
+Acción secundaria:
+Solicitar reducción del precio.
+```
 
-### Margen excelente
-
-🟢
-
-### Stock necesario
-
-🟢
-
-### Tesorería insuficiente
-
-🔴 CRÍTICO
-
-### Resultado
-
-**NO COMPRAR**
+La negociación concreta será desarrollada por los componentes especializados correspondientes.
 
 ---
 
-# 31. REGLA DE COMPENSACIÓN
+# 34. REGLA DE INFORMACIÓN INSUFICIENTE
 
-Las condiciones favorables no deberán compensar automáticamente una condición crítica.
+Cuando una regla crítica no pueda evaluarse por falta de evidencia:
 
-Sin embargo, una condición problemática podrá solucionarse mediante una condición negociada.
+```text
+Resultado:
+INFORMACIÓN INSUFICIENTE
+```
+
+Esto evita confundir:
+
+```text
+"No sabemos"
+```
+
+con:
+
+```text
+"No es viable"
+```
+
+---
+
+# 35. ESTRUCTURA MÍNIMA DE TRAZABILIDAD DE REGLA
+
+Cada regla deberá poder identificar, como mínimo:
+
+```text
+Rule_ID
+Dominio
+Nombre
+Condición
+Efecto (R0-R3)
+Severidad
+Resultado
+Parámetros utilizados
+Evidencia requerida
+Excepciones aplicables
+Explicación
+```
+
+Cuando el sistema lo soporte, deberá añadir:
+
+```text
+Decision_ID
+Scenario_ID
+Data_Snapshot_ID
+Parameter_Version
+Rules_Version
+EIOS_Version
+```
+
+---
+
+# 36. TRAZABILIDAD
+
+Toda recomendación deberá poder reconstruirse a partir de:
+
+```text
+Datos
+↓
+Parámetros
+↓
+Reglas activadas
+↓
+Efecto / severidad
+↓
+Evidencia
+↓
+CRC
+↓
+Recomendación
+```
+
+La explicación deberá permitir identificar por qué se activó una regla y qué evidencia sustentó su resultado.
+
+---
+
+# 37. EXPLICABILIDAD
+
+Cada regla deberá poder traducirse a una explicación ejecutiva.
 
 Ejemplo:
 
-Precio:
+```text
+Regla:
+PRE-001
 
-🔴 superior al objetivo
+Resultado:
+NEGOCIAR
 
-Plazo de pago:
+Explicación:
+El precio propuesto está por encima de la referencia
+configurada para operaciones comparables.
+```
 
-🟢 90 días
-
-Tesorería:
-
-🟢 suficiente
-
-Resultado posible:
-
-**COMPRAR CONDICIONADO**
+La explicación no deberá introducir información que no proceda de la evidencia disponible.
 
 ---
 
-# 32. REGLA DE EXCEPCIÓN
+# 38. CONTROL HUMANO
 
-Toda excepción deberá cumplir:
+Las reglas proporcionan evaluaciones.
 
-1. estar previamente definida;
-2. tener una condición concreta;
-3. estar autorizada;
-4. quedar registrada;
-5. poder explicarse posteriormente.
+La CRC consolida resultados.
 
-No deberán existir excepciones "ocultas".
+EIOS genera una recomendación.
 
----
+El decisor autorizado toma la decisión empresarial final.
 
-# 33. EXPLICACIÓN DE LA DECISIÓN
-
-EIOS deberá poder generar una explicación breve.
-
-Ejemplo:
-
-## 🟡 NEGOCIAR
-
-**Motivo principal:**
-
-El precio ofertado es un 7,6 % superior a la última compra comparable realizada hace 25 días.
-
-**Situación:**
-
-- Stock: 420 uds.
-- Cobertura: 23 días.
-- Entrega prevista: 15 días.
-- Margen previsto: 27 %.
-- Tesorería: suficiente.
-
-**Recomendación:**
-
-Intentar reducir el precio hasta 17,80 €.
+```text
+REGLAS
+   ↓
+EVALUACIÓN
+   ↓
+CRC
+   ↓
+RECOMENDACIÓN
+   ↓
+DECISOR
+```
 
 ---
 
-# 34. RESUMEN EJECUTIVO PARA EL CEO
+# 39. PRINCIPIOS RECTORES
 
-La pantalla principal no deberá mostrar todas las reglas activadas.
+La Matriz de Reglas MVP deberá respetar:
 
-Deberá mostrar:
-
-### DECISIÓN
-
-COMPRAR / NEGOCIAR / COMPRAR CONDICIONADO / NO COMPRAR
-
-### MOTIVO PRINCIPAL
-
-Una explicación breve.
-
-### RIESGOS
-
-Los principales riesgos detectados.
-
-### NEGOCIACIÓN
-
-Qué debería intentarse conseguir.
-
-### FIABILIDAD
-
-Nivel de fiabilidad del análisis.
-
-La información secundaria estará disponible bajo demanda.
+1. **Trazabilidad**
+2. **Explicabilidad**
+3. **No compensación automática**
+4. **Separación entre efecto y severidad**
+5. **Separación entre regla y resolución de conflictos**
+6. **Configurabilidad**
+7. **Evidencia suficiente**
+8. **Control humano**
+9. **No automatización silenciosa**
+10. **Coherencia con la arquitectura EIOS**
 
 ---
 
-# 35. TRAZABILIDAD
+# 40. REGLAS PENDIENTES DE PARAMETRIZACIÓN O VALIDACIÓN EMPRESARIAL
 
-Cada decisión deberá conservar:
+Quedan pendientes de parametrización o validación empresarial:
 
-- reglas evaluadas;
-- reglas activadas;
-- parámetros utilizados;
-- excepciones;
-- datos de origen;
-- fecha de actualización;
-- configuración vigente;
-- decisión final.
+- umbrales definitivos de margen;
+- límites de precio;
+- metodología de comparables;
+- umbrales de stock;
+- horizonte financiero;
+- umbrales de tesorería;
+- niveles definitivos de riesgo de proveedor;
+- catálogo definitivo de excepciones;
+- salvaguardas no anulables;
+- reglas específicas por familia de producto.
 
-Esto permitirá reconstruir posteriormente por qué EIOS recomendó una determinada acción.
-
----
-
-# 36. MATRIZ INICIAL DE DECISIÓN
-
-| Situación principal | Resultado inicial |
-|---|---|
-| Riesgo financiero crítico | NO COMPRAR |
-| Margen por debajo del mínimo | NO COMPRAR |
-| Precio elevado pero negociable | NEGOCIAR |
-| Stock excesivo | NEGOCIAR / NO COMPRAR |
-| Riesgo de rotura | COMPRAR / CONDICIONADO |
-| Producto sin rotación | NO COMPRAR |
-| Plazo insuficiente | NEGOCIAR |
-| Buen precio y condiciones | COMPRAR |
-| Datos insuficientes | INFORMACIÓN INSUFICIENTE |
-| Exceso de stock + pedido confirmado | Evaluar excepción |
-| Precio alto + buen plazo de pago | Evaluar compensación |
-| Precio alto + proveedor alternativo | NEGOCIAR |
-| Riesgo financiero + cualquier ventaja comercial | NO COMPRAR |
+No deben fijarse valores definitivos sin validación empresarial.
 
 ---
 
-# 37. PRINCIPIO DE NO AUTOMATIZACIÓN ABSOLUTA
+# 41. ESTADO DEL DOCUMENTO
 
-Las reglas no deben convertir EIOS en un sistema que tome decisiones empresariales irreversibles sin intervención humana.
-
-EIOS proporciona:
-
-- análisis;
-- recomendación;
-- explicación;
-- alternativas;
-- riesgos.
-
-La decisión final corresponde al usuario autorizado.
+**Versión:** 2.0  
+**Estado:** APROBADO — Baseline EIOS Vertical MVP  
+**Baseline:** EIOS Vertical MVP  
+**Autoridad:** Definición de reglas de negocio MVP  
+**Resolución de conflictos:** `04_Reglas/Capa_resolucion_conflictos.md`  
+**Control:** Sujeto a `Matriz_Autoridad_Documental.md` y Salvaguarda Oficial EIOS Vertical MVP
 
 ---
 
-# 38. ESTADO DEL DOCUMENTO
+# 42. RELACIÓN DOCUMENTAL
 
-Este documento constituye una primera versión de la Matriz de Reglas MVP.
+La matriz deberá mantenerse coherente con:
 
-No debe considerarse definitivo.
+- `Matriz_Autoridad_Documental.md` — autoridad documental.
+- `04_Reglas/Capa_resolucion_conflictos.md` — resolución de conflictos.
+- contrato de evidencia EIOS — requisitos de evidencia.
+- `Rule_Dependency_Matrix.md` — dependencias entre reglas.
+- catálogo de parámetros MVP — parámetros configurables.
+- `05_Motor/Viability_Frontier.md` — viabilidad.
+- `05_Motor/Scenario_Engine.md` — escenarios.
 
-Las reglas deberán validarse mediante casos reales y pruebas antes de convertirse en lógica de producción.
-
----
-
-# 39. PRÓXIMO TRABAJO
-
-Los siguientes trabajos previstos son:
-
-1. Validar cada regla.
-2. Definir valores concretos.
-3. Definir prioridad.
-4. Definir bloqueos.
-5. Definir excepciones.
-6. Definir conflictos.
-7. Crear casos de prueba.
-8. Convertir las reglas validadas en lógica técnica.
+Ninguna regla de este documento debe establecer silenciosamente una jerarquía de resolución que contradiga la CRC o la autoridad documental superior.
