@@ -2,9 +2,9 @@
 
 > **Documento de recuperación y continuidad del proyecto**
 >
-> **Versión:** 0.1  
-> **Estado:** ACTIVO  
-> **Última actualización:** 09/08/2026  
+> **Versión:** 2.0
+> **Estado:** APROBADO
+> **Última actualización:** 19/08/2026
 > **Proyecto:** EIOS — Enterprise Intelligent Operations System
 
 ---
@@ -19,28 +19,47 @@ Este documento NO sustituye al resto de documentación del proyecto.
 
 Debe utilizarse como mapa de navegación hacia los documentos específicos.
 
+La autoridad sobre identidad, propósito, visión, alcance y límites corresponde al:
+
+`00_Gobierno/Project_Charter.md`
+
+La autoridad sobre precedencia documental corresponde a:
+
+`00_Gobierno/Matriz_Autoridad_Documental.md`
+
+El marco congelado del EIOS Vertical MVP está definido por:
+
+`00_Gobierno/EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md`
+
 ---
 
 # 2. IDENTIDAD DEL PROYECTO
 
-EIOS es un sistema de apoyo a la decisión empresarial basado en datos.
+EIOS — Enterprise Intelligent Operations System es un sistema inteligente de apoyo a la decisión empresarial basado en datos.
 
-Su objetivo inicial es ayudar al CEO y al responsable de compras a tomar mejores decisiones de adquisición mediante el análisis conjunto de:
+El proyecto se estructura mediante una arquitectura conceptual:
 
-- histórico de compras;
-- proveedores;
-- precios;
-- condiciones de compra;
-- stock;
-- rotación;
-- pedidos pendientes;
-- márgenes;
-- tesorería;
-- fondo de maniobra;
-- situación financiera;
-- y otros factores relevantes.
+**CORE + VERTICAL**
 
-EIOS no pretende sustituir al ERP ni los procesos contables.
+El **EIOS Vertical MVP** se centra actualmente en:
+
+**Intelligent Procurement Decision & Negotiation**
+
+Su objetivo es ayudar al CEO y al Responsable de Compras a evaluar, simular, negociar y tomar mejores decisiones de adquisición mediante el análisis conjunto de información financiera, operativa, comercial e histórica.
+
+EIOS no sustituye al ERP ni los procesos contables.
+
+EIOS tampoco sustituye al decisor.
+
+EIOS:
+
+- analiza;
+- evalúa;
+- simula;
+- explica;
+- recomienda.
+
+La decisión empresarial final corresponde al usuario autorizado.
 
 ---
 
@@ -55,21 +74,40 @@ EIOS debe ayudar a determinar si una compra propuesta:
 
 La decisión debe considerar tanto la operación individual como su impacto sobre la situación económica, financiera y operativa de la empresa.
 
+Cuando una operación inicialmente desfavorable pueda convertirse en viable mediante modificación de sus condiciones, negociación o aplicación de una alternativa, EIOS debe poder identificar y explicar dichas posibilidades.
+
 ---
 
 # 4. ALCANCE ACTUAL
 
 ## Prioridad actual
 
-### DECISIÓN DE COMPRAS
+### EIOS VERTICAL — DECISIÓN DE COMPRAS Y NEGOCIACIÓN
 
-Es el núcleo inicial del proyecto.
+Es el núcleo actual del proyecto.
 
 La funcionalidad relacionada con ventas para comerciales queda actualmente:
 
 **EN STANDBY**
 
-Podrá incorporarse posteriormente.
+Podrá incorporarse posteriormente como otro Vertical o como ampliación futura.
+
+El alcance actual comprende:
+
+- decisión de compras;
+- evaluación financiera;
+- evaluación operativa;
+- evaluación de proveedores;
+- reglas;
+- evidencia;
+- viabilidad;
+- escenarios;
+- Decision Twin;
+- negociación;
+- Negotiation Ladder;
+- resolución de conflictos;
+- recomendación explicable;
+- trazabilidad de decisiones.
 
 ---
 
@@ -86,7 +124,10 @@ EIOS debe ser:
 - configurable;
 - adaptable a diferentes empresas;
 - parametrizable sin necesidad de modificar el código;
-- orientado a la toma de decisiones.
+- orientado a la toma de decisiones;
+- explicable;
+- trazable;
+- gobernado.
 
 ### Principio de simplicidad
 
@@ -103,21 +144,28 @@ EIOS:
 - NO sustituye al ERP.
 - NO genera facturas.
 - NO sustituye la contabilidad.
-- NO debe presentar información como actual si los datos tienen una antigüedad superior al límite establecido por la configuración.
+- NO sustituye la decisión empresarial.
+- NO debe ejecutar unilateralmente una compra como consecuencia de una recomendación.
+- NO debe presentar información como actual si los datos superan el límite de antigüedad establecido por la configuración.
 - NO debe ocultar incertidumbres o referencias de baja calidad.
 - NO debe convertir automáticamente una hipótesis debatida en una regla definitiva.
+- NO debe presentar como certeza aquello que sea una estimación o escenario.
 
 ---
 
 # 7. ORIGEN Y RUTA DE LOS DATOS
 
-La ruta inicialmente considerada es:
+La ruta:
 
-ERP → Excel → Power BI → SQL Server
+`ERP → Excel → Power BI → SQL Server`
 
-Actualmente se trabaja habitualmente con SAGE, pero la arquitectura NO debe quedar limitada exclusivamente a SAGE.
+corresponde a una **ruta inicial de trabajo y origen de datos**, no a la arquitectura conceptual oficial de EIOS.
+
+Actualmente se trabaja habitualmente con SAGE, pero EIOS NO debe quedar limitado exclusivamente a SAGE.
 
 La conexión automática con ERP queda contemplada como evolución futura.
+
+Las decisiones sobre arquitectura técnica corresponden a la documentación de Arquitectura y no a este Project Context.
 
 ---
 
@@ -125,17 +173,29 @@ La conexión automática con ERP queda contemplada como evolución futura.
 
 La lógica conceptual actual es:
 
-COMPRA PROPUESTA  
-↓  
-SIMULACIÓN  
-↓  
-MOTOR DE REGLAS  
-↓  
-EVALUACIÓN DE CONFLICTOS  
-↓  
-DECISIÓN  
-↓  
-PLAN DE ACCIÓN
+```text
+DATOS
+  ↓
+EVIDENCIA
+  ↓
+REGLAS
+  ↓
+EVALUACIÓN
+  ↓
+VIABILIDAD
+  ↓
+ESCENARIOS
+  ↓
+DECISION TWIN
+  ↓
+NEGOCIACIÓN
+  ↓
+RESOLUCIÓN DE CONFLICTOS
+  ↓
+RECOMENDACIÓN
+  ↓
+DECISOR
+```
 
 Las posibles respuestas principales son:
 
@@ -144,11 +204,13 @@ Las posibles respuestas principales son:
 - 🔵 COMPRAR CONDICIONADO
 - 🔴 NO COMPRAR
 
+La recomendación de EIOS no constituye automáticamente una orden de compra.
+
 ---
 
 # 9. VARIABLES PRINCIPALES DE LA DECISIÓN DE COMPRA
 
-Entre las variables inicialmente consideradas están:
+Entre las variables consideradas están:
 
 ## Compra
 
@@ -231,18 +293,20 @@ Debe poder proyectar la evolución futura teniendo en cuenta, cuando existan dat
 
 Conceptualmente:
 
+```text
 Stock proyectado =
 Stock actual
 + entradas previstas
 - salidas previstas
+```
 
 Una aplicación importante es detectar posibles roturas de stock antes de que ocurran.
 
 ---
 
-# 11. CRITERIOS DE REFERENCIA Y CÁLCULO
+# 11. REFERENCE & CALCULATION FRAMEWORK
 
-Se ha identificado como área pendiente de diseño el:
+Se ha identificado como área de diseño el:
 
 **Reference & Calculation Framework (RCF)**
 
@@ -295,6 +359,7 @@ Debe explicar la referencia utilizada.
 
 Ejemplo conceptual:
 
+```text
 Precio ofertado: 18,50 €
 
 +7,6 % respecto a la última compra:
@@ -305,6 +370,7 @@ Precio ofertado: 18,50 €
 
 +6,6 % respecto al precio medio ponderado:
 últimos 12 meses.
+```
 
 La información detallada debe estar disponible sin saturar la pantalla principal.
 
@@ -327,6 +393,8 @@ Los datos son escasos, antiguos o poco comparables.
 
 EIOS debe evitar transmitir una falsa sensación de precisión.
 
+La suficiencia y calidad de la evidencia deberán alinearse con el `Evidence_Contract.md`.
+
 ---
 
 # 15. MOTOR DE REGLAS
@@ -343,6 +411,10 @@ Las reglas deben poder adaptarse a:
 - estrategia de compras.
 
 No deben quedar rígidamente codificadas.
+
+La definición oficial de las reglas corresponde a:
+
+`04_Reglas/Matriz_Reglas_MVP.md`
 
 ---
 
@@ -368,27 +440,38 @@ Precio superior al objetivo → recomendar negociación.
 
 ### Reglas de excepción
 
-Pueden modificar el efecto de otra regla.
+Pueden modificar el efecto de otra regla cuando las condiciones definidas lo permitan.
 
 Ejemplo:
 
 Stock elevado + pedido de cliente confirmado → reducir riesgo de sobrestock.
 
+La clasificación definitiva y su comportamiento corresponden a la documentación oficial del motor de reglas.
+
 ---
 
 # 17. PRIORIDAD Y CONFLICTO ENTRE REGLAS
 
-Este apartado está actualmente:
+La prioridad y resolución de conflictos entre reglas constituye un área formal del diseño de EIOS.
 
-**PENDIENTE DE DEFINICIÓN**
-
-Se ha establecido como principio que no debe utilizarse una simple suma de reglas verdes y rojas.
+No debe utilizarse una simple suma de reglas verdes y rojas.
 
 Una regla financiera crítica, por ejemplo, no debe quedar anulada simplemente porque existan varias condiciones favorables.
 
-Debe diseñarse una jerarquía de reglas.
+Debe existir una jerarquía formal que contemple:
 
-También debe contemplarse la posibilidad de reglas superiores, excepciones y condiciones.
+- prioridad;
+- severidad;
+- bloqueos;
+- excepciones;
+- dependencias;
+- condiciones;
+- conflictos;
+- resultado consolidado.
+
+La resolución formal de conflictos corresponde a:
+
+`05_Motor/Capa_resolucion_conflictos.md`
 
 ---
 
@@ -410,11 +493,13 @@ EIOS no debe limitarse a diagnosticar un problema.
 
 Cuando sea posible, debe ayudar a identificar condiciones que hagan viable la operación.
 
+La condición debe quedar explícita y ser trazable.
+
 ---
 
 # 19. PLAN DE ACCIÓN FINANCIERO
 
-Cuando una compra comprometa la situación financiera, EIOS debe poder mostrar alternativas que permitan estudiar la viabilidad.
+Cuando una compra comprometa la situación financiera, EIOS puede mostrar alternativas que permitan estudiar la viabilidad.
 
 Ejemplos considerados:
 
@@ -433,9 +518,11 @@ EIOS debe presentarlas como posibles vías de actuación para valoración humana
 
 # 20. CONFIGURATION CENTER
 
-Se ha identificado una nueva pieza transversal:
+El:
 
-## EIOS Configuration Center
+**EIOS Configuration Center**
+
+es un componente transversal del sistema.
 
 Será el centro de parametrización del sistema.
 
@@ -453,6 +540,14 @@ Debe permitir configurar, entre otros:
 - políticas de empresa.
 
 Debe partir de valores estándar editables.
+
+La definición de qué parámetros existen corresponde al:
+
+`02_Parametros/Catalogo_Parametros_MVP_v0.2.md`
+
+La configuración y gobierno de sus valores corresponde al:
+
+`02_Parametros/Centro_Parametrizacion.md`
 
 ---
 
@@ -492,6 +587,7 @@ Los cambios importantes deben conservar historial.
 
 Ejemplo:
 
+```text
 Margen mínimo:
 
 01/01/2026 → 20 %
@@ -499,8 +595,13 @@ Margen mínimo:
 01/07/2026 → 22 %
 
 01/01/2027 → 25 %
+```
 
 EIOS debe poder conocer qué configuración estaba vigente cuando se produjo una determinada decisión.
+
+La trazabilidad temporal de las decisiones deberá alinearse con:
+
+`05_Motor/Decision_Versioning.md`
 
 ---
 
@@ -512,15 +613,18 @@ Se considera interesante que el Configuration Center pueda permitir:
 
 Ejemplo:
 
+```text
 Margen mínimo actual: 20 %
 
 Nuevo margen mínimo: 25 %
 
-EIOS podría mostrar:
+Resultado simulado:
 
-"Con este cambio, 14 operaciones históricas que anteriormente eran aceptables pasarían a clasificarse como negociar."
+14 operaciones históricas que anteriormente eran aceptables
+pasarían a clasificarse como negociar.
+```
 
-Esta funcionalidad queda como propuesta de evolución.
+Esta funcionalidad queda como propuesta de evolución hasta su formalización.
 
 ---
 
@@ -529,11 +633,14 @@ Esta funcionalidad queda como propuesta de evolución.
 Las decisiones importantes deben poder explicar:
 
 - qué datos se utilizaron;
+- qué evidencias se utilizaron;
 - qué referencias se utilizaron;
 - qué parámetros estaban vigentes;
 - qué reglas se activaron;
 - qué excepciones se aplicaron;
-- qué resultado produjo el motor.
+- qué escenarios se evaluaron;
+- qué resultado produjo el motor;
+- qué recomendación se generó.
 
 El objetivo es que EIOS pueda explicar:
 
@@ -541,13 +648,41 @@ El objetivo es que EIOS pueda explicar:
 
 ---
 
-# 26. ESTADO ACTUAL DEL PROYECTO
+# 26. ASSURANCE Y SALVAGUARDAS
+
+Assurance actúa transversalmente sobre EIOS.
+
+Las decisiones deberán respetar:
+
+- evidencia suficiente;
+- trazabilidad;
+- explicabilidad;
+- integridad;
+- coherencia;
+- auditabilidad;
+- control de regresiones.
+
+La autoridad sobre Assurance corresponde a:
+
+`00_Gobierno/EIOS_Assurance_Framework.md`
+
+El marco congelado del EIOS Vertical MVP corresponde a:
+
+`00_Gobierno/EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md`
+
+Ningún componente especializado puede contradecir una restricción expresamente congelada por la Salvaguarda.
+
+---
+
+# 27. ESTADO ACTUAL DEL PROYECTO
 
 ## 🟢 Definido
 
-- Objetivo general.
-- Alcance inicial.
+- Identidad EIOS.
+- Propósito general.
+- Alcance del Vertical MVP.
 - Decisión de compras como núcleo.
+- Negociación como parte del Vertical.
 - Usuarios iniciales.
 - Ruta inicial de datos.
 - Principios de diseño.
@@ -558,8 +693,11 @@ El objetivo es que EIOS pueda explicar:
 - Necesidad de motor de reglas.
 - Necesidad de parametrización.
 - Configuration Center como componente transversal.
+- Arquitectura conceptual Core + Vertical.
+- Salvaguarda del Vertical MVP.
+- Autoridad documental.
 
-## 🟡 En desarrollo
+## 🟡 En desarrollo / formalización
 
 - Reference & Calculation Framework.
 - Criterios temporales.
@@ -569,83 +707,78 @@ El objetivo es que EIOS pueda explicar:
 - Resolución de conflictos entre reglas.
 - Sistema de excepciones.
 - Parámetros iniciales.
+- Componentes especializados del Motor.
 
 ## ⚪ Pendiente
 
 - Arquitectura técnica definitiva.
 - Modelo de datos definitivo.
 - Integración automática con ERP.
-- Implementación del motor de reglas.
-- Interfaz del Configuration Center.
-- Desarrollo del MVP.
+- Implementación completa del motor de reglas.
+- Interfaz definitiva del Configuration Center.
+- Desarrollo completo del MVP.
+
+El estado detallado de cada componente debe determinarse mediante su documentación oficial y no mediante este documento cuando exista discrepancia.
 
 ---
 
-# 27. REGLA DE TRABAJO DEL PROYECTO
+# 28. AUTORIDAD Y NAVEGACIÓN DOCUMENTAL
+
+Este documento es un documento de contexto y continuidad.
+
+No redefine conceptos cuya autoridad corresponda a documentos especializados.
+
+Cuando exista una discrepancia documental, debe consultarse:
+
+```text
+Matriz_Autoridad_Documental.md
+          ↓
+determina la fuente oficial
+          ↓
+documento especializado
+          ↓
+implementación
+```
+
+Documentos fundamentales de referencia:
+
+```text
+00_Gobierno/
+├── Project_Charter.md
+├── Project_Context.md
+├── Project_Governance.md
+├── Matriz_Autoridad_Documental.md
+├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
+└── EIOS_Assurance_Framework.md
+```
+
+---
+
+# 29. REGLA DE TRABAJO DEL PROYECTO
 
 EIOS se desarrollará mediante:
 
+```text
 DEFINIR
-↓
+   ↓
 CUESTIONAR
-↓
+   ↓
 CONTRASTAR
-↓
+   ↓
 MEJORAR
-↓
+   ↓
 SIMPLIFICAR
-↓
+   ↓
 VALIDAR
-↓
+   ↓
 DOCUMENTAR
-↓
+   ↓
 IMPLEMENTAR
+```
 
 No se debe programar una pieza importante antes de haber definido suficientemente su lógica de negocio.
 
----
-
-# 28. ESTADO DE LA CONVERSACIÓN ACTUAL
-
-### Nodo principal
-
-EOM / Enterprise Decision Model
-
-### Subnodo
-
-Decisión de Compra
-
-### Punto actual
-
-Prioridad y conflicto entre reglas.
-
-### Nuevo componente identificado
-
-EIOS Configuration Center.
-
-### Nuevo framework identificado
-
-Reference & Calculation Framework (RCF).
-
----
-
-# 29. PRÓXIMO PASO
-
-Continuar trabajando sobre:
-
-## PRIORIDAD Y CONFLICTO ENTRE REGLAS
-
-Definir mediante casos reales:
-
-- qué reglas tienen prioridad;
-- qué reglas pueden bloquear;
-- qué reglas pueden ser anuladas;
-- qué excepciones existen;
-- cuándo una compra pasa a "Negociar";
-- cuándo pasa a "Comprar condicionado";
-- cuándo debe producirse un "No comprar".
-
-Posteriormente formalizar estas decisiones en el motor de reglas.
+Las decisiones congeladas por la Salvaguarda no deben modificarse silenciosamente.
 
 ---
 
@@ -654,3 +787,7 @@ Posteriormente formalizar estas decisiones en el motor de reglas.
 > EIOS no debe limitarse a decir qué está ocurriendo.
 >
 > Debe ayudar a comprender por qué ocurre, qué riesgo implica y qué alternativas existen para tomar una mejor decisión.
+
+Y debe hacerlo manteniendo siempre una premisa fundamental:
+
+> **EIOS analiza, evalúa, simula, explica y recomienda. El decisor decide.**
