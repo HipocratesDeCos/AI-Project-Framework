@@ -3,7 +3,7 @@
 ## EIOS — Enterprise Intelligent Operations System
 
 **Versión:** 2.0  
-**Estado:** APROBADO
+**Estado:** APROBADO  
 **Ubicación:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
 ---
@@ -180,7 +180,6 @@ Define:
 - Decision Twin;
 - negociación;
 - resolución de conflictos;
-- assurance;
 - versionado.
 
 ## Nivel D — Implementación
@@ -228,7 +227,6 @@ Define:
 | Negotiation Intelligence | `05_Motor/Negotiation_Intelligence.md` | Inteligencia y análisis de negociación |
 | Negotiation Ladder | `05_Motor/Negotiation_Ladder.md` | Secuencia y estructura de negociación |
 | Resolución de conflictos | `05_Motor/Capa_resolucion_conflictos.md` | Resolución de resultados contradictorios entre reglas y evaluaciones |
-| Assurance | `00_Gobierno/EIOS_Assurance_Framework.md` | Salvaguardas, controles y garantías transversales del sistema |
 | Versionado de decisiones | `05_Motor/Decision_Versioning.md` | Identidad, historial y versionado de decisiones |
 | SQL | `06_SQL/06_LEEME_SQL.md` | Organización y criterios de implementación SQL |
 | Aplicación | `07_Implementacion/07_LEEME_Implementacion.md` | Construcción e integración de la aplicación |
@@ -286,9 +284,7 @@ Por tanto:
 SALVAGUARDA
       │
       ├── establece el marco
-      │
       ├── establece límites
-      │
       └── establece relaciones esenciales
                   │
                   ▼
@@ -328,17 +324,9 @@ No define por sí mismo:
 
 # 10. Autoridad de Parámetros y Configuración
 
-El:
+El `02_Parametros/Catalogo_Parametros_MVP_v0.2.md` define qué parámetros existen y qué representan.
 
-`02_Parametros/Catalogo_Parametros_MVP_v0.2.md`
-
-define qué parámetros existen y qué representan.
-
-El:
-
-`02_Parametros/Centro_Parametrizacion.md`
-
-define cómo se configuran y gobiernan sus valores.
+El `02_Parametros/Centro_Parametrizacion.md` define cómo se configuran y gobiernan sus valores.
 
 La relación es:
 
@@ -368,11 +356,7 @@ Si se necesita un nuevo parámetro:
 
 # 11. Autoridad de Reglas
 
-La:
-
-`04_Reglas/Matriz_Reglas_MVP.md`
-
-constituye la autoridad sobre:
+La `04_Reglas/Matriz_Reglas_MVP.md` constituye la autoridad sobre:
 
 - identificación de reglas;
 - condiciones;
@@ -429,17 +413,7 @@ El documento de `Viability_Frontier` constituye la autoridad sobre:
 
 La Viability Frontier no constituye por sí sola una orden de compra.
 
-Una condición:
-
-```text
-VIABLE
-```
-
-no equivale automáticamente a:
-
-```text
-COMPRAR
-```
+Una condición `VIABLE` no equivale automáticamente a `COMPRAR`.
 
 La decisión final depende del conjunto de evaluaciones y de la lógica de decisión definida por EIOS.
 
@@ -488,11 +462,7 @@ No sustituye la autoridad del CEO.
 - trade-offs;
 - condiciones de negociación;
 - oportunidades de mejora;
-- información relevante para negociar.
-
-Negotiation Intelligence recomienda y explica.
-
-No ejecuta unilateralmente la decisión empresarial.
+- evaluación de propuestas.
 
 ---
 
@@ -502,378 +472,207 @@ No ejecuta unilateralmente la decisión empresarial.
 
 - niveles de negociación;
 - secuencia de concesiones;
-- condiciones de avance;
 - límites;
 - alternativas;
-- escalado negociador.
+- condiciones de escalado.
 
-La Negotiation Ladder debe respetar las restricciones financieras, empresariales y de assurance establecidas por EIOS.
+La Negotiation Ladder no puede modificar por sí misma las reglas de decisión empresarial.
 
 ---
 
 # 19. Autoridad de Resolución de Conflictos
 
-La:
+`Capa_resolucion_conflictos.md` constituye la autoridad sobre cómo resolver resultados incompatibles entre:
 
-`05_Motor/Capa_resolucion_conflictos.md`
+- reglas;
+- evaluaciones;
+- bloqueos;
+- excepciones;
+- condiciones.
 
-constituye la autoridad sobre:
-
-- resolución de resultados incompatibles;
-- jerarquía de conflictos;
-- severidad;
-- motivo dominante;
-- efectos de conflicto;
-- compra condicionada;
-- reglas de salvaguarda;
-- resultado consolidado.
-
-La CRC no modifica silenciosamente las reglas que originaron el conflicto.
+La resolución de conflictos debe conservar trazabilidad.
 
 ---
 
-# 20. Autoridad del Assurance Framework
-
-El:
-
-`00_Gobierno/EIOS_Assurance_Framework.md`
-
-constituye la autoridad sobre las salvaguardas y controles transversales que afectan a:
-
-- calidad;
-- evidencia;
-- trazabilidad;
-- explicabilidad;
-- integridad;
-- seguridad;
-- coherencia;
-- auditabilidad;
-- control de regresiones.
-
-Assurance atraviesa todas las capas.
-
-Ningún componente puede interpretar una condición de Assurance como opcional si está definida como salvaguarda obligatoria.
-
----
-
-# 21. Autoridad del Versionado de Decisiones
+# 20. Autoridad de Versionado de Decisiones
 
 `Decision_Versioning.md` constituye la autoridad sobre:
 
 - identidad de una decisión;
 - versiones;
 - historial;
-- modificaciones;
-- relación entre versiones;
+- relación entre decisiones sucesivas;
 - trazabilidad temporal.
 
-Una nueva evaluación no debe sobrescribir silenciosamente una decisión anterior.
+Una nueva decisión no debe borrar la existencia de una decisión anterior.
 
 ---
 
-# 22. Relación oficial entre documentos de Inteligencia
+# 21. Autoridad de Implementación
 
-La relación conceptual de los documentos especializados es:
+Los documentos de implementación constituyen autoridad sobre cómo se construye y ejecuta técnicamente EIOS.
 
-```text
-MODELO EMPRESARIAL DE DECISIÓN
-            │
-            ▼
-     CATÁLOGO DE PARÁMETROS
-            │
-            ▼
-  CENTRO DE PARAMETRIZACIÓN
-            │
-            ▼
-      MATRIZ DE REGLAS
-            │
-            ├──────────────► EVIDENCE CONTRACT
-            │
-            └──────────────► RULE DEPENDENCY MATRIX
-                                │
-                                ▼
-                       EVALUACIÓN DE REGLAS
-                                │
-                                ▼
-                       VIABILITY FRONTIER
-                                │
-                                ▼
-                         SCENARIO ENGINE
-                                │
-                                ▼
-                         DECISION TWIN
-                                │
-                                ▼
-                    NEGOTIATION INTELLIGENCE
-                                │
-                                ▼
-                       NEGOTIATION LADDER
-                                │
-                                ▼
-                    RESOLUCIÓN DE CONFLICTOS
-                                │
-                                ▼
-                         DECISIÓN EIOS
-```
+La implementación no puede redefinir unilateralmente:
 
-Assurance actúa transversalmente sobre todo el flujo.
-
-Decision Versioning preserva la identidad e historial de las decisiones.
-
----
-
-# 23. Regla de precedencia
-
-Cuando dos documentos entren en conflicto se aplicará el siguiente procedimiento.
-
-## Paso 1 — Identificar el concepto
-
-Determinar exactamente qué concepto está siendo definido de forma diferente.
-
-Ejemplos:
-
-- nombre del proyecto;
-- alcance;
-- parámetro financiero;
-- regla de stock;
-- evidencia;
-- resultado de una decisión;
-- flujo de datos;
-- escenario;
-- condición de negociación.
-
----
-
-## Paso 2 — Identificar el dominio
-
-Determinar si el concepto pertenece a:
-
-- gobierno;
-- identidad;
-- modelo empresarial;
-- arquitectura;
+- reglas empresariales;
 - parámetros;
-- configuración;
-- reglas;
-- evidencia;
-- dependencias;
-- viabilidad;
-- escenarios;
-- Decision Twin;
-- negociación;
-- resolución de conflictos;
-- assurance;
-- versionado;
-- implementación;
-- pruebas.
+- decisiones congeladas;
+- autoridad documental.
+
+Si la implementación requiere modificar una definición funcional, debe escalarse el cambio al documento que tenga autoridad sobre dicha definición.
 
 ---
 
-## Paso 3 — Consultar la fuente oficial
+# 22. Autoridad de Pruebas
 
-La fuente indicada en esta Matriz de Autoridad será la referencia principal.
+La carpeta `07_Pruebas/` constituye la referencia para:
 
----
+- pruebas;
+- validaciones;
+- criterios de aceptación;
+- resultados de verificación;
+- evidencia de funcionamiento.
 
-## Paso 4 — Comprobar el marco superior
-
-Antes de aceptar una definición especializada debe comprobarse que no contradice:
-
-1. el Project Charter, cuando afecte a identidad o alcance;
-2. el Project Governance, cuando afecte a gobierno;
-3. la Salvaguarda, cuando afecte al marco congelado del Vertical MVP.
+Una prueba puede demostrar que una implementación cumple una especificación, pero no puede modificar la especificación por sí misma.
 
 ---
 
-## Paso 5 — Determinar la naturaleza de la contradicción
+# 23. Precedencia ante conflictos
 
-La contradicción puede ser:
-
-- documental;
-- obsolescencia;
-- error;
-- cambio de diseño;
-- cambio empresarial;
-- cambio arquitectónico;
-- decisión todavía no formalizada.
-
----
-
-## Paso 6 — No corregir automáticamente
-
-No se modificará ningún documento hasta determinar cuál es la definición oficial vigente.
-
----
-
-## Paso 7 — Registrar la decisión
-
-Cuando la contradicción implique una nueva decisión de diseño o negocio, esta deberá formalizarse antes de actualizar los documentos afectados.
-
----
-
-# 24. Precedencia especial de la Salvaguarda
-
-La Salvaguarda tiene precedencia sobre los documentos especializados **cuando la contradicción afecte a una restricción o principio expresamente congelado por ella**.
-
-Ejemplo:
+Cuando dos documentos entren en conflicto se aplicará el siguiente procedimiento:
 
 ```text
-Salvaguarda:
-EIOS analiza y recomienda; el CEO decide.
-
-Documento especializado:
-EIOS ejecuta automáticamente la compra.
-
-Resultado:
-CONTRADICCIÓN.
+1. IDENTIFICAR EL CONCEPTO
+        ↓
+2. IDENTIFICAR SU DOMINIO
+        ↓
+3. CONSULTAR ESTA MATRIZ
+        ↓
+4. IDENTIFICAR LA FUENTE OFICIAL
+        ↓
+5. COMPROBAR SI EXISTE UNA DECISIÓN CONGELADA
+        ↓
+6. APLICAR LA FUENTE DE MAYOR AUTORIDAD
+        ↓
+7. ACTUALIZAR LOS DOCUMENTOS SECUNDARIOS
+        ↓
+8. REGISTRAR EL CAMBIO
 ```
 
-El documento especializado deberá corregirse o deberá formalizarse previamente una modificación de la Salvaguarda.
+No debe resolverse una contradicción simplemente utilizando el documento más reciente.
 
-Sin embargo:
+La antigüedad no determina por sí sola la autoridad.
+
+---
+
+# 24. Relación entre documentos de gobierno
+
+Los documentos de gobierno deben entenderse así:
 
 ```text
-Salvaguarda:
-Define que existe una CRC.
-
-Documento CRC:
-Define exactamente cómo clasifica la severidad.
-
-Resultado:
-NO existe contradicción.
+PROJECT CHARTER
+      │
+      ├── identidad
+      ├── propósito
+      ├── alcance
+      └── límites
+              │
+              ▼
+PROJECT CONTEXT
+      │
+      └── continuidad y estado
+              │
+              ▼
+PROJECT GOVERNANCE
+      │
+      └── reglas de gobierno
+              │
+              ▼
+MATRIZ DE AUTORIDAD
+      │
+      └── quién tiene autoridad
+              │
+              ▼
+SALVAGUARDA VERTICAL MVP
+      │
+      └── qué está congelado
+              │
+              ▼
+DOCUMENTOS ESPECIALIZADOS
+      │
+      └── cómo se desarrolla cada dominio
 ```
 
-La CRC tiene autoridad especializada sobre su propia implementación conceptual.
+El `Manual_Maestro_Proyecto_EIOS.md` actúa como documento de orientación y navegación, no como autoridad paralela.
 
 ---
 
-# 25. Documentos históricos y obsoletos
+# 25. Reglas de mantenimiento
 
-Los documentos almacenados en:
+La Matriz deberá actualizarse cuando:
 
-`99_Archivo/`
+- se cree un nuevo documento con autoridad;
+- se modifique la autoridad de un documento;
+- se elimine un documento oficial;
+- se cambie una ruta oficial;
+- se cree un nuevo dominio de autoridad;
+- se produzca una decisión estructural que afecte a la precedencia documental.
 
-se consideran material histórico.
-
-No constituyen autoridad sobre el estado vigente de EIOS salvo que se consulte expresamente su contenido histórico.
-
-Un documento archivado no puede utilizarse para contradecir una definición vigente.
-
----
-
-# 26. Referencias cruzadas
-
-Un documento secundario debe referenciar a la fuente oficial cuando utilice un concepto cuya autoridad corresponda a otro documento.
-
-Ejemplo:
-
-```text
-El presente documento utiliza el parámetro
-FIN_MARGIN_MIN definido oficialmente en:
-
-02_Parametros/Catalogo_Parametros_MVP_v0.2.md
-```
-
-No debe duplicarse una definición crítica si puede mantenerse una referencia inequívoca.
+No debe actualizarse por simples cambios de redacción en documentos subordinados.
 
 ---
 
-# 27. Documentos todavía no creados
+# 26. Control de documentos futuros
 
-Una entrada de esta matriz puede reservar autoridad para un documento futuro.
+Una ruta incluida en esta matriz puede encontrarse en uno de estos estados:
 
-Esto significa:
+### EXISTENTE
 
-- el dominio está reconocido;
-- la autoridad futura está definida;
-- el documento todavía debe construirse.
+El documento está creado y constituye la fuente oficial.
 
-La existencia de una entrada en esta matriz **no implica que el documento exista actualmente**.
+### RESERVADA
 
-Hasta que el documento sea creado y aprobado, la autoridad deberá resolverse utilizando los documentos actualmente vigentes y la Salvaguarda cuando corresponda.
+La autoridad está definida, pero el documento todavía no existe.
 
----
+### OBSOLETA
 
-# 28. Regla de no regresión
+El documento existió, pero ya no constituye fuente oficial.
 
-Una nueva versión documental no puede introducir silenciosamente una definición que contradiga una decisión congelada.
+### SUSTITUIDA
 
-Si se necesita modificar una decisión congelada:
+La autoridad ha pasado formalmente a otro documento.
 
-```text
-Identificar cambio
-      ↓
-Evaluar impacto
-      ↓
-Registrar decisión
-      ↓
-Actualizar autoridad correspondiente
-      ↓
-Actualizar documentos dependientes
-      ↓
-Verificar coherencia
-```
+Una referencia reservada no debe interpretarse como un documento existente.
 
 ---
 
-# 29. Control de cambios
+# 27. Regla de no regresión documental
 
-Toda modificación de esta matriz deberá indicar:
+Una modificación de estructura documental no debe reducir la trazabilidad existente.
 
-- versión;
-- fecha;
-- motivo;
-- cambios realizados;
-- documentos afectados.
+No se debe:
 
-Las modificaciones relevantes deberán quedar registradas en el historial de Git.
+- eliminar una fuente oficial sin designar sustituta;
+- crear dos fuentes oficiales para el mismo concepto;
+- mover un documento sin actualizar las referencias;
+- convertir una decisión congelada en una recomendación informal;
+- introducir lógica contradictoria en documentos subordinados.
 
 ---
 
-# 30. Estado de esta versión
+# 28. Estado de la Matriz
 
 **Versión:** 2.0  
-**Estado:** MVP — Propuesta para aprobación
+**Estado:** APROBADO  
+**Ámbito:** Gobierno documental EIOS  
+**Carácter:** Fuente oficial de autoridad y precedencia documental
 
-Esta versión actualiza la Matriz de Autoridad Documental para reflejar:
-
-- la estructura documental vigente de GitHub;
-- la existencia del EIOS Vertical MVP;
-- la Salvaguarda Oficial como marco constitucional del Vertical;
-- la separación entre autoridad global y autoridad especializada;
-- los nuevos componentes conceptuales del MVP;
-- la necesidad de preservar una única fuente oficial por dominio;
-- el principio de no corrección automática de contradicciones.
+La Matriz define la autoridad necesaria para evitar ambigüedad cuando los documentos especializados sean creados.
 
 ---
 
-# 31. Principio final
+# 29. Principio final
 
-> **La documentación de EIOS puede evolucionar. La autoridad debe permanecer clara.**
+> **Cuando exista una duda sobre qué documento manda, no se interpreta: se consulta la Matriz de Autoridad Documental.**
 
-Cuando exista una duda:
-
-```text
-NO asumir
-NO duplicar
-NO corregir silenciosamente
-NO crear una tercera definición
-
-IDENTIFICAR
-      ↓
-CLASIFICAR
-      ↓
-CONSULTAR LA AUTORIDAD
-      ↓
-DECIDIR
-      ↓
-REGISTRAR
-      ↓
-ACTUALIZAR
-```
-
-La finalidad de esta matriz no es controlar la documentación por sí misma.
-
-Su finalidad es garantizar que **EIOS siempre pueda responder a una pregunta fundamental:**
-
-> **«¿Qué documento tiene autoridad para decir esto?»**
+La Matriz constituye el mecanismo oficial para preservar una única fuente de verdad documental dentro de EIOS.
