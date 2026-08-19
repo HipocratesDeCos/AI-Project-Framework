@@ -3,7 +3,7 @@
 ## EIOS — Enterprise Intelligent Operations System
 
 **Versión:** 2.0  
-**Estado:** v2.0 — preparada para aprobación y posterior sustitución en GitHub  
+Estado: APROBADO — Baseline EIOS Vertical MVP
 **Ubicación:** `04_Reglas/Capa_resolucion_conflictos.md`
 
 ---
