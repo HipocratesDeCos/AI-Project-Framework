@@ -2,9 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.2  
-**Estado:** En desarrollo  
-**Última actualización:** 09/08/2026
+**Versión:** 2.0  
+**Estado:** APROBADO — Baseline EIOS Vertical MVP  
+**Baseline:** EIOS Vertical MVP  
+**Última actualización:** 19/08/2026
 
 ---
 
@@ -12,7 +13,7 @@
 
 El Modelo Empresarial de Decisión (MED) define cómo EIOS analiza una propuesta de compra, combina información histórica, operativa y financiera, aplica los criterios y reglas establecidos por la empresa y genera una recomendación comprensible para el usuario.
 
-El MED constituye el núcleo lógico de decisión de EIOS.
+El MED constituye el núcleo lógico empresarial de decisión de EIOS.
 
 No ejecuta automáticamente la compra.
 
@@ -27,7 +28,16 @@ Determinar si una compra propuesta:
 - debe realizarse;
 - debe negociarse;
 - puede realizarse condicionadamente;
-- o no debe realizarse.
+- no debe realizarse;
+- o no puede evaluarse con fiabilidad suficiente.
+
+Los resultados oficiales son:
+
+1. **COMPRAR**
+2. **NEGOCIAR**
+3. **COMPRAR CONDICIONADO**
+4. **NO COMPRAR**
+5. **INFORMACIÓN INSUFICIENTE**
 
 La decisión debe considerar tanto la operación concreta como su impacto sobre la situación económica, financiera y operativa de la empresa.
 
@@ -43,9 +53,47 @@ Debe intentar responder:
 
 > ¿Tiene sentido realizar esta compra en estas condiciones y qué deberíamos negociar para mejorarla o hacerla viable?
 
+El MED debe favorecer una decisión empresarial explicable, trazable y sustentada por evidencia.
+
 ---
 
-# 4. ENTRADA DEL MODELO
+# 4. RESPONSABILIDAD DEL MED
+
+El MED es el componente que coordina el proceso empresarial de evaluación de una propuesta de compra.
+
+Debe:
+
+- recibir la propuesta;
+- identificar los datos necesarios;
+- coordinar los análisis;
+- evaluar las reglas aplicables;
+- recoger sus resultados;
+- incorporar las excepciones permitidas;
+- remitir los resultados a la Capa de Resolución de Conflictos (CRC);
+- recibir la resolución consolidada;
+- construir la recomendación explicable para el usuario.
+
+El MED no constituye una segunda autoridad de resolución de conflictos.
+
+---
+
+# 5. LÍMITES DEL MED
+
+El MED:
+
+- no redefine la autoridad documental de EIOS;
+- no sustituye a la CRC;
+- no establece una jerarquía propia de reglas;
+- no modifica parámetros por iniciativa propia;
+- no ejecuta compras;
+- no anula salvaguardas no anulables;
+- no inventa evidencia;
+- no convierte ausencia de datos en una conclusión favorable o desfavorable sin fundamento;
+- no sustituye al decisor humano.
+
+---
+
+# 6. ENTRADA DEL MODELO
 
 La entrada principal es una:
 
@@ -72,11 +120,11 @@ La **fecha de propuesta de compra** es especialmente importante porque permite r
 
 ---
 
-# 5. INFORMACIÓN UTILIZADA
+# 7. INFORMACIÓN UTILIZADA
 
 El modelo puede utilizar información procedente de diferentes áreas.
 
-## 5.1 Compras
+## 7.1 Compras
 
 - últimas compras;
 - fechas;
@@ -88,7 +136,7 @@ El modelo puede utilizar información procedente de diferentes áreas.
 - rappels;
 - incidencias.
 
-## 5.2 Proveedores
+## 7.2 Proveedores
 
 - proveedor actual;
 - proveedores alternativos;
@@ -97,7 +145,7 @@ El modelo puede utilizar información procedente de diferentes áreas.
 - condiciones;
 - incidencias.
 
-## 5.3 Stock
+## 7.3 Stock
 
 - stock actual;
 - stock comprometido;
@@ -108,7 +156,7 @@ El modelo puede utilizar información procedente de diferentes áreas.
 - demanda histórica;
 - demanda prevista.
 
-## 5.4 Rentabilidad
+## 7.4 Rentabilidad
 
 - precio de venta;
 - margen en euros;
@@ -117,7 +165,7 @@ El modelo puede utilizar información procedente de diferentes áreas.
 - impacto de descuentos;
 - impacto de rappels.
 
-## 5.5 Situación financiera
+## 7.5 Situación financiera
 
 - tesorería;
 - pagos previstos;
@@ -128,7 +176,34 @@ El modelo puede utilizar información procedente de diferentes áreas.
 
 ---
 
-# 6. ANÁLISIS TEMPORAL
+# 8. CALIDAD Y SUFICIENCIA DE LOS DATOS
+
+Antes de emitir una recomendación, EIOS debe determinar si la información disponible permite realizar una evaluación suficientemente fiable.
+
+Debe considerar, cuando corresponda:
+
+- actualidad;
+- completitud;
+- comparabilidad;
+- número de referencias;
+- consistencia;
+- evidencia disponible.
+
+Cuando una evaluación crítica no pueda realizarse por falta de información suficiente, el resultado podrá ser:
+
+**INFORMACIÓN INSUFICIENTE**
+
+EIOS no debe confundir:
+
+> No disponemos de evidencia suficiente.
+
+con:
+
+> La operación no es viable.
+
+---
+
+# 9. ANÁLISIS TEMPORAL
 
 El MED debe analizar la compra teniendo en cuenta el tiempo.
 
@@ -149,16 +224,18 @@ El análisis temporal permitirá estudiar la evolución prevista de la situació
 
 ---
 
-# 7. PROYECCIÓN DE STOCK
+# 10. PROYECCIÓN DE STOCK
 
 EIOS debe poder estimar la evolución futura del stock.
 
 Conceptualmente:
 
+```text
 Stock proyectado =
 Stock actual
 + entradas previstas
 - salidas previstas
+```
 
 La proyección podrá utilizar:
 
@@ -178,7 +255,7 @@ Una de sus aplicaciones principales será anticipar:
 
 ---
 
-# 8. ROTURA DE STOCK
+# 11. ROTURA DE STOCK
 
 El MED debe poder evaluar si una compra puede:
 
@@ -201,7 +278,7 @@ No debe limitarse a mostrar el stock actual.
 
 ---
 
-# 9. REFERENCIAS TEMPORALES DEL PRECIO
+# 12. REFERENCIAS TEMPORALES DEL PRECIO
 
 El precio de compra propuesto no debe compararse automáticamente con un único valor histórico.
 
@@ -218,29 +295,11 @@ La elección del periodo deberá responder a criterios empresariales y podrá va
 
 ---
 
-# 10. ANTIGÜEDAD DE LAS REFERENCIAS
+# 13. ANTIGÜEDAD DE LAS REFERENCIAS
 
 La antigüedad de un dato debe formar parte de la evaluación.
 
-Ejemplo:
-
-Última compra:
-
-17,20 €
-
-Fecha:
-
-14/07/2026
-
-Antigüedad:
-
-25 días.
-
-Esta referencia puede ser relevante.
-
-En cambio, una compra realizada hace cuatro años puede no representar adecuadamente el precio actual.
-
-Por tanto, el modelo deberá considerar:
+El modelo deberá considerar:
 
 - fecha;
 - antigüedad;
@@ -248,9 +307,11 @@ Por tanto, el modelo deberá considerar:
 - comparabilidad;
 - condiciones de compra.
 
+Una referencia histórica antigua no deberá recibir automáticamente el mismo peso que una referencia reciente y comparable.
+
 ---
 
-# 11. COMPARABILIDAD DE LAS COMPRAS
+# 14. COMPARABILIDAD DE LAS COMPRAS
 
 No todos los precios históricos deben considerarse automáticamente comparables.
 
@@ -269,7 +330,7 @@ Una compra de 10 unidades no necesariamente constituye una referencia adecuada p
 
 ---
 
-# 12. PRECIO MEDIO HISTÓRICO
+# 15. PRECIO MEDIO HISTÓRICO
 
 El precio medio histórico no deberá considerarse automáticamente una referencia válida.
 
@@ -288,7 +349,7 @@ Por ello, el MED deberá priorizar referencias que sean suficientemente reciente
 
 ---
 
-# 13. PRECIO MÁXIMO RECOMENDADO
+# 16. PRECIO MÁXIMO RECOMENDADO
 
 El MED podrá generar un:
 
@@ -313,11 +374,13 @@ Podrá considerar:
 - rappels;
 - estrategia empresarial.
 
-La metodología definitiva queda pendiente de definición.
+La metodología definitiva deberá mantenerse parametrizable y documentada.
+
+El MED no deberá inventar un precio máximo cuando no exista evidencia suficiente para calcularlo.
 
 ---
 
-# 14. EXPLICACIÓN DEL PRECIO
+# 17. EXPLICACIÓN DEL PRECIO
 
 EIOS deberá evitar mensajes genéricos.
 
@@ -339,7 +402,7 @@ La información detallada deberá estar disponible sin saturar la pantalla princ
 
 ---
 
-# 15. FIABILIDAD DE LAS REFERENCIAS
+# 18. FIABILIDAD DE LAS REFERENCIAS
 
 Cuando sea posible, EIOS deberá valorar la calidad de la referencia.
 
@@ -357,13 +420,15 @@ Datos antiguos, escasos o poco comparables.
 
 EIOS no debe transmitir una falsa sensación de precisión cuando los datos disponibles sean insuficientes.
 
+La valoración de fiabilidad debe quedar explicada y trazable.
+
 ---
 
-# 16. MOTOR DE REGLAS
+# 19. MOTOR DE REGLAS
 
-El MED utilizará un motor de reglas configurable.
+El MED utilizará las reglas definidas en la **Matriz de Reglas MVP**.
 
-Las reglas podrán adaptarse a:
+Las reglas podrán adaptarse mediante parámetros configurables a:
 
 - empresa;
 - sector;
@@ -373,107 +438,83 @@ Las reglas podrán adaptarse a:
 - estrategia financiera;
 - nivel de riesgo aceptado.
 
-Las reglas no deben quedar rígidamente codificadas.
+El MED no redefine las reglas de negocio ni su autoridad documental.
 
 ---
 
-# 17. TIPOS DE REGLAS
+# 20. EFECTO Y SEVERIDAD DE LAS REGLAS
 
-## 17.1 Reglas de bloqueo
+La Matriz de Reglas v2.0 separa:
 
-Pueden impedir que una operación sea recomendada como compra directa.
+- **Efecto de la regla:** capacidad de intervenir en la decisión.
+- **Severidad:** importancia o gravedad del resultado.
+
+Los efectos son:
+
+| Código | Efecto |
+|---|---|
+| R0 | BLOQUEO |
+| R1 | CONDICIONANTE |
+| R2 | NEGOCIACIÓN |
+| R3 | INFORMATIVA |
+
+El MED recibe estos resultados.
+
+No los sustituye por una puntuación agregada ni por una suma de reglas favorables y desfavorables.
+
+---
+
+# 21. RESULTADOS INDIVIDUALES Y CONSOLIDACIÓN
+
+Las reglas pueden producir resultados individuales.
 
 Ejemplo:
 
-> La operación compromete la capacidad de atender pagos.
+```text
+PRE-001 → R2 / ALTA → NEGOCIAR
+STK-001 → R1 / ALTA → COMPRAR CONDICIONADO
+FIN-001 → R0 / CRÍTICA → NO COMPRAR
+```
 
-Resultado:
+Estos resultados no se compensan automáticamente.
 
-**NO COMPRAR**
+Cuando existan varias reglas activadas, la consolidación corresponde a la:
 
-o, cuando exista una solución viable:
+**Capa de Resolución de Conflictos (CRC).**
 
-**COMPRAR CONDICIONADO**
-
----
-
-## 17.2 Reglas de recomendación
-
-Modifican la recomendación.
-
-Ejemplo:
-
-> Precio superior al objetivo.
-
-Resultado:
-
-**NEGOCIAR**
+El MED deberá proporcionar a la CRC la información necesaria y utilizar posteriormente el resultado consolidado.
 
 ---
 
-## 17.3 Reglas de excepción
+# 22. FLUJO DE REGLAS Y CRC
 
-Pueden modificar el efecto de otra regla cuando se cumplen determinadas condiciones.
+El flujo lógico será:
 
-Ejemplo:
+```text
+DATOS
+  ↓
+ANÁLISIS
+  ↓
+REGLAS
+  ↓
+RESULTADOS INDIVIDUALES
+  ↓
+EXCEPCIONES PERMITIDAS
+  ↓
+CRC
+  ↓
+RESULTADO CONSOLIDADO
+```
 
-> Stock elevado + pedido confirmado de cliente.
+La CRC aplica la autoridad de resolución definida para EIOS.
 
-La existencia del pedido puede reducir el riesgo asociado al exceso de stock.
-
----
-
-# 18. PRIORIDAD DE LAS REGLAS
-
-No se utilizará una simple suma de reglas favorables y desfavorables.
-
-Una regla financiera crítica no debe quedar anulada porque existan varias condiciones favorables de menor importancia.
-
-Las reglas deberán disponer, como mínimo conceptualmente, de:
-
-- prioridad;
-- severidad;
-- tipo;
-- capacidad de bloqueo;
-- posibilidad de excepción.
-
-La jerarquía definitiva queda pendiente de definición.
+El MED no deberá establecer una segunda jerarquía de resolución.
 
 ---
 
-# 19. CONFLICTO ENTRE REGLAS
+# 23. EXCEPCIONES
 
-El MED deberá gestionar situaciones en las que diferentes reglas produzcan resultados distintos.
-
-Ejemplo:
-
-Precio:
-
-🟢 favorable
-
-Margen:
-
-🟢 favorable
-
-Stock:
-
-🔴 elevado
-
-Pedido confirmado:
-
-🟢 existente
-
-Tesorería:
-
-🟢 suficiente
-
-El sistema deberá determinar cómo interactúan estas condiciones antes de producir una recomendación.
-
----
-
-# 20. EXCEPCIONES
-
-Las excepciones deberán estar expresamente definidas y no producirse de forma arbitraria.
+Las excepciones deberán estar expresamente definidas y ser trazables.
 
 Ejemplo:
 
@@ -489,17 +530,19 @@ Resultado:
 
 > La regla de exceso de stock queda mitigada.
 
-Las excepciones deberán quedar registradas y ser trazables.
+Las excepciones no podrán anular salvaguardas clasificadas como no anulables.
+
+El MED deberá registrar la excepción aplicada y trasladar la información correspondiente a la CRC.
 
 ---
 
-# 21. RESULTADOS DE LA DECISIÓN
+# 24. RESULTADOS OFICIALES DE LA DECISIÓN
 
-El MED tendrá inicialmente cuatro resultados principales.
+El MED trabajará exclusivamente con los cinco resultados oficiales:
 
 ## 🟢 COMPRAR
 
-La operación cumple los criterios establecidos y no presenta riesgos relevantes.
+La operación cumple los criterios establecidos y no presenta bloqueos incompatibles con la compra.
 
 ## 🟡 NEGOCIAR
 
@@ -511,11 +554,15 @@ La operación puede ser viable si se cumplen determinadas condiciones.
 
 ## 🔴 NO COMPRAR
 
-La operación presenta un riesgo o incumplimiento que desaconseja realizarla.
+Existe un bloqueo o la operación no resulta viable conforme a las reglas aplicables.
+
+## ⚪ INFORMACIÓN INSUFICIENTE
+
+La evidencia disponible no permite emitir una recomendación suficientemente fiable.
 
 ---
 
-# 22. NEGOCIACIÓN
+# 25. NEGOCIACIÓN
 
 Cuando una operación pueda mejorar mediante negociación, EIOS deberá identificar, cuando sea posible:
 
@@ -539,9 +586,11 @@ Ejemplo:
 
 > Mantener 18,50 € si el plazo de pago aumenta de 30 a 90 días.
 
+Las acciones de negociación son acciones secundarias y no sustituyen a los cinco resultados oficiales.
+
 ---
 
-# 23. COMPRA CONDICIONADA
+# 26. COMPRA CONDICIONADA
 
 Esta categoría permite transformar determinadas situaciones problemáticas en condiciones concretas.
 
@@ -553,9 +602,11 @@ Ejemplos:
 - comprar si existe un pedido confirmado;
 - comprar si se mantiene un margen mínimo.
 
+La condición deberá quedar explícitamente documentada y ser verificable.
+
 ---
 
-# 24. SITUACIÓN FINANCIERA
+# 27. SITUACIÓN FINANCIERA
 
 La compra no debe evaluarse únicamente desde la perspectiva de compras.
 
@@ -572,7 +623,7 @@ Una compra que comprometa la capacidad de hacer frente a los pagos puede ser des
 
 ---
 
-# 25. ALTERNATIVAS ANTE RIESGO FINANCIERO
+# 28. ALTERNATIVAS ANTE RIESGO FINANCIERO
 
 Cuando una compra comprometa la situación financiera, EIOS podrá mostrar alternativas para valoración humana.
 
@@ -587,9 +638,11 @@ Ejemplos:
 
 EIOS no ejecutará estas acciones automáticamente.
 
+Las alternativas deberán presentarse como opciones para valoración humana y no como órdenes operativas.
+
 ---
 
-# 26. EXCESO DE STOCK
+# 29. EXCESO DE STOCK
 
 No se recomendará automáticamente una compra cuando exista un nivel elevado de stock.
 
@@ -597,21 +650,27 @@ Sin embargo, deberán contemplarse excepciones.
 
 Ejemplo:
 
-Stock elevado:
+```text
+Stock elevado
+     ↓
+Riesgo
 
-🔴 Riesgo
+Pedido confirmado
+     ↓
+Excepción
 
-Pedido confirmado:
+CRC
+     ↓
+Resultado consolidado
+```
 
-🟢 Excepción
-
-El MED deberá analizar conjuntamente ambas circunstancias.
+El MED deberá proporcionar la información necesaria para que la interacción pueda ser evaluada conforme a las reglas y a la CRC.
 
 ---
 
-# 27. PARAMETRIZACIÓN
+# 30. PARAMETRIZACIÓN
 
-Los criterios utilizados por el MED deberán poder configurarse mediante un Centro de Parametrización de EIOS.
+Los criterios utilizados por el MED deberán poder configurarse mediante el sistema de parametrización de EIOS.
 
 Entre otros, podrán configurarse:
 
@@ -621,16 +680,17 @@ Entre otros, podrán configurarse:
 - tolerancias;
 - niveles de stock;
 - márgenes;
-- prioridades;
 - reglas;
 - excepciones;
 - criterios financieros.
 
-La configuración será adaptable a diferentes empresas y a cambios en la política empresarial.
+El MED utiliza estos parámetros; no constituye la autoridad para administrarlos.
+
+Los parámetros deberán mantener su propia versión y vigencia.
 
 ---
 
-# 28. VALORES ESTÁNDAR
+# 31. VALORES ESTÁNDAR
 
 EIOS deberá partir de valores estándar editables.
 
@@ -645,23 +705,11 @@ La empresa podrá modificarlos según:
 - estrategia;
 - nivel de riesgo aceptado.
 
----
-
-# 29. EXPLICACIÓN DE LOS PARÁMETROS
-
-Cada parámetro configurable deberá incluir una explicación breve y comprensible sobre su función y sobre el efecto que produce modificarlo.
-
-Ejemplo:
-
-### Antigüedad máxima de referencia: 12 meses
-
-> Determina hasta qué antigüedad EIOS considera válida una compra histórica para comparar el precio actual.
-
-La explicación deberá estar orientada a usuarios empresariales y no técnicos.
+No se deberán presentar valores estándar como si fueran decisiones empresariales definitivas.
 
 ---
 
-# 30. VIGENCIA DE LOS PARÁMETROS
+# 32. VIGENCIA E HISTORIAL DE CONFIGURACIÓN
 
 Las modificaciones importantes deberán conservar:
 
@@ -669,51 +717,50 @@ Las modificaciones importantes deberán conservar:
 - fecha de inicio;
 - fecha de finalización, cuando corresponda;
 - usuario que realizó el cambio;
-- motivo del cambio.
+- motivo del cambio;
+- versión del parámetro.
 
 EIOS debe poder determinar qué configuración estaba vigente cuando se tomó una decisión.
 
----
-
-# 31. HISTORIAL DE CONFIGURACIÓN
-
 Ejemplo:
 
+```text
 Margen mínimo:
 
 01/01/2026 → 20 %
-
 01/07/2026 → 22 %
-
 01/01/2027 → 25 %
+```
 
 No se deberá sobrescribir una configuración anterior sin conservar su historial.
 
 ---
 
-# 32. SIMULACIÓN DE CAMBIOS
+# 33. SIMULACIÓN DE CAMBIOS
 
 Como evolución del sistema, el Centro de Parametrización podrá permitir simular el efecto de modificar un parámetro antes de aplicarlo.
 
 Ejemplo:
 
+```text
 Margen mínimo actual:
-
 20 %
 
 Nuevo valor:
-
 25 %
 
-EIOS podría mostrar:
+Impacto simulado:
+14 operaciones históricas que anteriormente eran aceptables
+pasarían a clasificarse como "NEGOCIAR".
+```
 
-> 14 operaciones históricas que anteriormente eran aceptables pasarían a clasificarse como "NEGOCIAR".
+Esta funcionalidad queda sujeta a validación y diseño específico.
 
-Esta funcionalidad queda pendiente de validación y diseño.
+El MED podrá consumir sus resultados, pero no deberá confundir simulación con configuración vigente.
 
 ---
 
-# 33. TRAZABILIDAD
+# 34. TRAZABILIDAD
 
 Cada decisión importante deberá poder reconstruirse.
 
@@ -723,9 +770,13 @@ EIOS deberá poder identificar:
 - fecha de los datos;
 - referencias utilizadas;
 - parámetros vigentes;
+- versión de parámetros;
 - reglas activadas;
+- efecto y severidad de cada regla;
 - excepciones aplicadas;
-- resultado final.
+- resolución de la CRC;
+- resultado final;
+- versión del MED y de las reglas.
 
 El sistema debe poder explicar:
 
@@ -733,39 +784,110 @@ El sistema debe poder explicar:
 
 ---
 
-# 34. FLUJO GENERAL
+# 35. IDENTIDAD DE LA DECISIÓN
 
-PROPUESTA DE COMPRA
-↓
-VALIDACIÓN DE DATOS
-↓
-ANÁLISIS HISTÓRICO
-↓
-ANÁLISIS DE STOCK
-↓
-PROYECCIÓN TEMPORAL
-↓
-ANÁLISIS DE RENTABILIDAD
-↓
-ANÁLISIS FINANCIERO
-↓
-COMPARACIÓN CON REFERENCIAS
-↓
-APLICACIÓN DE REGLAS
-↓
-RESOLUCIÓN DE CONFLICTOS
-↓
-APLICACIÓN DE EXCEPCIONES
-↓
-DECISIÓN
-↓
-CONDICIONES DE NEGOCIACIÓN
-↓
-EXPLICACIÓN DE LA DECISIÓN
+Cuando el sistema lo soporte, la trazabilidad deberá permitir identificar:
+
+```text
+Decision_ID
+Scenario_ID
+Data_Snapshot_ID
+Parameter_Version
+Rules_Version
+MED_Version
+EIOS_Version
+```
+
+Esto permite reconstruir el contexto exacto en el que se produjo una recomendación.
 
 ---
 
-# 35. PRINCIPIO DE SIMPLICIDAD
+# 36. FLUJO GENERAL DEL MED
+
+```text
+PROPUESTA DE COMPRA
+        ↓
+VALIDACIÓN DE DATOS
+        ↓
+EVALUACIÓN DE SUFICIENCIA Y CALIDAD
+        ↓
+ANÁLISIS HISTÓRICO
+        ↓
+ANÁLISIS DE STOCK
+        ↓
+PROYECCIÓN TEMPORAL
+        ↓
+ANÁLISIS DE RENTABILIDAD
+        ↓
+ANÁLISIS FINANCIERO
+        ↓
+COMPARACIÓN CON REFERENCIAS
+        ↓
+APLICACIÓN / EVALUACIÓN DE REGLAS
+        ↓
+EVALUACIÓN DE EXCEPCIONES
+        ↓
+RESOLUCIÓN CRC
+        ↓
+RESULTADO CONSOLIDADO
+        ↓
+CONDICIONES / ACCIONES DE NEGOCIACIÓN
+        ↓
+EXPLICACIÓN
+        ↓
+DECISOR HUMANO
+```
+
+Si la información crítica es insuficiente, el flujo deberá poder finalizar en:
+
+```text
+INFORMACIÓN INSUFICIENTE
+```
+
+sin fabricar una recomendación.
+
+---
+
+# 37. EXPLICACIÓN DE LA DECISIÓN
+
+La explicación deberá permitir identificar:
+
+1. qué se ha evaluado;
+2. qué reglas se activaron;
+3. qué evidencia las sustentó;
+4. qué excepciones se aplicaron;
+5. cómo intervino la CRC;
+6. cuál fue el resultado;
+7. qué condiciones o alternativas se proponen.
+
+Ejemplo:
+
+```text
+Resultado:
+NEGOCIAR
+
+Motivo principal:
+El precio ofertado supera la referencia comparable configurada.
+
+Evidencia:
+Última compra comparable: 17,20 €
+Precio ofertado: 18,50 €
+
+Regla:
+PRE-001
+
+Efecto:
+R2 — NEGOCIACIÓN
+
+Acción sugerida:
+Solicitar reducción del precio.
+```
+
+La explicación no deberá introducir información que no proceda de la evidencia disponible.
+
+---
+
+# 38. PRINCIPIO DE SIMPLICIDAD
 
 La complejidad debe permanecer principalmente en el motor interno.
 
@@ -783,27 +905,52 @@ El sistema debe evitar la saturación de información.
 
 ---
 
-# 36. ÁREAS PENDIENTES DE DEFINICIÓN
+# 39. CONTROL HUMANO
 
-Queda pendiente definir:
+Las reglas proporcionan evaluaciones.
 
-- jerarquía definitiva de reglas;
-- prioridad entre reglas;
-- sistema de excepciones;
-- metodología exacta para calcular el precio máximo recomendado;
-- ponderación temporal;
-- definición de operaciones comparables;
-- cálculo de rotación;
-- cálculo de cobertura;
-- proyección de stock;
-- impacto financiero proyectado;
-- niveles de fiabilidad;
-- parámetros iniciales;
-- diseño definitivo del Centro de Parametrización.
+La CRC consolida resultados.
+
+EIOS genera una recomendación.
+
+El decisor autorizado toma la decisión empresarial final.
+
+```text
+REGLAS
+   ↓
+EVALUACIÓN
+   ↓
+CRC
+   ↓
+RECOMENDACIÓN
+   ↓
+DECISOR
+```
+
+El MED no sustituye al criterio empresarial autorizado.
 
 ---
 
-# 37. PRINCIPIO DE EVOLUCIÓN
+# 40. PRINCIPIOS RECTORES DEL MED
+
+El Modelo Empresarial de Decisión deberá respetar:
+
+1. **Trazabilidad**
+2. **Explicabilidad**
+3. **No compensación automática**
+4. **Separación entre regla y resolución de conflictos**
+5. **Separación entre parámetro y lógica empresarial**
+6. **Configurabilidad**
+7. **Evidencia suficiente**
+8. **Control humano**
+9. **No automatización silenciosa**
+10. **Coherencia con la arquitectura EIOS**
+11. **No invención de datos o evidencia**
+12. **Reproducibilidad de la recomendación**
+
+---
+
+# 41. EVOLUCIÓN DEL MODELO
 
 El Modelo Empresarial de Decisión no se considera cerrado.
 
@@ -815,32 +962,56 @@ Debe evolucionar a medida que se validen:
 - nuevas necesidades empresariales;
 - nuevas pruebas del sistema.
 
-Toda modificación estructural deberá quedar documentada.
+Toda modificación estructural deberá quedar documentada y mantener trazabilidad de versión.
+
+La evolución no deberá alterar silenciosamente las decisiones ya tomadas.
 
 ---
 
-# 38. ESTADO ACTUAL
+# 42. ASPECTOS PENDIENTES DE DEFINICIÓN
 
-**Nodo de trabajo actual:**
+Tras la consolidación de la arquitectura v2.0, permanecen como áreas de diseño o validación:
 
-Prioridad y conflicto entre reglas.
+- metodología exacta para calcular el precio máximo recomendado;
+- definición definitiva de operaciones comparables;
+- metodología de cálculo de rotación;
+- metodología de cálculo de cobertura;
+- metodología de proyección de stock;
+- metodología de impacto financiero proyectado;
+- definición definitiva de niveles de fiabilidad;
+- parámetros iniciales empresariales;
+- diseño definitivo de la simulación de cambios;
+- casos reales para validar interacciones complejas.
 
-**Nuevos conceptos identificados:**
+Estos puntos no deben interpretarse como una ausencia de arquitectura, sino como elementos de diseño, parametrización o validación pendientes.
 
-- Referencias temporales.
-- Antigüedad de datos.
-- Comparabilidad.
-- Fiabilidad de referencias.
-- Precio máximo recomendado.
-- Reglas de bloqueo.
-- Reglas de recomendación.
-- Reglas de excepción.
-- Compra condicionada.
-- Centro de Parametrización.
-- Vigencia de parámetros.
-- Historial de configuración.
-- Simulación de cambios.
+---
 
-**Siguiente trabajo previsto:**
+# 43. ESTADO DEL DOCUMENTO
 
-Definir mediante casos reales la prioridad, interacción, conflicto y excepciones entre reglas.
+**Versión:** 2.0  
+**Estado:** APROBADO — Baseline EIOS Vertical MVP  
+**Baseline:** EIOS Vertical MVP  
+**Autoridad:** Modelo Empresarial de Decisión  
+**Reglas:** `04_Reglas/Matriz_Reglas_MVP.md`  
+**Resolución de conflictos:** `04_Reglas/Capa_resolucion_conflictos.md`  
+**Control documental:** `Matriz_Autoridad_Documental.md`
+
+Este documento no modifica ni sustituye la autoridad de los documentos anteriores.
+
+---
+
+# 44. RELACIÓN DOCUMENTAL
+
+El MED deberá mantenerse coherente con:
+
+- `Matriz_Autoridad_Documental.md` — autoridad documental.
+- `04_Reglas/Matriz_Reglas_MVP.md` — definición de reglas.
+- `04_Reglas/Capa_resolucion_conflictos.md` — resolución de conflictos.
+- catálogo de parámetros / Configuration Center — parametrización.
+- contratos de evidencia EIOS — requisitos de evidencia.
+- componentes de análisis y escenarios que sean aprobados posteriormente.
+
+No deberán crearse dependencias documentales hacia archivos inexistentes.
+
+Toda nueva relación documental deberá ser aprobada y registrada conforme a la autoridad documental de EIOS.
