@@ -1,1455 +1,834 @@
-DOCUMENTO: MMP-EIOS
-NOMBRE: Manual Maestro del Proyecto EIOS
-UBICACIÓN: 00_Governancia/Manual_Maestro_Proyecto_EIOS.md
-FUNCIÓN: Documento maestro de continuidad y recuperación de contexto
-AUTORIDAD: Project Governance
-ESTADO: Vigente
-
 # MANUAL MAESTRO DEL PROYECTO EIOS
 
 ## EIOS — Enterprise Intelligent Operations System
 
 **Documento:** Manual Maestro del Proyecto EIOS (MMP-EIOS)  
-**Versión:** 1.0  
-**Estado:** Vigente — Documento maestro de continuidad  
-**Fecha:** 12/08/2026  
-**Ubicación oficial:** `00_Governancia/Manual_Maestro_Proyecto_EIOS.md`
+**Versión:** 2.0  
+**Estado:** APROBADO  
+**Fecha:** 19/08/2026  
+**Ubicación oficial:** `00_Gobierno/Manual_Maestro_Proyecto_EIOS.md`
 
 ---
 
-# 1. PROPÓSITO DEL MANUAL
+# 1. FUNCIÓN DEL MANUAL
 
-Este documento constituye el **Manual Maestro del Proyecto EIOS (MMP-EIOS)**.
+El Manual Maestro del Proyecto EIOS (MMP-EIOS) es el **documento maestro de orientación, navegación y continuidad del proyecto**.
 
-Su finalidad es preservar el conocimiento esencial del proyecto y permitir su recuperación y continuidad aunque se pierda el contexto de una conversación, se sustituya la IA utilizada para trabajar en el proyecto o transcurra un periodo prolongado entre sesiones.
-
-El MMP-EIOS debe permitir que una persona o una IA pueda comprender:
+Su función es permitir que una persona o una IA pueda recuperar rápidamente:
 
 - qué es EIOS;
-- para qué se está construyendo;
-- qué decisiones han sido tomadas;
-- qué conceptos están aprobados;
-- qué conceptos están pendientes;
-- cómo se organiza el proyecto;
-- qué documentos constituyen las fuentes oficiales;
-- cuál es el estado actual;
-- cuál es el siguiente trabajo que debe realizarse.
+- cuál es su propósito;
+- cuál es el alcance actual;
+- cómo se organiza la documentación;
+- dónde se encuentra la autoridad de cada materia;
+- cuáles son los principales componentes del sistema;
+- cuál es el estado general del proyecto;
+- dónde debe continuar el trabajo.
 
-El MMP-EIOS **no sustituye** a los documentos funcionales especializados.
+El Manual Maestro **no sustituye** a los documentos que poseen autoridad específica.
 
-Actúa como documento de continuidad, contexto, coordinación y recuperación.
-
----
-
-# 2. PRINCIPIO FUNDAMENTAL DEL PROYECTO
-
-EIOS debe ayudar a la empresa a tomar mejores decisiones de compra utilizando información histórica, operativa, comercial y financiera.
-
-EIOS no debe limitarse a responder:
-
-> ¿Podemos comprar?
-
-Debe intentar responder:
-
-> ¿Tiene sentido realizar esta compra en estas condiciones y qué deberíamos negociar para mejorarla o hacerla viable?
-
-La decisión final corresponde siempre a una persona autorizada.
-
-EIOS es un sistema de apoyo a la decisión, no un ejecutor automático de compras.
+No debe utilizarse como segunda fuente normativa ni como repositorio paralelo de toda la lógica funcional del sistema.
 
 ---
 
-# 3. IDENTIDAD DEL PROYECTO
+# 2. AUTORIDAD DEL MANUAL
 
-## Nombre oficial
+El Manual Maestro es un documento de **continuidad y navegación**.
+
+Su autoridad está subordinada a la:
+
+`00_Gobierno/Matriz_Autoridad_Documental.md`
+
+Cuando exista una discrepancia entre este documento y un documento con mayor autoridad, prevalece el documento de mayor autoridad.
+
+El Manual puede resumir conceptos de otros documentos, pero no puede redefinirlos.
+
+---
+
+# 3. DOCUMENTOS FUNDAMENTALES
+
+La estructura de gobierno de EIOS se apoya principalmente en:
+
+```text
+00_Gobierno/
+├── Project_Charter.md
+├── Project_Context.md
+├── Project_Governance.md
+├── Matriz_Autoridad_Documental.md
+├── Manual_Maestro_Proyecto_EIOS.md
+├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
+└── EIOS_Assurance_Framework.md
+```
+
+### Project Charter
+
+Define la identidad, propósito, visión, alcance y límites fundamentales del proyecto.
+
+### Project Context
+
+Conserva el contexto esencial para recuperar la continuidad del proyecto.
+
+### Project Governance
+
+Define las reglas de gobierno del proyecto y de su documentación.
+
+### Matriz de Autoridad Documental
+
+Determina qué documento prevalece cuando existe una discrepancia.
+
+### Manual Maestro
+
+Orienta y conecta la documentación del proyecto.
+
+### Salvaguarda Vertical MVP
+
+Define las restricciones y decisiones congeladas aplicables al Vertical MVP.
+
+### Assurance Framework
+
+Define el marco transversal de assurance.
+
+---
+
+# 4. IDENTIDAD EIOS
 
 **EIOS — Enterprise Intelligent Operations System**
 
-Durante las primeras fases del proyecto apareció el nombre SIDA — Sistema Inteligente de Decisión de Adquisiciones.
+EIOS es un sistema inteligente de apoyo a la decisión empresarial basado en datos.
 
-La decisión vigente es utilizar:
+La arquitectura conceptual se estructura como:
 
-**EIOS**
+**CORE + VERTICAL**
 
-como identidad principal del proyecto.
+El Vertical MVP actual se centra en:
 
-La funcionalidad de decisión de compras constituye uno de los núcleos iniciales de EIOS.
+**Intelligent Procurement Decision & Negotiation**
 
-No utilizar SIDA como identidad principal salvo que exista una decisión documental posterior que modifique esta definición.
+El objetivo es ayudar al CEO y al responsable de compras a evaluar, simular, negociar y tomar mejores decisiones de adquisición.
 
----
+La decisión final corresponde al usuario autorizado.
 
-# 4. OBJETIVO DEL MVP
-
-El MVP debe ayudar principalmente al CEO y al responsable de compras a valorar una propuesta de compra utilizando:
-
-- precios actuales;
-- precios históricos;
-- productos comparables;
-- proveedores;
-- stock;
-- demanda;
-- rentabilidad;
-- márgenes;
-- liquidez;
-- condiciones comerciales;
-- rappels;
-- descuentos;
-- plazos de pago;
-- fiabilidad del proveedor;
-- reglas empresariales;
-- excepciones;
-- coste de oportunidad.
-
-El resultado debe ser comprensible y accionable.
+> **EIOS analiza, evalúa, simula, explica y recomienda. El decisor decide.**
 
 ---
 
-# 5. USUARIO PRINCIPAL
+# 5. ALCANCE ACTUAL DEL VERTICAL MVP
 
-El usuario principal del sistema es el:
+El núcleo actual comprende:
 
-**CEO / responsable de decisión empresarial.**
+- decisión de compras;
+- evaluación financiera;
+- evaluación operativa;
+- evaluación de proveedores;
+- reglas;
+- evidencia;
+- viabilidad;
+- escenarios;
+- Decision Twin;
+- negociación;
+- Negotiation Ladder;
+- resolución de conflictos;
+- recomendación explicable;
+- trazabilidad de decisiones.
 
-El sistema debe estar diseñado pensando en situaciones reales de negociación con proveedores.
+La funcionalidad relacionada con ventas para comerciales permanece actualmente:
 
-Ejemplo:
+**EN STANDBY**
 
-El CEO está delante de un proveedor y recibe una oferta de:
-
-> 18,50 €/unidad
-
-El sistema debe permitir valorar rápidamente:
-
-- si el precio es favorable;
-- cómo se compara con referencias históricas;
-- qué margen genera;
-- qué ocurre con descuentos;
-- qué ocurre con rappels;
-- qué cantidad sería conveniente comprar;
-- cómo afecta al stock;
-- cómo afecta a la liquidez;
-- qué condiciones debería negociar;
-- qué alternativas existen.
+Su eventual incorporación deberá seguir el gobierno documental correspondiente.
 
 ---
 
-# 6. PRINCIPIO DE INTERFAZ
+# 6. MODELO GENERAL DE DECISIÓN
 
-La complejidad debe permanecer principalmente en el motor interno.
-
-La interfaz inicial del CEO debe mostrar prioritariamente:
-
-1. decisión;
-2. principales motivos;
-3. riesgos;
-4. condiciones de negociación;
-5. margen;
-6. información relevante sobre stock;
-7. fiabilidad cuando sea relevante;
-8. fiabilidad de las referencias cuando sea relevante.
-
-La información secundaria deberá poder consultarse bajo demanda.
-
-El sistema debe evitar saturar al CEO.
-
----
-
-# 7. FORMA DE PRESENTAR LAS DECISIONES
-
-EIOS debe evitar respuestas excesivamente robóticas.
-
-La salida debe utilizar:
-
-**Variable + valoración + breve contexto.**
-
-Ejemplo:
-
-**Precio:** desfavorable  
-El precio está por encima de la referencia comparable de los últimos X meses.
-
-**Margen:** aceptable  
-El margen se mantiene dentro del rango establecido.
-
-**Stock:** adecuado  
-El nivel actual permite cubrir la demanda prevista.
-
-**Liquidez:** tensionada  
-La operación incrementaría la presión financiera durante el periodo previsto.
-
-**Plazo actual:** 30 días
-
-La explicación debe ser breve pero suficientemente contextualizada.
-
----
-
-# 8. RESULTADOS OFICIALES DE DECISIÓN
-
-La taxonomía operativa de EIOS debe contemplar inicialmente:
-
-## COMPRAR
-
-La operación cumple los criterios establecidos y no presenta riesgos relevantes.
-
-## NEGOCIAR
-
-La operación puede ser viable, pero existen condiciones que deberían mejorarse.
-
-La negociación debe aprovechar la oportunidad de conseguir un precio igual o mejor que la referencia comparable.
-
-Si el proveedor rechaza la negociación:
-
-- la oferta puede quedar en standby;
-- EIOS puede recomendar buscar proveedores alternativos;
-- si aparece una oferta mejor, deberá utilizarse como nueva referencia.
-
-## COMPRAR CONDICIONADO
-
-La operación puede ser viable si se cumplen determinadas condiciones.
-
-Ejemplos:
-
-- obtener un precio determinado;
-- conseguir un plazo de pago concreto;
-- reducir la cantidad;
-- obtener un descuento;
-- obtener un rappel;
-- disponer de un pedido confirmado;
-- mantener un margen mínimo;
-- resolver previamente una situación de liquidez.
-
-## NO COMPRAR
-
-Existe un riesgo o incumplimiento suficientemente relevante para desaconsejar la operación.
-
-## INFORMACIÓN INSUFICIENTE
-
-No existe información suficiente o suficientemente fiable para emitir una recomendación con el nivel de confianza requerido.
-
-La existencia de este quinto resultado debe mantenerse alineada con la Matriz de Reglas MVP y la Capa de Resolución de Conflictos.
-
----
-
-# 9. MODELO EMPRESARIAL DE DECISIÓN
-
-El documento:
-
-`04_Inteligencia/Modelo_Empresarial_Decision.md`
-
-constituye el documento especializado que define el núcleo empresarial de decisión.
-
-El MED debe analizar:
-
-1. propuesta de compra;
-2. validación de datos;
-3. histórico;
-4. productos comparables;
-5. stock;
-6. proyección temporal;
-7. rentabilidad;
-8. margen;
-9. situación financiera;
-10. condiciones comerciales;
-11. reglas;
-12. conflictos;
-13. excepciones;
-14. decisión;
-15. condiciones de negociación;
-16. explicación.
-
----
-
-# 10. FLUJO GENERAL DE DECISIÓN
+El flujo conceptual actual es:
 
 ```text
-PROPUESTA DE COMPRA
-        ↓
-VALIDACIÓN DE DATOS
-        ↓
-IDENTIFICACIÓN DEL PRODUCTO
-        ↓
-IDENTIFICACIÓN DE PRODUCTOS COMPARABLES
-        ↓
-ANÁLISIS HISTÓRICO
-        ↓
-ANÁLISIS DE STOCK
-        ↓
-PROYECCIÓN TEMPORAL
-        ↓
-ANÁLISIS DE RENTABILIDAD
-        ↓
-ANÁLISIS DE MARGEN
-        ↓
-ANÁLISIS FINANCIERO
-        ↓
-ANÁLISIS DE CONDICIONES COMERCIALES
-        ↓
-APLICACIÓN DE REGLAS
-        ↓
+DATOS
+  ↓
+EVIDENCIA
+  ↓
+REGLAS
+  ↓
+EVALUACIÓN
+  ↓
+VIABILIDAD
+  ↓
+ESCENARIOS
+  ↓
+DECISION TWIN
+  ↓
+NEGOCIACIÓN
+  ↓
 RESOLUCIÓN DE CONFLICTOS
-        ↓
-APLICACIÓN DE EXCEPCIONES
-        ↓
-DECISIÓN
-        ↓
-CONDICIONES DE NEGOCIACIÓN
-        ↓
-EXPLICACIÓN
+  ↓
+RECOMENDACIÓN
+  ↓
+DECISOR
+```
 
-1. IDENTIFICACIÓN DE PRODUCTOS
+Las decisiones empresariales principales del Vertical son:
 
-Uno de los conceptos importantes incorporados al proyecto es la necesidad de distinguir entre:
+- 🟢 **COMPRAR**
+- 🟡 **NEGOCIAR**
+- 🔵 **COMPRAR CONDICIONADO**
+- 🔴 **NO COMPRAR**
 
-producto;
-denominación comercial;
-referencia;
-producto comparable;
-categoría funcional.
+La definición formal y el comportamiento de estas decisiones corresponden a la documentación funcional y al motor de reglas.
 
-Un mismo producto puede aparecer con denominaciones diferentes.
+**Información insuficiente** no se considera aquí una quinta decisión empresarial oficial. La insuficiencia de evidencia debe gestionarse mediante los mecanismos de evidencia, confianza, validación y reglas que correspondan.
 
-Ejemplo:
+---
 
-Proveedor A:
+# 7. PRINCIPALES ÁREAS FUNCIONALES
 
-Arlita
+El proyecto contiene o prevé áreas especializadas para:
 
-Proveedor B:
+## Datos
 
-Arcilla expandida
+Origen, estructura, calidad, transformación y disponibilidad de los datos.
 
-Si las características y funcionalidad permiten considerarlos equivalentes, EIOS debe poder relacionarlos.
+## Evidencia
 
-12. RFP — REFERENCIA FUNCIONAL DE PRODUCTO
+Determinación de la suficiencia, calidad, antigüedad y fiabilidad de las referencias utilizadas por EIOS.
 
-Se utilizará el concepto:
+## Reglas
 
-RFP — Referencia Funcional de Producto
+Criterios empresariales que permiten evaluar una operación.
 
-como mecanismo informativo para agrupar productos que pueden cumplir una misma función o constituir referencias comparables.
+## Motor
 
-Una RFP no significa necesariamente que dos productos sean idénticos.
+Procesamiento de datos, reglas, cálculos, escenarios y decisiones.
 
-Su finalidad es facilitar:
+## Resolución de conflictos
 
-búsqueda;
-comparación;
-análisis histórico;
-análisis de precios;
-análisis de proveedores;
-identificación de alternativas.
-13. COMPARABILIDAD DE PRODUCTOS
+Tratamiento de situaciones en las que diferentes reglas o criterios producen resultados incompatibles.
 
-EIOS debe poder asignar inicialmente un porcentaje de comparabilidad.
+## Parámetros
 
-Ejemplo:
+Valores configurables que modifican el comportamiento del sistema sin necesidad de alterar el código.
 
-90 %;
-85 %;
-75 %.
+## Negociación
 
-La comparabilidad podrá considerar diferentes dimensiones:
+Generación y evaluación de condiciones de negociación.
 
-funcionalidad;
-características técnicas;
-presentación;
-calidad;
-cantidad;
-marca;
-estética;
-condiciones comerciales;
-utilización empresarial.
+## Decision Twin
 
-Dos productos pueden cumplir la misma función y presentar pequeñas diferencias.
+Simulación de diferentes condiciones para estudiar sus consecuencias antes de decidir.
 
-Ejemplo:
+## Assurance
 
-Producto A:
+Control transversal de integridad, trazabilidad, explicabilidad y cumplimiento de las salvaguardas.
 
-90 % comparable con Producto B.
+---
 
-La diferencia estética puede ser relevante comercialmente aunque la funcionalidad sea prácticamente idéntica.
+# 8. REFERENCE & CALCULATION FRAMEWORK
 
-14. VALIDACIÓN HUMANA DE PRODUCTOS COMPARABLES
+El proyecto contempla el:
 
-Inicialmente:
+**Reference & Calculation Framework (RCF)**
 
-EIOS propone automáticamente la relación.
+Su función es establecer cómo EIOS transforma datos y referencias en información válida para la decisión.
 
-Una persona podrá:
+Entre sus aspectos relevantes:
 
-validar;
-rechazar;
-modificar la valoración de comparabilidad.
+- periodo de referencia;
+- fecha;
+- antigüedad;
+- comparabilidad;
+- método de cálculo;
+- ponderación;
+- límites;
+- excepciones;
+- calidad de la referencia.
 
-La decisión humana debe quedar registrada.
+El RCF debe evitar referencias históricas poco representativas y mantener la trazabilidad del origen de los cálculos.
 
-No se debe obligar a que un producto pertenezca a más de una RFP.
+La definición normativa del RCF corresponde al documento especializado que le sea asignado.
 
-Ante una duda sobre pertenencia a una RFP:
+---
 
-NO.
+# 9. PRODUCTOS Y COMPARABILIDAD
 
-La simplicidad y fiabilidad prevalecen sobre la creación de relaciones dudosas.
+EIOS debe distinguir entre:
 
-15. BÚSQUEDA ENRIQUECIDA DE PRODUCTOS
+- producto;
+- denominación comercial;
+- referencia;
+- producto comparable;
+- categoría funcional.
 
-Cuando el CEO solicite información sobre un artículo relacionado con una referencia, EIOS podrá mostrar:
+El concepto:
 
-Producto solicitado
+**RFP — Referencia Funcional de Producto**
 
-Precio actual:
+puede utilizarse para agrupar productos que cumplen una función similar o constituyen referencias comparables.
 
-18,50 €
+Una RFP no implica que dos productos sean idénticos.
 
-Y como información secundaria:
+La comparabilidad puede considerar, entre otros:
 
-Productos comparables
-Producto	Comparabilidad	Precio	Proveedor	Otros datos
-Producto A	90 %	X €	Proveedor A	...
-Producto B	82 %	X €	Proveedor B	...
-Producto C	76 %	X €	Proveedor C	...
+- funcionalidad;
+- características técnicas;
+- presentación;
+- calidad;
+- cantidad;
+- marca;
+- condiciones comerciales;
+- utilización empresarial.
 
-Cada referencia debe mantener sus propios cálculos.
+La relación de comparabilidad debe conservar trazabilidad y, cuando corresponda, permitir validación humana.
 
-La información comparable debe enriquecer la búsqueda sin saturar la pantalla principal.
+La definición funcional definitiva pertenece a la documentación especializada correspondiente.
 
-16. COMPARABILIDAD COMO HERRAMIENTA DE CÁLCULO
+---
 
-La relación entre productos no debe utilizarse únicamente como dato informativo.
+# 10. REFERENCIAS Y PRECIOS
 
-Puede utilizarse para:
+EIOS puede trabajar con:
 
-construir referencias de precio;
-ampliar el histórico disponible;
-identificar alternativas;
-analizar proveedores;
-calcular rangos de precio;
-detectar oportunidades de negociación.
+- compras recientes;
+- histórico de compras;
+- productos comparables;
+- proveedores alternativos;
+- precios ponderados;
+- descuentos;
+- rappels;
+- condiciones de pago;
+- margen;
+- precio de venta;
+- estrategia empresarial.
 
-Sin embargo, EIOS debe conservar siempre la trazabilidad de qué producto originó cada referencia.
+La antigüedad de una referencia debe tenerse en cuenta.
 
-17. CÓDIGO DE REFERENCIA ANEXO
+Las referencias deben poder clasificarse según su fiabilidad cuando la decisión lo requiera.
 
-Como evolución del modelo, podrá utilizarse un código de referencia adicional para relacionar productos.
+El sistema debe evitar presentar una falsa precisión.
 
-Este código tendrá carácter auxiliar.
+Los cálculos específicos de precio y coste corresponden al marco funcional especializado.
 
-Debe permitir:
+---
 
-identificar relaciones;
-facilitar consultas;
-mantener trazabilidad;
-evitar depender exclusivamente de la descripción textual.
+# 11. PRECIO Y COSTE EFECTIVO
 
-No debe utilizarse para ocultar las diferencias reales entre productos.
+Entre los conceptos funcionales del proyecto se encuentran:
 
-18. HISTÓRICO DE PRECIOS
-
-Los precios históricos deben analizarse teniendo en cuenta:
-
-fecha;
-antigüedad;
-cantidad;
-proveedor;
-condiciones;
-descuentos;
-rappels;
-comparabilidad;
-contexto temporal.
-
-No debe utilizarse automáticamente el precio medio de todo el histórico.
-
-19. VENTANAS TEMPORALES
-
-EIOS debe poder trabajar con diferentes ventanas:
-
-últimos 3 meses;
-últimos 6 meses;
-últimos 12 meses;
-últimos 24 meses.
-
-Los periodos deben ser configurables.
-
-20. ANTIGÜEDAD DE LA REFERENCIA
-
-La antigüedad de una compra debe afectar a su fiabilidad como referencia.
-
-Ejemplo:
-
-Última compra: 17,20 €
-Fecha: 14/07/2026
-Antigüedad: 25 días
-
-Una referencia de hace cuatro años puede tener una utilidad considerablemente inferior.
-
-21. FIABILIDAD DE LAS REFERENCIAS
-
-Las referencias pueden clasificarse como:
-
-Alta
-
-Datos recientes, suficientes y comparables.
-
-Media
-
-Datos limitados o con diferencias relevantes.
-
-Baja
-
-Datos antiguos, escasos o poco comparables.
-
-EIOS debe evitar transmitir una falsa precisión.
-
-22. PRECIO MÁXIMO RECOMENDADO
-
-EIOS podrá calcular un:
-
-Precio Máximo Recomendado (PMR).
-
-Su metodología debe definirse y parametrizarse.
-
-Puede utilizar:
-
-compras recientes;
-histórico;
-referencias comparables;
-precio ponderado;
-proveedores alternativos;
-margen;
-precio de venta;
-descuentos;
-rappels;
-condiciones de pago;
-estrategia empresarial.
-23. CEA — COSTE EFECTIVO DE ADQUISICIÓN
-
-El sistema debe diferenciar entre:
-
-Precio nominal
+**PMR — Precio Máximo Recomendado**
 
 y
 
-Coste Efectivo de Adquisición (CEA).
+**CEA — Coste Efectivo de Adquisición**
 
-El CEA permite valorar el coste real de una operación considerando ventajas económicas asociadas.
+El PMR permite establecer un umbral de referencia para la negociación o decisión.
 
-Ejemplo:
+El CEA permite valorar el coste económico efectivo considerando, cuando proceda:
 
-Precio:
+- precio;
+- descuentos;
+- rappels;
+- condiciones de pago;
+- otras variables económicas.
 
-18,50 €
+La metodología formal de cálculo debe mantenerse en la documentación especializada correspondiente.
 
-Descuento:
+---
 
-3 %
+# 12. NEGOCIACIÓN DINÁMICA
 
-Rappel:
+EIOS debe poder analizar cambios de condiciones durante una negociación.
 
-2 %
+Ejemplo conceptual:
 
-El descuento puede afectar inmediatamente al coste efectivo.
-
-El rappel, cuando se liquida posteriormente, debe conservar su naturaleza temporal y registrarse como beneficio económico diferido.
-
-EIOS debe poder recalcular el CEA en el mismo momento de la negociación cuando cambien:
-
-precio;
-cantidad;
-descuento;
-rappel;
-condiciones de pago;
-otras variables económicas relevantes.
-24. NEGOCIACIÓN DINÁMICA
-
-Durante una reunión con el proveedor el CEO puede modificar condiciones.
-
-Ejemplo:
-
-Precio inicial: 18,50 €
-
-Nueva propuesta:
-18,50 €
-+ 3 % descuento
-+ 2 % rappel
-+ 90 días de pago
-
-EIOS debe poder recalcular inmediatamente:
-
-CEA;
-margen;
-comparación histórica;
-PMR;
-impacto financiero;
-recomendación.
-
-Esto convierte el sistema en una herramienta de negociación dinámica.
-
-25. MARGEN
-
-El margen debe ser una variable especialmente visible.
-
-El CEO trabaja habitualmente con porcentajes de margen.
-
-Por ello EIOS debe mostrar de forma visual:
-
-margen actual;
-margen mínimo;
-diferencia respecto al mínimo;
-efecto del precio de compra;
-efecto de descuentos;
-efecto de rappels.
-
-El margen no debe quedar oculto dentro de un análisis financiero secundario.
-
-26. CANTIDAD DE COMPRA
-
-La cantidad debe analizarse siempre en relación con el periodo temporal correspondiente.
-
-Cuando EIOS indique una cantidad recomendada debe poder explicar:
-
-demanda histórica;
-demanda prevista;
-stock actual;
-pedidos pendientes;
-compras en tránsito;
-plazo de entrega;
-tiempo estimado de venta;
-riesgo de exceso de stock.
-
-No debe utilizarse el concepto "cantidad comprada" sin indicar el contexto temporal.
-
-27. PROYECCIÓN DE STOCK
-
-EIOS debe estimar la evolución futura del stock.
-
-Debe considerar:
-
-stock actual;
-entradas previstas;
-salidas previstas;
-pedidos pendientes;
-compras en tránsito;
-ventas históricas;
-demanda prevista;
-fecha de recepción.
-
-Debe detectar:
-
-rotura de stock;
-exceso de stock;
-compra innecesaria;
-baja rotación.
-28. PEDIDOS CONFIRMADOS
-
-Los pedidos confirmados pueden modificar significativamente una decisión.
-
-Ejemplo:
-
-Stock previsto:
-
-600 unidades
-
-Pedido confirmado:
-
-600 unidades
-
-EIOS no debe considerar automáticamente esas 600 unidades como disponibles para satisfacer demanda ordinaria.
-
-Debe calcular qué cantidad adicional sería prudente comprar para evitar rotura de stock.
-
-El histórico deberá analizarse, cuando proceda, excluyendo el efecto extraordinario del cliente que originó el pedido.
-
-29. TIEMPO DE PERMANENCIA EN ALMACÉN
-
-EIOS debe permitir parametrizar el tiempo máximo recomendado de permanencia de un producto en almacén.
-
-Ejemplo:
-
-Compra:
-
-01/09/2025
-
-Periodo máximo:
-
-12 meses
-
-Fecha límite:
-
-01/09/2026
-
-El sistema debe valorar esta condición al analizar una nueva compra.
-
-Debe poder detectar si una compra podría provocar que determinadas unidades permanezcan en stock más tiempo del permitido.
-
-30. NOTIFICACIONES SOBRE PERMANENCIA
-
-EIOS podrá utilizar acontecimientos históricos para mejorar la negociación.
-
-Ejemplo:
-
-En compras anteriores, este producto permaneció en stock durante 14 meses.
-
-El parámetro actual establece un máximo de 12 meses.
-
-Se recomienda reducir la cantidad o negociar condiciones antes de comprar.
-
-Esto aporta información histórica contextualizada.
-
-31. VELOCIDAD DE VENTA
-
-EIOS debe poder responder:
-
-¿Según el histórico, cuántos días tardaría en vender estas 2.000 unidades?
-
-Debe considerar:
-
-periodo seleccionado;
-unidades vendidas;
-frecuencia de venta;
-estacionalidad cuando exista;
-pedidos extraordinarios;
-clientes extraordinarios;
-comportamiento histórico comparable.
-32. COSTE DE OPORTUNIDAD
-
-El coste de oportunidad debe formar parte del análisis.
-
-EIOS debe poder considerar:
-
-capital inmovilizado;
-espacio de almacén;
-posibilidad de comprar otro producto;
-capacidad financiera;
-alternativas de proveedor;
-oportunidad de utilizar el dinero en otra operación.
-
-No debe analizar únicamente si la compra es rentable de forma aislada.
-
-33. PRODUCTOS CON MARCA COMO RECLAMO
-
-Existen casos en los que una marca tiene un valor comercial específico.
-
-En estos casos una alternativa aparentemente equivalente puede no ser realmente sustituible.
-
-Ejemplo:
-
-Una marca concreta genera demanda por sí misma.
-
-EIOS debe reconocer que:
-
-Comparabilidad funcional ≠ sustituibilidad comercial.
-
-Este factor debe poder reducir el valor práctico de una alternativa.
-
-34. COMPARACIÓN DE PRODUCTOS A Y B
-
-Cuando existan productos alternativos, EIOS podrá estudiar:
-
-unidades vendidas;
-periodo concreto;
-porcentaje de ventas de A frente a B;
-precio de venta;
-margen;
-rotación;
-aceptación comercial.
-
-Si ambos productos tienen el mismo precio de venta y el cliente no distingue comercialmente entre ellos, la marca o estética pueden tener menor importancia como elemento de decisión.
-
-35. FIABILIDAD DEL PROVEEDOR
-
-La fiabilidad del proveedor constituye una variable relevante.
-
-Una oferta económicamente favorable puede perder atractivo si el proveedor presenta antecedentes negativos.
-
-EIOS debe poder considerar:
-
-retrasos;
-mercancía deteriorada;
-incumplimientos;
-incidencias;
-calidad;
-cumplimiento de plazos;
-comportamiento histórico.
-36. RESPUESTA ANTE PROVEEDOR DE BAJA FIABILIDAD
-
-Cuando un proveedor tenga fiabilidad baja, EIOS podrá proponer condiciones de mitigación.
-
-1. Contrato con garantías
-
-Posibles cláusulas:
-
-penalización del 1–2 % por día de retraso hasta un máximo;
-sustitución de mercancía deteriorada sin coste;
-plazo máximo de sustitución;
-cancelación unilateral por incumplimiento.
-2. Garantías financieras
-retención total o parcial de pagos;
-avales.
-3. Condiciones financieras
-pago diferido;
-condiciones comerciales específicas;
-Incoterms cuando sean aplicables.
-4. División de entregas
-
-Reducir el riesgo mediante entregas parciales.
-
-5. Inspecciones
-
-Inspección de seguridad o calidad en origen cuando proceda.
-
-Estas medidas dependen de que el proveedor acepte las condiciones.
-
-37. SITUACIÓN FINANCIERA
-
-La liquidez es una variable crítica.
-
-Una compra puede ser excelente desde el punto de vista del precio y, aun así, no ser conveniente por falta de liquidez.
-
-EIOS debe analizar:
-
-tesorería;
-pagos próximos;
-cobros previstos;
-liquidez;
-fondo de maniobra;
-capacidad de atender obligaciones;
-impacto temporal de la compra.
-38. ALTERNATIVAS ANTE TENSIÓN DE LIQUIDEZ
-
-Cuando una compra sea necesaria pero la liquidez sea insuficiente, EIOS puede presentar alternativas para valoración humana:
-
-standby del pedido;
-ampliación de capital;
-venta de inmovilizado innecesario;
-negociación de plazos de cobro con clientes;
-descuento por pronto pago cuando mantenga el margen;
-promoción de existencias de poca rotación;
-negociación de plazo de pago con proveedor;
-reducción de cantidad.
-
-Una vez conseguida la liquidez necesaria, la compra puede volver a evaluarse.
-
-39. COSTE FINANCIERO DEL PLAZO DE PAGO
-
-Un plazo de pago más largo puede modificar sustancialmente la decisión.
-
-Ejemplo:
-
-Precio: 18,50 €
-Plazo actual: 30 días
-Nueva propuesta: 120 días
-
-EIOS debe valorar:
-
-efecto sobre liquidez;
-coste efectivo;
-margen;
-coste de oportunidad;
-riesgo;
-comparación con operaciones históricas.
-40. REGLAS
-
-Las reglas del sistema están documentadas principalmente en:
-
-04_Inteligencia/Matriz_Reglas_MVP.md
-
-Las reglas deben poder distinguir entre:
-
-bloqueo;
-recomendación;
-excepción.
-
-No se debe utilizar una simple suma de reglas positivas y negativas.
-
-Una regla financiera crítica no debe quedar anulada por varias condiciones favorables de menor importancia.
-
-41. CRC — CAPA DE RESOLUCIÓN DE CONFLICTOS
-
-El documento:
-
-04_Inteligencia/Capa_resolucion_conflictos.md
-
-define la resolución de conflictos entre reglas.
-
-Debe determinar:
-
-prioridad;
-severidad;
-efecto;
-bloqueo;
-excepcionabilidad;
-motivo dominante;
-factores relevantes;
-resultado final.
-
-La CRC debe ser coherente con la Matriz de Reglas y el MED.
-
-42. PRINCIPIO DE RESOLUCIÓN DE CONFLICTOS
-
-Ejemplo:
-
-Precio: favorable
-Margen: favorable
-Stock: elevado
-Pedido confirmado: existente
-Liquidez: suficiente
-
-EIOS no debe decidir mediante una votación simple.
-
-Debe determinar qué regla tiene mayor relevancia empresarial.
-
-43. EXCEPCIONES
-
-Las excepciones deben estar explícitamente definidas.
-
-Ejemplo:
-
-Regla:
-No comprar si existe exceso de stock.
-
-Excepción:
-Existe pedido confirmado que absorberá el stock.
-
-Resultado:
-La regla de exceso de stock queda mitigada.
-
-Toda excepción debe ser:
-
-trazable;
-explicable;
-registrada;
-justificable.
-44. SALVAGUARDAS
-
-Las reglas críticas deben identificar si son:
-
-no anulables;
-condicionables;
-excepcionables.
-
-Debe existir una lista explícita de salvaguardas no anulables.
-
-La resolución definitiva debe mantenerse alineada con la CRC.
-
-45. CENTRO DE PARAMETRIZACIÓN
-
-Documento:
-
-04_Inteligencia/Centro_Parametrizacion.md
-
-Debe permitir configurar:
-
-periodos de referencia;
-antigüedad máxima;
-tolerancias;
-niveles de stock;
-márgenes;
-reglas;
-prioridades;
-excepciones;
-criterios financieros;
-permanencia máxima en almacén;
-otros parámetros empresariales.
-46. VALORES ESTÁNDAR
-
-EIOS debe partir de valores estándar editables.
-
-La empresa podrá modificarlos según:
-
-actividad;
-tamaño;
-estrategia;
-situación financiera;
-política empresarial;
-nivel de riesgo aceptado.
-47. VIGENCIA E HISTORIAL DE PARÁMETROS
-
-Aunque no se considera necesario utilizar una fecha de vigencia como criterio funcional de relación entre productos, sí debe conservarse el historial de configuración de parámetros cuando estos cambien.
-
-Debe registrarse:
-
-valor;
-fecha;
-usuario;
-motivo;
-configuración resultante.
-
-Ejemplo:
-
-Margen mínimo
-
-01/01/2026 → 20 %
-01/07/2026 → 22 %
-01/01/2027 → 25 %
-48. SIMULACIÓN DE CAMBIOS
-
-Como evolución del sistema, el Centro de Parametrización podrá permitir simular cambios antes de aplicarlos.
-
-Ejemplo:
-
-Margen mínimo actual: 20 %
-Nuevo valor: 25 %
-
-Resultado simulado:
-
-14 operaciones históricas que anteriormente eran aceptables
-pasarían a clasificarse como NEGOCIAR.
-
-Esta funcionalidad queda pendiente de diseño y validación.
-
-49. TRAZABILIDAD
-
-Cada decisión debe poder reconstruirse.
-
-EIOS debe identificar:
-
-datos utilizados;
-fecha de los datos;
-productos comparables;
-referencias utilizadas;
-parámetros utilizados;
-reglas activadas;
-excepciones aplicadas;
-resultado final;
-explicación.
-
-El sistema debe poder responder:
-
-¿Por qué ha llegado EIOS a esta recomendación?
-
-50. EXPLICABILIDAD
-
-La explicación debe ser comprensible para el CEO.
-
-Ejemplo:
-
-DECISIÓN: NEGOCIAR
-
-Precio: desfavorable
-El precio ofertado está por encima de la referencia comparable.
-
-Margen: aceptable
-El margen permanece dentro del rango establecido.
-
-Stock: adecuado
-La cantidad prevista se ajusta a la demanda histórica.
-
-Liquidez: tensionada
-El pago en las condiciones actuales incrementaría la presión financiera.
-
-Proveedor: fiabilidad baja
-Existen antecedentes de retrasos.
-
-RECOMENDACIÓN:
-Negociar precio y ampliar el plazo de pago.
-
-ALTERNATIVA:
-Si el proveedor no acepta, mantener la oferta en standby y consultar proveedores alternativos.
-51. INFORMACIÓN SECUNDARIA
-
-La información detallada no debe desaparecer.
-
-Debe estar disponible mediante niveles de consulta.
-
-Nivel 1
-
-Información necesaria para decidir rápidamente.
-
-Nivel 2
-
-Información de contexto.
-
-Nivel 3
-
-Información técnica, histórica y de cálculo.
-
-El CEO debe poder profundizar cuando lo necesite sin saturar la pantalla principal.
-
-52. NOMENCLATURA
-
-Debe mantenerse un glosario común.
-
-Conceptos actualmente relevantes:
-
-EIOS — Enterprise Intelligent Operations System
-MED — Modelo Empresarial de Decisión
-CRC — Capa de Resolución de Conflictos
-RFP — Referencia Funcional de Producto
-CEA — Coste Efectivo de Adquisición
-PMR — Precio Máximo Recomendado
-MVP — Minimum Viable Product
-EVM — Earned Value Management / Gestión del Valor Ganado
-
-Los acrónimos deberán aparecer acompañados de su nombre completo durante las primeras iteraciones documentales cuando sea necesario facilitar el aprendizaje y la comprensión.
-
-53. ARQUITECTURA DOCUMENTAL
-
-La estructura principal del repositorio es:
-
-00_Governancia
-01_Negocio
-03_Arquitectura
-04_Inteligencia
-05_Aplicacion
-06_Operaciones
-07_Desarrollo
-08_Pruebas
-09_Recursos
-54. DOCUMENTOS PRINCIPALES
-Gobernancia
-00_Governancia/Project_Charter.md
-00_Governancia/Project_Context.md
-00_Governancia/Project_Governance.md
-00_Governancia/Matriz_Autoridad_Documental.md
-00_Governancia/Manual_Maestro_Proyecto_EIOS.md
-Negocio
-01_Negocio/Especificacion_funcional.md
-Arquitectura
-03_Arquitectura/Architecture_Blueprint.md
-03_Arquitectura/Framework_Map.md
-03_Arquitectura/Master_Project_Map.md
-Inteligencia
-04_Inteligencia/Modelo_Empresarial_Decision.md
-04_Inteligencia/Matriz_Reglas_MVP.md
-04_Inteligencia/Capa_resolucion_conflictos.md
-04_Inteligencia/Catalogo_Parametros_MVP.md
-04_Inteligencia/Centro_Parametrizacion.md
-55. FUENTES OFICIALES POR CONCEPTO
-Concepto	Fuente oficial
-Identidad, visión, alcance	Project_Charter.md
-Contexto y continuidad	Project_Context.md
-Gobierno documental	Project_Governance.md
-Autoridad documental	Matriz_Autoridad_Documental.md
-Flujo y comportamiento del usuario	Especificacion_funcional.md
-Arquitectura	Architecture_Blueprint.md
-Modelo empresarial	Modelo_Empresarial_Decision.md
-Parámetros	Catalogo_Parametros_MVP.md
-Configuración	Centro_Parametrizacion.md
-Reglas	Matriz_Reglas_MVP.md
-Conflictos	Capa_resolucion_conflictos.md
-Índice físico	mapa maestro consolidado
-56. REGLA DE AUTORIDAD DOCUMENTAL
-
-Cuando dos documentos entren en contradicción:
-
-No asumir automáticamente cuál es correcto.
-Identificar el concepto en conflicto.
-Consultar la autoridad documental establecida.
-Registrar la contradicción.
-Resolverla mediante decisión explícita.
-Actualizar los documentos afectados.
-Registrar el cambio en el historial del proyecto.
-
-El MMP-EIOS no debe convertirse en una segunda fuente contradictoria.
-
-Su función es mantener la continuidad y señalar cuál es la fuente especializada.
-
-57. CONTROL DE CAMBIOS
-
-Las modificaciones estructurales deben documentarse.
-
-Cada cambio relevante debe registrar:
-
-fecha;
-documento afectado;
-decisión;
-motivo;
-impacto;
-responsable.
-
-No se deben realizar cambios estructurales importantes sin comprobar sus dependencias.
-
-58. EVM — GESTIÓN DEL VALOR GANADO
-
-El proyecto utiliza EVM (Earned Value Management) aplicado exclusivamente a:
-
-horas;
-esfuerzo;
-avance físico;
-hitos temporales.
-
-No se utilizarán valores monetarios para evaluar el avance del proyecto mediante EVM.
-
-Indicadores principales:
-
-PV — Valor Planificado
-
-Horas de trabajo que deberían haberse completado según el calendario.
-
-EV — Valor Ganado
-
-Horas presupuestadas equivalentes al trabajo realmente completado.
-
-AC — Coste Real / Horas Reales
-
-Horas efectivamente trabajadas.
-
-SPI — Schedule Performance Index
-
-Mide el ritmo de avance respecto al plan.
-
-SPI = EV / PV
-CPI — Cost Performance Index aplicado a horas
-
-Mide la eficiencia del trabajo realizado respecto a las horas reales invertidas.
-
-CPI = EV / AC
-SV — Schedule Variance
-SV = EV - PV
-
-Interpretación:
-
-SPI > 1 → adelanto;
-SPI = 1 → según planificación;
-SPI < 1 → retraso.
-CPI > 1 → eficiencia superior a la prevista;
-CPI = 1 → eficiencia prevista;
-CPI < 1 → menor eficiencia.
-59. ESTADO DEL PROYECTO
-
-El proyecto se encuentra en una fase avanzada de definición conceptual y empresarial.
-
-El trabajo actual se centra principalmente en:
-
-consolidación del MED;
-productos comparables;
-RFP;
-comparabilidad;
-histórico;
-CEA;
-margen;
-negociación;
-stock;
-permanencia en almacén;
-liquidez;
-fiabilidad de proveedores;
-resolución de conflictos;
-reglas;
-parametrización.
-
-Todavía no debe considerarse cerrado el diseño funcional.
-
-60. PRINCIPALES DECISIONES YA TOMADAS
-Producto
-
-EIOS debe poder relacionar productos con denominaciones diferentes.
-
-Comparabilidad
-
-La comparabilidad debe ser porcentual y multidimensional.
-
-Validación
-
-EIOS propone inicialmente y una persona puede validar o modificar.
-
-RFP
-
-Un producto no debe pertenecer automáticamente a múltiples RFP.
-
-Ante duda:
-
-No.
-
-Búsqueda
-
-La búsqueda de un producto debe poder enriquecerse con productos comparables.
-
-Información secundaria
-
-Los comparables deben aportar valor sin saturar al CEO.
-
-Margen
-
-Debe ser visual y prioritario.
-
-CEA
-
-Debe recalcularse dinámicamente durante la negociación.
-
+```text
+Oferta inicial
+      ↓
+Cambio de precio
+      ↓
+Descuento
+      ↓
 Rappel
+      ↓
+Plazo de pago
+      ↓
+Recalculo
+      ↓
+Nueva recomendación
+```
 
-Debe distinguirse del descuento inmediato cuando su liquidación sea posterior.
+El sistema debe poder recalcular, cuando corresponda:
 
-Negociación
+- coste efectivo;
+- margen;
+- referencia histórica;
+- PMR;
+- impacto financiero;
+- recomendación.
 
-Una oferta desfavorable no debe cerrarse inmediatamente si existe margen de negociación.
+La lógica detallada pertenece al componente especializado de negociación.
 
-Proveedores
+---
 
-Una fiabilidad baja debe activar medidas de mitigación.
+# 13. STOCK Y SIMULACIÓN TEMPORAL
 
-Stock
+La fecha de propuesta de compra es relevante.
 
-Debe proyectarse temporalmente.
+EIOS debe poder estudiar la evolución futura considerando, cuando existan datos suficientes:
 
-Permanencia
+- stock actual;
+- demanda;
+- ventas;
+- entradas previstas;
+- pedidos pendientes;
+- compras en tránsito;
+- fecha de entrega;
+- plazo de entrega;
+- cantidad comprada.
 
-Debe poder parametrizarse el tiempo máximo de permanencia de un producto en almacén.
+Conceptualmente:
 
-Liquidez
+```text
+Stock proyectado =
+Stock actual
++ entradas previstas
+- salidas previstas
+```
 
-Es una variable crítica y puede condicionar la compra aunque el precio sea excelente.
+El objetivo es detectar, entre otros:
 
-Coste de oportunidad
+- posibles roturas de stock;
+- exceso de stock;
+- necesidades futuras;
+- impacto de una compra.
 
-Debe incorporarse al análisis.
+---
 
-61. PRINCIPIOS QUE NO DEBEN PERDERSE
-1. No comprar únicamente por precio.
-2. No utilizar el precio medio histórico de forma automática.
-3. No tratar productos diferentes como idénticos.
-4. No confundir comparabilidad funcional con sustituibilidad comercial.
-5. No ocultar el margen.
-6. No ignorar la liquidez.
-7. No ignorar el tiempo.
-8. No ignorar el stock futuro.
-9. No ignorar el coste de oportunidad.
-10. No resolver conflictos mediante una simple suma de reglas.
-11. No presentar falsa precisión cuando los datos sean insuficientes.
-12. No saturar al CEO con información innecesaria.
-13. Toda decisión importante debe ser explicable.
-62. ÁREAS PENDIENTES
+# 14. VIABILIDAD FINANCIERA
 
-Quedan pendientes, entre otras:
+La evaluación puede considerar:
 
-jerarquía definitiva de reglas;
-prioridad entre reglas;
-modelo definitivo de excepciones;
-salvaguardas no anulables;
-metodología exacta del PMR;
-metodología definitiva del CEA;
-ponderación temporal;
-metodología de comparabilidad;
-definición formal de RFP;
-cálculo de rotación;
-cálculo de cobertura;
-proyección de stock;
-cálculo de permanencia;
-impacto financiero proyectado;
-niveles de fiabilidad;
-parámetros iniciales;
-diseño definitivo del Centro de Parametrización;
-arquitectura técnica definitiva;
-modelo de datos;
-implementación;
-pruebas.
-63. ORDEN DE TRABAJO RECOMENDADO
+- liquidez;
+- tesorería;
+- pagos previstos;
+- fondo de maniobra;
+- impacto financiero;
+- plazo de pago;
+- condiciones comerciales.
 
-El proyecto debe avanzar siguiendo una lógica de dependencia.
+Cuando una operación sea inicialmente desfavorable pero pueda hacerse viable mediante determinadas condiciones, EIOS puede presentar:
 
-MODELO EMPRESARIAL
+**COMPRAR CONDICIONADO**
+
+Las alternativas propuestas por EIOS no constituyen órdenes automáticas de actuación.
+
+---
+
+# 15. CONFIGURATION CENTER
+
+El:
+
+**EIOS Configuration Center**
+
+es un componente transversal de parametrización.
+
+Puede centralizar valores como:
+
+- periodos;
+- límites;
+- tolerancias;
+- criterios;
+- reglas;
+- prioridades;
+- excepciones;
+- políticas empresariales.
+
+Debe permitir adaptar EIOS a diferentes empresas sin modificar necesariamente el código.
+
+Los parámetros oficiales deben definirse en el catálogo de parámetros correspondiente.
+
+---
+
+# 16. VERSIONADO DE CONFIGURACIÓN
+
+Los cambios de configuración relevantes deben conservar historial.
+
+Debe ser posible conocer qué configuración estaba vigente cuando se produjo una determinada decisión.
+
+Ejemplo conceptual:
+
+```text
+Parámetro
+   ↓
+Versión de configuración
+   ↓
+Regla
+   ↓
+Decisión
+```
+
+La implementación detallada corresponde a la documentación especializada de parametrización y versionado.
+
+---
+
+# 17. MOTOR DE REGLAS
+
+El motor de reglas debe ser configurable.
+
+Las reglas pueden incluir:
+
+### Reglas de bloqueo
+
+Pueden impedir una recomendación de compra.
+
+### Reglas de recomendación
+
+Pueden modificar o condicionar la recomendación.
+
+### Reglas de excepción
+
+Pueden modificar el efecto de otras reglas bajo determinadas condiciones.
+
+La prioridad, severidad y resolución de conflictos deben estar formalmente definidas.
+
+La autoridad corresponde a la documentación del motor y de resolución de conflictos.
+
+---
+
+# 18. RESOLUCIÓN DE CONFLICTOS
+
+EIOS no debe resolver conflictos mediante una simple suma de señales favorables y desfavorables.
+
+Debe poder considerar:
+
+- prioridad;
+- severidad;
+- bloqueos;
+- excepciones;
+- dependencias;
+- condiciones;
+- conflictos;
+- resultado consolidado.
+
+Una regla crítica no debe quedar anulada simplemente por la existencia de varias condiciones favorables.
+
+La definición formal corresponde a la documentación especializada de resolución de conflictos.
+
+---
+
+# 19. EVIDENCIA Y EXPLICABILIDAD
+
+Una recomendación debe poder explicar:
+
+- qué datos se utilizaron;
+- qué referencias se utilizaron;
+- qué parámetros estaban vigentes;
+- qué reglas se activaron;
+- qué excepciones se aplicaron;
+- qué escenarios se evaluaron;
+- qué resultado produjo el motor.
+
+La información debe presentarse de forma clara y proporcional.
+
+El detalle técnico no debe saturar al CEO.
+
+La definición formal de evidencia corresponde al documento especializado que la Matriz de Autoridad Documental establezca como fuente oficial.
+
+---
+
+# 20. DECISION TWIN
+
+El Decision Twin permite estudiar escenarios antes de tomar una decisión.
+
+Puede utilizar variables como:
+
+- precio;
+- cantidad;
+- descuento;
+- rappel;
+- plazo de pago;
+- fecha de entrega;
+- demanda;
+- stock;
+- margen;
+- liquidez.
+
+Su objetivo es responder preguntas como:
+
+> ¿Qué ocurre si modificamos esta condición?
+
+y:
+
+> ¿Qué combinación de condiciones hace viable la operación?
+
+La definición funcional detallada pertenece al documento especializado correspondiente.
+
+---
+
+# 21. NEGOTIATION LADDER
+
+La Negotiation Ladder representa una posible secuencia de negociación.
+
+Conceptualmente:
+
+```text
+CONDICIÓN ACTUAL
+      ↓
+OBJETIVO
+      ↓
+PRIMERA PROPUESTA
+      ↓
+CONCESIONES CONTROLADAS
+      ↓
+LÍMITE
+      ↓
+ALTERNATIVA
+```
+
+La finalidad es proporcionar al decisor una estructura de negociación coherente con la recomendación de EIOS.
+
+La lógica detallada corresponde al dominio de negociación.
+
+---
+
+# 22. ASSURANCE Y SALVAGUARDAS
+
+Assurance actúa transversalmente sobre EIOS.
+
+Debe contribuir a garantizar:
+
+- integridad;
+- trazabilidad;
+- explicabilidad;
+- coherencia;
+- auditabilidad;
+- control de regresiones.
+
+El Vertical MVP está además sujeto a:
+
+`EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md`
+
+Las restricciones congeladas de la Salvaguarda no pueden modificarse silenciosamente.
+
+---
+
+# 23. RUTA INICIAL DE DATOS
+
+La ruta:
+
+```text
+ERP → Excel → Power BI → SQL Server
+```
+
+corresponde a una ruta inicial de trabajo y origen de datos.
+
+No constituye por sí misma la arquitectura técnica definitiva de EIOS.
+
+Actualmente se trabaja habitualmente con SAGE, pero EIOS no debe quedar limitado exclusivamente a SAGE.
+
+La integración automática con ERP queda como evolución futura.
+
+---
+
+# 24. ARQUITECTURA CONCEPTUAL
+
+La arquitectura conceptual de EIOS se estructura como:
+
+```text
+EIOS
+├── CORE
+└── VERTICAL
+    └── Intelligent Procurement Decision & Negotiation
+```
+
+El CORE contiene capacidades comunes.
+
+El Vertical contiene capacidades específicas del dominio de compras.
+
+Esta separación permite que futuras capacidades verticales puedan incorporarse sin reconstruir el núcleo común.
+
+La arquitectura técnica definitiva debe consultarse en la documentación especializada de arquitectura.
+
+---
+
+# 25. INTERFAZ Y EXPERIENCIA DEL DECISOR
+
+La interfaz debe priorizar:
+
+1. decisión;
+2. motivos principales;
+3. riesgos;
+4. condiciones de negociación;
+5. margen;
+6. stock;
+7. fiabilidad;
+8. referencias relevantes.
+
+La información secundaria debe estar disponible bajo demanda.
+
+Principio:
+
+> **Complejidad en el motor; simplicidad en la decisión.**
+
+---
+
+# 26. ESTADO GENERAL DEL PROYECTO
+
+### 🟢 Definido
+
+- identidad EIOS;
+- propósito;
+- alcance del Vertical MVP;
+- CORE + VERTICAL;
+- decisión de compras;
+- negociación;
+- variables principales;
+- necesidad de parametrización;
+- Configuration Center;
+- motor de reglas;
+- resolución de conflictos;
+- Decision Twin;
+- Assurance;
+- Salvaguarda Vertical MVP;
+- autoridad documental.
+
+### 🟡 En desarrollo / formalización
+
+- Reference & Calculation Framework;
+- criterios temporales;
+- métodos de comparación;
+- fiabilidad de referencias;
+- prioridad de reglas;
+- resolución de conflictos;
+- excepciones;
+- parámetros;
+- componentes especializados del motor.
+
+### ⚪ Evolución futura
+
+- integración automática con ERP;
+- arquitectura técnica definitiva;
+- desarrollo completo del MVP;
+- ampliaciones verticales.
+
+El estado detallado debe consultarse en los documentos especializados.
+
+---
+
+# 27. CÓMO UTILIZAR ESTE MANUAL
+
+Cuando una persona o IA se incorpore al proyecto:
+
+### Paso 1
+Leer `Project_Charter.md` para conocer qué es EIOS.
+
+### Paso 2
+Leer `Project_Context.md` para recuperar el contexto actual.
+
+### Paso 3
+Leer `Project_Governance.md` para conocer las reglas de gobierno.
+
+### Paso 4
+Leer `Matriz_Autoridad_Documental.md` para conocer qué documentos tienen autoridad.
+
+### Paso 5
+Leer `EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md` para conocer las restricciones congeladas del Vertical MVP.
+
+### Paso 6
+Utilizar este Manual como mapa para localizar la documentación especializada necesaria.
+
+---
+
+# 28. REGLA DE CONTINUIDAD
+
+El proyecto debe poder recuperarse sin depender del historial de una conversación.
+
+Por tanto:
+
+```text
+CONVERSACIÓN
+     ↓
+TRABAJO
+     ↓
+DECISIÓN
+     ↓
+DOCUMENTACIÓN
+     ↓
+GITHUB
+     ↓
+CONTINUIDAD
+```
+
+La conversación es espacio de trabajo.
+
+La documentación oficial es la memoria estructurada del proyecto.
+
+---
+
+# 29. REGLA DE NO DUPLICACIÓN
+
+Si una materia dispone de un documento especializado con autoridad:
+
+**no debe reproducirse íntegramente en este Manual.**
+
+Este Manual debe:
+
+- identificarla;
+- resumirla;
+- señalar dónde encontrarla;
+- mantener el contexto necesario.
+
+La lógica detallada debe permanecer en su fuente oficial.
+
+Esto evita:
+
+- contradicciones;
+- duplicación;
+- divergencias de versiones;
+- mantenimiento innecesario.
+
+---
+
+# 30. REGLA DE ACTUALIZACIÓN DEL MANUAL
+
+El Manual debe actualizarse cuando exista un cambio suficientemente relevante en:
+
+- estructura del proyecto;
+- alcance;
+- arquitectura conceptual;
+- gobierno documental;
+- componentes principales;
+- estado general;
+- rutas de navegación.
+
+No debe actualizarse por cada cambio menor de una regla o parámetro.
+
+Los cambios especializados deben permanecer en sus documentos correspondientes.
+
+---
+
+# 31. CRITERIO FINAL
+
+El Manual Maestro debe responder rápidamente a cinco preguntas:
+
+```text
+1. ¿QUÉ ES EIOS?
         ↓
-PRODUCTOS / RFP / COMPARABILIDAD
+2. ¿QUÉ ESTAMOS CONSTRUYENDO?
         ↓
-REGLAS
+3. ¿CÓMO ESTÁ ORGANIZADO?
         ↓
-CONFLICTOS
+4. ¿DÓNDE ESTÁ LA INFORMACIÓN OFICIAL?
         ↓
-PARAMETRIZACIÓN
-        ↓
-MODELO DE DATOS
-        ↓
-ARQUITECTURA
-        ↓
-APLICACIÓN
-        ↓
-DESARROLLO
-        ↓
-PRUEBAS
-        ↓
-VALIDACIÓN EMPRESARIAL
+5. ¿DÓNDE CONTINUAR EL TRABAJO?
+```
 
-No debe adelantarse el desarrollo técnico si todavía existen contradicciones estructurales en el modelo empresarial.
+Si una información no ayuda a responder alguna de estas preguntas o a navegar hacia su fuente oficial, debe evaluarse si realmente pertenece al Manual Maestro.
 
-64. ESTADO DE TRABAJO ACTUAL
-Fase actual
+---
 
-Modelo Empresarial de Decisión.
+# 32. PRINCIPIO FUNDAMENTAL
 
-Trabajo inmediato
+> **El Manual Maestro no debe contener todo EIOS.**
+>
+> **Debe permitir encontrar y comprender EIOS sin perderse.**
 
-Consolidar y cerrar las reglas empresariales derivadas de los casos reales trabajados durante las iteraciones.
-
-Especial atención a:
-
-conflicto entre precio y margen;
-conflicto entre precio y liquidez;
-exceso de stock;
-pedidos confirmados;
-coste de oportunidad;
-productos comparables;
-permanencia máxima en almacén;
-fiabilidad del proveedor;
-condiciones de negociación;
-recalculo del CEA.
-65. SIGUIENTE PASO
-
-Antes de pasar a la siguiente fase se debe comprobar:
-
-coherencia entre MED y Matriz de Reglas;
-coherencia entre MED y CRC;
-coherencia entre Catálogo y Centro de Parametrización;
-coherencia de los resultados;
-coherencia de los identificadores;
-coherencia de RFP y comparabilidad;
-coherencia de CEA;
-coherencia de margen;
-coherencia de stock;
-coherencia de liquidez;
-coherencia de fiabilidad;
-ausencia de contradicciones documentales relevantes.
-
-Una vez completado este control podrá declararse cerrado el bloque empresarial correspondiente.
-
-66. PROTOCOLO DE CONTINUIDAD PARA LA IA
-
-Cuando una nueva IA o una nueva sesión continúe el proyecto:
-
-Leer este MMP-EIOS.
-Leer Project_Charter.md.
-Leer Project_Context.md.
-Leer Project_Governance.md.
-Leer Matriz_Autoridad_Documental.md.
-Identificar la fase actual.
-Leer los documentos especializados relacionados con dicha fase.
-No inventar decisiones que no estén documentadas.
-Diferenciar claramente:
-aprobado;
-en desarrollo;
-pendiente;
-descartado.
-Continuar desde el último estado documentado.
-
-La IA debe utilizar el MMP-EIOS como documento de recuperación de contexto, pero debe consultar siempre las fuentes especializadas antes de modificar una decisión empresarial.
-
-67. REGLA FUNDAMENTAL DE CONTINUIDAD
-
-Si existe discrepancia entre la memoria de una conversación y los documentos versionados del repositorio:
-
-Los documentos versionados constituyen la fuente de verdad del proyecto.
-
-La conversación sirve para descubrir, discutir y validar decisiones.
-
-La decisión consolidada debe terminar registrada en los documentos oficiales.
-
-68. PRINCIPIO FINAL
-
-EIOS debe evolucionar desde:
-
-una idea de aplicación para decidir compras
-
-hacia:
-
-un sistema empresarial de apoyo a la decisión capaz de interpretar datos, contexto, riesgos, alternativas y consecuencias para ayudar al CEO a tomar mejores decisiones.
-
-La calidad de EIOS dependerá menos de la cantidad de datos que de su capacidad para:
-
-relacionarlos;
-contextualizarlos;
-compararlos;
-ponderarlos;
-detectar conflictos;
-explicar sus consecuencias;
-proponer alternativas;
-y mantener trazabilidad.
+Su valor no está en acumular información, sino en proporcionar **continuidad, orientación, navegación y contexto fiable**.
