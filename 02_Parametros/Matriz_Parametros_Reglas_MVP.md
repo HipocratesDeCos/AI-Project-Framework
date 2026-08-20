@@ -2,10 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.1  
-**Estado:** PROPUESTA — pendiente de validación  
+**Versión:** 0.2  
+**Estado:** APROBADO  
 **Baseline:** EIOS Vertical MVP  
-**Fecha:** 19/08/2026
+**Fecha:** 20/08/2026
 
 ---
 
@@ -35,11 +35,13 @@ La prioridad funcional de una regla no equivale necesariamente a su autoridad.
 
 La resolución de resultados incompatibles corresponde a la Capa de Resolución de Conflictos (CRC) y a los documentos que tengan autoridad sobre dicha materia.
 
+Ningún parámetro ordinario puede desactivar una regla crítica, anular una restricción no anulable ni habilitar una excepción no autorizada.
+
 ---
 
 # 3. ESTADO DE LA EVIDENCIA
 
-La matriz se construye a partir de los parámetros actualmente definidos en `02_Parametros/Catalogo_Parametros_MVP_v0.2.md` y de la documentación de reglas disponible en el repositorio.
+La matriz se construye a partir de los parámetros definidos en el catálogo y de la documentación de reglas disponible.
 
 Cuando no exista evidencia documental suficiente para afirmar que un parámetro está conectado a una regla concreta, se marcará como:
 
@@ -66,142 +68,85 @@ No se inventarán relaciones parámetro-regla.
 
 # 5. MATRIZ DE PARÁMETROS
 
-## 5.1 Precios
-
-| ID | Parámetro | Regla | Función | Crítico | Editable | Empresa | MVP | Estado |
-|---|---|---|---|---|---|---|---|---|
-| PRE-001 | Periodo principal de comparación | Pendiente | Ventana histórica | No determinado | Sí | Sí | Sí | Pendiente de cruce |
-| PRE-002 | Periodo ampliado de comparación | Pendiente | Referencia histórica ampliada | No determinado | Sí | Sí | Pendiente | Pendiente de cruce |
-| PRE-003 | Antigüedad máxima de referencia | Pendiente | Validez de referencia | No determinado | Sí | Sí | Sí | Pendiente de cruce |
-| PRE-004 | Diferencia para activar alerta de precio | Pendiente | Umbral de negociación | No determinado | Sí | Sí | Sí | Pendiente de cruce |
-| PRE-005 | Diferencia para alerta crítica de precio | Pendiente | Umbral crítico | Sí potencial | Restringida | Sí | Sí | Pendiente de validación |
-| PRE-006 | Nº mínimo de compras comparables | Pendiente | Fiabilidad estadística | No determinado | Sí | Sí | Sí | Pendiente de cruce |
-
-## 5.2 Stock
-
-| ID | Parámetro | Regla | Función | Crítico | Editable | Empresa | MVP | Estado |
-|---|---|---|---|---|---|---|---|---|
-| STK-001 | Stock mínimo | Pendiente | Umbral de stock | Potencial | Sí | Sí | Sí | Valor pendiente |
-| STK-002 | Stock de seguridad | Pendiente | Protección de stock | Potencial | Sí | Sí | Sí | Pendiente de cruce |
-| STK-003 | Cobertura mínima | Pendiente | Umbral de cobertura | Potencial | Sí | Sí | Sí | Pendiente de cruce |
-| STK-004 | Cobertura máxima | Pendiente | Umbral de exceso | Potencial | Sí | Sí | Sí | Pendiente de cruce |
-| STK-005 | Tolerancia de exceso | Pendiente | Tolerancia | No determinado | Sí | Sí | Sí | Pendiente de cruce |
-| STK-006 | Periodo para calcular consumo | Pendiente | Ventana de consumo | No determinado | Sí | Sí | Sí | Pendiente de cruce |
-
-## 5.3 Proyección de stock
-
-| ID | Parámetro | Regla | Función | Crítico | Editable | Empresa | MVP | Estado |
-|---|---|---|---|---|---|---|---|---|
-| PYE-001 | Horizonte de proyección | Pendiente | Horizonte temporal | No determinado | Sí | Sí | Sí | Pendiente de cruce |
-| PYE-002 | Considerar pedidos pendientes | Pendiente | Fuente de demanda/oferta | No determinado | Sí | Sí | Sí | Pendiente de cruce |
-| PYE-003 | Considerar compras en tránsito | Pendiente | Oferta futura | No determinado | Sí | Sí | Sí | Pendiente de cruce |
-| PYE-004 | Considerar plazo de entrega | Pendiente | Cálculo temporal | No determinado | Sí | Sí | Sí | Pendiente de cruce |
-| PYE-005 | Considerar ventas históricas | Pendiente | Base de proyección | No determinado | Sí | Sí | Sí | Pendiente de cruce |
-| PYE-006 | Umbral de riesgo de rotura | Pendiente | Umbral crítico | Potencial | Restringida | Sí | Sí | Pendiente de validación |
-
-## 5.4 Rentabilidad
-
-| ID | Parámetro | Regla | Función | Crítico | Editable | Empresa | MVP | Estado |
-|---|---|---|---|---|---|---|---|---|
-| MGE-001 | Margen mínimo | Pendiente | Umbral de aceptación | Potencial | Sí | Sí | Sí | Pendiente de cruce |
-| MGE-002 | Margen objetivo | Pendiente | Objetivo económico | No | Sí | Sí | Sí | Pendiente de cruce |
-| MGE-003 | Tolerancia de margen | Pendiente | Tolerancia | Potencial | Sí | Sí | Sí | Pendiente de cruce |
-| MGE-004 | Margen mínimo absoluto | Pendiente | Umbral monetario | Potencial | Sí | Sí | Sí | Pendiente de cruce |
-| MGE-005 | Considerar descuentos | Pendiente | Ajuste económico | No | Sí | Sí | Sí | Pendiente de cruce |
-| MGE-006 | Considerar rappels | Pendiente | Ajuste económico | No | Sí | Sí | Sí | Pendiente de cruce |
-
-## 5.5 Finanzas
-
-| ID | Parámetro | Regla | Función | Crítico | Editable | Empresa | MVP | Estado |
-|---|---|---|---|---|---|---|---|---|
-| FIN-001 | Horizonte de pagos | Pendiente | Ventana financiera | Alta | Restringida | Sí | Sí | Pendiente de cruce |
-| FIN-002 | Tesorería mínima | Pendiente | Límite financiero | Sí | Restringida | Sí | Sí | Pendiente de validación |
-| FIN-003 | Fondo de maniobra mínimo | Pendiente | Límite financiero | Sí | Restringida | Sí | Sí | Pendiente de validación |
-| FIN-004 | Margen mínimo de seguridad financiera | Pendiente | Protección financiera | Alta | Restringida | Sí | Sí | Pendiente de cruce |
-| FIN-005 | Considerar pagos futuros | Pendiente | Flujo financiero | Alta | Restringida | Sí | Sí | Pendiente de cruce |
-| FIN-006 | Considerar cobros previstos | Pendiente | Flujo financiero | Alta | Restringida | Sí | Sí | Pendiente de cruce |
-
-## 5.6 Pagos y negociación
-
-| ID | Parámetro | Regla | Función | Crítico | Editable | Empresa | MVP | Estado |
-|---|---|---|---|---|---|---|---|---|
-| PAG-001 | Plazo de pago mínimo deseado | Pendiente | Condición de negociación | No determinado | Sí | Sí | Sí | Pendiente de cruce |
-| PAG-002 | Plazo de pago objetivo | Pendiente | Objetivo de negociación | No | Sí | Sí | Sí | Pendiente de cruce |
-| PAG-003 | Tolerancia de plazo | Pendiente | Tolerancia | No | Sí | Sí | Sí | Pendiente de cruce |
-| PAG-004 | Considerar plazo en negociación | Pendiente | Activación funcional | No | Sí | Sí | Sí | Pendiente de cruce |
-| PAG-005 | Considerar descuento por pronto pago | Pendiente | Condición económica | No | Sí | Sí | Sí | Pendiente de cruce |
-
-## 5.7 Activación de reglas
-
-| ID | Parámetro | Regla | Función | Crítico | Editable | Empresa | MVP | Estado |
-|---|---|---|---|---|---|---|---|---|
-| RGL-001 | Activar reglas de precio | Pendiente | Activación | Potencial | Restringida | Sí | Revisar | Pendiente de autoridad |
-| RGL-002 | Activar reglas de stock | Pendiente | Activación | Potencial | Restringida | Sí | Revisar | Pendiente de autoridad |
-| RGL-003 | Activar reglas de margen | Pendiente | Activación | Potencial | Restringida | Sí | Revisar | Pendiente de autoridad |
-| RGL-004 | Activar reglas financieras | Pendiente | Activación | Sí potencial | No ordinaria | Sí | Revisar | Pendiente de autoridad |
-| RGL-005 | Activar reglas de proveedores | Pendiente | Activación | Potencial | Restringida | Sí | Revisar | Pendiente de autoridad |
-| RGL-006 | Permitir excepciones | Pendiente | Control de excepciones | Sí potencial | No ordinaria | Sí | Revisar | Pendiente de autoridad |
-| RGL-007 | Permitir compra condicionada | Pendiente | Resultado permitido | No determinado | Sí | Sí | Sí | Pendiente de cruce |
-
-## 5.8 Calidad de datos
-
-| ID | Parámetro | Regla | Función | Crítico | Editable | Empresa | MVP | Estado |
-|---|---|---|---|---|---|---|---|---|
-| DAT-001 | Antigüedad máxima de datos operativos | Pendiente | Calidad temporal | Alta | Restringida | Sí | Sí | Pendiente de cruce |
-| DAT-002 | Antigüedad máxima de referencia de precio | Pendiente | Calidad histórica | Alta | Restringida | Sí | Sí | Pendiente de cruce |
-| DAT-003 | Nº mínimo de registros históricos | Pendiente | Suficiencia de evidencia | Alta | Restringida | Sí | Sí | Pendiente de cruce |
-| DAT-004 | Permitir evaluación con datos incompletos | Pendiente | Control de suficiencia | Sí | No ordinaria | Sí | No en MVP | Requiere decisión |
-| DAT-005 | Mostrar fecha de actualización | Pendiente | Transparencia | No | Sí | Sí | Sí | Pendiente de cruce |
-| DAT-006 | Mostrar nivel de fiabilidad | Pendiente | Explicabilidad | No | Sí | Sí | Sí | Pendiente de cruce |
-| DAT-007 | Nivel mínimo de fiabilidad para recomendación | Pendiente | Umbral de evidencia | Sí | Restringida | Sí | Sí | Pendiente de cruce |
+| ID | Área | Regla | Crítico | Editable | Empresa | MVP | Estado |
+|---|---|---|---|---|---|---|---|
+| PRE-001 a PRE-006 | Precios | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
+| STK-001 a STK-006 | Stock | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
+| PYE-001 a PYE-006 | Proyección | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
+| MGE-001 a MGE-006 | Rentabilidad | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
+| FIN-001 | Finanzas | Pendiente de identificación documental individual | Alta | Restringida | Sí | Sí | Pendiente de cruce |
+| FIN-002 | Finanzas | Regla financiera aplicable | Sí | Restringida | Sí | Sí | Pendiente de autoridad/validación |
+| FIN-003 | Finanzas | Regla financiera aplicable | Sí | Restringida | Sí | Sí | Pendiente de autoridad/validación |
+| FIN-004 a FIN-006 | Finanzas | Pendiente de identificación documental individual | Alta | Restringida | Sí | Sí | Pendiente de cruce |
+| PAG-001 a PAG-005 | Pagos | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
+| RGL-001 a RGL-006 | Reglas | Activación/excepción | Según regla | Restringida | Sí | Revisar | Pendiente de autoridad |
+| RGL-007 | Reglas | Compra condicionada | Pendiente | Sí, sujeto a autoridad | Sí | Sí | Pendiente de cruce |
+| DAT-001 a DAT-003 | Calidad | Pendiente de identificación documental individual | Alta | Restringida | Sí | Sí | Pendiente de cruce |
+| DAT-004 | Calidad | Ninguna en MVP | Sí | No | No aplica | No | Excluido del MVP |
+| DAT-005 | Presentación/trazabilidad | No es parámetro de decisión | No | No aplica | No aplica | No | Reclasificado |
+| DAT-006 | Calidad/explicabilidad | No es parámetro de decisión | No | No aplica | No aplica | No | Reclasificado |
+| DAT-007 | Calidad | Pendiente de identificación documental individual | Sí | Restringida | Sí | Sí | Pendiente de cruce |
 
 ---
 
-# 6. HALLAZGOS PRELIMINARES
+# 6. REGLAS DE GOBIERNO DERIVADAS
 
-## H-01 — DAT-004
+## G-01 — Parámetro crítico
 
-El catálogo actual permite decisión con datos incompletos con advertencia. La Especificación Funcional aprobada establece que la información crítica insuficiente debe conducir a `INFORMACIÓN INSUFICIENTE`.
+Un parámetro cuyo cambio pueda afectar a un bloqueo, salvaguarda o restricción crítica no puede modificarse mediante parametrización ordinaria sin controles específicos de autorización, trazabilidad y vigencia.
 
-**Propuesta:** excluir DAT-004 del comportamiento configurable del MVP y mantenerlo únicamente como capacidad futura, salvo decisión documental superior en sentido contrario.
+## G-02 — Regla crítica
 
-## H-02 — RGL-001 a RGL-007
+Un parámetro ordinario no puede desactivar una regla crítica ni anular una restricción no anulable.
 
-Los parámetros de activación de reglas y excepciones pueden afectar a la integridad de las salvaguardas.
+## G-03 — Excepciones
 
-**Propuesta:** ningún parámetro ordinario debe poder desactivar una regla crítica ni anular una restricción no anulable.
+Un parámetro ordinario no puede habilitar una excepción no autorizada.
 
-## H-03 — Prioridad vs autoridad
+## G-04 — Prioridad
 
-La prioridad numérica del catálogo no debe utilizarse como sustituto de la autoridad de resolución de la CRC.
+La prioridad de una regla no constituye autoridad de resolución. La CRC mantiene la función de resolución de conflictos conforme a su documentación aplicable.
 
-## H-04 — Valores iniciales
+## G-05 — Evidencia
 
-Los valores económicos y operativos actuales son valores de trabajo. No deben considerarse valores empresariales definitivos hasta su validación.
+No se asignará una regla concreta a un parámetro si la documentación disponible no demuestra dicha relación.
 
-## H-05 — Parámetro sin regla
+## G-06 — Consumidor funcional
 
-La columna `Regla` permanecerá pendiente mientras no exista evidencia documental suficiente en la Matriz de Reglas MVP.
+Un parámetro sin consumidor funcional o justificación explícita no se considerará parámetro MVP confirmado.
+
+## G-07 — Gap
+
+Una regla que requiera un valor configurable sin disponer del parámetro correspondiente constituye un gap de parametrización.
 
 ---
 
-# 7. DECISIONES PENDIENTES
+# 7. HALLAZGOS RESUELTOS POR EL DECISION LOG
 
-1. Cruzar cada parámetro con la Matriz de Reglas MVP.
+- `DAT-004` queda fuera del MVP configurable.
+- `DAT-005` se reclasifica como presentación/trazabilidad.
+- `DAT-006` se reclasifica como calidad/explicabilidad.
+- `RGL-001` a `RGL-006` quedan sujetos a autoridad y no son parámetros ordinarios sin más.
+- La prioridad no se utiliza como sustituto de autoridad.
+- Los valores económicos y operativos siguen siendo valores iniciales hasta su validación empresarial.
+
+---
+
+# 8. PENDIENTES DE VALIDACIÓN
+
+1. Identificar documentalmente cada regla consumidora de cada parámetro.
 2. Confirmar los parámetros realmente necesarios para el MVP.
-3. Confirmar cuáles son críticos.
-4. Determinar qué parámetros pueden editarse ordinariamente.
-5. Determinar qué parámetros son específicos de empresa.
-6. Validar los valores iniciales.
-7. Resolver definitivamente DAT-004.
-8. Resolver la autoridad de RGL-001 a RGL-007.
-9. Eliminar parámetros que no tengan consumidor funcional en el MVP.
-10. Clasificar los parámetros restantes como Confirmado, Pendiente de validación, Pendiente de datos, No incluido en MVP o Futuro.
+3. Validar los valores empresariales definitivos.
+4. Determinar los parámetros específicos de cada empresa.
+5. Confirmar la editabilidad individual.
+6. Resolver los gaps de parametrización que aparezcan al completar el cruce.
 
 ---
 
-# 8. ESTADO
+# 9. ESTADO
 
-**Estado:** PROPUESTA — pendiente de validación.
+**Versión:** 0.2  
+**Estado:** APROBADO  
+**Baseline:** EIOS Vertical MVP
 
-Esta matriz no debe considerarse baseline oficial hasta completar el cruce con la Matriz de Reglas MVP y resolver los hallazgos críticos identificados.
+La aprobación de esta matriz significa que el modelo de gobierno y clasificación queda aprobado. No significa que las relaciones Parámetro → Regla pendientes de evidencia hayan sido inventadas o cerradas.
