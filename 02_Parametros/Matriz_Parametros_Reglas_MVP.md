@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.2  
+**Versión:** 0.3  
 **Estado:** APROBADO  
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 20/08/2026
@@ -121,7 +121,20 @@ Una regla que requiera un valor configurable sin disponer del parámetro corresp
 
 ---
 
-# 7. HALLAZGOS RESUELTOS POR EL DECISION LOG
+# 7. RELACIONES CONFIRMADAS TRAS RESOLUCIÓN DE GAPs
+
+| Parámetro | Regla | Función | Estado |
+|---|---|---|---|
+| `PAG-001` | `CON-001` | Define el plazo mínimo aceptable frente al que se evalúa el plazo propuesto. | CONFIRMADO |
+| `PAG-002` | `CON-001` | Define el plazo objetivo utilizado como referencia adicional de negociación. | CONFIRMADO |
+
+Estas dos relaciones son la materialización documental de `C-07` registrada en el Decision Log. No implican que el resto de relaciones agrupadas de la matriz hayan quedado automáticamente confirmadas.
+
+Los casos `C-01` a `C-06` se mantienen como criterios, metodologías, evaluaciones o cálculos sin parámetro directo confirmado.
+
+---
+
+# 8. HALLAZGOS RESUELTOS POR EL DECISION LOG
 
 - `DAT-004` queda fuera del MVP configurable.
 - `DAT-005` se reclasifica como presentación/trazabilidad.
@@ -129,10 +142,11 @@ Una regla que requiera un valor configurable sin disponer del parámetro corresp
 - `RGL-001` a `RGL-006` quedan sujetos a autoridad y no son parámetros ordinarios sin más.
 - La prioridad no se utiliza como sustituto de autoridad.
 - Los valores económicos y operativos siguen siendo valores iniciales hasta su validación empresarial.
+- `GAP-01 / PRO-001` queda tratado como dato del proveedor, no como nuevo parámetro empresarial.
 
 ---
 
-# 8. PENDIENTES DE VALIDACIÓN
+# 9. PENDIENTES DE VALIDACIÓN
 
 1. Identificar documentalmente cada regla consumidora de cada parámetro.
 2. Confirmar los parámetros realmente necesarios para el MVP.
@@ -143,10 +157,10 @@ Una regla que requiera un valor configurable sin disponer del parámetro corresp
 
 ---
 
-# 9. ESTADO
+# 10. ESTADO
 
-**Versión:** 0.2  
+**Versión:** 0.3  
 **Estado:** APROBADO  
 **Baseline:** EIOS Vertical MVP
 
-La aprobación de esta matriz significa que el modelo de gobierno y clasificación queda aprobado. No significa que las relaciones Parámetro → Regla pendientes de evidencia hayan sido inventadas o cerradas.
+La aprobación de esta matriz significa que el modelo de gobierno y clasificación queda aprobado y que las relaciones expresamente marcadas como CONFIRMADO cuentan con evidencia documental. No significa que las relaciones pendientes de evidencia hayan sido inventadas o cerradas.
