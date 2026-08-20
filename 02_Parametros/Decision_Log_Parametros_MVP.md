@@ -2,8 +2,8 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.1  
-**Estado:** PROPUESTA — pendiente de aprobación  
+**Versión:** 0.2  
+**Estado:** APROBADO  
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 20/08/2026
 
@@ -17,19 +17,19 @@ Actúa como documento de decisión y no sustituye al Centro de Parametrización,
 
 ---
 
-# 2. DECISIONES
+# 2. DECISIONES APROBADAS
 
 ## D-01 — Datos insuficientes
 
 **Elemento:** `DAT-004 — Permitir evaluación con datos incompletos`
 
-**Decisión propuesta:** No incluirlo como capacidad configurable del MVP.
+**Decisión:** No incluirlo como capacidad configurable del MVP.
 
 **Motivo:** La Especificación Funcional v2.0 establece que cuando falte información crítica para una evaluación fiable EIOS deberá identificar la insuficiencia y utilizar `INFORMACIÓN INSUFICIENTE` cuando corresponda.
 
 **Consecuencia:** La ausencia de evidencia crítica no podrá convertirse mediante un parámetro ordinario en una recomendación favorable.
 
-**Estado:** PROPUESTA.
+**Estado:** APROBADO.
 
 ---
 
@@ -37,11 +37,11 @@ Actúa como documento de decisión y no sustituye al Centro de Parametrización,
 
 **Elemento:** parámetros cuyo cambio pueda afectar a bloqueos, salvaguardas o restricciones críticas.
 
-**Decisión propuesta:** Los parámetros críticos no podrán ser modificados mediante una parametrización ordinaria sin controles específicos de autorización, trazabilidad y vigencia.
+**Decisión:** Los parámetros críticos no podrán ser modificados mediante una parametrización ordinaria sin controles específicos de autorización, trazabilidad y vigencia.
 
 **Motivo:** La parametrización no debe convertirse en un mecanismo indirecto para desactivar salvaguardas.
 
-**Estado:** PROPUESTA.
+**Estado:** APROBADO.
 
 ---
 
@@ -49,11 +49,11 @@ Actúa como documento de decisión y no sustituye al Centro de Parametrización,
 
 **Elementos:** `RGL-001` a `RGL-006`.
 
-**Decisión propuesta:** No considerar estos elementos como simples parámetros ordinarios del MVP hasta definir su autoridad documental.
+**Decisión:** Los parámetros ordinarios no podrán desactivar reglas críticas, anular restricciones no anulables ni habilitar excepciones no autorizadas. Las reglas no críticas podrán ser configurables cuando su autoridad documental lo permita. Toda modificación deberá quedar trazada.
 
 **Motivo:** Activar, desactivar o permitir excepciones puede alterar el comportamiento de reglas y salvaguardas. La autoridad no debe quedar implícita en el catálogo de parámetros.
 
-**Estado:** PROPUESTA.
+**Estado:** APROBADO.
 
 ---
 
@@ -61,11 +61,11 @@ Actúa como documento de decisión y no sustituye al Centro de Parametrización,
 
 **Elemento:** prioridades configurables.
 
-**Decisión propuesta:** La prioridad de un parámetro o regla no constituye por sí misma autoridad de resolución.
+**Decisión:** La prioridad de un parámetro o regla no constituye por sí misma autoridad de resolución.
 
 **Motivo:** La resolución de conflictos corresponde a la CRC. El catálogo de parámetros no debe duplicar ni sustituir dicha autoridad.
 
-**Estado:** PROPUESTA.
+**Estado:** APROBADO.
 
 ---
 
@@ -73,11 +73,11 @@ Actúa como documento de decisión y no sustituye al Centro de Parametrización,
 
 **Elementos:** `DAT-005 — Mostrar fecha de actualización` y `DAT-006 — Mostrar nivel de fiabilidad`.
 
-**Decisión propuesta:** Revisar su clasificación como parámetros. Si no modifican la lógica de decisión, deberán considerarse capacidades de presentación, calidad o trazabilidad y no parámetros empresariales ordinarios.
+**Decisión:** Reclasificar estos elementos fuera del catálogo de parámetros empresariales ordinarios cuando no modifiquen la lógica de decisión, tratándolos como capacidades de presentación, calidad o trazabilidad según corresponda.
 
 **Motivo:** Un elemento informativo no debe confundirse con una variable que modifique el comportamiento del motor.
 
-**Estado:** PROPUESTA.
+**Estado:** APROBADO.
 
 ---
 
@@ -85,11 +85,11 @@ Actúa como documento de decisión y no sustituye al Centro de Parametrización,
 
 **Elemento:** valores económicos y operativos incluidos en el catálogo.
 
-**Decisión propuesta:** Mantenerlos como valores iniciales de trabajo hasta su validación con datos empresariales y casos reales.
+**Decisión:** Mantenerlos como valores iniciales de trabajo hasta su validación con datos empresariales y casos reales.
 
 **Motivo:** El catálogo actual identifica estos valores como pendientes de validación.
 
-**Estado:** PROPUESTA.
+**Estado:** APROBADO.
 
 ---
 
@@ -97,11 +97,11 @@ Actúa como documento de decisión y no sustituye al Centro de Parametrización,
 
 **Elemento:** cualquier parámetro que no pueda vincularse documentalmente a una regla o función MVP.
 
-**Decisión propuesta:** No considerarlo parámetro MVP confirmado hasta identificar su consumidor funcional.
+**Decisión:** No considerarlo parámetro MVP confirmado hasta identificar su consumidor funcional.
 
 **Motivo:** Evitar un catálogo sobredimensionado y parámetros sin efecto real en el sistema.
 
-**Estado:** PROPUESTA.
+**Estado:** APROBADO.
 
 ---
 
@@ -109,25 +109,26 @@ Actúa como documento de decisión y no sustituye al Centro de Parametrización,
 
 **Elemento:** regla que requiera un valor configurable y no disponga del parámetro correspondiente.
 
-**Decisión propuesta:** Registrar la carencia como gap de parametrización antes de cerrar el catálogo MVP.
+**Decisión:** Registrar la carencia como gap de parametrización antes de cerrar el catálogo MVP.
 
 **Motivo:** El catálogo debe ser suficiente para soportar las reglas configurables del MVP.
 
-**Estado:** PROPUESTA.
+**Estado:** APROBADO.
 
 ---
 
 # 3. CRITERIO DE CIERRE DE 02_PARAMETROS
 
-La carpeta no se considerará aprobable hasta que:
+La carpeta no se considerará cerrada hasta que:
 
-1. se resuelvan D-01 a D-08;
-2. cada parámetro MVP tenga consumidor funcional o justificación explícita;
-3. cada regla parametrizable tenga sus parámetros identificados;
-4. los parámetros críticos tengan controles de modificación adecuados;
-5. los valores que se declaren oficiales hayan sido validados;
-6. se diferencien claramente parámetros, reglas, presentación y trazabilidad;
-7. la matriz de parámetros y reglas quede coherente con `04_Reglas` y la CRC.
+1. cada parámetro MVP tenga consumidor funcional o justificación explícita;
+2. cada regla parametrizable tenga sus parámetros identificados;
+3. los parámetros críticos tengan controles de modificación adecuados;
+4. los valores que se declaren oficiales hayan sido validados;
+5. se diferencien claramente parámetros, reglas, presentación y trazabilidad;
+6. la matriz de parámetros y reglas quede coherente con `04_Reglas` y la CRC.
+
+Las decisiones D-01 a D-08 están aprobadas y deberán trasladarse de forma controlada a los documentos afectados.
 
 ---
 
@@ -141,6 +142,6 @@ Una decisión aprobada que afecte a `04_Reglas`, la CRC, `01_Modelo` o la Arquit
 
 # 5. ESTADO
 
-**PROPUESTA — pendiente de aprobación.**
-
-Una vez aprobadas las decisiones, deberán trasladarse de forma controlada al Centro de Parametrización, al Catálogo y a la Matriz de Parámetros-Reglas que corresponda.
+**Versión:** 0.2  
+**Estado:** APROBADO  
+**Baseline:** EIOS Vertical MVP
