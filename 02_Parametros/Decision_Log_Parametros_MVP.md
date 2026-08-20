@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.3  
+**Versión:** 0.4  
 **Estado:** APROBADO  
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 20/08/2026
@@ -11,15 +11,15 @@
 
 # 1. PROPÓSITO
 
-Este documento registra las decisiones necesarias para cerrar la definición funcional de `02_Parametros` sin modificar silenciosamente la autoridad de `01_Modelo`, `04_Reglas` o la CRC.
+Registrar las decisiones necesarias para cerrar la definición funcional de `02_Parametros` y mantener trazabilidad sobre los GAPs detectados.
 
-Actúa como documento de decisión y no sustituye al Centro de Parametrización, al Catálogo de Parámetros ni a la Matriz de Reglas.
+Este documento no sustituye al Catálogo de Parámetros ni a la Matriz de Reglas.
 
 ---
 
 # 2. DECISIONES APROBADAS
 
-Se mantienen las decisiones D-01 a D-08 de la versión 0.2.
+Se mantienen las decisiones D-01 a D-08 de la versión anterior, salvo las precisiones expresamente indicadas en este documento.
 
 ---
 
@@ -34,52 +34,67 @@ Se mantienen las decisiones D-01 a D-08 de la versión 0.2.
 | C-04 | `CON-002` | Se trata como cálculo/escenario de razonabilidad económica, no como parámetro directo. | CERRADO |
 | C-05 | `CON-003` | Se trata como resultado de evaluación/viabilidad, no como parámetro directo. | CERRADO |
 | C-06 | `FIN-003` | Se trata como evaluación financiera mediante variables y cálculos; no se crea parámetro directo. | CERRADO |
-| C-07 | `CON-001` | Se distinguen `PAG-001` como plazo mínimo aceptable y `PAG-002` como plazo objetivo de negociación. La expresión «mínimo objetivo» se sustituye para evitar ambigüedad. | CERRADO |
+| C-07 | Plazos de pago | Se distinguen `P-PAG-001` como parámetro de plazo mínimo deseado y `P-PAG-002` como parámetro de plazo objetivo. Las reglas de la familia correspondiente deberán utilizar la nomenclatura `R-PAG-*`. No se asigna todavía una relación concreta parámetro-regla sin evidencia documental. | CERRADO |
+| GAP-ID-01 | Convención de IDs | Se mantiene la convención ya establecida: `P-*` para parámetros y `R-*` para reglas. Los documentos que aún utilicen IDs sin prefijo requieren migración controlada. | ABIERTO — MIGRACIÓN |
 
 ---
 
-# 4. DECISIÓN SOBRE CON-001
+# 4. CONVENCIÓN DE IDENTIFICADORES
 
-`CON-001` deberá consumir los dos conceptos existentes en el catálogo:
+La identificación de entidades entre capas se expresa mediante prefijo de tipo:
 
-- `PAG-001` — plazo mínimo aceptable.
-- `PAG-002` — plazo objetivo de negociación.
+- `P-XXX-NNN` → parámetro.
+- `R-XXX-NNN` → regla.
 
-No se crea un parámetro adicional.
+Ejemplo:
 
-La materialización de esta decisión corresponde al documento de autoridad de `04_Reglas`.
+- `P-FIN-001` → parámetro financiero.
+- `R-FIN-001` → regla financiera.
 
----
-
-# 5. DOCUMENTOS AFECTADOS
-
-- `04_Reglas`: incorporar/normalizar `CON-001` y eliminar la terminología ambigua «mínimo objetivo».
-- `02_Parametros/Matriz_Parametros_Reglas_MVP.md`: actualizar únicamente las relaciones parámetro-regla demostradas documentalmente.
-- `02_Parametros/Catalogo_Parametros_MVP_v0.3.md`: no requiere nuevos parámetros por esta ronda.
-- `05_Motor`: sin modificación derivada de estos GAPs.
-- `06_SQL`: no modificar hasta completar el cierre documental previo a implementación.
-- `07_Pruebas`: sin modificación derivada de estos GAPs.
+La migración no cambia la numeración funcional existente; añade el prefijo de tipo para eliminar ambigüedad entre capas.
 
 ---
 
-# 6. CRITERIO DE CIERRE
+# 5. DECISIÓN SOBRE C-07
 
-Los GAPs quedan cerrados a nivel funcional cuando la decisión queda registrada y los documentos de autoridad afectados quedan identificados para una única ventana de actualización.
+No se utilizará `CON-001` como identificador de una regla de plazo de pago.
 
-La modificación del documento de autoridad se realizará de forma controlada y posteriormente será auditada.
+La matriz oficial de reglas utiliza identificadores de regla de la familia correspondiente. Por tanto, cualquier referencia anterior a `CON-001` para esta cuestión queda sin efecto hasta disponer de evidencia documental que la respalde.
 
----
-
-# 7. PRINCIPIO DE NO ALTERACIÓN DE AUTORIDAD
-
-Este Decision Log no modifica por sí mismo documentos aprobados.
-
-Una decisión aprobada que afecte a `04_Reglas`, la CRC, `01_Modelo` o la Arquitectura deberá materializarse mediante la actualización controlada del documento que tenga autoridad sobre la materia.
+No se crean parámetros nuevos.
 
 ---
 
-# 8. ESTADO
+# 6. DOCUMENTOS AFECTADOS
 
-**Versión:** 0.3  
+- `02_Parametros/Catalogo_Parametros_MVP_v0.3.md`: migración de IDs a `P-*` cuando corresponda.
+- `02_Parametros/Matriz_Parametros_Reglas_MVP.md`: migración de IDs de parámetros y referencias a reglas a `P-*` / `R-*`; no inventar relaciones pendientes.
+- `04_Reglas/Matriz_Reglas_MVP.md`: migración de IDs de reglas a `R-*` cuando corresponda.
+- `04_Reglas/Reglas_MVP.md`: mantener bajo revisión por coexistencia documental hasta resolver su papel respecto a la matriz oficial.
+- `05_Motor`: no modificar todavía.
+- `06_SQL`: no modificar todavía.
+- `07_Pruebas`: no modificar todavía.
+
+---
+
+# 7. PRINCIPIO DE NO INFERENCIA
+
+La coincidencia del número o familia de un ID no demuestra una relación funcional.
+
+Una relación parámetro → regla solo se considerará confirmada cuando exista evidencia documental suficiente.
+
+---
+
+# 8. CRITERIO DE CIERRE
+
+Los GAPs funcionales quedan cerrados cuando la decisión está registrada y los documentos de autoridad afectados están identificados.
+
+Los GAPs de migración documental permanecen abiertos hasta completar la actualización controlada y su posterior auditoría.
+
+---
+
+# 9. ESTADO
+
+**Versión:** 0.4  
 **Estado:** APROBADO  
 **Baseline:** EIOS Vertical MVP
