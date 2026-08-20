@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.1  
+**Versión:** 0.2  
 **Estado:** PROPUESTA — pendiente de aprobación  
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 20/08/2026
@@ -42,6 +42,8 @@ Las pruebas deberán:
 | BLOQUEADA | No puede ejecutarse por una dependencia pendiente |
 | NO APLICA | El caso no corresponde al alcance actual |
 
+Una prueba en estado **FALLIDA** deberá generar una incidencia antes de modificar cualquier documento o componente. La incidencia deberá determinar si el origen está en la implementación, los datos, el propio caso de prueba o la documentación de referencia. Una prueba fallida no constituye por sí misma autorización para cambiar el diseño.
+
 ---
 
 # 4. Identificación de pruebas
@@ -57,6 +59,7 @@ Ejemplos:
 - `T-RGL-001`
 - `T-MOT-001`
 - `T-TRZ-001`
+- `T-REG-001`
 
 ---
 
@@ -91,10 +94,10 @@ Ejemplos:
 
 | ID | Caso | Resultado esperado | Estado |
 |---|---|---|---|
-| T-RGL-001 | Regla de precio aplicable | La regla se evalúa con los parámetros correspondientes | PENDIENTE |
-| T-RGL-002 | Regla de stock aplicable | La regla se evalúa con los parámetros correspondientes | PENDIENTE |
+| T-RGL-001 | Regla de precio aplicable | La regla se evalúa con los parámetros que documentalmente correspondan | PENDIENTE |
+| T-RGL-002 | Regla de stock aplicable | La regla se evalúa con los parámetros que documentalmente correspondan | PENDIENTE |
 | T-RGL-003 | Regla de margen aplicable | La regla se evalúa diferenciando margen porcentual y margen en euros cuando corresponda | PENDIENTE |
-| T-RGL-004 | Regla financiera crítica activada | La condición crítica prevalece según la jerarquía aplicable | PENDIENTE |
+| T-RGL-004 | Regla financiera crítica activada | El resultado se ajusta a la resolución documentalmente establecida para la regla | PENDIENTE |
 | T-RGL-005 | Regla crítica que se intenta desactivar mediante parámetro ordinario | La desactivación no está permitida | PENDIENTE |
 | T-RGL-006 | Excepción no autorizada | EIOS no permite habilitarla mediante parametrización ordinaria | PENDIENTE |
 | T-RGL-007 | Regla no crítica configurable | Solo puede configurarse cuando su autoridad documental lo permita | PENDIENTE |
@@ -106,7 +109,7 @@ Ejemplos:
 | ID | Caso | Resultado esperado | Estado |
 |---|---|---|---|
 | T-CRC-001 | Dos reglas generan señales diferentes | Se aplica la resolución de conflictos definida por la CRC | PENDIENTE |
-| T-CRC-002 | Regla crítica entra en conflicto con una regla de menor prioridad | Prevalece la regla según la jerarquía aprobada | PENDIENTE |
+| T-CRC-002 | Dos reglas entran en conflicto | Se aplica el mecanismo de resolución definido por la CRC, sin asumir que prioridad o criticidad sustituyan a la autoridad de resolución | PENDIENTE |
 | T-CRC-003 | Prioridad modificada sin autoridad para alterar resolución | La prioridad no sustituye la autoridad de resolución | PENDIENTE |
 | T-CRC-004 | Conflicto entre reglas con igual nivel | Se aplica el mecanismo de resolución documentado | PENDIENTE |
 
@@ -145,23 +148,35 @@ Ejemplos:
 
 ---
 
-# 12. Matriz Regla → Prueba
+# 12. Matriz de trazabilidad Regla → Prueba
 
-Esta matriz se completará únicamente con relaciones que estén documentalmente demostradas en `04_Reglas` y `02_Parametros`.
+Esta matriz se utiliza como estructura de trazabilidad y **no implica que las relaciones estén todavía confirmadas**. Solo podrán completarse relaciones concretas cuando estén documentalmente demostradas en `04_Reglas` y `02_Parametros`.
 
 | Regla / familia | Parámetro relacionado | Caso de prueba | Resultado esperado | Estado |
 |---|---|---|---|---|
-| Precio | PRE-* | T-RGL-001 | Evaluación conforme a regla | PENDIENTE |
-| Stock | STK-* / PYE-* | T-RGL-002 | Evaluación conforme a regla | PENDIENTE |
-| Margen | MGE-* | T-RGL-003 | Evaluación conforme a regla | PENDIENTE |
-| Finanzas | FIN-* | T-RGL-004 | Aplicación de condición financiera | PENDIENTE |
+| Precio | Pendiente de cruce documental | T-RGL-001 | Evaluación conforme a regla aprobada | PENDIENTE |
+| Stock | Pendiente de cruce documental | T-RGL-002 | Evaluación conforme a regla aprobada | PENDIENTE |
+| Margen | Pendiente de cruce documental | T-RGL-003 | Evaluación conforme a regla aprobada | PENDIENTE |
+| Finanzas | Pendiente de cruce documental | T-RGL-004 | Aplicación conforme a regla y resolución aprobadas | PENDIENTE |
 | Conflictos | CRC | T-CRC-* | Resolución conforme a CRC | PENDIENTE |
-
-**Nota:** Los identificadores con `*` son familias y no constituyen por sí mismos una relación exhaustiva Parámetro → Regla.
 
 ---
 
-# 13. Criterios de aceptación MVP
+# 13. Pruebas de no regresión
+
+Las pruebas de no regresión verifican que una modificación controlada no altere comportamientos que no forman parte del cambio.
+
+| ID | Caso | Resultado esperado | Estado |
+|---|---|---|---|
+| T-REG-001 | Modificación de un parámetro | Las reglas no afectadas por dicho parámetro mantienen su comportamiento | PENDIENTE |
+| T-REG-002 | Modificación de una regla | Las reglas no relacionadas mantienen su comportamiento | PENDIENTE |
+| T-REG-003 | Modificación del motor | Las salvaguardas y restricciones aprobadas permanecen intactas | PENDIENTE |
+| T-REG-004 | Modificación de configuración de empresa A | La configuración y comportamiento de empresa B permanecen aislados | PENDIENTE |
+| T-REG-005 | Cambio de parámetro crítico autorizado | Los controles y trazabilidad exigidos permanecen activos | PENDIENTE |
+
+---
+
+# 14. Criterios de aceptación MVP
 
 Una prueba funcional podrá considerarse aprobada cuando:
 
@@ -175,7 +190,7 @@ Una prueba funcional podrá considerarse aprobada cuando:
 
 ---
 
-# 14. Dependencias
+# 15. Dependencias
 
 La ejecución completa de este Plan requiere que las capas de implementación necesarias estén disponibles.
 
@@ -185,18 +200,19 @@ Este documento define **qué debe comprobarse**, no cómo construir la infraestr
 
 ---
 
-# 15. Reglas de gobierno del Plan de Pruebas
+# 16. Reglas de gobierno del Plan de Pruebas
 
 1. Una prueba no puede modificar una regla aprobada para conseguir un resultado esperado.
 2. Un resultado esperado debe poder justificarse mediante documentación EIOS aprobada o mediante una decisión posterior formalmente aprobada.
 3. Los casos que requieran una regla, parámetro o capacidad todavía no aprobada deberán permanecer `PENDIENTE`.
 4. Las pruebas no sustituyen a la autoridad documental de las capas anteriores.
 5. Cualquier contradicción detectada durante las pruebas deberá registrarse como incidencia antes de modificar el diseño.
+6. Una prueba `FALLIDA` deberá generar una incidencia y su resolución deberá identificar el origen antes de plantear cualquier modificación.
 
 ---
 
-# 16. Estado documental
+# 17. Estado documental
 
-**Versión:** 0.1  
+**Versión:** 0.2  
 **Estado:** PROPUESTA — pendiente de aprobación  
 **Baseline:** EIOS Vertical MVP
