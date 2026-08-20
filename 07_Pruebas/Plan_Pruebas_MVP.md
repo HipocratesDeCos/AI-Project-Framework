@@ -3,7 +3,7 @@
 ## EIOS — Enterprise Intelligent Operations System
 
 **Versión:** 0.2  
-**Estado:** PROPUESTA — pendiente de aprobación  
+**Estado:** APROBADO  
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 20/08/2026
 
@@ -214,5 +214,5 @@ Este documento define **qué debe comprobarse**, no cómo construir la infraestr
 # 17. Estado documental
 
 **Versión:** 0.2  
-**Estado:** PROPUESTA — pendiente de aprobación  
+**Estado:** APROBADO  
 **Baseline:** EIOS Vertical MVP
