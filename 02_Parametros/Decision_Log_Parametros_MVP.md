@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.2  
+**Versión:** 0.3  
 **Estado:** APROBADO  
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 20/08/2026
@@ -19,120 +19,58 @@ Actúa como documento de decisión y no sustituye al Centro de Parametrización,
 
 # 2. DECISIONES APROBADAS
 
-## D-01 — Datos insuficientes
-
-**Elemento:** `DAT-004 — Permitir evaluación con datos incompletos`
-
-**Decisión:** No incluirlo como capacidad configurable del MVP.
-
-**Motivo:** La Especificación Funcional v2.0 establece que cuando falte información crítica para una evaluación fiable EIOS deberá identificar la insuficiencia y utilizar `INFORMACIÓN INSUFICIENTE` cuando corresponda.
-
-**Consecuencia:** La ausencia de evidencia crítica no podrá convertirse mediante un parámetro ordinario en una recomendación favorable.
-
-**Estado:** APROBADO.
+Se mantienen las decisiones D-01 a D-08 de la versión 0.2.
 
 ---
 
-## D-02 — Parámetros críticos
+# 3. REGISTRO DE RESOLUCIÓN DE GAPs
 
-**Elemento:** parámetros cuyo cambio pueda afectar a bloqueos, salvaguardas o restricciones críticas.
-
-**Decisión:** Los parámetros críticos no podrán ser modificados mediante una parametrización ordinaria sin controles específicos de autorización, trazabilidad y vigencia.
-
-**Motivo:** La parametrización no debe convertirse en un mecanismo indirecto para desactivar salvaguardas.
-
-**Estado:** APROBADO.
-
----
-
-## D-03 — Activación/desactivación de reglas
-
-**Elementos:** `RGL-001` a `RGL-006`.
-
-**Decisión:** Los parámetros ordinarios no podrán desactivar reglas críticas, anular restricciones no anulables ni habilitar excepciones no autorizadas. Las reglas no críticas podrán ser configurables cuando su autoridad documental lo permita. Toda modificación deberá quedar trazada.
-
-**Motivo:** Activar, desactivar o permitir excepciones puede alterar el comportamiento de reglas y salvaguardas. La autoridad no debe quedar implícita en el catálogo de parámetros.
-
-**Estado:** APROBADO.
+| ID | Elemento | Resolución | Estado |
+|---|---|---|---|
+| GAP-01 | `PRO-001` | La autorización/requisitos del proveedor se trata como dato del proveedor, no como parámetro empresarial de `02_Parametros`. No se crea parámetro nuevo. | CERRADO |
+| C-01 | `PRE-003` | Se mantiene como criterio/metodología pendiente, sin crear parámetro directo. | CERRADO |
+| C-02 | `TES-003` | Se mantiene como metodología de umbral financiero pendiente, sin crear parámetro en esta fase. | CERRADO |
+| C-03 | `PRO-002` | Se trata como evaluación de indicadores del proveedor; no se crea parámetro directo. | CERRADO |
+| C-04 | `CON-002` | Se trata como cálculo/escenario de razonabilidad económica, no como parámetro directo. | CERRADO |
+| C-05 | `CON-003` | Se trata como resultado de evaluación/viabilidad, no como parámetro directo. | CERRADO |
+| C-06 | `FIN-003` | Se trata como evaluación financiera mediante variables y cálculos; no se crea parámetro directo. | CERRADO |
+| C-07 | `CON-001` | Se distinguen `PAG-001` como plazo mínimo aceptable y `PAG-002` como plazo objetivo de negociación. La expresión «mínimo objetivo» se sustituye para evitar ambigüedad. | CERRADO |
 
 ---
 
-## D-04 — Prioridad frente a autoridad
+# 4. DECISIÓN SOBRE CON-001
 
-**Elemento:** prioridades configurables.
+`CON-001` deberá consumir los dos conceptos existentes en el catálogo:
 
-**Decisión:** La prioridad de un parámetro o regla no constituye por sí misma autoridad de resolución.
+- `PAG-001` — plazo mínimo aceptable.
+- `PAG-002` — plazo objetivo de negociación.
 
-**Motivo:** La resolución de conflictos corresponde a la CRC. El catálogo de parámetros no debe duplicar ni sustituir dicha autoridad.
+No se crea un parámetro adicional.
 
-**Estado:** APROBADO.
-
----
-
-## D-05 — Datos de presentación y trazabilidad
-
-**Elementos:** `DAT-005 — Mostrar fecha de actualización` y `DAT-006 — Mostrar nivel de fiabilidad`.
-
-**Decisión:** Reclasificar estos elementos fuera del catálogo de parámetros empresariales ordinarios cuando no modifiquen la lógica de decisión, tratándolos como capacidades de presentación, calidad o trazabilidad según corresponda.
-
-**Motivo:** Un elemento informativo no debe confundirse con una variable que modifique el comportamiento del motor.
-
-**Estado:** APROBADO.
+La materialización de esta decisión corresponde al documento de autoridad de `04_Reglas`.
 
 ---
 
-## D-06 — Valores iniciales
+# 5. DOCUMENTOS AFECTADOS
 
-**Elemento:** valores económicos y operativos incluidos en el catálogo.
-
-**Decisión:** Mantenerlos como valores iniciales de trabajo hasta su validación con datos empresariales y casos reales.
-
-**Motivo:** El catálogo actual identifica estos valores como pendientes de validación.
-
-**Estado:** APROBADO.
-
----
-
-## D-07 — Parámetro sin consumidor
-
-**Elemento:** cualquier parámetro que no pueda vincularse documentalmente a una regla o función MVP.
-
-**Decisión:** No considerarlo parámetro MVP confirmado hasta identificar su consumidor funcional.
-
-**Motivo:** Evitar un catálogo sobredimensionado y parámetros sin efecto real en el sistema.
-
-**Estado:** APROBADO.
+- `04_Reglas`: incorporar/normalizar `CON-001` y eliminar la terminología ambigua «mínimo objetivo».
+- `02_Parametros/Matriz_Parametros_Reglas_MVP.md`: actualizar únicamente las relaciones parámetro-regla demostradas documentalmente.
+- `02_Parametros/Catalogo_Parametros_MVP_v0.3.md`: no requiere nuevos parámetros por esta ronda.
+- `05_Motor`: sin modificación derivada de estos GAPs.
+- `06_SQL`: no modificar hasta completar el cierre documental previo a implementación.
+- `07_Pruebas`: sin modificación derivada de estos GAPs.
 
 ---
 
-## D-08 — Regla sin parámetro
+# 6. CRITERIO DE CIERRE
 
-**Elemento:** regla que requiera un valor configurable y no disponga del parámetro correspondiente.
+Los GAPs quedan cerrados a nivel funcional cuando la decisión queda registrada y los documentos de autoridad afectados quedan identificados para una única ventana de actualización.
 
-**Decisión:** Registrar la carencia como gap de parametrización antes de cerrar el catálogo MVP.
-
-**Motivo:** El catálogo debe ser suficiente para soportar las reglas configurables del MVP.
-
-**Estado:** APROBADO.
+La modificación del documento de autoridad se realizará de forma controlada y posteriormente será auditada.
 
 ---
 
-# 3. CRITERIO DE CIERRE DE 02_PARAMETROS
-
-La carpeta no se considerará cerrada hasta que:
-
-1. cada parámetro MVP tenga consumidor funcional o justificación explícita;
-2. cada regla parametrizable tenga sus parámetros identificados;
-3. los parámetros críticos tengan controles de modificación adecuados;
-4. los valores que se declaren oficiales hayan sido validados;
-5. se diferencien claramente parámetros, reglas, presentación y trazabilidad;
-6. la matriz de parámetros y reglas quede coherente con `04_Reglas` y la CRC.
-
-Las decisiones D-01 a D-08 están aprobadas y deberán trasladarse de forma controlada a los documentos afectados.
-
----
-
-# 4. PRINCIPIO DE NO ALTERACIÓN DE AUTORIDAD
+# 7. PRINCIPIO DE NO ALTERACIÓN DE AUTORIDAD
 
 Este Decision Log no modifica por sí mismo documentos aprobados.
 
@@ -140,8 +78,8 @@ Una decisión aprobada que afecte a `04_Reglas`, la CRC, `01_Modelo` o la Arquit
 
 ---
 
-# 5. ESTADO
+# 8. ESTADO
 
-**Versión:** 0.2  
+**Versión:** 0.3  
 **Estado:** APROBADO  
 **Baseline:** EIOS Vertical MVP
