@@ -2,9 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.1  
-**Estado:** En desarrollo  
-**Última actualización:** 09/08/2026
+**Versión:** 0.2  
+**Estado:** APROBADO  
+**Baseline:** EIOS Vertical MVP  
+**Última actualización:** 20/08/2026
 
 ---
 
@@ -24,13 +25,14 @@ Permitir que una persona autorizada pueda:
 
 - consultar los parámetros actuales;
 - comprender qué significa cada parámetro;
-- modificar sus valores;
-- activar o desactivar determinadas reglas;
+- modificar sus valores cuando tenga autorización;
 - establecer límites;
 - definir periodos de referencia;
-- establecer prioridades;
-- definir excepciones;
-- consultar el historial de modificaciones.
+- consultar el historial de modificaciones;
+- revisar la vigencia de configuraciones;
+- comprender el impacto previsto de un cambio.
+
+La activación o desactivación de reglas y la gestión de excepciones quedan sometidas a las restricciones de autoridad establecidas en este documento y en la documentación oficial de reglas y CRC.
 
 ---
 
@@ -45,6 +47,8 @@ EIOS puede realizar cálculos y aplicar reglas, pero la empresa debe conservar e
 - qué situaciones requieren negociación;
 - qué situaciones bloquean una compra;
 - qué excepciones son admisibles.
+
+Las recomendaciones de EIOS no constituyen por sí mismas cambios de política empresarial.
 
 ---
 
@@ -64,7 +68,7 @@ Define:
 
 > Con qué valores y criterios debe funcionar para una empresa concreta.
 
-Esto permitirá adaptar EIOS a diferentes empresas sin reconstruir el sistema.
+La parametrización no podrá utilizarse para modificar silenciosamente la lógica estructural del motor ni para anular salvaguardas de autoridad superior.
 
 ---
 
@@ -148,10 +152,6 @@ Ejemplo:
 
 **12 meses**
 
-Descripción:
-
-> Determina el periodo máximo durante el cual una compra histórica puede considerarse una referencia válida para determinadas comparaciones.
-
 La modificación de este parámetro puede afectar directamente a las recomendaciones de precio.
 
 ---
@@ -192,31 +192,13 @@ Podrán parametrizarse:
 
 Podrán configurarse criterios para clasificar los productos según su rotación.
 
-Ejemplo conceptual:
-
-### Alta rotación
-
-Más de X unidades o ventas durante el periodo definido.
-
-### Rotación media
-
-Entre X e Y.
-
-### Baja rotación
-
-Menos de Y.
-
-### Sin rotación
-
-Sin ventas durante el periodo establecido.
-
-Los valores deberán ser editables por empresa.
+Los valores deberán ser editables por empresa cuando formen parte del catálogo MVP correspondiente.
 
 ---
 
 # 12. PROYECCIÓN DE STOCK
 
-La configuración deberá permitir establecer:
+La configuración podrá establecer:
 
 - periodo de proyección;
 - método de cálculo de demanda;
@@ -225,12 +207,7 @@ La configuración deberá permitir establecer:
 - utilización de compras previstas;
 - consideración del plazo de entrega.
 
-El objetivo es determinar si una compra puede:
-
-- evitar una rotura;
-- llegar demasiado tarde;
-- generar exceso;
-- resultar innecesaria.
+El objetivo es determinar si una compra puede evitar una rotura, llegar demasiado tarde, generar exceso o resultar innecesaria.
 
 ---
 
@@ -245,13 +222,7 @@ Podrán configurarse:
 - impacto máximo de descuentos;
 - impacto máximo de rappels.
 
-El sistema deberá mostrar claramente si un parámetro está expresado en:
-
-- euros;
-- porcentaje;
-- unidades;
-- días;
-- meses.
+El sistema deberá mostrar claramente si un parámetro está expresado en euros, porcentaje, unidades, días o meses.
 
 ---
 
@@ -267,6 +238,8 @@ Podrán configurarse criterios relacionados con:
 - nivel de riesgo financiero aceptable.
 
 La configuración financiera tendrá especial relevancia porque una compra que comprometa la capacidad de atender pagos podrá ser considerada no viable.
+
+Los parámetros financieros críticos estarán sujetos a controles reforzados de autorización, trazabilidad y vigencia.
 
 ---
 
@@ -286,6 +259,8 @@ Cada regla deberá disponer conceptualmente de:
 - estado;
 - posibilidad de excepción.
 
+La definición y evaluación de las reglas pertenece a `04_Reglas/Matriz_Reglas_MVP.md`.
+
 ---
 
 # 16. TIPOS DE RESULTADO
@@ -300,13 +275,15 @@ Una regla podrá contribuir a uno de los siguientes resultados:
 
 ### NO COMPRAR
 
+La resolución consolidada y el resultado `INFORMACIÓN INSUFICIENTE` por insuficiencia de evidencia corresponden a las reglas y a la CRC según su autoridad.
+
 ---
 
 # 17. PRIORIDAD
 
-Las reglas deberán poder disponer de un nivel de prioridad.
+Las reglas pueden disponer de un nivel de prioridad.
 
-Ejemplo:
+La prioridad **no constituye autoridad de resolución**.
 
 | Prioridad | Nivel | Ejemplo |
 |---|---|---|
@@ -316,7 +293,7 @@ Ejemplo:
 | 4 | Media | Precio superior al objetivo |
 | 5 | Baja | Diferencia histórica menor |
 
-La escala definitiva queda pendiente de validación.
+La jerarquía definitiva pertenece a la documentación de reglas y CRC. El Centro no podrá redefinirla unilateralmente.
 
 ---
 
@@ -324,57 +301,39 @@ La escala definitiva queda pendiente de validación.
 
 Algunas reglas podrán tener capacidad de bloqueo.
 
-Ejemplo:
-
-### Regla
-
-> La compra compromete la capacidad de atender pagos.
-
-### Resultado
-
-**NO COMPRAR**
-
 Una regla de bloqueo no deberá quedar anulada simplemente porque existan varias reglas favorables.
+
+El Centro de Parametrización no podrá convertir mediante un parámetro ordinario una restricción crítica o no anulable en una condición permisiva.
 
 ---
 
 # 19. EXCEPCIONES
 
-Las reglas podrán disponer de excepciones previamente definidas.
+Las excepciones deberán ser previamente definidas, explícitas y trazables.
 
-Ejemplo:
+El parámetro `RGL-006` no autoriza por sí mismo cualquier excepción.
 
-### Regla
-
-> No comprar si existe exceso de stock.
-
-### Excepción
-
-> Existe pedido confirmado de cliente.
-
-### Resultado
-
-> La regla de exceso de stock queda mitigada.
-
-Las excepciones deberán ser explícitas y trazables.
+Una excepción crítica o que afecte a una salvaguarda deberá estar autorizada por la fuente documental competente.
 
 ---
 
 # 20. CONFLICTO ENTRE REGLAS
 
-El Centro de Parametrización deberá permitir definir cómo actuar cuando varias reglas produzcan resultados diferentes.
+El Centro podrá mostrar y administrar los parámetros que sean necesarios para reglas configurables, pero **no define la metodología de resolución de conflictos**.
 
-Ejemplo:
+Cuando varias reglas produzcan resultados diferentes:
 
-- precio favorable;
-- margen favorable;
-- exceso de stock;
-- pedido confirmado;
-- tesorería suficiente.
+```text
+REGLAS
+  ↓
+EVALUACIÓN
+  ↓
+CRC
+  ↓
+RESULTADO CONSOLIDADO
+```
 
-La configuración deberá permitir establecer qué reglas tienen mayor peso o capacidad de bloqueo.
-
-La metodología definitiva queda pendiente de diseño.
+La autoridad sobre la resolución corresponde a la CRC.
 
 ---
 
@@ -395,37 +354,26 @@ Podrán considerarse:
 - descuentos;
 - rappels.
 
-No se establecerá inicialmente una fórmula definitiva hasta validar el modelo con casos reales.
+No se establecerá una fórmula definitiva mientras no exista una especificación aprobada.
 
 ---
 
 # 22. TOLERANCIAS
 
-Muchos parámetros deberán permitir una tolerancia.
+Muchos parámetros podrán permitir una tolerancia.
 
 Ejemplo:
 
-Precio máximo:
+Precio máximo: 17,80 €  
+Tolerancia: 3 %
 
-17,80 €
-
-Tolerancia:
-
-3 %
-
-Esto permitirá diferenciar entre:
-
-> Diferencia aceptable
-
-y
-
-> Diferencia que requiere negociación.
+La tolerancia no podrá utilizarse para superar una salvaguarda crítica.
 
 ---
 
 # 23. ALERTAS
 
-Podrán configurarse diferentes niveles de alerta.
+Podrán existir diferentes niveles de alerta:
 
 ### Informativa
 
@@ -437,7 +385,7 @@ Requiere atención.
 
 ### Crítica
 
-Puede modificar o bloquear la recomendación.
+Puede modificar o bloquear la recomendación cuando así lo determine una regla con autoridad para ello.
 
 ---
 
@@ -453,7 +401,7 @@ y no:
 
 > VERDAD EMPRESARIAL.
 
-Cada empresa podrá adaptarlos.
+Cada empresa podrá adaptarlos cuando el parámetro sea configurable y no esté protegido por una restricción superior.
 
 ---
 
@@ -461,39 +409,14 @@ Cada empresa podrá adaptarlos.
 
 Cada parámetro deberá mostrar:
 
-### Nombre
+- nombre;
+- valor actual;
+- unidad;
+- valor estándar;
+- descripción;
+- impacto de modificarlo.
 
-### Valor actual
-
-### Unidad
-
-### Valor recomendado/estándar
-
-### Descripción
-
-### Impacto de modificarlo
-
-Ejemplo:
-
-### Antigüedad máxima de referencia
-
-**Valor actual:** 12 meses
-
-**Unidad:** meses
-
-**Valor estándar:** 12 meses
-
-**Descripción:**
-
-Determina hasta qué antigüedad se consideran válidas determinadas compras históricas.
-
-**Si aumenta:**
-
-EIOS podrá utilizar más datos históricos, pero aumenta el riesgo de utilizar precios menos representativos de la situación actual.
-
-**Si disminuye:**
-
-Las referencias serán más recientes, pero puede existir menor cantidad de datos disponibles.
+El usuario deberá poder comprender qué controla el parámetro y qué consecuencias puede producir su modificación.
 
 ---
 
@@ -524,15 +447,7 @@ Antes de guardar un cambio importante, el sistema debería mostrar:
 
 ### Consecuencia prevista
 
-Ejemplo:
-
-> Margen mínimo
-
-20 % → 25 %
-
-> Este cambio puede provocar que determinadas operaciones actualmente clasificadas como "COMPRAR" pasen a "NEGOCIAR".
-
-El usuario deberá confirmar el cambio.
+El usuario deberá confirmar el cambio cuando corresponda al nivel de autorización requerido.
 
 ---
 
@@ -574,27 +489,9 @@ Estados posibles:
 
 # 30. SIMULACIÓN
 
-Como evolución del sistema, se contempla una función:
+La simulación de cambios queda como evolución del sistema y fuera del alcance operativo del MVP inicial.
 
-## SIMULAR CAMBIO
-
-Permitiría modificar temporalmente un parámetro sin aplicarlo y observar su posible efecto.
-
-Ejemplo:
-
-Margen mínimo actual:
-
-20 %
-
-Simulación:
-
-25 %
-
-Resultado:
-
-> 14 operaciones históricas cambiarían de "COMPRAR" a "NEGOCIAR".
-
-Esta funcionalidad deberá desarrollarse posteriormente.
+Cuando se implemente, deberá permitir modificar temporalmente un parámetro sin aplicarlo y observar su posible efecto.
 
 ---
 
@@ -604,28 +501,21 @@ EIOS deberá poder utilizar diferentes configuraciones para diferentes empresas.
 
 Cada empresa podrá disponer de:
 
-- reglas propias;
 - parámetros propios;
 - tolerancias propias;
-- prioridades propias;
-- excepciones propias;
-- políticas financieras propias.
+- políticas financieras propias;
+- criterios propios de operación;
+- reglas propias cuando estén expresamente autorizadas.
 
 La configuración deberá quedar aislada entre empresas.
+
+Las restricciones de autoridad y las salvaguardas comunes no podrán ser anuladas por una configuración empresarial ordinaria.
 
 ---
 
 # 32. CAMBIOS DE POLÍTICA EMPRESARIAL
 
-El sistema deberá permitir modificar los criterios cuando cambie la política empresarial.
-
-Ejemplos:
-
-- aumentar el margen mínimo;
-- reducir el stock máximo;
-- exigir mejores plazos de pago;
-- reducir el nivel de riesgo financiero aceptado;
-- cambiar el periodo de referencia de precios.
+El sistema deberá permitir modificar los criterios cuando cambie la política empresarial, siempre que el parámetro sea configurable y la modificación esté autorizada.
 
 El cambio no deberá destruir el histórico anterior.
 
@@ -637,25 +527,23 @@ No todos los usuarios deberán tener capacidad para modificar todos los parámet
 
 Deberán contemplarse diferentes niveles de permiso.
 
-Ejemplo conceptual:
-
 ### Consulta
 
 Puede visualizar.
 
 ### Operativo
 
-Puede modificar determinados parámetros.
+Puede modificar determinados parámetros no críticos.
 
 ### Responsable
 
-Puede modificar reglas y parámetros relevantes.
+Puede modificar parámetros relevantes dentro de su ámbito autorizado.
 
 ### Administrador
 
-Puede gestionar toda la configuración.
+Puede gestionar la configuración dentro de los límites de autoridad establecidos por EIOS.
 
-La definición definitiva de permisos queda pendiente.
+Los parámetros críticos requieren controles adicionales de autorización, trazabilidad y vigencia.
 
 ---
 
@@ -677,6 +565,13 @@ Las modificaciones críticas deberán requerir autorización según el nivel de 
 
 No se permitirá modificar silenciosamente una regla que pueda alterar decisiones empresariales importantes.
 
+Los parámetros ordinarios no podrán:
+
+- desactivar reglas críticas;
+- anular restricciones no anulables;
+- habilitar excepciones no autorizadas;
+- convertir información insuficiente en una recomendación favorable.
+
 ---
 
 # 36. PRINCIPIO DE NO SATURACIÓN
@@ -684,17 +579,6 @@ No se permitirá modificar silenciosamente una regla que pueda alterar decisione
 El Centro de Parametrización puede contener una gran cantidad de posibilidades, pero no deberá mostrarlas todas simultáneamente.
 
 La interfaz deberá organizarse por categorías.
-
-Ejemplo:
-
-COMPRAS
-STOCK
-PRECIOS
-RENTABILIDAD
-FINANZAS
-REGLAS
-EXCEPCIONES
-SISTEMA
 
 El usuario deberá poder profundizar únicamente cuando lo necesite.
 
@@ -745,7 +629,7 @@ El Centro de Parametrización podrá evolucionar hacia un sistema capaz de:
 - identificar reglas conflictivas;
 - detectar parámetros posiblemente incoherentes.
 
-Estas funcionalidades no forman parte necesariamente de la primera versión.
+Estas funcionalidades no forman parte del MVP inicial salvo las capacidades expresamente aprobadas en la documentación vigente.
 
 ---
 
@@ -754,15 +638,17 @@ Estas funcionalidades no forman parte necesariamente de la primera versión.
 La primera versión deberá centrarse en:
 
 1. Visualizar parámetros.
-2. Editar parámetros.
+2. Editar parámetros autorizados.
 3. Mostrar unidades.
 4. Mostrar explicación.
 5. Mostrar valores estándar.
-6. Activar/desactivar reglas.
-7. Definir prioridades.
-8. Definir excepciones básicas.
-9. Registrar cambios.
-10. Mantener histórico.
+6. Registrar cambios.
+7. Mantener histórico.
+8. Controlar vigencia.
+9. Aplicar permisos.
+10. Preservar trazabilidad.
+
+La activación/desactivación de reglas, prioridades y excepciones no se considera una autorización genérica: únicamente podrá realizarse cuando la autoridad documental correspondiente lo permita.
 
 La simulación avanzada queda fuera del MVP inicial.
 
@@ -770,15 +656,20 @@ La simulación avanzada queda fuera del MVP inicial.
 
 # 42. ESTADO ACTUAL
 
-**Estado:** Diseño conceptual.
+**Versión:** 0.2  
+**Estado:** APROBADO  
+**Baseline:** EIOS Vertical MVP
 
 **Dependencias principales:**
 
-- Modelo Empresarial de Decisión.
-- Motor de reglas.
-- Modelo de datos.
-- Sistema de usuarios y permisos.
+- `01_Modelo/Especificacion_funcional.md`;
+- `02_Parametros/Catalogo_Parametros_MVP_v0.2.md`;
+- `02_Parametros/Matriz_Parametros_Reglas_MVP.md`;
+- `04_Reglas/Matriz_Reglas_MVP.md`;
+- `05_Motor/Capa_resolucion_conflictos.md`;
+- `00_Gobierno/Matriz_Autoridad_Documental.md`;
+- `00_Gobierno/EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md`.
 
-**Siguiente trabajo previsto:**
+La autoridad sobre los valores configurables corresponde a este documento y al catálogo de parámetros; la autoridad sobre reglas y resolución de conflictos corresponde a sus documentos especializados.
 
-Definir el catálogo inicial de parámetros y reglas que serán configurables en el MVP.
+Las decisiones D-01 a D-08 del `Decision_Log_Parametros_MVP.md` forman parte de la base de gobierno de esta versión.
