@@ -2,8 +2,8 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.5  
-**Estado:** APROBADO — ACTUALIZACIÓN TÉCNICA  
+**Versión:** 0.6  
+**Estado:** APROBADO — CORRECCIÓN DE TRAZABILIDAD F3  
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 21/08/2026
 
@@ -83,10 +83,10 @@ La numeración funcional se conserva; el prefijo identifica el tipo de entidad.
 |---|---|---|---|---|---|---|---|
 | P-PRE-001 | Precios | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
 | P-PRE-002 | Precios | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
-| **P-PRE-003** | Precios | **R-HIS-001** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
+| **P-PRE-003** | Precios | **R-HIS-001 — relación candidata; consumidor efectivo no demostrado frente a DAT-002** | Según regla | Sí, sujeto a control | Sí | Sí | **GAP-HIS-01 / PENDIENTE** |
 | **P-PRE-004** | Precios | **R-PRE-001** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
 | **P-PRE-005** | Precios | **R-PRE-002** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
-| **P-PRE-006** | Precios | **R-HIS-002** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
+| **P-PRE-006** | Precios | **R-HIS-002 — relación candidata; consumidor efectivo no demostrado frente a DAT-003** | Según regla | Sí, sujeto a control | Sí | Sí | **GAP-HIS-02 / PENDIENTE** |
 | P-STK-001 a P-STK-006 | Stock | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
 | P-PYE-001 a P-PYE-006 | Proyección | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
 | **P-MGE-001** | Rentabilidad | **R-MGE-001** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
@@ -142,19 +142,19 @@ Una regla que requiera un valor configurable sin disponer del parámetro corresp
 
 # 8. RELACIONES CONFIRMADAS
 
-Las siguientes relaciones quedan confirmadas por el cruce documental realizado con la Matriz de Reglas MVP:
+Las siguientes relaciones quedan confirmadas por el cruce documental realizado con la Matriz de Reglas MVP y por la evidencia disponible:
 
 | Parámetro | Regla consumidora | Estado |
 |---|---|---|
-| `P-PRE-003` | `R-HIS-001` | CONFIRMADO |
 | `P-PRE-004` | `R-PRE-001` | CONFIRMADO |
 | `P-PRE-005` | `R-PRE-002` | CONFIRMADO |
-| `P-PRE-006` | `R-HIS-002` | CONFIRMADO |
 | `P-MGE-001` | `R-MGE-001` | CONFIRMADO |
 | `P-MGE-002` | `R-MGE-003` | CONFIRMADO |
 | `P-MGE-003` | `R-MGE-002` | CONFIRMADO |
 
-No se añaden relaciones por coincidencia de raíces o por inferencia semántica. Las restantes permanecen pendientes.
+Las relaciones `P-PRE-003 → R-HIS-001` y `P-PRE-006 → R-HIS-002` se mantienen como candidatas funcionales, pero no se consideran confirmadas porque el Catálogo contiene también `DAT-002` y `DAT-003` con funciones potencialmente coincidentes y el consumidor efectivo no está demostrado documentalmente.
+
+No se añaden relaciones por coincidencia de raíces o por inferencia semántica.
 
 ---
 
@@ -172,21 +172,23 @@ No se añaden relaciones por coincidencia de raíces o por inferencia semántica
 
 # 10. PENDIENTES DE VALIDACIÓN
 
-1. Completar la migración documental de los IDs de `02_Parametros` a `P-*`.
-2. Completar la migración documental de los IDs de `04_Reglas` a `R-*`.
-3. Identificar documentalmente cada regla consumidora de cada parámetro que permanece pendiente.
-4. Confirmar los parámetros realmente necesarios para el MVP.
-5. Validar los valores empresariales definitivos.
-6. Determinar los parámetros específicos de cada empresa.
-7. Confirmar la editabilidad individual.
-8. Resolver los gaps de parametrización que aparezcan al completar el cruce.
+1. Resolver `GAP-HIS-01`: determinar si `PRE-003` o `DAT-002` es el consumidor efectivo de `R-HIS-001`, o establecer una relación formal entre ambos.
+2. Resolver `GAP-HIS-02`: determinar si `PRE-006` o `DAT-003` es el consumidor efectivo de `R-HIS-002`, o establecer una relación formal entre ambos.
+3. Completar la migración documental de los IDs de `02_Parametros` a `P-*`.
+4. Completar la migración documental de los IDs de `04_Reglas` a `R-*`.
+5. Identificar documentalmente cada regla consumidora de cada parámetro que permanece pendiente.
+6. Confirmar los parámetros realmente necesarios para el MVP.
+7. Validar los valores empresariales definitivos.
+8. Determinar los parámetros específicos de cada empresa.
+9. Confirmar la editabilidad individual.
+10. Resolver los gaps de parametrización que aparezcan al completar el cruce.
 
 ---
 
 # 11. ESTADO
 
-**Versión:** 0.5  
-**Estado:** APROBADO — ACTUALIZACIÓN TÉCNICA  
+**Versión:** 0.6  
+**Estado:** APROBADO — CORRECCIÓN DE TRAZABILIDAD F3  
 **Baseline:** EIOS Vertical MVP
 
-Esta actualización incorpora únicamente relaciones parámetro → regla demostradas documentalmente. Las relaciones no demostradas permanecen pendientes y no se consideran cerradas por inferencia.
+Esta corrección revierte únicamente la sobrecalificación de `P-PRE-003 → R-HIS-001` y `P-PRE-006 → R-HIS-002` como relaciones confirmadas. Ambas permanecen como relaciones candidatas y GAP-HIS abiertos hasta disponer de evidencia documental suficiente.
