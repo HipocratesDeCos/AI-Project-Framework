@@ -96,7 +96,7 @@ La CRC utiliza ambos conceptos junto con las salvaguardas, condiciones y excepci
 
 # 5. REGLAS FINANCIERAS
 
-## FIN-001 — Riesgo de incapacidad de pago
+## R-FIN-001 — Riesgo de incapacidad de pago
 
 ### Condición
 
@@ -120,7 +120,7 @@ La compra no debe realizarse si compromete la capacidad de la empresa para hacer
 
 ---
 
-## FIN-002 — Fondo de maniobra insuficiente
+## R-FIN-002 — Fondo de maniobra insuficiente
 
 ### Condición
 
@@ -140,7 +140,7 @@ Configurable.
 
 ---
 
-## FIN-003 — Riesgo financiero elevado
+## R-FIN-003 — Riesgo financiero elevado
 
 ### Condición
 
@@ -167,7 +167,7 @@ La operación reduce significativamente el margen de seguridad financiera de la 
 
 # 6. REGLAS DE MARGEN
 
-## MAR-001 — Margen inferior al mínimo
+## R-MGE-001 — Margen inferior al mínimo
 
 ### Condición
 
@@ -189,7 +189,7 @@ cuando exista posibilidad razonable de modificar las condiciones.
 
 ---
 
-## MAR-002 — Margen dentro de tolerancia
+## R-MGE-002 — Margen dentro de tolerancia
 
 ### Condición
 
@@ -205,7 +205,7 @@ El margen se encuentra ligeramente por debajo del objetivo, pero dentro de la to
 
 ---
 
-## MAR-003 — Margen objetivo alcanzado
+## R-MGE-003 — Margen objetivo alcanzado
 
 ### Condición
 
@@ -227,7 +227,7 @@ Actúa como condición favorable.
 
 # 7. REGLAS DE PRECIO
 
-## PRE-001 — Precio superior a compra comparable reciente
+## R-PRE-001 — Precio superior a compra comparable reciente
 
 ### Condición
 
@@ -247,7 +247,7 @@ La referencia deberá proceder de una operación comparable y suficientemente re
 
 ---
 
-## PRE-002 — Precio superior al límite crítico
+## R-PRE-002 — Precio superior al límite crítico
 
 ### Condición
 
@@ -274,7 +274,7 @@ La decisión definitiva dependerá de:
 
 ---
 
-## PRE-003 — Precio inferior o igual al objetivo
+## R-PRE-003 — Precio inferior o igual al objetivo
 
 ### Condición
 
@@ -294,7 +294,7 @@ Puede contribuir favorablemente a la decisión.
 
 # 8. REGLAS DE ANTIGÜEDAD DEL HISTÓRICO
 
-## HIS-001 — Referencia demasiado antigua
+## R-HIS-001 — Referencia demasiado antigua
 
 ### Condición
 
@@ -314,7 +314,7 @@ Buscar referencias más recientes.
 
 ---
 
-## HIS-002 — Histórico insuficiente
+## R-HIS-002 — Histórico insuficiente
 
 ### Condición
 
@@ -333,7 +333,7 @@ o análisis con advertencia.
 
 # 9. REGLAS DE COMPARABILIDAD
 
-## HIS-003 — Operación no comparable
+## R-HIS-003 — Operación no comparable
 
 ### Condición
 
@@ -363,7 +363,7 @@ Considerarse automáticamente equivalente a una operación comparable.
 
 # 10. REGLAS DE STOCK
 
-## STK-001 — Riesgo de rotura de stock
+## R-STK-001 — Riesgo de rotura de stock
 
 ### Condición
 
@@ -383,7 +383,7 @@ La compra puede estar justificada aunque el precio sea ligeramente superior, sie
 
 ---
 
-## STK-002 — Compra innecesaria por stock suficiente
+## R-STK-002 — Compra innecesaria por stock suficiente
 
 ### Condición
 
@@ -401,7 +401,7 @@ o
 
 ---
 
-## STK-003 — Exceso de stock
+## R-STK-003 — Exceso de stock
 
 ### Condición
 
@@ -421,7 +421,7 @@ o
 
 # 11. EXCEPCIÓN DE STOCK POR PEDIDO CONFIRMADO
 
-## STK-004
+## R-STK-004
 
 ### Condición
 
@@ -455,7 +455,7 @@ EXCEPCIÓN
 
 # 12. REGLAS DE ROTACIÓN
 
-## ROT-001 — Producto de baja rotación
+## R-ROT-001 — Producto de baja rotación
 
 ### Condición
 
@@ -473,7 +473,7 @@ o
 
 ---
 
-## ROT-002 — Producto sin rotación
+## R-ROT-002 — Producto sin rotación
 
 ### Condición
 
@@ -500,7 +500,7 @@ salvo excepción.
 
 # 13. REGLAS DE PLAZO DE ENTREGA
 
-## ENT-001 — Entrega posterior al riesgo de rotura
+## R-ENT-001 — Entrega posterior al riesgo de rotura
 
 ### Condición
 
@@ -525,7 +525,7 @@ La fecha prevista de entrega es posterior a la fecha estimada de agotamiento del
 
 # 14. REGLAS DE PAGO
 
-## PAG-001 — Plazo de pago inferior al objetivo
+## R-PAG-001 — Plazo de pago inferior al objetivo
 
 ### Condición
 
@@ -541,7 +541,7 @@ El proveedor ofrece un plazo inferior al establecido como objetivo.
 
 ---
 
-## PAG-002 — Plazo de pago insuficiente ante riesgo financiero
+## R-PAG-002 — Plazo de pago insuficiente ante riesgo financiero
 
 ### Condición
 
@@ -563,7 +563,7 @@ La operación únicamente será recomendable si se consigue el plazo de pago mí
 
 # 15. REGLAS DE PROVEEDORES
 
-## PROV-001 — Existencia de proveedor alternativo
+## R-PROV-001 — Existencia de proveedor alternativo
 
 ### Condición
 
@@ -579,7 +579,7 @@ Existe uno o más proveedores alternativos con condiciones potencialmente mejore
 
 ---
 
-## PROV-002 — Proveedor actual con condiciones claramente desfavorables
+## R-PROV-002 — Proveedor actual con condiciones claramente desfavorables
 
 ### Condición
 
@@ -605,7 +605,7 @@ La evaluación de un proveedor alternativo se documenta como **acción secundari
 
 # 16. DESCUENTOS Y RAPPELS
 
-## COM-001 — Descuento disponible
+## R-COM-001 — Descuento disponible
 
 ### Condición
 
@@ -625,7 +625,7 @@ Modificar automáticamente la recomendación si no se conoce su aplicación real
 
 ---
 
-## COM-002 — Rappel disponible
+## R-COM-002 — Rappel disponible
 
 ### Condición
 
@@ -643,7 +643,7 @@ Calcular, cuando sea posible, el coste efectivo.
 
 # 17. REGLAS DE CALIDAD DE DATOS
 
-## DAT-001 — Datos actualizados
+## R-DAT-001 — Datos actualizados
 
 ### Condición
 
@@ -659,7 +659,7 @@ Continuar análisis normalmente.
 
 ---
 
-## DAT-002 — Datos antiguos
+## R-DAT-002 — Datos antiguos
 
 ### Condición
 
@@ -679,7 +679,7 @@ Puede continuar si la política lo permite.
 
 ---
 
-## DAT-003 — Datos insuficientes
+## R-DAT-003 — Datos insuficientes
 
 ### Condición
 
@@ -721,7 +721,7 @@ La CRC aplica la jerarquía oficial, salvaguardas, excepciones y condiciones.
 
 # 19. REGLA DE CONFLICTO FINANCIERO
 
-## CON-001
+## R-CON-001
 
 ### Situación
 
@@ -749,7 +749,7 @@ La solvencia y capacidad de pago prevalecen sobre ventajas operativas o comercia
 
 # 20. REGLA DE CONFLICTO STOCK / PRECIO
 
-## CON-002
+## R-CON-002
 
 ### Situación
 
@@ -774,7 +774,7 @@ Existe riesgo de rotura, pero el precio es superior al objetivo.
 
 # 21. REGLA DE CONFLICTO STOCK / FINANZAS
 
-## CON-003
+## R-CON-003
 
 ### Situación
 
@@ -802,7 +802,7 @@ salvo que se encuentre una condición que elimine el riesgo financiero.
 
 # 22. REGLA DE CONFLICTO STOCK / PEDIDO CONFIRMADO
 
-## CON-004
+## R-CON-004
 
 ### Situación
 
@@ -829,7 +829,7 @@ Dependerá de:
 
 # 23. REGLA DE CONFLICTO PRECIO / MARGEN
 
-## CON-005
+## R-CON-005
 
 ### Situación
 
@@ -838,9 +838,7 @@ El precio de compra es elevado pero el margen final continúa dentro de los par�
 ### Resultado
 
 **NEGOCIAR**
-
 o
-
 **COMPRAR**
 
 según el resto de reglas.
@@ -853,7 +851,7 @@ según el resto de reglas.
 
 # 24. REGLA DE CONFLICTO HISTÓRICO / MERCADO
 
-## CON-006
+## R-CON-006
 
 ### Situación
 
@@ -1025,7 +1023,7 @@ Las reglas R2 pueden producir una recomendación de negociación.
 Ejemplo:
 
 ```text
-PRE-001
+R-PRE-001
 → NEGOCIAR
 
 Acción secundaria:
@@ -1122,7 +1120,7 @@ Ejemplo:
 
 ```text
 Regla:
-PRE-001
+R-PRE-001
 
 Resultado:
 NEGOCIAR
