@@ -1,4 +1,7 @@
-from datetime import date, timedelta
+from datetime import date
+
+import pytest
+from pydantic import ValidationError
 
 from eios.core.models import PurchaseOperation
 from eios.core.validation import validate_purchase_operation
@@ -22,6 +25,7 @@ def make_purchase(**overrides):
 def test_valid_purchase_passes():
     result = validate_purchase_operation(make_purchase(), as_of=date(2026, 8, 21))
     assert result.status == "PASS"
+    assert result.score == 1
 
 
 def test_future_operation_fails():
@@ -33,15 +37,11 @@ def test_future_operation_fails():
     assert "futura" in result.reasons[0]
 
 
-def test_non_positive_quantity_fails():
-    result = validate_purchase_operation(
-        make_purchase(quantity=0), as_of=date(2026, 8, 21)
-    )
-    assert result.status == "FAIL"
+def test_zero_quantity_is_rejected_by_input_model():
+    with pytest.raises(ValidationError):
+        make_purchase(quantity=0)
 
 
-def test_negative_price_fails():
-    result = validate_purchase_operation(
-        make_purchase(unit_price=-1), as_of=date(2026, 8, 21)
-    )
-    assert result.status == "FAIL"
+def test_negative_price_is_rejected_by_input_model():
+    with pytest.raises(ValidationError):
+        make_purchase(unit_price=-1)
