@@ -2,8 +2,8 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.0  
-**Estado:** PROPUESTA TÉCNICA — F3  
+**Versión:** 1.1  
+**Estado:** ACTUALIZADA — F3  
 **Ámbito:** EIOS Vertical MVP  
 **Fecha:** 21/08/2026
 
@@ -242,7 +242,7 @@ Solo después podrá clasificarse el caso como:
 
 # 10. CASO DE REFERENCIA F3 — HISTÓRICO
 
-La auditoría actual ha identificado, sin resolver todavía, los siguientes pares:
+La auditoría actual mantiene abiertos, sin resolver todavía, los siguientes pares:
 
 ### GAP-HIS-01
 
@@ -256,7 +256,7 @@ R-HIS-001 — Referencia demasiado antigua
 
 La especificación exige demostrar documentalmente cuál de los parámetros, o qué combinación de ellos, alimenta la regla.
 
-No se permite concluir que son duplicados por compartir el valor de 12 meses.
+**Estado actual:** GAP-HIS-01 ABIERTO. `P-PRE-003 → R-HIS-001` queda como relación candidata funcional, no como relación demostrada. No se permite concluir que `PRE-003` y `DAT-002` son duplicados por compartir el valor de 12 meses.
 
 ### GAP-HIS-02
 
@@ -270,7 +270,7 @@ R-HIS-002 — Histórico insuficiente
 
 La especificación exige determinar si ambos conceptos son distintos, si uno deriva del otro o si uno de ellos es el parámetro efectivo de la regla.
 
-No se permite fusionarlos por compartir el valor de 2 operaciones.
+**Estado actual:** GAP-HIS-02 ABIERTO. `P-PRE-006 → R-HIS-002` queda como relación candidata funcional, no como relación demostrada. No se permite fusionarlos por compartir el valor de 2 operaciones.
 
 ### R-HIS-003
 
@@ -330,8 +330,8 @@ permitiendo reconstruir por qué se tomó la decisión.
 | Reglas `ROT` | 🟢 Identificadas |
 | Reglas `PROV` | 🟢 Identificadas |
 | Trazabilidad Parámetro → Regla | 🟡 En construcción |
-| `PRE-003` ↔ `DAT-002` | 🔴 GAP-HIS-01 |
-| `PRE-006` ↔ `DAT-003` | 🔴 GAP-HIS-02 |
+| `PRE-003` ↔ `DAT-002` | 🔴 GAP-HIS-01 ABIERTO |
+| `PRE-006` ↔ `DAT-003` | 🔴 GAP-HIS-02 ABIERTO |
 | Parámetros nuevos `HIS-*` | ⛔ No autorizados por esta especificación |
 | Modificación del catálogo | ⛔ No autorizada por esta especificación |
 | Modificación de reglas | ⛔ No autorizada por esta especificación |
@@ -343,3 +343,20 @@ permitiendo reconstruir por qué se tomó la decisión.
 > **EIOS no considerará trazada una dependencia porque parezca lógica. La dependencia deberá poder demostrarse, reproducirse y atribuirse a una fuente con autoridad.**
 
 Esta especificación constituye el criterio de control para la construcción de la evidencia F3 y evita que la fase de trazabilidad genere modificaciones prematuras en parámetros, reglas o arquitectura.
+
+---
+
+# 15. CONTROL DE ALINEACIÓN F3 — 21/08/2026
+
+La presente versión 1.1 queda alineada con la corrección aplicada a `Matriz_Parametros_Reglas_MVP v0.6`.
+
+En particular:
+
+- `P-PRE-003 → R-HIS-001` no se considera DEMOSTRADA;
+- `P-PRE-006 → R-HIS-002` no se considera DEMOSTRADA;
+- ambas relaciones permanecen como candidatas funcionales y GAP-HIS abiertos;
+- `DAT-002` y `DAT-003` continúan siendo candidatos que deben analizarse antes de establecer consumidor efectivo, duplicidad o relación maestro/derivado;
+- no se autoriza crear parámetros `HIS-*` para cerrar artificialmente estos GAP;
+- las relaciones confirmadas de la matriz que no están afectadas por estos GAP permanecen vigentes.
+
+Esta actualización no altera el criterio metodológico de F3; únicamente alinea el estado documental con la evidencia realmente disponible.
