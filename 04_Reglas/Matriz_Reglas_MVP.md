@@ -838,7 +838,9 @@ El precio de compra es elevado pero el margen final continúa dentro de los par�
 ### Resultado
 
 **NEGOCIAR**
+
 o
+
 **COMPRAR**
 
 según el resto de reglas.
