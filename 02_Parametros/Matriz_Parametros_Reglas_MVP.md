@@ -2,10 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.4  
-**Estado:** APROBADO  
+**Versión:** 0.5  
+**Estado:** APROBADO — ACTUALIZACIÓN TÉCNICA  
 **Baseline:** EIOS Vertical MVP  
-**Fecha:** 20/08/2026
+**Fecha:** 21/08/2026
 
 ---
 
@@ -81,10 +81,18 @@ La numeración funcional se conserva; el prefijo identifica el tipo de entidad.
 
 | ID | Área | Regla | Crítico | Editable | Empresa | MVP | Estado |
 |---|---|---|---|---|---|---|---|
-| P-PRE-001 a P-PRE-006 | Precios | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
+| P-PRE-001 | Precios | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
+| P-PRE-002 | Precios | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
+| **P-PRE-003** | Precios | **R-HIS-001** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
+| **P-PRE-004** | Precios | **R-PRE-001** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
+| **P-PRE-005** | Precios | **R-PRE-002** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
+| **P-PRE-006** | Precios | **R-HIS-002** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
 | P-STK-001 a P-STK-006 | Stock | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
 | P-PYE-001 a P-PYE-006 | Proyección | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
-| P-MGE-001 a P-MGE-006 | Rentabilidad | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
+| **P-MGE-001** | Rentabilidad | **R-MGE-001** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
+| **P-MGE-002** | Rentabilidad | **R-MGE-003** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
+| **P-MGE-003** | Rentabilidad | **R-MGE-002** | Según regla | Sí | Sí | Sí | **CONFIRMADO** |
+| P-MGE-004 a P-MGE-006 | Rentabilidad | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
 | P-FIN-001 | Finanzas | Pendiente de identificación documental individual | Alta | Restringida | Sí | Sí | Pendiente de cruce |
 | P-FIN-002 | Finanzas | Regla financiera aplicable | Sí | Restringida | Sí | Sí | Pendiente de autoridad/validación |
 | P-FIN-003 | Finanzas | Regla financiera aplicable | Sí | Restringida | Sí | Sí | Pendiente de autoridad/validación |
@@ -134,11 +142,19 @@ Una regla que requiera un valor configurable sin disponer del parámetro corresp
 
 # 8. RELACIONES CONFIRMADAS
 
-Actualmente no se mantienen relaciones parámetro → regla adicionales como `CONFIRMADO` en esta sección.
+Las siguientes relaciones quedan confirmadas por el cruce documental realizado con la Matriz de Reglas MVP:
 
-Las relaciones que figuraban anteriormente para `PAG-001/PAG-002 → CON-001` se eliminan porque no existe evidencia documental suficiente para sostenerlas y `CON-001` no constituye aquí un identificador válido de regla de pago.
+| Parámetro | Regla consumidora | Estado |
+|---|---|---|
+| `P-PRE-003` | `R-HIS-001` | CONFIRMADO |
+| `P-PRE-004` | `R-PRE-001` | CONFIRMADO |
+| `P-PRE-005` | `R-PRE-002` | CONFIRMADO |
+| `P-PRE-006` | `R-HIS-002` | CONFIRMADO |
+| `P-MGE-001` | `R-MGE-001` | CONFIRMADO |
+| `P-MGE-002` | `R-MGE-003` | CONFIRMADO |
+| `P-MGE-003` | `R-MGE-002` | CONFIRMADO |
 
-Los casos `C-01` a `C-06` se mantienen como criterios, metodologías, evaluaciones o cálculos sin parámetro directo confirmado.
+No se añaden relaciones por coincidencia de raíces o por inferencia semántica. Las restantes permanecen pendientes.
 
 ---
 
@@ -158,7 +174,7 @@ Los casos `C-01` a `C-06` se mantienen como criterios, metodologías, evaluacion
 
 1. Completar la migración documental de los IDs de `02_Parametros` a `P-*`.
 2. Completar la migración documental de los IDs de `04_Reglas` a `R-*`.
-3. Identificar documentalmente cada regla consumidora de cada parámetro.
+3. Identificar documentalmente cada regla consumidora de cada parámetro que permanece pendiente.
 4. Confirmar los parámetros realmente necesarios para el MVP.
 5. Validar los valores empresariales definitivos.
 6. Determinar los parámetros específicos de cada empresa.
@@ -169,8 +185,8 @@ Los casos `C-01` a `C-06` se mantienen como criterios, metodologías, evaluacion
 
 # 11. ESTADO
 
-**Versión:** 0.4  
-**Estado:** APROBADO  
+**Versión:** 0.5  
+**Estado:** APROBADO — ACTUALIZACIÓN TÉCNICA  
 **Baseline:** EIOS Vertical MVP
 
-La aprobación de esta matriz significa que el modelo de gobierno y clasificación queda aprobado. Las relaciones no demostradas permanecen pendientes y no se consideran cerradas por inferencia.
+Esta actualización incorpora únicamente relaciones parámetro → regla demostradas documentalmente. Las relaciones no demostradas permanecen pendientes y no se consideran cerradas por inferencia.
