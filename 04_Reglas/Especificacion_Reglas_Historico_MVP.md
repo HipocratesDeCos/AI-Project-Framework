@@ -2,8 +2,8 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.1  
-**Estado:** DOCUMENTO DE EVIDENCIA — PUNTO 2 RESUELTO / PUNTO 3 PENDIENTE  
+**Versión:** 1.2  
+**Estado:** CERRADO — GAP-HIS-01 / GAP-HIS-02  
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 22/08/2026  
 **Ámbito:** Resolución documental de relaciones histórico → regla
@@ -12,7 +12,7 @@
 
 # 1. PROPÓSITO
 
-Este documento establece la estructura de evidencia necesaria para resolver documentalmente `GAP-HIS-01` y `GAP-HIS-02` definidos en `00_Gobierno/Especificacion_Evidencia_Trazabilidad_F3.md`.
+Este documento establece la evidencia especializada utilizada para resolver documentalmente `GAP-HIS-01` y `GAP-HIS-02` definidos en `00_Gobierno/Especificacion_Evidencia_Trazabilidad_F3.md`.
 
 Su finalidad es determinar, sin inferencias por similitud de nombres o valores:
 
@@ -32,16 +32,17 @@ La coincidencia de nombre, prefijo, unidad, valor inicial o familia no constituy
 
 ---
 
-# 3. FUENTES CONTRASTADAS
+# 3. FUENTES CONTRASTADAS Y VERSIONES DE CIERRE
 
-Para esta determinación se han contrastado:
+Para la resolución se han contrastado y alineado las siguientes fuentes:
 
 - `02_Parametros/Catalogo_Parametros_MVP_v0.3.md` v0.3;
-- `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7;
-- `02_Parametros/Decision_Log_Parametros_MVP.md` v0.5;
+- `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8;
+- `02_Parametros/Decision_Log_Parametros_MVP.md` v0.6;
 - `04_Reglas/Matriz_Reglas_MVP.md` v2.1;
-- `00_Gobierno/Especificacion_Evidencia_Trazabilidad_F3.md` v1.1;
-- este documento `04_Reglas/Especificacion_Reglas_Historico_MVP.md`.
+- `00_Gobierno/Especificacion_Evidencia_Trazabilidad_F3.md` v1.2;
+- `00_Gobierno/Registro_Evidencias_Trazabilidad_F3.md` v1.2;
+- este documento `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2.
 
 ---
 
@@ -50,51 +51,34 @@ Para esta determinación se han contrastado:
 ## 4.1 Relación investigada
 
 ```text
-PRE-003 / DAT-002
+P-PRE-003 / P-DAT-002
         ↓
 R-HIS-001
 ```
 
 ### Regla
 
-`R-HIS-001 — Referencia demasiado antigua`
+`R-HIS-001 — Referencia demasiado antigua`.
 
-La regla evalúa si la compra utilizada como referencia supera la antigüedad máxima configurada. `04_Reglas/Matriz_Reglas_MVP.md` v2.1 define esta condición, pero no incorpora dentro de la propia regla un identificador de parámetro histórico en su definición textual.
-
-### Parámetros candidatos
-
-- `PRE-003` — Antigüedad máxima de referencia.
-- `DAT-002` — Antigüedad máxima de referencia de precio.
-
-### Evidencia determinante
-
-**Fuente:** `02_Parametros/Decision_Log_Parametros_MVP.md` v0.5, decisión `C-01`.
-
-`C-01` establece expresamente que `PRE-003` se mantiene como **criterio/metodología pendiente**, sin crear parámetro directo.
-
-**Fuente complementaria:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7.
-
-La matriz establece explícitamente:
-
-```text
-P-DAT-002 → R-HIS-001
-Tipo: Directa
-Estado: CONFIRMADO
-```
-
-La misma matriz registra que `P-PRE-003` no es parámetro directo de `R-HIS-001` y lo mantiene como criterio/metodología conforme a `C-01`.
+La regla evalúa si la compra utilizada como referencia supera la antigüedad máxima configurada.
 
 ### Determinación del parámetro efectivo
 
 **PARÁMETRO EFECTIVO: `P-DAT-002`**
 
-La evidencia determinante no es la coincidencia de nombre o valor: es la decisión documental `C-01`, que excluye `P-PRE-003` como parámetro directo, combinada con la matriz oficial que identifica `P-DAT-002` como consumidor directo de `R-HIS-001`.
+La decisión `C-01` registrada en `02_Parametros/Decision_Log_Parametros_MVP.md` v0.6 establece que `P-PRE-003` se mantiene como criterio/metodología histórica y no como parámetro directo. La `Matriz_Parametros_Reglas_MVP.md` v0.8 identifica `P-DAT-002 → R-HIS-001` como relación directa.
 
-### Estado del punto 2
+### Duplicidad / maestro → derivado
 
-**RESUELTO:** consumidor efectivo determinado como `P-DAT-002`.
+`P-PRE-003` y `P-DAT-002` **no se clasifican como duplicidad funcional del MVP** porque la documentación les asigna papeles distintos: criterio/metodología frente a parámetro configurable consumidor.
 
-El análisis de si `P-PRE-003` y `P-DAT-002` son duplicados, conceptos distintos o presentan relación maestro → derivado se traslada al **Punto 3**.
+**No existe evidencia documental de una transformación `P-PRE-003 → P-DAT-002`; por tanto, no existe relación maestro → derivado demostrada.**
+
+### Conclusión
+
+`R-HIS-001` utiliza `P-DAT-002` como parámetro configurable de antigüedad de referencia. `P-PRE-003` no es consumidor directo.
+
+**Estado: 🟢 CERRADO — EVIDENCIA DOCUMENTAL.**
 
 ---
 
@@ -103,98 +87,69 @@ El análisis de si `P-PRE-003` y `P-DAT-002` son duplicados, conceptos distintos
 ## 5.1 Relación investigada
 
 ```text
-PRE-006 / DAT-003
+P-PRE-006 / P-DAT-003
         ↓
 R-HIS-002
 ```
 
 ### Regla
 
-`R-HIS-002 — Histórico insuficiente`
+`R-HIS-002 — Histórico insuficiente`.
 
 La regla determina si no existe el número mínimo de operaciones comparables establecido.
-
-### Parámetros candidatos
-
-- `PRE-006` — Nº mínimo de compras comparables.
-- `DAT-003` — Nº mínimo de registros históricos.
-
-### Evidencia determinante
-
-**Fuente primaria funcional:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1.
-
-`R-HIS-002` establece que la condición es la ausencia del número mínimo de **operaciones comparables**.
-
-**Fuente de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7.
-
-La matriz establece explícitamente:
-
-```text
-P-PRE-006 → R-HIS-002
-Tipo: Directa
-Estado: CONFIRMADO
-```
-
-La misma matriz distingue `P-DAT-003` como:
-
-```text
-Sin consumidor directo de regla MVP demostrado
-```
-
-y especifica que `P-DAT-003` no sustituye a `P-PRE-006`.
 
 ### Determinación del parámetro efectivo
 
 **PARÁMETRO EFECTIVO: `P-PRE-006`**
 
-La determinación se basa en el objeto funcional de `R-HIS-002` —operaciones comparables— y en la asignación documental directa de `P-PRE-006` a dicha regla en la matriz oficial. `P-DAT-003` queda sin consumidor directo demostrado en el MVP actual.
+`04_Reglas/Matriz_Reglas_MVP.md` v2.1 establece que `R-HIS-002` trabaja con el número mínimo de operaciones comparables. `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 identifica `P-PRE-006 → R-HIS-002` como relación directa y establece que `P-DAT-003` no tiene consumidor directo de regla MVP demostrado.
 
-### Estado del punto 2
+### Duplicidad / maestro → derivado
 
-**RESUELTO:** consumidor efectivo determinado como `P-PRE-006`.
+`P-PRE-006` y `P-DAT-003` **no se clasifican como duplicidad funcional del MVP** porque representan ámbitos funcionales distintos: mínimo de operaciones comparables frente a disponibilidad/registro histórico.
 
-El análisis de si `P-PRE-006` y `P-DAT-003` son duplicados, conceptos distintos o presentan relación maestro → derivado se traslada al **Punto 3**.
+**No existe evidencia documental de una transformación `P-DAT-003 → P-PRE-006`; por tanto, no existe relación maestro → derivado demostrada.**
 
----
+### Conclusión
 
-# 6. MATRIZ DE DETERMINACIÓN — PUNTO 2
+`P-PRE-006` es el parámetro configurable efectivo de `R-HIS-002`. `P-DAT-003` no sustituye a `P-PRE-006` y no tiene consumidor directo demostrado en el MVP actual.
 
-| GAP | Parámetro efectivo | Regla consumidora | Evidencia determinante | Estado |
-|---|---|---|---|---|
-| GAP-HIS-01 | `P-DAT-002` | `R-HIS-001` | `C-01` + Matriz Parámetros → Reglas | **DETERMINADO** |
-| GAP-HIS-02 | `P-PRE-006` | `R-HIS-002` | Matriz Reglas + Matriz Parámetros → Reglas | **DETERMINADO** |
+**Estado: 🟢 CERRADO — EVIDENCIA DOCUMENTAL.**
 
 ---
 
-# 7. PUNTO 3 — DUPLICIDAD / MAESTRO → DERIVADO
+# 6. MATRIZ FINAL DE DETERMINACIÓN
 
-Este punto **todavía no está resuelto**.
-
-Debe determinarse para cada pareja:
-
-- `P-PRE-003` ↔ `P-DAT-002`;
-- `P-PRE-006` ↔ `P-DAT-003`;
-
-si existe:
-
-- duplicidad real;
-- conceptos distintos;
-- relación maestro → derivado;
-- o ausencia de relación funcional.
-
-La existencia de valores iniciales iguales no será suficiente para declarar duplicidad.
+| GAP | Parámetro efectivo | Regla consumidora | Duplicidad | Maestro → derivado | Estado |
+|---|---|---|---|---|---|
+| GAP-HIS-01 | `P-DAT-002` | `R-HIS-001` | NO | NO DEMOSTRADO | **CERRADO** |
+| GAP-HIS-02 | `P-PRE-006` | `R-HIS-002` | NO | NO DEMOSTRADO | **CERRADO** |
 
 ---
 
-# 8. EVIDENCIA DE AUTORIDAD
+# 7. AUTORIDAD DOCUMENTAL
 
-Las conclusiones del Punto 2 se apoyan en documentos del sistema documental EIOS con identificación de versión y ubicación.
+La resolución se sustenta en la cadena documental alineada:
 
-Para el Punto 3 deberá identificarse además qué documento tiene autoridad para decidir la naturaleza de la relación entre los parámetros candidatos.
+```text
+Matriz de Reglas v2.1
+        ↓
+Matriz Parámetros → Reglas v0.8
+        ↓
+Decision Log v0.6
+        ↓
+Especificación Histórica v1.2
+        ↓
+Registro de Evidencias F3 v1.2
+        ↓
+Especificación F3 v1.2
+```
+
+Ninguna conclusión de cierre depende exclusivamente de similitud semántica o coincidencia de valores.
 
 ---
 
-# 9. PROHIBICIONES
+# 8. PROHIBICIONES
 
 Este documento no autoriza:
 
@@ -203,30 +158,31 @@ Este documento no autoriza:
 3. elegir un parámetro por coincidencia de valor;
 4. declarar duplicidad sin comparar ámbito y consumidor;
 5. declarar maestro → derivado sin transformación documentada;
-6. cerrar un GAP sin completar los puntos 3 a 7 del procedimiento acordado.
+6. reabrir un GAP cerrado sin nueva evidencia o conflicto documental identificable.
 
 ---
 
-# 10. RELACIÓN CON F3
+# 9. RELACIÓN CON F3
 
-La cadena de resolución queda estructurada así:
+La resolución completa queda incorporada en:
 
-```text
-1. Evidencia documental real          → COMPLETADO
-2. Parámetro efectivo                 → COMPLETADO
-3. Duplicidad / maestro-derivado      → PENDIENTE
-4. Actualizar matriz                  → PENDIENTE
-5. Registrar decisión                 → PENDIENTE
-6. Actualizar evidencia F3            → PENDIENTE
-7. Auditar cadena completa            → PENDIENTE
-```
+- `00_Gobierno/Especificacion_Evidencia_Trazabilidad_F3.md` v1.2;
+- `00_Gobierno/Registro_Evidencias_Trazabilidad_F3.md` v1.2.
 
-La determinación del Punto 2 **no cierra todavía** `GAP-HIS-01` ni `GAP-HIS-02`.
+La creación de parámetros `HIS-*` queda expresamente descartada.
+
+---
+
+# 10. CONTROL DE CAMBIOS
+
+**v1.2 — 22/08/2026**
+
+Se cierra el Punto 3 de resolución histórica y se alinea la referencia de versiones con los documentos oficiales utilizados en el cierre de `GAP-HIS-01` y `GAP-HIS-02`.
 
 ---
 
 # 11. ESTADO DEL DOCUMENTO
 
-**Versión:** 1.1  
-**Estado:** PUNTO 2 RESUELTO / PUNTO 3 PENDIENTE  
+**Versión:** 1.2  
+**Estado:** 🟢 CERRADO — GAP-HIS-01 / GAP-HIS-02  
 **Baseline:** EIOS Vertical MVP
