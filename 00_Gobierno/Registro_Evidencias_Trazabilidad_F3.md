@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.3  
+**Versión:** 1.4  
 **Estado:** ACTIVO — REGISTRO MAESTRO DE EVIDENCIAS F3  
 **Ámbito:** EIOS Vertical MVP  
 **Fecha:** 22/08/2026  
@@ -86,7 +86,97 @@ Toda evidencia F3 deberá contener, como mínimo, los campos establecidos por `0
 
 ---
 
-# 5. ESTADOS DE CONTROL
+# 5. ESTRUCTURA ÚNICA Y PLANTILLA CANÓNICA DE EVIDENCIA
+
+A partir de la versión 1.4, toda nueva evidencia F3 deberá registrarse utilizando **una única estructura canónica**. No se admitirán formatos alternativos para nuevas evidencias.
+
+## 5.1 Orden obligatorio de los campos
+
+Cada ficha de evidencia deberá respetar este orden:
+
+1. `EVID-ID`
+2. `Origen-ID`
+3. `Origen-tipo`
+4. `Destino-ID`
+5. `Destino-tipo`
+6. `Relación`
+7. `Fuente`
+8. `Ubicación`
+9. `Extracto`
+10. `Evidencia-tipo`
+11. `Estado`
+12. `Autoridad`
+13. `Versión`
+14. `Commit`
+15. `Observaciones`
+
+## 5.2 Plantilla canónica
+
+Toda nueva evidencia deberá utilizar esta plantilla:
+
+```markdown
+## EVID-[DOMINIO]-[NNN]
+
+**Origen-ID:** `[ID]`
+**Origen-tipo:** `[PARAMETRO | DATO | REGLA | DOCUMENTO | COMPONENTE]`
+**Destino-ID:** `[ID]`
+**Destino-tipo:** `[PARAMETRO | DATO | REGLA | RESULTADO | COMPONENTE]`
+**Relación:** `[TIPO DE RELACIÓN]`
+**Fuente:** `[RUTA DEL DOCUMENTO O RECURSO]`
+**Ubicación:** `[SECCIÓN / ENCABEZADO / LÍNEA / LOCALIZACIÓN REPRODUCIBLE]`
+**Extracto:** `[FRAGMENTO MÍNIMO QUE DEMUESTRA LA RELACIÓN]`
+**Evidencia-tipo:** `[DIRECTA | INDIRECTA | CONTEXTUAL]`
+**Estado:** `[DEMOSTRADA | NO DEMOSTRADA | NO IDENTIFICADA | GAP | CONFLICTIVA | CERRADA]`
+**Autoridad:** `[DOCUMENTO CON AUTORIDAD SOBRE LA MATERIA]`
+**Versión:** `[VERSIÓN DE LA FUENTE]`
+**Commit:** `[SHA DE GITHUB, SI EXISTE]`
+**Observaciones:** `[MATICES, DEPENDENCIAS O LIMITACIONES]`
+```
+
+## 5.3 Regla de unicidad
+
+Un `EVID-ID` representa **una relación auditada concreta**.
+
+Si una misma investigación demuestra varias relaciones independientes, cada relación deberá disponer de su propio `EVID-ID`.
+
+No se utilizará una sola ficha para agrupar relaciones distintas únicamente para reducir el número de registros.
+
+## 5.4 Regla de evidencia mínima
+
+Una evidencia no podrá pasar a `DEMOSTRADA` o `CERRADA` si falta cualquiera de estos elementos obligatorios:
+
+- origen;
+- destino;
+- relación;
+- fuente;
+- ubicación reproducible;
+- extracto probatorio;
+- tipo de evidencia;
+- estado;
+- autoridad;
+- versión.
+
+El `Commit` será obligatorio cuando la evidencia proceda de GitHub y el commit sea necesario para reproducir el estado exacto de la fuente.
+
+## 5.5 Regla de separación entre evidencia y conclusión
+
+El `Extracto` debe contener la evidencia observable. La interpretación o decisión no podrá sustituir al extracto.
+
+Cuando sea necesario explicar la interpretación, deberá hacerse en `Observaciones` o mediante el documento de decisión correspondiente.
+
+## 5.6 Regla de fuentes múltiples
+
+Cuando una relación requiera varias fuentes, todas deberán registrarse en `Fuente` o mediante referencias explícitas a fuentes secundarias. La ficha deberá identificar cuál es la fuente primaria y cuál es complementaria.
+
+## 5.7 Regla de normalización de evidencias existentes
+
+Las evidencias existentes antes de la versión 1.4 podrán conservar temporalmente su formato histórico, pero quedarán clasificadas como **PENDIENTES DE NORMALIZACIÓN** hasta completar la plantilla canónica.
+
+Esta tolerancia no se aplica a nuevas evidencias creadas a partir de la versión 1.4.
+
+---
+
+# 6. ESTADOS DE CONTROL
 
 - **DEMOSTRADA:** relación expresamente acreditada y reproducible.
 - **NO DEMOSTRADA:** existe la entidad, pero la relación no está acreditada.
@@ -99,7 +189,7 @@ El estado **CERRADO** se refiere a la evidencia o bloque concreto; no implica qu
 
 ---
 
-# 6. REGLAS DE GOBIERNO DEL REGISTRO MAESTRO
+# 7. REGLAS DE GOBIERNO DEL REGISTRO MAESTRO
 
 ## RM-01 — Registro único
 
@@ -143,9 +233,13 @@ Un documento especializado puede aportar la evidencia, pero su existencia no imp
 
 El Registro Maestro deberá poder auditarse contra las fuentes documentales y contra la Especificación F3.
 
+## RM-11 — Estructura única
+
+Toda evidencia nueva deberá utilizar exclusivamente la plantilla canónica definida en la sección 5.
+
 ---
 
-# 7. CADENA MAESTRA DE TRAZABILIDAD
+# 8. CADENA MAESTRA DE TRAZABILIDAD
 
 Cuando resulte aplicable, el Registro deberá poder reconstruir:
 
@@ -169,7 +263,7 @@ No todos los casos requerirán todos los niveles. Cada evidencia deberá indicar
 
 ---
 
-# 8. EVIDENCIAS F3 — HISTÓRICO
+# 9. EVIDENCIAS F3 — HISTÓRICO
 
 ## EVID-HIS-001
 
@@ -217,7 +311,7 @@ No todos los casos requerirán todos los niveles. Cada evidencia deberá indicar
 
 ---
 
-# 9. EVIDENCIAS DE RELACIÓN CON PRECIO
+# 10. EVIDENCIAS DE RELACIÓN CON PRECIO
 
 ## EVID-HIS-004
 
@@ -229,7 +323,7 @@ No todos los casos requerirán todos los niveles. Cada evidencia deberá indicar
 
 ---
 
-# 10. EVIDENCIAS F3 — PAGOS / C-07
+# 11. EVIDENCIAS F3 — PAGOS / C-07
 
 ## EVID-PAG-001
 
@@ -284,7 +378,7 @@ La especificación especializada de configuración de pagos aporta la evidencia 
 
 ---
 
-# 11. CONTROL DE DUPLICIDADES
+# 12. CONTROL DE DUPLICIDADES
 
 ## DUP-HIS-001
 
@@ -300,7 +394,7 @@ La especificación especializada de configuración de pagos aporta la evidencia 
 
 ---
 
-# 12. DECISIONES NEGATIVAS REGISTRADAS
+# 13. DECISIONES NEGATIVAS REGISTRADAS
 
 Las siguientes acciones siguen expresamente descartadas:
 
@@ -311,7 +405,7 @@ Las siguientes acciones siguen expresamente descartadas:
 
 ---
 
-# 13. CRITERIO DE CIERRE
+# 14. CRITERIO DE CIERRE
 
 Una evidencia pasa a **DEMOSTRADA/CERRADA** cuando la relación puede reproducirse desde una fuente real, con ubicación identificable, autoridad documental conocida y sin depender de similitud semántica como prueba principal.
 
@@ -321,7 +415,7 @@ Todo cambio posterior deberá conservar la cadena:
 
 ---
 
-# 14. ESTADO DEL REGISTRO
+# 15. ESTADO DEL REGISTRO
 
 El **Registro Maestro F3 está ACTIVO** como registro de gobierno de evidencias.
 
@@ -344,19 +438,20 @@ Que el registro esté activo no significa que todas sus evidencias estén cerrad
 
 ---
 
-# 15. CONTROL DE CAMBIOS
+# 16. CONTROL DE CAMBIOS
 
-**v1.3 — 22/08/2026**
+**v1.4 — 22/08/2026**
 
-Se fija formalmente este archivo como **Registro Maestro de Evidencias de Trazabilidad F3**.
+Se define una **estructura única y plantilla canónica de evidencia F3** para todas las nuevas evidencias.
 
 Se establece:
 
-- su autoridad como registro de estado y trazabilidad de evidencias;
-- el `EVID-ID` como identificador único de cada evidencia;
-- el modelo mínimo obligatorio de evidencia;
-- las reglas de gobierno del registro;
-- la obligación de conservar fuente, versión, ubicación, autoridad y reproducibilidad;
-- la distinción entre estado del registro maestro y estado individual de cada evidencia.
+- orden único de campos;
+- plantilla Markdown canónica;
+- unicidad de `EVID-ID` por relación auditada;
+- requisitos mínimos para alcanzar `DEMOSTRADA/CERRADA`;
+- separación entre evidencia observable y conclusión interpretativa;
+- tratamiento de fuentes múltiples;
+- normalización progresiva de evidencias históricas.
 
 Esta modificación **no cierra ni altera evidencias pendientes**. En particular, `EVID-HIS-004` permanece `NO DEMOSTRADA COMO DEPENDENCIA FORMAL` y deberá resolverse en la fase correspondiente.
