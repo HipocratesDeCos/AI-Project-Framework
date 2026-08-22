@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.8  
+**Versión:** 1.9  
 **Estado:** ACTIVO — REGISTRO MAESTRO DE EVIDENCIAS F3  
 **Ámbito:** EIOS Vertical MVP  
 **Fecha:** 22/08/2026  
@@ -166,18 +166,20 @@ No se renumeran los identificadores históricos.
 
 # 8. INVENTARIO CANÓNICO DE EVIDENCIAS RELACIONALES
 
-| EVID-ID canónico | Origen | Destino | Estado de normalización |
-|---|---|---|---|
-| `EVID-HIS-001` | `P-DAT-002` | `R-HIS-001` | IDENTIFICADOR VALIDADO |
-| `EVID-HIS-002` | `P-PRE-006` | `R-HIS-002` | IDENTIFICADOR VALIDADO |
-| `EVID-HIS-004` | `R-HIS-*` | `R-PRE-001` | IDENTIFICADOR VALIDADO — RELACIÓN NO DEMOSTRADA |
-| `EVID-PAG-001` | `P-PAG-001` | `R-PAG-002` | IDENTIFICADOR VALIDADO |
-| `EVID-PAG-002` | `P-PAG-002` | `R-PAG-001` | IDENTIFICADOR VALIDADO |
-| `EVID-PAG-003` | `P-PAG-003` | `R-PAG-001` | IDENTIFICADOR VALIDADO |
-| `EVID-PAG-004-A` | `P-PAG-004` | `R-PAG-001` | NUEVO ID HOJA — DESDOBLADO |
-| `EVID-PAG-004-B` | `P-PAG-004` | `R-PAG-002` | NUEVO ID HOJA — DESDOBLADO |
-| `EVID-PAG-005-A` | `P-PAG-005` | `R-PAG-001` | NUEVO ID HOJA — DESDOBLADO |
-| `EVID-PAG-005-B` | `P-PAG-005` | `R-PAG-002` | NUEVO ID HOJA — DESDOBLADO |
+| EVID-ID canónico | Origen | Destino | Relación | Evidencia-tipo | Estado | Fuente / versión | Ubicación | Commit |
+|---|---|---|---|---|---|---|---|---|
+| `EVID-HIS-001` | `P-DAT-002` | `R-HIS-001` | PARÁMETRO → REGLA | DIRECTA | **DEMOSTRADA / CERRADA** | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 | §4.1 Determinación del parámetro efectivo; §8 Relaciones confirmadas | No determinado para la v0.8; cierre documental fijado en `dbede0c...` |
+| `EVID-HIS-002` | `P-PRE-006` | `R-HIS-002` | PARÁMETRO → REGLA | DIRECTA | **DEMOSTRADA / CERRADA** | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 | §5.1 Determinación del parámetro efectivo; §8 Relaciones confirmadas | No determinado para la v0.8; cierre documental fijado en `dbede0c...` |
+| `EVID-HIS-004` | `R-HIS-*` | `R-PRE-001` | RELACIÓN ENTRE REGLAS | DIRECTA | **NO DEMOSTRADA** | Registro F3 / fuentes históricas pendientes | Registro histórico | — |
+| `EVID-PAG-001` | `P-PAG-001` | `R-PAG-002` | PARÁMETRO → REGLA | DIRECTA | IDENTIFICADOR VALIDADO | Fuentes de configuración de pagos | Según fuente | — |
+| `EVID-PAG-002` | `P-PAG-002` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | IDENTIFICADOR VALIDADO | Fuentes de configuración de pagos | Según fuente | — |
+| `EVID-PAG-003` | `P-PAG-003` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | IDENTIFICADOR VALIDADO | Fuentes de configuración de pagos | Según fuente | — |
+| `EVID-PAG-004-A` | `P-PAG-004` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | NUEVO ID HOJA — DESDOBLADO | Fuentes de configuración de pagos | Según fuente | — |
+| `EVID-PAG-004-B` | `P-PAG-004` | `R-PAG-002` | PARÁMETRO → REGLA | DIRECTA | NUEVO ID HOJA — DESDOBLADO | Fuentes de configuración de pagos | Según fuente | — |
+| `EVID-PAG-005-A` | `P-PAG-005` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | NUEVO ID HOJA — DESDOBLADO | Fuentes de configuración de pagos | Según fuente | — |
+| `EVID-PAG-005-B` | `P-PAG-005` | `R-PAG-002` | PARÁMETRO → REGLA | DIRECTA | NUEVO ID HOJA — DESDOBLADO | Fuentes de configuración de pagos | Según fuente | — |
+
+Para `EVID-HIS-001` y `EVID-HIS-002`, la evidencia especializada determina además que no existe duplicidad funcional ni relación maestro → derivado demostrada entre los parámetros históricos contrastados.
 
 `EVID-HIS-003` **ya no aparece en este inventario relacional**, porque ha sido reclasificado como evidencia descriptiva.
 
@@ -250,6 +252,10 @@ En el caso de `EVID-DESC-HIS-003`, `DEMOSTRADA` se refiere exclusivamente a la d
 ---
 
 # 14. CONTROL DE CAMBIOS
+
+**v1.9 — 22/08/2026**
+
+Se normalizan `EVID-HIS-001` y `EVID-HIS-002` conforme a la estructura canónica F3. Se incorporan origen, destino, relación, tipo de evidencia, estado, fuente, versión y ubicación reproducible. Se conserva expresamente la limitación de que el commit creador de la v0.8 de la matriz no está determinado; el commit `dbede0c0cf531229ac700dc16aa6d765f72b5c45` se registra únicamente como commit documental de cierre, no como creador de la matriz v0.8.
 
 **v1.8 — 22/08/2026**
 
