@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.4  
+**Versión:** 1.5  
 **Estado:** ACTIVO — REGISTRO MAESTRO DE EVIDENCIAS F3  
 **Ámbito:** EIOS Vertical MVP  
 **Fecha:** 22/08/2026  
@@ -76,13 +76,13 @@ Toda evidencia F3 deberá contener, como mínimo, los campos establecidos por `0
 | `Ubicación` | Sí | Ruta, sección, encabezado, línea, commit u otra localización reproducible. |
 | `Extracto` | Sí | Fragmento mínimo que demuestra la relación. |
 | `Evidencia-tipo` | Sí | DIRECTA / INDIRECTA / CONTEXTUAL. |
-| `Estado` | Sí | DEMOSTRADA / NO DEMOSTRADA / GAP / CONFLICTIVA / CERRADA. |
+| `Estado` | Sí | Estado oficial según la sección 6. |
 | `Autoridad` | Sí | Documento que posee autoridad sobre la materia. |
 | `Versión` | Sí | Versión de la fuente utilizada. |
 | `Commit` | Recomendado | Commit de GitHub que permite reproducir la evidencia. |
 | `Observaciones` | No | Matices, dependencias o limitaciones. |
 
-**Regla:** mientras una evidencia existente no contenga todos los campos obligatorios, se considerará **registro existente pendiente de normalización**, no evidencia completamente auditada.
+**Regla:** mientras una evidencia existente no contenga todos los campos obligatorios, se considerará **PENDIENTE DE NORMALIZACIÓN**, no evidencia completamente auditada.
 
 ---
 
@@ -91,8 +91,6 @@ Toda evidencia F3 deberá contener, como mínimo, los campos establecidos por `0
 A partir de la versión 1.4, toda nueva evidencia F3 deberá registrarse utilizando **una única estructura canónica**. No se admitirán formatos alternativos para nuevas evidencias.
 
 ## 5.1 Orden obligatorio de los campos
-
-Cada ficha de evidencia deberá respetar este orden:
 
 1. `EVID-ID`
 2. `Origen-ID`
@@ -112,8 +110,6 @@ Cada ficha de evidencia deberá respetar este orden:
 
 ## 5.2 Plantilla canónica
 
-Toda nueva evidencia deberá utilizar esta plantilla:
-
 ```markdown
 ## EVID-[DOMINIO]-[NNN]
 
@@ -126,7 +122,7 @@ Toda nueva evidencia deberá utilizar esta plantilla:
 **Ubicación:** `[SECCIÓN / ENCABEZADO / LÍNEA / LOCALIZACIÓN REPRODUCIBLE]`
 **Extracto:** `[FRAGMENTO MÍNIMO QUE DEMUESTRA LA RELACIÓN]`
 **Evidencia-tipo:** `[DIRECTA | INDIRECTA | CONTEXTUAL]`
-**Estado:** `[DEMOSTRADA | NO DEMOSTRADA | NO IDENTIFICADA | GAP | CONFLICTIVA | CERRADA]`
+**Estado:** `[ESTADO OFICIAL F3]`
 **Autoridad:** `[DOCUMENTO CON AUTORIDAD SOBRE LA MATERIA]`
 **Versión:** `[VERSIÓN DE LA FUENTE]`
 **Commit:** `[SHA DE GITHUB, SI EXISTE]`
@@ -135,11 +131,7 @@ Toda nueva evidencia deberá utilizar esta plantilla:
 
 ## 5.3 Regla de unicidad
 
-Un `EVID-ID` representa **una relación auditada concreta**.
-
-Si una misma investigación demuestra varias relaciones independientes, cada relación deberá disponer de su propio `EVID-ID`.
-
-No se utilizará una sola ficha para agrupar relaciones distintas únicamente para reducir el número de registros.
+Un `EVID-ID` representa **una relación auditada concreta**. Si una misma investigación demuestra varias relaciones independientes, cada relación deberá disponer de su propio `EVID-ID`.
 
 ## 5.4 Regla de evidencia mínima
 
@@ -158,34 +150,109 @@ Una evidencia no podrá pasar a `DEMOSTRADA` o `CERRADA` si falta cualquiera de 
 
 El `Commit` será obligatorio cuando la evidencia proceda de GitHub y el commit sea necesario para reproducir el estado exacto de la fuente.
 
-## 5.5 Regla de separación entre evidencia y conclusión
+## 5.5 Separación entre evidencia y conclusión
 
-El `Extracto` debe contener la evidencia observable. La interpretación o decisión no podrá sustituir al extracto.
+El `Extracto` contiene la evidencia observable. La interpretación o decisión no sustituye al extracto y deberá constar en `Observaciones` o en el documento de decisión correspondiente.
 
-Cuando sea necesario explicar la interpretación, deberá hacerse en `Observaciones` o mediante el documento de decisión correspondiente.
+## 5.6 Fuentes múltiples
 
-## 5.6 Regla de fuentes múltiples
+Cuando una relación requiera varias fuentes, deberán identificarse todas y distinguirse la fuente primaria de las complementarias.
 
-Cuando una relación requiera varias fuentes, todas deberán registrarse en `Fuente` o mediante referencias explícitas a fuentes secundarias. La ficha deberá identificar cuál es la fuente primaria y cuál es complementaria.
+## 5.7 Normalización de evidencias existentes
 
-## 5.7 Regla de normalización de evidencias existentes
-
-Las evidencias existentes antes de la versión 1.4 podrán conservar temporalmente su formato histórico, pero quedarán clasificadas como **PENDIENTES DE NORMALIZACIÓN** hasta completar la plantilla canónica.
-
-Esta tolerancia no se aplica a nuevas evidencias creadas a partir de la versión 1.4.
+Las evidencias anteriores a v1.4 podrán conservar temporalmente su formato histórico, pero quedarán clasificadas como **PENDIENTES DE NORMALIZACIÓN** hasta completar la plantilla canónica.
 
 ---
 
-# 6. ESTADOS DE CONTROL
+# 6. NOMENCLATURA OFICIAL DE ESTADOS F3
 
-- **DEMOSTRADA:** relación expresamente acreditada y reproducible.
-- **NO DEMOSTRADA:** existe la entidad, pero la relación no está acreditada.
-- **NO IDENTIFICADA:** no se ha localizado la entidad o fuente buscada.
-- **GAP:** falta una definición o dependencia necesaria para completar una cadena crítica.
-- **CONFLICTIVA:** existen fuentes incompatibles o autoridades concurrentes.
-- **CERRADA:** evidencia y documentos de autoridad afectados se encuentran alineados y la evidencia satisface los criterios de cierre.
+La siguiente nomenclatura es **oficial y única** para el Registro Maestro F3. No se utilizarán sinónimos como sustitutos de estos estados.
 
-El estado **CERRADO** se refiere a la evidencia o bloque concreto; no implica que todo el Registro Maestro esté globalmente cerrado.
+| Estado oficial | Significado | ¿Puede considerarse evidencia demostrada? | Acción / condición |
+|---|---|---:|---|
+| **PENDIENTE DE NORMALIZACIÓN** | Existe un registro histórico de evidencia, pero todavía no cumple la estructura canónica F3. | No | Completar campos obligatorios antes de auditarla como evidencia completa. |
+| **NO IDENTIFICADA** | No se ha localizado la entidad, fuente o evidencia que se estaba buscando. | No | Continuar búsqueda o registrar formalmente la ausencia. |
+| **NO DEMOSTRADA** | La entidad existe o la relación es plausible, pero la evidencia disponible no acredita suficientemente la relación. | No | No cerrar; buscar evidencia adicional o mantener el estado. |
+| **GAP** | Falta una definición, dependencia o evidencia necesaria para completar una cadena crítica de trazabilidad. | No | Registrar, priorizar y resolver documentalmente. |
+| **CONFLICTIVA** | Existen fuentes, decisiones o autoridades incompatibles que impiden determinar una única relación válida. | No | Resolver primero la autoridad o el conflicto. |
+| **DEMOSTRADA** | Existe evidencia suficiente, reproducible y atribuible a una fuente con autoridad para acreditar la relación. | Sí | Puede incorporarse a la trazabilidad oficial; todavía puede requerir propagación documental. |
+| **CERRADA** | La evidencia está demostrada y, además, los documentos de autoridad afectados están alineados y la cadena de decisión/cambio ha sido auditada. | Sí | Estado final de cierre del bloque concreto. |
+
+## 6.1 Distinción crítica: DEMOSTRADA ≠ CERRADA
+
+Esta distinción queda fijada como regla de gobierno.
+
+**DEMOSTRADA** significa:
+
+> «La relación está probada por evidencia suficiente y reproducible.»
+
+**CERRADA** significa:
+
+> «La relación está probada, la decisión está registrada, los documentos de autoridad afectados están alineados y la cadena documental ha sido auditada.»
+
+Por tanto:
+
+```text
+PENDIENTE DE NORMALIZACIÓN
+        ↓
+NO IDENTIFICADA / NO DEMOSTRADA / GAP / CONFLICTIVA
+        ↓
+DEMOSTRADA
+        ↓
+CERRADA
+```
+
+No todos los casos recorrerán todas las etapas. `CONFLICTIVA`, por ejemplo, puede volver a `NO DEMOSTRADA` una vez identificado y separado el conflicto, antes de alcanzar `DEMOSTRADA`.
+
+## 6.2 Reglas de transición
+
+### Hacia `PENDIENTE DE NORMALIZACIÓN`
+Cuando existe un registro histórico pero faltan campos de la plantilla canónica.
+
+### Hacia `NO IDENTIFICADA`
+Cuando la búsqueda no localiza la entidad o fuente requerida.
+
+### Hacia `NO DEMOSTRADA`
+Cuando la entidad está localizada, pero la relación no puede acreditarse documentalmente.
+
+### Hacia `GAP`
+Cuando la ausencia afecta a una capacidad o dependencia necesaria para completar una cadena crítica.
+
+### Hacia `CONFLICTIVA`
+Cuando aparecen fuentes o autoridades incompatibles.
+
+### Hacia `DEMOSTRADA`
+Solo cuando se cumplen simultáneamente:
+
+1. fuente real identificada;
+2. ubicación reproducible;
+3. extracto probatorio suficiente;
+4. origen y destino identificados;
+5. relación definida;
+6. autoridad documental conocida;
+7. versión identificada;
+8. ausencia de conflicto de autoridad no resuelto;
+9. ausencia de inferencia semántica como prueba principal.
+
+### Hacia `CERRADA`
+Solo después de `DEMOSTRADA` y cuando, además:
+
+1. la decisión correspondiente está registrada;
+2. los documentos de autoridad afectados han sido actualizados o confirmados;
+3. las referencias/versiones son coherentes;
+4. la cadena documental ha sido auditada;
+5. no queda una discrepancia conocida que afecte al cierre de esa relación.
+
+## 6.3 Prohibiciones
+
+Queda prohibido:
+
+- pasar de `NO DEMOSTRADA` a `CERRADA` directamente;
+- pasar de `GAP` a `CERRADA` sin evidencia y decisión;
+- utilizar `DEMOSTRADA` para ocultar una discrepancia documental posterior;
+- utilizar `CERRADA` como sinónimo de «parece correcto»;
+- crear una fuente, parámetro o regla únicamente para cambiar el estado;
+- eliminar una evidencia negativa para mejorar el estado visual del mapa.
 
 ---
 
@@ -236,6 +303,10 @@ El Registro Maestro deberá poder auditarse contra las fuentes documentales y co
 ## RM-11 — Estructura única
 
 Toda evidencia nueva deberá utilizar exclusivamente la plantilla canónica definida en la sección 5.
+
+## RM-12 — Estados únicos
+
+Toda evidencia deberá utilizar exclusivamente uno de los estados oficiales definidos en la sección 6.
 
 ---
 
@@ -311,19 +382,17 @@ No todos los casos requerirán todos los niveles. Cada evidencia deberá indicar
 
 ---
 
-# 10. EVIDENCIAS DE RELACIÓN CON PRECIO
-
 ## EVID-HIS-004
 
 **Relación auditada:** `R-HIS-*` → `R-PRE-001`  
 **Tipo de relación:** REGLA → REGLA  
 **Fuente:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1  
-**Estado:** NO DEMOSTRADA COMO DEPENDENCIA FORMAL  
+**Estado:** NO DEMOSTRADA  
 **Conclusión:** existe relación funcional contextual, pero no se convierte en dependencia oficial sin evidencia adicional.
 
 ---
 
-# 11. EVIDENCIAS F3 — PAGOS / C-07
+# 10. EVIDENCIAS F3 — PAGOS / C-07
 
 ## EVID-PAG-001
 
@@ -332,7 +401,7 @@ No todos los casos requerirán todos los niveles. Cada evidencia deberá indicar
 **Evidencia primaria:** `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0  
 **Evidencia secundaria:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1  
 **Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8  
-**Estado:** DEMOSTRADA / CERRADA
+**Estado:** CERRADA
 
 ## EVID-PAG-002
 
@@ -341,7 +410,7 @@ No todos los casos requerirán todos los niveles. Cada evidencia deberá indicar
 **Evidencia primaria:** `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0  
 **Evidencia secundaria:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1  
 **Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8  
-**Estado:** DEMOSTRADA / CERRADA
+**Estado:** CERRADA
 
 ## EVID-PAG-003
 
@@ -350,7 +419,7 @@ No todos los casos requerirán todos los niveles. Cada evidencia deberá indicar
 **Evidencia primaria:** `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0  
 **Evidencia secundaria:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1  
 **Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8  
-**Estado:** DEMOSTRADA / CERRADA
+**Estado:** CERRADA
 
 ## EVID-PAG-004
 
@@ -359,7 +428,7 @@ No todos los casos requerirán todos los niveles. Cada evidencia deberá indicar
 **Evidencia primaria:** `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0  
 **Evidencia secundaria:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1  
 **Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8  
-**Estado:** DEMOSTRADA / CERRADA
+**Estado:** CERRADA
 
 ## EVID-PAG-005
 
@@ -368,7 +437,7 @@ No todos los casos requerirán todos los niveles. Cada evidencia deberá indicar
 **Evidencia primaria:** `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0  
 **Evidencia secundaria:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1  
 **Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8  
-**Estado:** DEMOSTRADA / CERRADA
+**Estado:** CERRADA
 
 ### C-07 — estado de evidencia
 
@@ -378,23 +447,23 @@ La especificación especializada de configuración de pagos aporta la evidencia 
 
 ---
 
-# 12. CONTROL DE DUPLICIDADES
+# 11. CONTROL DE DUPLICIDADES
 
 ## DUP-HIS-001
 
 **Pares:** `P-PRE-003` ↔ `P-DAT-002`  
-**Estado:** CERRADO  
+**Estado:** CERRADA  
 **Resolución:** `C-01` mantiene `P-PRE-003` como criterio/metodología; `P-DAT-002` es el parámetro configurable consumidor de `R-HIS-001`. No existe relación maestro → derivado demostrada.
 
 ## DUP-HIS-002
 
 **Pares:** `P-PRE-006` ↔ `P-DAT-003`  
-**Estado:** CERRADO  
+**Estado:** CERRADA  
 **Resolución:** `P-PRE-006` establece el mínimo de operaciones comparables de `R-HIS-002`; `P-DAT-003` no sustituye este parámetro y queda sin consumidor directo demostrado en el MVP actual. No existe relación maestro → derivado demostrada.
 
 ---
 
-# 13. DECISIONES NEGATIVAS REGISTRADAS
+# 12. DECISIONES NEGATIVAS REGISTRADAS
 
 Las siguientes acciones siguen expresamente descartadas:
 
@@ -405,9 +474,11 @@ Las siguientes acciones siguen expresamente descartadas:
 
 ---
 
-# 14. CRITERIO DE CIERRE
+# 13. CRITERIO DE CIERRE
 
-Una evidencia pasa a **DEMOSTRADA/CERRADA** cuando la relación puede reproducirse desde una fuente real, con ubicación identificable, autoridad documental conocida y sin depender de similitud semántica como prueba principal.
+Una evidencia pasa a **DEMOSTRADA** cuando la relación puede reproducirse desde una fuente real, con ubicación identificable, autoridad documental conocida y sin depender de similitud semántica como prueba principal.
+
+Una evidencia pasa a **CERRADA** cuando, además, la decisión está registrada, los documentos de autoridad afectados están alineados y la cadena documental ha sido auditada.
 
 Todo cambio posterior deberá conservar la cadena:
 
@@ -415,7 +486,7 @@ Todo cambio posterior deberá conservar la cadena:
 
 ---
 
-# 15. ESTADO DEL REGISTRO
+# 14. ESTADO DEL REGISTRO
 
 El **Registro Maestro F3 está ACTIVO** como registro de gobierno de evidencias.
 
@@ -423,35 +494,37 @@ Que el registro esté activo no significa que todas sus evidencias estén cerrad
 
 | Bloque | Estado |
 |---|---|
-| HIS-001 | 🟢 CERRADO |
-| HIS-002 | 🟢 CERRADO |
-| HIS-003 | 🟢 CERRADO |
-| HIS-004 | 🟡 No demostrada como dependencia formal |
+| HIS-001 | 🟢 CERRADA |
+| HIS-002 | 🟢 CERRADA |
+| HIS-003 | 🟢 CERRADA |
+| HIS-004 | 🟡 NO DEMOSTRADA |
 | Duplicidad P-PRE-003 / P-DAT-002 | 🟢 CERRADA |
 | Duplicidad P-PRE-006 / P-DAT-003 | 🟢 CERRADA |
-| PAG-001 | 🟢 DEMOSTRADA |
-| PAG-002 | 🟢 DEMOSTRADA |
-| PAG-003 | 🟢 DEMOSTRADA |
-| PAG-004 | 🟢 DEMOSTRADA |
-| PAG-005 | 🟢 DEMOSTRADA |
-| C-07 | 🟢 CERRADO |
+| PAG-001 | 🟢 CERRADA |
+| PAG-002 | 🟢 CERRADA |
+| PAG-003 | 🟢 CERRADA |
+| PAG-004 | 🟢 CERRADA |
+| PAG-005 | 🟢 CERRADA |
+| C-07 | 🟢 CERRADA |
 
 ---
 
-# 16. CONTROL DE CAMBIOS
+# 15. CONTROL DE CAMBIOS
 
-**v1.4 — 22/08/2026**
+**v1.5 — 22/08/2026**
 
-Se define una **estructura única y plantilla canónica de evidencia F3** para todas las nuevas evidencias.
+Se establece formalmente la **nomenclatura única de estados F3** y sus criterios de transición.
 
-Se establece:
+Se incorporan como estados oficiales:
 
-- orden único de campos;
-- plantilla Markdown canónica;
-- unicidad de `EVID-ID` por relación auditada;
-- requisitos mínimos para alcanzar `DEMOSTRADA/CERRADA`;
-- separación entre evidencia observable y conclusión interpretativa;
-- tratamiento de fuentes múltiples;
-- normalización progresiva de evidencias históricas.
+- `PENDIENTE DE NORMALIZACIÓN`;
+- `NO IDENTIFICADA`;
+- `NO DEMOSTRADA`;
+- `GAP`;
+- `CONFLICTIVA`;
+- `DEMOSTRADA`;
+- `CERRADA`.
 
-Esta modificación **no cierra ni altera evidencias pendientes**. En particular, `EVID-HIS-004` permanece `NO DEMOSTRADA COMO DEPENDENCIA FORMAL` y deberá resolverse en la fase correspondiente.
+Se establece expresamente la diferencia entre `DEMOSTRADA` y `CERRADA`: la primera acredita la relación; la segunda exige además alineación documental, decisión registrada y auditoría de la cadena.
+
+Esta modificación no cierra `EVID-HIS-004` ni altera las evidencias existentes por inferencia.
