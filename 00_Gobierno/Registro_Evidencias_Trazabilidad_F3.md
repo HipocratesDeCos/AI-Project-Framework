@@ -1,9 +1,9 @@
-# REGISTRO DE EVIDENCIAS DE TRAZABILIDAD — F3
+# REGISTRO MAESTRO DE EVIDENCIAS DE TRAZABILIDAD — F3
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.2  
-**Estado:** CERRADO — F3 / C-07 / GAP-HIS-01 / GAP-HIS-02  
+**Versión:** 1.3  
+**Estado:** ACTIVO — REGISTRO MAESTRO DE EVIDENCIAS F3  
 **Ámbito:** EIOS Vertical MVP  
 **Fecha:** 22/08/2026  
 **Especificación aplicable:** `00_Gobierno/Especificacion_Evidencia_Trazabilidad_F3.md` v1.2
@@ -12,24 +12,164 @@
 
 # 1. PROPÓSITO
 
-Registro operativo de las evidencias utilizadas para cerrar la trazabilidad entre datos, parámetros, reglas, resultados y CRC.
+Este documento constituye el **Registro Maestro de Evidencias de Trazabilidad F3** de EIOS.
 
-Este documento no crea ni modifica parámetros o reglas. Registra la evidencia encontrada y su estado.
+Es el registro oficial donde se identifican, clasifican, conservan y controlan las evidencias utilizadas para demostrar la trazabilidad entre:
+
+- datos;
+- parámetros;
+- cálculos;
+- reglas;
+- resultados;
+- excepciones;
+- CRC;
+- recomendaciones;
+- y los documentos o componentes que intervienen en dichas relaciones.
+
+Este documento no crea ni modifica parámetros o reglas. **Registra y gobierna el estado de la evidencia** que demuestra las relaciones documentales o funcionales del sistema.
 
 ---
 
-# 2. ESTADOS DE CONTROL
+# 2. AUTORIDAD DEL REGISTRO MAESTRO
+
+A partir de la versión 1.3, este archivo queda fijado como **fuente maestra de registro de evidencias F3**.
+
+Esto significa que:
+
+1. toda evidencia F3 oficial deberá disponer de un `EVID-ID` único;
+2. ninguna relación podrá considerarse evidenciada oficialmente sin estar registrada o referenciada en este registro;
+3. el estado de una evidencia deberá ser el que figure en este registro después de la correspondiente decisión documental;
+4. las fuentes originales conservan la autoridad sobre su propio contenido, pero este registro es la autoridad de **estado y trazabilidad de la evidencia**;
+5. cualquier modificación del estado de una evidencia deberá quedar registrada mediante control de cambios y conservar su cadena de reproducibilidad;
+6. una evidencia `NO DEMOSTRADA`, `GAP` o `CONFLICTIVA` no podrá convertirse en `CERRADA` por inferencia, similitud semántica o conveniencia del proyecto;
+7. los documentos especializados aportan evidencia, pero no sustituyen este registro como índice maestro de evidencias F3.
+
+**Principio:**
+
+> La fuente original demuestra el hecho; el Registro Maestro F3 registra qué hecho está demostrado, con qué evidencia, bajo qué autoridad y en qué estado.
+
+---
+
+# 3. REGLA DE IDENTIFICACIÓN
+
+Cada evidencia deberá identificarse mediante un `EVID-ID` único y estable.
+
+No se reutilizará un `EVID-ID` para una relación diferente.
+
+Cuando una evidencia cambie sustancialmente de objeto, deberá generarse un nuevo identificador y conservarse la referencia histórica correspondiente.
+
+---
+
+# 4. MODELO MÍNIMO DE UNA EVIDENCIA
+
+Toda evidencia F3 deberá contener, como mínimo, los campos establecidos por `00_Gobierno/Especificacion_Evidencia_Trazabilidad_F3.md` v1.2:
+
+| Campo | Obligatorio | Descripción |
+|---|---:|---|
+| `EVID-ID` | Sí | Identificador único de la evidencia. |
+| `Origen-ID` | Sí | Parámetro, dato, regla, documento o componente de origen. |
+| `Origen-tipo` | Sí | PARAMETRO / DATO / REGLA / DOCUMENTO / COMPONENTE. |
+| `Destino-ID` | Sí | Entidad cuya dependencia se pretende demostrar. |
+| `Destino-tipo` | Sí | PARAMETRO / DATO / REGLA / RESULTADO / COMPONENTE. |
+| `Relación` | Sí | Tipo de dependencia observada. |
+| `Fuente` | Sí | Documento o recurso donde aparece la evidencia. |
+| `Ubicación` | Sí | Ruta, sección, encabezado, línea, commit u otra localización reproducible. |
+| `Extracto` | Sí | Fragmento mínimo que demuestra la relación. |
+| `Evidencia-tipo` | Sí | DIRECTA / INDIRECTA / CONTEXTUAL. |
+| `Estado` | Sí | DEMOSTRADA / NO DEMOSTRADA / GAP / CONFLICTIVA / CERRADA. |
+| `Autoridad` | Sí | Documento que posee autoridad sobre la materia. |
+| `Versión` | Sí | Versión de la fuente utilizada. |
+| `Commit` | Recomendado | Commit de GitHub que permite reproducir la evidencia. |
+| `Observaciones` | No | Matices, dependencias o limitaciones. |
+
+**Regla:** mientras una evidencia existente no contenga todos los campos obligatorios, se considerará **registro existente pendiente de normalización**, no evidencia completamente auditada.
+
+---
+
+# 5. ESTADOS DE CONTROL
 
 - **DEMOSTRADA:** relación expresamente acreditada y reproducible.
 - **NO DEMOSTRADA:** existe la entidad, pero la relación no está acreditada.
 - **NO IDENTIFICADA:** no se ha localizado la entidad o fuente buscada.
 - **GAP:** falta una definición o dependencia necesaria para completar una cadena crítica.
 - **CONFLICTIVA:** existen fuentes incompatibles o autoridades concurrentes.
-- **CERRADA:** evidencia y documentos de autoridad afectados se encuentran alineados.
+- **CERRADA:** evidencia y documentos de autoridad afectados se encuentran alineados y la evidencia satisface los criterios de cierre.
+
+El estado **CERRADO** se refiere a la evidencia o bloque concreto; no implica que todo el Registro Maestro esté globalmente cerrado.
 
 ---
 
-# 3. EVIDENCIAS F3 — HISTÓRICO
+# 6. REGLAS DE GOBIERNO DEL REGISTRO MAESTRO
+
+## RM-01 — Registro único
+
+El Registro F3 es el registro maestro de estado de las evidencias de trazabilidad.
+
+## RM-02 — No inferencia
+
+No se registrará una relación como DEMOSTRADA por similitud de nombres, valores, prefijos, unidades o proximidad documental.
+
+## RM-03 — Fuente reproducible
+
+Toda evidencia que pretenda alcanzar estado DEMOSTRADA/CERRADA deberá poder localizarse en una fuente real y reproducible.
+
+## RM-04 — Autoridad
+
+La evidencia deberá identificar el documento que tiene autoridad sobre la materia demostrada.
+
+## RM-05 — Versionado
+
+Toda evidencia deberá conservar la versión de la fuente utilizada. Cuando sea posible deberá conservar también el commit de GitHub.
+
+## RM-06 — Trazabilidad de cambios
+
+Toda modificación del registro deberá conservar la cadena:
+
+`EVID-ID → fuente → evidencia → decisión → modificación → commit`
+
+## RM-07 — No cierre artificial
+
+No se cerrará una evidencia únicamente para eliminar un GAP del mapa o cambiar el color de un documento.
+
+## RM-08 — Evidencia negativa
+
+Las relaciones no demostradas también forman parte del registro y deberán permanecer registradas mientras sean relevantes para la auditoría.
+
+## RM-09 — Documentos especializados
+
+Un documento especializado puede aportar la evidencia, pero su existencia no implica automáticamente que la evidencia esté cerrada. El Registro Maestro debe registrar su estado.
+
+## RM-10 — Auditoría
+
+El Registro Maestro deberá poder auditarse contra las fuentes documentales y contra la Especificación F3.
+
+---
+
+# 7. CADENA MAESTRA DE TRAZABILIDAD
+
+Cuando resulte aplicable, el Registro deberá poder reconstruir:
+
+```text
+DATO / FUENTE
+      ↓
+PARÁMETRO
+      ↓
+CÁLCULO / INDICADOR
+      ↓
+REGLA
+      ↓
+RESULTADO
+      ↓
+CRC
+      ↓
+RECOMENDACIÓN
+```
+
+No todos los casos requerirán todos los niveles. Cada evidencia deberá indicar qué tramo demuestra y cuáles permanecen sin demostrar.
+
+---
+
+# 8. EVIDENCIAS F3 — HISTÓRICO
 
 ## EVID-HIS-001
 
@@ -77,7 +217,7 @@ Este documento no crea ni modifica parámetros o reglas. Registra la evidencia e
 
 ---
 
-# 4. EVIDENCIAS DE RELACIÓN CON PRECIO
+# 9. EVIDENCIAS DE RELACIÓN CON PRECIO
 
 ## EVID-HIS-004
 
@@ -89,7 +229,7 @@ Este documento no crea ni modifica parámetros o reglas. Registra la evidencia e
 
 ---
 
-# 5. EVIDENCIAS F3 — PAGOS / C-07
+# 10. EVIDENCIAS F3 — PAGOS / C-07
 
 ## EVID-PAG-001
 
@@ -144,7 +284,7 @@ La especificación especializada de configuración de pagos aporta la evidencia 
 
 ---
 
-# 6. CONTROL DE DUPLICIDADES
+# 11. CONTROL DE DUPLICIDADES
 
 ## DUP-HIS-001
 
@@ -160,7 +300,7 @@ La especificación especializada de configuración de pagos aporta la evidencia 
 
 ---
 
-# 7. DECISIONES NEGATIVAS REGISTRADAS
+# 12. DECISIONES NEGATIVAS REGISTRADAS
 
 Las siguientes acciones siguen expresamente descartadas:
 
@@ -171,7 +311,7 @@ Las siguientes acciones siguen expresamente descartadas:
 
 ---
 
-# 8. CRITERIO DE CIERRE
+# 13. CRITERIO DE CIERRE
 
 Una evidencia pasa a **DEMOSTRADA/CERRADA** cuando la relación puede reproducirse desde una fuente real, con ubicación identificable, autoridad documental conocida y sin depender de similitud semántica como prueba principal.
 
@@ -181,7 +321,11 @@ Todo cambio posterior deberá conservar la cadena:
 
 ---
 
-# 9. ESTADO DEL REGISTRO
+# 14. ESTADO DEL REGISTRO
+
+El **Registro Maestro F3 está ACTIVO** como registro de gobierno de evidencias.
+
+Que el registro esté activo no significa que todas sus evidencias estén cerradas. Los estados se controlan individualmente.
 
 | Bloque | Estado |
 |---|---|
@@ -200,8 +344,19 @@ Todo cambio posterior deberá conservar la cadena:
 
 ---
 
-# 10. CONTROL DE CAMBIOS
+# 15. CONTROL DE CAMBIOS
 
-**v1.2 — 22/08/2026**
+**v1.3 — 22/08/2026**
 
-Se alinean las referencias de versión de `Matriz_Parametros_Reglas_MVP` a v0.8 y `Decision_Log_Parametros_MVP` a v0.6, y se incorpora `Especificacion_Reglas_Historico_MVP` v1.2 como expediente especializado de cierre de `GAP-HIS-01` y `GAP-HIS-02`.
+Se fija formalmente este archivo como **Registro Maestro de Evidencias de Trazabilidad F3**.
+
+Se establece:
+
+- su autoridad como registro de estado y trazabilidad de evidencias;
+- el `EVID-ID` como identificador único de cada evidencia;
+- el modelo mínimo obligatorio de evidencia;
+- las reglas de gobierno del registro;
+- la obligación de conservar fuente, versión, ubicación, autoridad y reproducibilidad;
+- la distinción entre estado del registro maestro y estado individual de cada evidencia.
+
+Esta modificación **no cierra ni altera evidencias pendientes**. En particular, `EVID-HIS-004` permanece `NO DEMOSTRADA COMO DEPENDENCIA FORMAL` y deberá resolverse en la fase correspondiente.
