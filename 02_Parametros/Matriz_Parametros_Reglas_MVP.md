@@ -2,8 +2,8 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.7  
-**Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07  
+**Versión:** 0.8  
+**Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO  
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 22/08/2026
 
@@ -83,10 +83,10 @@ La numeración funcional se conserva; el prefijo identifica el tipo de entidad.
 |---|---|---|---|---|---|---|---|
 | P-PRE-001 | Precios | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
 | P-PRE-002 | Precios | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
-| **P-PRE-003** | Precios | **Criterio/metodología histórica — no parámetro directo (C-01); R-HIS-001 utiliza P-DAT-002** | Según regla | No aplica como parámetro directo | Sí | Sí | **RESUELTO / C-01** |
+| **P-PRE-003** | Precios | **Criterio/metodología histórica — no parámetro directo (C-01); R-HIS-001 utiliza P-DAT-002** | Según regla | No aplica como parámetro directo | Sí | Sí | **RESUELTO / C-01 / HIS-01** |
 | **P-PRE-004** | Precios | **R-PRE-001** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
 | **P-PRE-005** | Precios | **R-PRE-002** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
-| **P-PRE-006** | Precios | **R-HIS-002** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
+| **P-PRE-006** | Precios | **R-HIS-002** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO — HIST-HIS-02** |
 | P-STK-001 a P-STK-006 | Stock | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
 | P-PYE-001 a P-PYE-006 | Proyección | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
 | **P-MGE-001** | Rentabilidad | **R-MGE-001** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
@@ -107,8 +107,8 @@ La numeración funcional se conserva; el prefijo identifica el tipo de entidad.
 | P-RGL-001 a P-RGL-006 | Reglas | Activación/excepción | Según regla | Restringida | Sí | Revisar | Pendiente de autoridad |
 | P-RGL-007 | Reglas | Compra condicionada | Pendiente | Sí, sujeto a autoridad | Sí | Sí | Pendiente de cruce |
 | P-DAT-001 | Calidad | R-DAT-001 | Alta | Restringida | Sí | Sí | CONFIRMADO |
-| P-DAT-002 | Calidad | R-HIS-001 — antigüedad máxima de referencia de precio | Alta | Restringida | Sí | Sí | CONFIRMADO |
-| P-DAT-003 | Calidad | Sin consumidor directo de regla MVP demostrado; no sustituye P-PRE-006 | Alta | Restringida | Sí | Sí | SIN CONSUMIDOR DIRECTO DEMOSTRADO |
+| **P-DAT-002** | Calidad | **R-HIS-001 — antigüedad máxima de referencia de precio** | Alta | Restringida | Sí | Sí | **CONFIRMADO — HIST-HIS-01** |
+| **P-DAT-003** | Calidad | **Sin consumidor directo de regla MVP; no sustituye P-PRE-006** | Alta | Restringida | Sí | Sí | **SIN CONSUMIDOR DIRECTO / CONCEPTO DISTINTO** |
 | P-DAT-004 | Calidad | Ninguna en MVP | Sí | No | No aplica | No | Excluido del MVP |
 | P-DAT-005 | Presentación/trazabilidad | No es parámetro de decisión | No | No aplica | No aplica | No | Reclasificado |
 | P-DAT-006 | Calidad/explicabilidad | No es parámetro de decisión | No | No aplica | No aplica | No | Reclasificado |
@@ -173,11 +173,29 @@ Las siguientes relaciones quedan confirmadas por el cruce documental realizado y
 | `P-DAT-002` | `R-HIS-001` | Directa | CONFIRMADO |
 | `P-PRE-006` | `R-HIS-002` | Directa | CONFIRMADO |
 
-### Nota de resolución histórica
+### Resolución histórica — GAP-HIS-01
 
-`P-PRE-003` no se considera parámetro directo de `R-HIS-001`: C-01 lo mantiene como criterio/metodología. `R-HIS-001` utiliza `P-DAT-002` como parámetro configurable de antigüedad de referencia.
+`P-PRE-003` no se considera parámetro directo de `R-HIS-001`: `C-01` lo mantiene como criterio/metodología. `R-HIS-001` utiliza `P-DAT-002` como parámetro configurable de antigüedad de referencia.
 
-`P-DAT-003` no sustituye a `P-PRE-006`: el primero representa un criterio de disponibilidad/registro histórico, mientras el segundo representa el mínimo de operaciones comparables exigido por `R-HIS-002`.
+`P-PRE-003` y `P-DAT-002` no se clasifican como relación maestro → derivado. No existe evidencia documental de una transformación entre ambos. Para el MVP, sus papeles quedan diferenciados: `P-PRE-003` es criterio/metodología y `P-DAT-002` es parámetro configurable consumidor.
+
+**Estado GAP-HIS-01: CERRADO FUNCIONALMENTE.**
+
+### Resolución histórica — GAP-HIS-02
+
+`P-DAT-003` no sustituye a `P-PRE-006`. `P-PRE-006` representa el mínimo de operaciones comparables exigido por `R-HIS-002`, mientras `P-DAT-003` representa un criterio distinto de disponibilidad/registro histórico y no tiene consumidor directo de regla MVP demostrado.
+
+`P-PRE-006` y `P-DAT-003` no se clasifican como relación maestro → derivado. No existe evidencia documental de una transformación entre ambos. Para el MVP, sus papeles quedan diferenciados.
+
+**Estado GAP-HIS-02: CERRADO FUNCIONALMENTE.**
+
+### Evidencia especializada
+
+La determinación se documenta adicionalmente en:
+
+`04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.1
+
+La creación de un parámetro `HIS-*` queda expresamente descartada.
 
 ---
 
@@ -191,6 +209,8 @@ Las siguientes relaciones quedan confirmadas por el cruce documental realizado y
 - Los valores económicos y operativos siguen siendo valores iniciales hasta su validación empresarial.
 - `GAP-01 / PRO-001` queda tratado como dato del proveedor, no como nuevo parámetro empresarial.
 - `C-07` queda documentalmente satisfecho para `P-PAG-001…005` mediante `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` y su incorporación a `Matriz_Reglas_MVP v2.1`.
+- `GAP-HIS-01` queda resuelto mediante la determinación de `P-DAT-002` como consumidor efectivo de `R-HIS-001` y la exclusión de `P-PRE-003` como parámetro directo.
+- `GAP-HIS-02` queda resuelto mediante la determinación de `P-PRE-006` como consumidor efectivo de `R-HIS-002` y la no sustitución por `P-DAT-003`.
 
 ---
 
@@ -205,14 +225,14 @@ Las siguientes relaciones quedan confirmadas por el cruce documental realizado y
 7. Confirmar la editabilidad individual.
 8. Resolver los gaps de parametrización que aparezcan al completar el cruce.
 
-Estos pendientes son de alcance general del MVP y **no mantienen abierto C-07**.
+Estos pendientes son de alcance general del MVP y **no mantienen abiertos GAP-HIS-01, GAP-HIS-02 ni C-07**.
 
 ---
 
 # 11. ESTADO
 
-**Versión:** 0.7  
-**Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07  
+**Versión:** 0.8  
+**Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO  
 **Baseline:** EIOS Vertical MVP
 
-La relación `P-PAG-001…005 → R-PAG-*` queda incorporada a la matriz con tipo funcional explícito y evidencia documental especializada. `C-07` deja de ser un pendiente de evidencia para este conjunto de parámetros.
+`GAP-HIS-01` y `GAP-HIS-02` quedan cerrados funcionalmente en esta matriz. Las relaciones `P-DAT-002 → R-HIS-001` y `P-PRE-006 → R-HIS-002` quedan confirmadas; `P-PRE-003` y `P-DAT-003` quedan expresamente diferenciados como conceptos sin relación maestro → derivado demostrada.
