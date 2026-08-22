@@ -2,9 +2,9 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 2.0  
+**Versión:** 2.1  
 **Estado:** APROBADO — Baseline EIOS Vertical MVP  
-**Última actualización:** 19/08/2026
+**Última actualización:** 22/08/2026
 
 ---
 
@@ -531,6 +531,13 @@ La fecha prevista de entrega es posterior a la fecha estimada de agotamiento del
 
 El proveedor ofrece un plazo inferior al establecido como objetivo.
 
+### Parámetros utilizados
+
+- `P-PAG-002` — Plazo objetivo.
+- `P-PAG-003` — Tolerancia de plazo, aplicada para modular la desviación respecto del objetivo.
+- `P-PAG-004` — Considerar plazo, como control de activación de la evaluación ordinaria.
+- `P-PAG-005` — Descuento pronto pago, cuando exista y deba incorporarse al cálculo económico de la condición de pago.
+
 ### Resultado
 
 **NEGOCIAR**
@@ -539,6 +546,15 @@ El proveedor ofrece un plazo inferior al establecido como objetivo.
 
 **R2 — NEGOCIACIÓN / ALTA**
 
+### Trazabilidad funcional
+
+`P-PAG-002 → R-PAG-001` — directa.  
+`P-PAG-003 → R-PAG-001` — derivada.  
+`P-PAG-004 → R-PAG-001` — control funcional.  
+`P-PAG-005 → R-PAG-001` — indirecta, mediante cálculo económico cuando corresponda.
+
+La relación y su naturaleza están formalizadas en `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md`.
+
 ---
 
 ## R-PAG-002 — Plazo de pago insuficiente ante riesgo financiero
@@ -546,6 +562,12 @@ El proveedor ofrece un plazo inferior al establecido como objetivo.
 ### Condición
 
 La operación puede ser viable únicamente si se amplía el plazo de pago.
+
+### Parámetros utilizados
+
+- `P-PAG-001` — Plazo mínimo deseado, como mínimo aceptable para la condición de compra.
+- `P-PAG-004` — Considerar plazo, como control de activación de la evaluación del plazo.
+- `P-PAG-005` — Descuento pronto pago, cuando deba incorporarse al análisis económico de la condición financiera.
 
 ### Resultado
 
@@ -558,6 +580,14 @@ La operación únicamente será recomendable si se consigue el plazo de pago mí
 ### Efecto / severidad
 
 **R1 — CONDICIONANTE / ALTA**
+
+### Trazabilidad funcional
+
+`P-PAG-001 → R-PAG-002` — directa.  
+`P-PAG-004 → R-PAG-002` — control funcional.  
+`P-PAG-005 → R-PAG-002` — indirecta, mediante cálculo económico cuando corresponda.
+
+La relación y su naturaleza están formalizadas en `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md`.
 
 ---
 
@@ -747,9 +777,7 @@ La solvencia y capacidad de pago prevalecen sobre ventajas operativas o comercia
 
 ---
 
-# 20. REGLA DE CONFLICTO STOCK / PRECIO
-
-## R-CON-002
+## R-CON-002 — Conflicto stock / precio
 
 ### Situación
 
@@ -772,9 +800,7 @@ Existe riesgo de rotura, pero el precio es superior al objetivo.
 
 ---
 
-# 21. REGLA DE CONFLICTO STOCK / FINANZAS
-
-## R-CON-003
+## R-CON-003 — Conflicto stock / finanzas
 
 ### Situación
 
@@ -800,9 +826,7 @@ salvo que se encuentre una condición que elimine el riesgo financiero.
 
 ---
 
-# 22. REGLA DE CONFLICTO STOCK / PEDIDO CONFIRMADO
-
-## R-CON-004
+## R-CON-004 — Conflicto stock / pedido confirmado
 
 ### Situación
 
@@ -827,9 +851,7 @@ Dependerá de:
 
 ---
 
-# 23. REGLA DE CONFLICTO PRECIO / MARGEN
-
-## R-CON-005
+## R-CON-005 — Conflicto precio / margen
 
 ### Situación
 
@@ -851,9 +873,7 @@ según el resto de reglas.
 
 ---
 
-# 24. REGLA DE CONFLICTO HISTÓRICO / MERCADO
-
-## R-CON-006
+## R-CON-006 — Conflicto histórico / mercado
 
 ### Situación
 
@@ -1198,7 +1218,7 @@ No deben fijarse valores definitivos sin validación empresarial.
 
 # 41. ESTADO DEL DOCUMENTO
 
-**Versión:** 2.0  
+**Versión:** 2.1  
 **Estado:** APROBADO — Baseline EIOS Vertical MVP  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** Definición de reglas de negocio MVP  
