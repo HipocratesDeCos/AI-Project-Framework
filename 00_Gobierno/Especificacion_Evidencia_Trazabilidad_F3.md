@@ -2,10 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.1  
-**Estado:** ACTUALIZADA — F3  
+**Versión:** 1.2  
+**Estado:** ACTUALIZADA — F3 — GAP-HIS-01/02 CERRADOS  
 **Ámbito:** EIOS Vertical MVP  
-**Fecha:** 21/08/2026
+**Fecha:** 22/08/2026
 
 ---
 
@@ -33,16 +33,7 @@ La ausencia de evidencia suficiente deberá permanecer explícitamente como **NO
 
 Una relación solo podrá declararse **DEMOSTRADA** cuando exista una fuente documental o técnica identificable que la sustente.
 
-La coincidencia de:
-
-- nombres;
-- códigos;
-- valores;
-- unidades;
-- descripciones similares;
-- o comportamiento aparentemente equivalente
-
-no constituye por sí sola evidencia de dependencia.
+La coincidencia de nombres, códigos, valores, unidades, descripciones similares o comportamiento aparentemente equivalente no constituye por sí sola evidencia de dependencia.
 
 ## 2.2 Una ausencia no implica una creación
 
@@ -134,17 +125,9 @@ Cadena indirecta en la que el dato no alimenta directamente la regla, sino un c�
 
 La fuente identifica explícitamente ambos extremos de la relación.
 
-Ejemplo conceptual:
-
-`PRE-003 → R-HIS-001`
-
-cuando un documento oficial indique expresamente que `PRE-003` alimenta `R-HIS-001`.
-
 ## 🟡 INDIRECTA
 
 La cadena completa puede reproducirse mediante varias fuentes oficiales que documentan cada tramo, sin que una única fuente escriba la relación completa.
-
-Debe registrarse cada tramo por separado.
 
 ## 🟡 CONTEXTUAL
 
@@ -217,9 +200,7 @@ Una coincidencia de nombre o valor no será suficiente para cerrar el punto 4.
 
 # 9. TRATAMIENTO DE DUPLICIDADES APARENTES
 
-Cuando dos parámetros parezcan representar el mismo concepto, como consecuencia de compartir nombre, unidad o valor, se deberán conservar ambos hasta demostrar su equivalencia funcional.
-
-La auditoría deberá comprobar:
+Cuando dos parámetros parezcan representar el mismo concepto, se deberá comprobar:
 
 - definición;
 - ámbito;
@@ -240,43 +221,57 @@ Solo después podrá clasificarse el caso como:
 
 ---
 
-# 10. CASO DE REFERENCIA F3 — HISTÓRICO
+# 10. RESOLUCIÓN F3 — HISTÓRICO
 
-La auditoría actual mantiene abiertos, sin resolver todavía, los siguientes pares:
+## GAP-HIS-01 — CERRADO
 
-### GAP-HIS-01
+### Relación analizada
 
-```text
-PRE-003 — Antigüedad máxima de referencia
-        ↕
-DAT-002 — Antigüedad máxima de referencia de precio
-        ↓
-R-HIS-001 — Referencia demasiado antigua
-```
+`P-PRE-003 / P-DAT-002 → R-HIS-001`
 
-La especificación exige demostrar documentalmente cuál de los parámetros, o qué combinación de ellos, alimenta la regla.
+### Decisión
 
-**Estado actual:** GAP-HIS-01 ABIERTO. `P-PRE-003 → R-HIS-001` queda como relación candidata funcional, no como relación demostrada. No se permite concluir que `PRE-003` y `DAT-002` son duplicados por compartir el valor de 12 meses.
+`P-DAT-002` es el **parámetro configurable efectivo** consumido por `R-HIS-001` para la antigüedad máxima de referencia de precio.
 
-### GAP-HIS-02
+`P-PRE-003` queda como **criterio/metodología histórica**, no como parámetro directo.
 
-```text
-PRE-006 — Nº mínimo de compras comparables
-        ↕
-DAT-003 — Nº mínimo de registros históricos
-        ↓
-R-HIS-002 — Histórico insuficiente
-```
+No existe evidencia documental de una transformación `P-PRE-003 → P-DAT-002`; por tanto, no se clasifica como relación maestro → derivado.
 
-La especificación exige determinar si ambos conceptos son distintos, si uno deriva del otro o si uno de ellos es el parámetro efectivo de la regla.
+No se clasifica como duplicidad funcional del MVP porque la documentación les asigna papeles distintos: criterio/metodología frente a parámetro configurable consumidor.
 
-**Estado actual:** GAP-HIS-02 ABIERTO. `P-PRE-006 → R-HIS-002` queda como relación candidata funcional, no como relación demostrada. No se permite fusionarlos por compartir el valor de 2 operaciones.
+### Evidencia de autoridad
 
-### R-HIS-003
+- `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 — relación `P-DAT-002 → R-HIS-001` confirmada y `P-PRE-003` reclasificado como criterio/metodología.
+- `02_Parametros/Decision_Log_Parametros_MVP.md` v0.6 — decisión formal registrada.
+- `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.1 — expediente especializado de evidencia.
 
-La regla evalúa comparabilidad de operaciones históricas. Si no existe un umbral configurable explícito, no deberá crearse un parámetro `HIS-*` por defecto.
+**Estado:** 🟢 **CERRADO — EVIDENCIA DOCUMENTAL**
 
-La ausencia de parámetro deberá clasificarse como **NO DEMOSTRADA** o **NO NECESARIAMENTE PARAMÉTRICA**, según la evidencia disponible.
+---
+
+## GAP-HIS-02 — CERRADO
+
+### Relación analizada
+
+`P-PRE-006 / P-DAT-003 → R-HIS-002`
+
+### Decisión
+
+`P-PRE-006` es el **parámetro configurable efectivo** consumido por `R-HIS-002` para el número mínimo de operaciones comparables.
+
+`P-DAT-003` representa un criterio distinto de disponibilidad/registro histórico y no sustituye a `P-PRE-006`.
+
+No existe evidencia documental de una transformación `P-DAT-003 → P-PRE-006`; por tanto, no se clasifica como relación maestro → derivado.
+
+No se clasifica como duplicidad funcional del MVP porque la documentación les asigna ámbitos distintos.
+
+### Evidencia de autoridad
+
+- `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 — relación `P-PRE-006 → R-HIS-002` confirmada y `P-DAT-003` diferenciado.
+- `02_Parametros/Decision_Log_Parametros_MVP.md` v0.6 — decisión formal registrada.
+- `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.1 — expediente especializado de evidencia.
+
+**Estado:** 🟢 **CERRADO — EVIDENCIA DOCUMENTAL**
 
 ---
 
@@ -292,20 +287,13 @@ Una evidencia F3 solo podrá marcarse como **DEMOSTRADA** si:
 - no existe una fuente oficial concurrente sin resolver;
 - y no se ha utilizado una inferencia semántica como sustituto de evidencia.
 
-Si falla cualquiera de estos puntos críticos, la evidencia no podrá cerrarse como DEMOSTRADA.
+Para `GAP-HIS-01` y `GAP-HIS-02`, estos criterios han sido satisfechos mediante la cadena documental especializada y las decisiones/matriz actualizadas descritas en las secciones anteriores.
 
 ---
 
 # 12. CONTROL DE CAMBIOS
 
-Esta especificación no modifica por sí misma:
-
-- el Catálogo de Parámetros;
-- la Matriz de Reglas;
-- la CRC;
-- ni las reglas del MVP.
-
-Su función es establecer el **criterio de evidencia** que deberá cumplirse antes de realizar dichas modificaciones.
+Esta especificación no modifica por sí misma el Catálogo de Parámetros, la Matriz de Reglas, la CRC ni las reglas del MVP.
 
 Cualquier cambio posterior deberá mantener:
 
@@ -322,19 +310,21 @@ permitiendo reconstruir por qué se tomó la decisión.
 
 ---
 
-# 13. ESTADO ACTUAL F3
+# 13. ESTADO F3
 
 | Área | Estado |
 |---|---|
 | Reglas `HIS` | 🟢 Identificadas |
 | Reglas `ROT` | 🟢 Identificadas |
 | Reglas `PROV` | 🟢 Identificadas |
-| Trazabilidad Parámetro → Regla | 🟡 En construcción |
-| `PRE-003` ↔ `DAT-002` | 🔴 GAP-HIS-01 ABIERTO |
-| `PRE-006` ↔ `DAT-003` | 🔴 GAP-HIS-02 ABIERTO |
+| Trazabilidad Parámetro → Regla | 🟢 Avanzada — histórico HIS-01/02 cerrado |
+| `PRE-003` ↔ `DAT-002` | 🟢 GAP-HIS-01 CERRADO |
+| `PRE-006` ↔ `DAT-003` | 🟢 GAP-HIS-02 CERRADO |
 | Parámetros nuevos `HIS-*` | ⛔ No autorizados por esta especificación |
 | Modificación del catálogo | ⛔ No autorizada por esta especificación |
 | Modificación de reglas | ⛔ No autorizada por esta especificación |
+
+Los pendientes generales de trazabilidad de otros parámetros o reglas no se consideran resueltos por el cierre de estos dos GAP.
 
 ---
 
@@ -342,21 +332,14 @@ permitiendo reconstruir por qué se tomó la decisión.
 
 > **EIOS no considerará trazada una dependencia porque parezca lógica. La dependencia deberá poder demostrarse, reproducirse y atribuirse a una fuente con autoridad.**
 
-Esta especificación constituye el criterio de control para la construcción de la evidencia F3 y evita que la fase de trazabilidad genere modificaciones prematuras en parámetros, reglas o arquitectura.
+`GAP-HIS-01` y `GAP-HIS-02` quedan cerrados mediante evidencia documental reproducible, sin crear parámetros `HIS-*` artificiales y sin establecer relaciones maestro → derivado no demostradas.
 
 ---
 
-# 15. CONTROL DE ALINEACIÓN F3 — 21/08/2026
+# 15. CONTROL DE CAMBIOS F3 — 22/08/2026
 
-La presente versión 1.1 queda alineada con la corrección aplicada a `Matriz_Parametros_Reglas_MVP v0.6`.
+**v1.2** — Cierre documental de `GAP-HIS-01` y `GAP-HIS-02`.
 
-En particular:
+Se incorporan las decisiones registradas en `Decision_Log_Parametros_MVP v0.6`, la resolución de `Matriz_Parametros_Reglas_MVP v0.8` y la evidencia especializada `Especificacion_Reglas_Historico_MVP v1.1`.
 
-- `P-PRE-003 → R-HIS-001` no se considera DEMOSTRADA;
-- `P-PRE-006 → R-HIS-002` no se considera DEMOSTRADA;
-- ambas relaciones permanecen como candidatas funcionales y GAP-HIS abiertos;
-- `DAT-002` y `DAT-003` continúan siendo candidatos que deben analizarse antes de establecer consumidor efectivo, duplicidad o relación maestro/derivado;
-- no se autoriza crear parámetros `HIS-*` para cerrar artificialmente estos GAP;
-- las relaciones confirmadas de la matriz que no están afectadas por estos GAP permanecen vigentes.
-
-Esta actualización no altera el criterio metodológico de F3; únicamente alinea el estado documental con la evidencia realmente disponible.
+La actualización afecta exclusivamente al estado y trazabilidad documental de estos dos GAP; no altera el criterio metodológico general de F3 ni autoriza la creación de parámetros `HIS-*`.
