@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.6  
+**Versión:** 0.7  
 **Estado:** APROBADO — C-07 / GAP-HIS-01 / GAP-HIS-02 CERRADOS  
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 22/08/2026
@@ -174,8 +174,32 @@ Los GAPs de migración documental permanecen abiertos hasta completar la actuali
 
 ---
 
-# 11. ESTADO
+# 11. DECISIÓN SOBRE EVID-HIS-004
 
-**Versión:** 0.6  
-**Estado:** APROBADO — C-07 / GAP-HIS-01 / GAP-HIS-02 CERRADOS  
+### Relación analizada
+
+`R-HIS-003 → R-PRE-001`
+
+### Hallazgo
+
+`R-HIS-003` y `R-PRE-001` existen como reglas válidas. `R-HIS-003` define la evaluación de comparabilidad de una operación histórica, mientras que `R-PRE-001` exige una referencia de compra comparable reciente. La documentación permite identificar una relación funcional conceptual entre ambas, pero no establece una relación formal regla → regla, consumidor, maestro → derivado ni dependencia normativa.
+
+### Decisión aprobada
+
+`EVID-HIS-004` **no se considera evidencia canónica demostrada** de una relación formal `R-HIS-003 → R-PRE-001`.
+
+La relación queda clasificada como **RELACIÓN FUNCIONAL NO FORMALIZADA**.
+
+No se crea una nueva evidencia `EVID-*`, no se crea un parámetro `HIS-*` y no se abre un GAP funcional, porque no se ha demostrado que el modelo canónico exija una relación regla → regla entre ambas.
+
+El identificador histórico `EVID-HIS-004` se conserva únicamente como rastro de trazabilidad histórica y queda fuera del conjunto de evidencias canónicas demostradas de F3.
+
+**Estado: RECLASIFICADO — NO EVIDENCIA CANÓNICA.**
+
+---
+
+# 12. ESTADO
+
+**Versión:** 0.7  
+**Estado:** APROBADO — C-07 / GAP-HIS-01 / GAP-HIS-02 CERRADOS; EVID-HIS-004 RECLASIFICADO  
 **Baseline:** EIOS Vertical MVP
