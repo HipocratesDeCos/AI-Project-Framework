@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.2  
+**Versión:** 1.3  
 **Estado:** ACTUALIZADA — F3 — GAP-HIS-01/02 CERRADOS  
 **Ámbito:** EIOS Vertical MVP  
 **Fecha:** 22/08/2026
@@ -243,7 +243,7 @@ No se clasifica como duplicidad funcional del MVP porque la documentación les a
 
 - `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 — relación `P-DAT-002 → R-HIS-001` confirmada y `P-PRE-003` reclasificado como criterio/metodología.
 - `02_Parametros/Decision_Log_Parametros_MVP.md` v0.6 — decisión formal registrada.
-- `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.1 — expediente especializado de evidencia.
+- `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2 — expediente especializado de evidencia.
 
 **Estado:** 🟢 **CERRADO — EVIDENCIA DOCUMENTAL**
 
@@ -269,7 +269,7 @@ No se clasifica como duplicidad funcional del MVP porque la documentación les a
 
 - `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 — relación `P-PRE-006 → R-HIS-002` confirmada y `P-DAT-003` diferenciado.
 - `02_Parametros/Decision_Log_Parametros_MVP.md` v0.6 — decisión formal registrada.
-- `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.1 — expediente especializado de evidencia.
+- `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2 — expediente especializado de evidencia.
 
 **Estado:** 🟢 **CERRADO — EVIDENCIA DOCUMENTAL**
 
@@ -338,8 +338,4 @@ Los pendientes generales de trazabilidad de otros parámetros o reglas no se con
 
 # 15. CONTROL DE CAMBIOS F3 — 22/08/2026
 
-**v1.2** — Cierre documental de `GAP-HIS-01` y `GAP-HIS-02`.
-
-Se incorporan las decisiones registradas en `Decision_Log_Parametros_MVP v0.6`, la resolución de `Matriz_Parametros_Reglas_MVP v0.8` y la evidencia especializada `Especificacion_Reglas_Historico_MVP v1.1`.
-
-La actualización afecta exclusivamente al estado y trazabilidad documental de estos dos GAP; no altera el criterio metodológico general de F3 ni autoriza la creación de parámetros `HIS-*`.
+**v1.3** — Alineación de referencias de versión: `Especificacion_Reglas_Historico_MVP.md` pasa a v1.2 y `Registro_Evidencias_Trazabilidad_F3.md` queda referenciado como v1.9. Se mantiene la separación entre el commit documental de cierre y el commit histórico no determinado que creó la matriz v0.8.
