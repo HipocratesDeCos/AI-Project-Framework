@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.9  
+**Versión:** 1.10  
 **Estado:** ACTIVO — REGISTRO MAESTRO DE EVIDENCIAS F3  
 **Ámbito:** EIOS Vertical MVP  
 **Fecha:** 22/08/2026  
@@ -32,7 +32,7 @@ Toda evidencia F3 oficial deberá disponer de un identificador único y estable.
 
 # 3. MODELO DE OBJETOS F3
 
-El Registro distingue tres objetos documentales:
+El Registro distingue cuatro objetos documentales:
 
 ### 3.1 `EVID-*` — Evidencia de relación
 
@@ -53,6 +53,14 @@ No es una `EVID-*` y no deberá forzarse dentro de la misma plantilla.
 No deberá utilizarse para crear dependencias relacionales no documentadas.
 
 Los identificadores históricos `EVID-*` que resulten ser evidencias descriptivas conservarán su identificador original como referencia histórica, pero quedarán fuera del inventario canónico relacional.
+
+### 3.4 `REL-FUNC-*` — Relación funcional no formalizada
+
+`REL-FUNC-*` representa un **registro histórico de una relación funcional identificada durante el análisis, pero no formalizada documentalmente como dependencia del modelo EIOS**.
+
+No constituye evidencia canónica, no demuestra una dependencia formal, no crea un vínculo de ejecución y no genera por sí mismo un GAP.
+
+Cuando exista un identificador `EVID-*` histórico asociado a una relación funcional no formalizada, dicho identificador se conserva exclusivamente como **alias histórico** y se vincula al `REL-FUNC-*` correspondiente.
 
 ---
 
@@ -141,20 +149,58 @@ Este estado **no significa** que exista una dependencia de `R-HIS-003` con otra 
 
 ---
 
-# 7. CONTROL DE IDENTIFICADORES RELACIONALES
+# 7. RECLASIFICACIÓN DE `EVID-HIS-004`
+
+## Identificador histórico
+
+`EVID-HIS-004`
+
+## Naturaleza determinada
+
+**Registro histórico de una relación funcional no formalizada**, no evidencia de una relación formal `Origen → Destino`.
+
+## Relación funcional identificada
+
+`R-HIS-003 ↔ R-PRE-001`
+
+Las reglas presentan una relación funcional conceptual: `R-HIS-003` define criterios para determinar si una operación es comparable y `R-PRE-001` requiere una operación comparable reciente. Sin embargo, no existe documentación que establezca una dependencia formal `R-HIS-003 → R-PRE-001`.
+
+## Identificador canónico de registro funcional
+
+`REL-FUNC-HIS-004`
+
+`EVID-HIS-004` queda como **alias histórico** de `REL-FUNC-HIS-004` y deja de formar parte del inventario canónico de evidencias relacionales.
+
+## Estado
+
+**NO FORMALIZADA**.
+
+Este estado significa que la relación funcional ha sido identificada durante el análisis, pero no constituye una dependencia formal demostrada por la documentación del modelo.
+
+## Consecuencias
+
+- No se crea una dependencia oficial `R-HIS-003 → R-PRE-001`.
+- No se crea un nuevo `EVID-*` relacional.
+- No se crea un `EVID-DESC-*`, porque el objeto registrado no es una evidencia descriptiva de la definición o comportamiento de una única entidad.
+- No se crea un `GAP` por esta relación.
+- No se modifica `Matriz_Reglas_MVP.md` por inferencia.
+
+---
+
+# 8. CONTROL DE IDENTIFICADORES RELACIONALES
 
 Los identificadores relacionales existentes se auditan antes de normalizar su contenido.
 
-### 7.1 Identificadores históricos `EVID-HIS-*`
+### 8.1 Identificadores históricos `EVID-HIS-*`
 
 - `EVID-HIS-001` → único.
 - `EVID-HIS-002` → único.
 - `EVID-HIS-003` → **reclasificado como `EVID-DESC-HIS-003`; alias histórico**.
-- `EVID-HIS-004` → único; relación no demostrada.
+- `EVID-HIS-004` → **reclasificado como alias histórico de `REL-FUNC-HIS-004`; fuera del inventario relacional**.
 
 No se renumeran los identificadores históricos.
 
-### 7.2 Identificadores `EVID-PAG-*`
+### 8.2 Identificadores `EVID-PAG-*`
 
 - `EVID-PAG-001` → único.
 - `EVID-PAG-002` → único.
@@ -164,13 +210,12 @@ No se renumeran los identificadores históricos.
 
 ---
 
-# 8. INVENTARIO CANÓNICO DE EVIDENCIAS RELACIONALES
+# 9. INVENTARIO CANÓNICO DE EVIDENCIAS RELACIONALES
 
 | EVID-ID canónico | Origen | Destino | Relación | Evidencia-tipo | Estado | Fuente / versión | Ubicación | Commit |
 |---|---|---|---|---|---|---|---|---|
 | `EVID-HIS-001` | `P-DAT-002` | `R-HIS-001` | PARÁMETRO → REGLA | DIRECTA | **DEMOSTRADA / CERRADA** | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 | §4.1 Determinación del parámetro efectivo; §8 Relaciones confirmadas | No determinado para la v0.8; cierre documental fijado en `dbede0c...` |
 | `EVID-HIS-002` | `P-PRE-006` | `R-HIS-002` | PARÁMETRO → REGLA | DIRECTA | **DEMOSTRADA / CERRADA** | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 | §5.1 Determinación del parámetro efectivo; §8 Relaciones confirmadas | No determinado para la v0.8; cierre documental fijado en `dbede0c...` |
-| `EVID-HIS-004` | `R-HIS-*` | `R-PRE-001` | RELACIÓN ENTRE REGLAS | DIRECTA | **NO DEMOSTRADA** | Registro F3 / fuentes históricas pendientes | Registro histórico | — |
 | `EVID-PAG-001` | `P-PAG-001` | `R-PAG-002` | PARÁMETRO → REGLA | DIRECTA | IDENTIFICADOR VALIDADO | Fuentes de configuración de pagos | Según fuente | — |
 | `EVID-PAG-002` | `P-PAG-002` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | IDENTIFICADOR VALIDADO | Fuentes de configuración de pagos | Según fuente | — |
 | `EVID-PAG-003` | `P-PAG-003` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | IDENTIFICADOR VALIDADO | Fuentes de configuración de pagos | Según fuente | — |
@@ -181,11 +226,11 @@ No se renumeran los identificadores históricos.
 
 Para `EVID-HIS-001` y `EVID-HIS-002`, la evidencia especializada determina además que no existe duplicidad funcional ni relación maestro → derivado demostrada entre los parámetros históricos contrastados.
 
-`EVID-HIS-003` **ya no aparece en este inventario relacional**, porque ha sido reclasificado como evidencia descriptiva.
+`EVID-HIS-003` y `EVID-HIS-004` **no aparecen en este inventario relacional**, porque han sido reclasificados respectivamente como evidencia descriptiva y relación funcional no formalizada.
 
 ---
 
-# 9. INVENTARIO DE EVIDENCIA DESCRIPTIVA
+# 10. INVENTARIO DE EVIDENCIA DESCRIPTIVA
 
 | ID canónico | Alias histórico | Entidad | Aspecto | Estado |
 |---|---|---|---|---|
@@ -193,7 +238,17 @@ Para `EVID-HIS-001` y `EVID-HIS-002`, la evidencia especializada determina adem�
 
 ---
 
-# 10. RELACIÓN CON `DUP-*`
+# 11. INVENTARIO DE RELACIONES FUNCIONALES NO FORMALIZADAS
+
+| ID canónico | Alias histórico | Origen | Relación funcional identificada | Formalización | Estado |
+|---|---|---|---|---|---|
+| `REL-FUNC-HIS-004` | `EVID-HIS-004` | `R-HIS-003` | `R-HIS-003 ↔ R-PRE-001` | No existe dependencia formal documentada | **NO FORMALIZADA** |
+
+Este inventario conserva relaciones funcionales identificadas durante el análisis sin convertirlas en evidencias relacionales ni dependencias oficiales.
+
+---
+
+# 12. RELACIÓN CON `DUP-*`
 
 `DUP-*` mantiene el modelo canónico definido en versiones anteriores.
 
@@ -205,7 +260,7 @@ Los identificadores `DUP-*` no se transforman en `EVID-*`.
 
 ---
 
-# 11. ESTADOS DE `DUP-*`
+# 13. ESTADOS DE `DUP-*`
 
 Los estados de `DUP-*` son independientes de los estados de evidencia.
 
@@ -219,7 +274,7 @@ Los estados de `DUP-*` son independientes de los estados de evidencia.
 
 ---
 
-# 12. ESTADOS DE EVIDENCIA
+# 14. ESTADOS DE EVIDENCIA
 
 Los estados de evidencia F3 permanecen definidos por la nomenclatura oficial del Registro:
 
@@ -235,9 +290,13 @@ La normalización de un identificador **no implica automáticamente que su relac
 
 En el caso de `EVID-DESC-HIS-003`, `DEMOSTRADA` se refiere exclusivamente a la definición documental de `R-HIS-003`.
 
+`REL-FUNC-HIS-004` utiliza el estado específico `NO FORMALIZADA`; este estado no equivale a `NO DEMOSTRADA` de una evidencia relacional, porque `REL-FUNC-*` no es una evidencia.
+
 ---
 
-# 13. DECISIÓN F3 — RECLASIFICACIÓN DE EVID-HIS-003
+# 15. DECISIONES F3 — RECLASIFICACIONES
+
+## 15.1 `EVID-HIS-003`
 
 **Decisión:** `EVID-HIS-003` no constituye una evidencia relacional canónica.
 
@@ -247,11 +306,25 @@ En el caso de `EVID-DESC-HIS-003`, `DEMOSTRADA` se refiere exclusivamente a la d
 
 **Prohibición:** no crear una relación `R-HIS-003 → R-PRE-001`, `R-HIS-003 → CRC` ni otra dependencia por inferencia.
 
-**Consecuencia:** la ausencia de una dependencia formal no se considera un error del Registro; queda correctamente representada como ausencia de relación demostrada.
+## 15.2 `EVID-HIS-004`
+
+**Decisión:** `EVID-HIS-004` no constituye una evidencia relacional canónica.
+
+**Motivo:** se identificó una relación funcional conceptual entre `R-HIS-003` y `R-PRE-001`, pero no existe documentación que establezca una dependencia formal `R-HIS-003 → R-PRE-001`.
+
+**Acción:** conservar `EVID-HIS-004` como alias histórico y clasificarlo canónicamente como `REL-FUNC-HIS-004`.
+
+**Prohibición:** no crear una dependencia oficial ni un `EVID-*` relacional a partir de esta relación funcional.
+
+**Consecuencia:** la relación queda registrada para trazabilidad histórica sin contaminar el inventario de evidencias relacionales.
 
 ---
 
-# 14. CONTROL DE CAMBIOS
+# 16. CONTROL DE CAMBIOS
+
+**v1.10 — 22/08/2026**
+
+Se formaliza el tratamiento canónico de las relaciones funcionales no formalizadas mediante la categoría `REL-FUNC-*`. Se reclasifica `EVID-HIS-004` como alias histórico de `REL-FUNC-HIS-004`, se elimina del inventario canónico de evidencias relacionales y se incorpora al inventario específico de relaciones funcionales no formalizadas. Se establece expresamente que este registro no constituye evidencia relacional, no crea dependencias oficiales y no genera un GAP por sí mismo.
 
 **v1.9 — 22/08/2026**
 
