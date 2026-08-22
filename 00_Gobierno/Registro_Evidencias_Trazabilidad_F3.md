@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.7  
+**Versión:** 1.8  
 **Estado:** ACTIVO — REGISTRO MAESTRO DE EVIDENCIAS F3  
 **Ámbito:** EIOS Vertical MVP  
 **Fecha:** 22/08/2026  
@@ -32,7 +32,7 @@ Toda evidencia F3 oficial deberá disponer de un identificador único y estable.
 
 # 3. MODELO DE OBJETOS F3
 
-El Registro distingue dos objetos documentales relacionados pero diferentes:
+El Registro distingue tres objetos documentales:
 
 ### 3.1 `EVID-*` — Evidencia de relación
 
@@ -46,11 +46,19 @@ El Registro distingue dos objetos documentales relacionados pero diferentes:
 
 No es una `EVID-*` y no deberá forzarse dentro de la misma plantilla.
 
+### 3.3 `EVID-DESC-*` — Evidencia descriptiva de entidad/regla
+
+`EVID-DESC-*` representa evidencia documental que **demuestra o documenta la definición, condición, resultado, efecto o comportamiento de una entidad**, pero no demuestra una relación formal `Origen → Destino` entre dos entidades.
+
+No deberá utilizarse para crear dependencias relacionales no documentadas.
+
+Los identificadores históricos `EVID-*` que resulten ser evidencias descriptivas conservarán su identificador original como referencia histórica, pero quedarán fuera del inventario canónico relacional.
+
 ---
 
 # 4. MODELO CANÓNICO DE `EVID-*`
 
-Cada `EVID-*` deberá disponer, como mínimo, de los campos definidos en la estructura canónica F3:
+Cada `EVID-*` relacional deberá disponer, como mínimo, de los campos definidos en la estructura canónica F3:
 
 | Campo | Obligatorio | Descripción |
 |---|---:|---|
@@ -70,78 +78,98 @@ Cada `EVID-*` deberá disponer, como mínimo, de los campos definidos en la estr
 | `Commit` | Recomendado | Commit reproducible. |
 | `Observaciones` | No | Matices y limitaciones. |
 
-**Regla de integridad:** no se admite un `EVID-ID` que represente simultáneamente dos relaciones distintas.
+**Regla de integridad:** no se admite un `EVID-ID` relacional que represente simultáneamente dos relaciones distintas.
 
 ---
 
-# 5. CONTROL DE IDENTIFICADORES
+# 5. MODELO CANÓNICO DE `EVID-DESC-*`
 
-Los identificadores existentes se auditan antes de normalizar su contenido.
+Cada evidencia descriptiva deberá disponer, como mínimo, de:
 
-### 5.1 Identificadores históricos `EVID-HIS-*`
+| Campo | Obligatorio | Descripción |
+|---|---:|---|
+| `EVID-DESC-ID` | Sí | Identificador canónico de evidencia descriptiva. |
+| `Entidad-ID` | Sí | Entidad documentada. |
+| `Entidad-tipo` | Sí | Tipo de entidad. |
+| `Aspecto-documentado` | Sí | Definición / condición / resultado / efecto / comportamiento. |
+| `Fuente` | Sí | Fuente documental real. |
+| `Ubicación` | Sí | Ubicación reproducible. |
+| `Extracto` | Sí | Fragmento probatorio. |
+| `Autoridad` | Sí | Documento con autoridad. |
+| `Versión` | Sí | Versión de la fuente. |
+| `Commit` | Recomendado | Commit reproducible. |
+| `Estado` | Sí | Estado de la evidencia descriptiva. |
+| `Observaciones` | No | Matices y limitaciones. |
+
+---
+
+# 6. RECLASIFICACIÓN DE `EVID-HIS-003`
+
+## Identificador histórico
+
+`EVID-HIS-003`
+
+## Naturaleza determinada
+
+**Evidencia descriptiva de la regla `R-HIS-003`**, no evidencia de una relación formal `Origen → Destino`.
+
+## Evidencia documental
+
+La `Matriz_Reglas_MVP.md` define `R-HIS-003` como **“Operación no comparable”**, establece sus condiciones y documenta como resultado **“Reducir el nivel de fiabilidad de la referencia”**. También establece que la operación no debe considerarse automáticamente equivalente a una operación comparable.
+
+## Destino relacional
+
+**NO APLICA.**
+
+No se ha encontrado una entidad destino formal que permita demostrar una relación `R-HIS-003 → X`.
+
+No se crea un destino artificial como `LÓGICA DERIVADA`, `RESULT-R-HIS-003` u otro identificador equivalente.
+
+## Nuevo identificador descriptivo
+
+Para el modelo canónico se conserva el identificador histórico `EVID-HIS-003` y se le asigna la clasificación canónica:
+
+`EVID-DESC-HIS-003`
+
+`EVID-HIS-003` queda como **alias histórico**, no como `EVID-*` relacional activo.
+
+## Estado
+
+**DEMOSTRADA** respecto de la definición/resultado de `R-HIS-003`.
+
+Este estado **no significa** que exista una dependencia de `R-HIS-003` con otra regla o componente.
+
+---
+
+# 7. CONTROL DE IDENTIFICADORES RELACIONALES
+
+Los identificadores relacionales existentes se auditan antes de normalizar su contenido.
+
+### 7.1 Identificadores históricos `EVID-HIS-*`
 
 - `EVID-HIS-001` → único.
 - `EVID-HIS-002` → único.
-- `EVID-HIS-003` → único.
-- `EVID-HIS-004` → único.
+- `EVID-HIS-003` → **reclasificado como `EVID-DESC-HIS-003`; alias histórico**.
+- `EVID-HIS-004` → único; relación no demostrada.
 
-No se renumeran.
+No se renumeran los identificadores históricos.
 
-### 5.2 Identificadores `EVID-PAG-*`
+### 7.2 Identificadores `EVID-PAG-*`
 
 - `EVID-PAG-001` → único.
 - `EVID-PAG-002` → único.
 - `EVID-PAG-003` → único.
-- `EVID-PAG-004` → identificador único, pero su contenido original agrupa dos relaciones.
-- `EVID-PAG-005` → identificador único, pero su contenido original agrupa dos relaciones.
-
-Por tanto, `EVID-PAG-004` y `EVID-PAG-005` requieren **desdoblamiento funcional**.
+- `EVID-PAG-004` → identificador histórico agrupador.
+- `EVID-PAG-005` → identificador histórico agrupador.
 
 ---
 
-# 6. NORMALIZACIÓN DE RELACIONES MÚLTIPLES
-
-## 6.1 `EVID-PAG-004`
-
-El registro histórico agrupaba:
-
-`P-PAG-004 → R-PAG-001 / R-PAG-002`
-
-Esto contradice la regla canónica de **una evidencia = una relación**.
-
-Se conserva `EVID-PAG-004` como identificador histórico y se desdobla en:
-
-- `EVID-PAG-004-A` → `P-PAG-004 → R-PAG-001`
-- `EVID-PAG-004-B` → `P-PAG-004 → R-PAG-002`
-
-`EVID-PAG-004` queda como **identificador padre histórico / agrupador**, no como evidencia canónica independiente.
-
-## 6.2 `EVID-PAG-005`
-
-El registro histórico agrupaba:
-
-`P-PAG-005 → R-PAG-001 / R-PAG-002`
-
-Se desdobla en:
-
-- `EVID-PAG-005-A` → `P-PAG-005 → R-PAG-001`
-- `EVID-PAG-005-B` → `P-PAG-005 → R-PAG-002`
-
-`EVID-PAG-005` queda como **identificador padre histórico / agrupador**, no como evidencia canónica independiente.
-
-### Regla de compatibilidad
-
-Los identificadores padre no se eliminan para conservar trazabilidad histórica. Las nuevas referencias auditables deberán utilizar exclusivamente los identificadores hoja `*-A` / `*-B`.
-
----
-
-# 7. INVENTARIO CANÓNICO DE EVIDENCIAS
+# 8. INVENTARIO CANÓNICO DE EVIDENCIAS RELACIONALES
 
 | EVID-ID canónico | Origen | Destino | Estado de normalización |
 |---|---|---|---|
 | `EVID-HIS-001` | `P-DAT-002` | `R-HIS-001` | IDENTIFICADOR VALIDADO |
 | `EVID-HIS-002` | `P-PRE-006` | `R-HIS-002` | IDENTIFICADOR VALIDADO |
-| `EVID-HIS-003` | `R-HIS-003` | LÓGICA DERIVADA | IDENTIFICADOR VALIDADO |
 | `EVID-HIS-004` | `R-HIS-*` | `R-PRE-001` | IDENTIFICADOR VALIDADO — RELACIÓN NO DEMOSTRADA |
 | `EVID-PAG-001` | `P-PAG-001` | `R-PAG-002` | IDENTIFICADOR VALIDADO |
 | `EVID-PAG-002` | `P-PAG-002` | `R-PAG-001` | IDENTIFICADOR VALIDADO |
@@ -151,13 +179,21 @@ Los identificadores padre no se eliminan para conservar trazabilidad histórica.
 | `EVID-PAG-005-A` | `P-PAG-005` | `R-PAG-001` | NUEVO ID HOJA — DESDOBLADO |
 | `EVID-PAG-005-B` | `P-PAG-005` | `R-PAG-002` | NUEVO ID HOJA — DESDOBLADO |
 
-Los `DUP-HIS-001/002` permanecen fuera de este inventario porque son objetos `DUP-*`, no evidencias `EVID-*`.
+`EVID-HIS-003` **ya no aparece en este inventario relacional**, porque ha sido reclasificado como evidencia descriptiva.
 
 ---
 
-# 8. RELACIÓN CON `DUP-*`
+# 9. INVENTARIO DE EVIDENCIA DESCRIPTIVA
 
-`DUP-*` mantiene el modelo canónico definido en la versión anterior.
+| ID canónico | Alias histórico | Entidad | Aspecto | Estado |
+|---|---|---|---|---|
+| `EVID-DESC-HIS-003` | `EVID-HIS-003` | `R-HIS-003` | Definición / condición / resultado / efecto | DEMOSTRADA |
+
+---
+
+# 10. RELACIÓN CON `DUP-*`
+
+`DUP-*` mantiene el modelo canónico definido en versiones anteriores.
 
 `DUP-HIS-001` se sustenta documentalmente en `EVID-HIS-001` y en la decisión `C-01`.
 
@@ -167,7 +203,7 @@ Los identificadores `DUP-*` no se transforman en `EVID-*`.
 
 ---
 
-# 9. ESTADOS DE `DUP-*`
+# 11. ESTADOS DE `DUP-*`
 
 Los estados de `DUP-*` son independientes de los estados de evidencia.
 
@@ -181,7 +217,7 @@ Los estados de `DUP-*` son independientes de los estados de evidencia.
 
 ---
 
-# 10. ESTADOS DE EVIDENCIA
+# 12. ESTADOS DE EVIDENCIA
 
 Los estados de evidencia F3 permanecen definidos por la nomenclatura oficial del Registro:
 
@@ -193,33 +229,28 @@ Los estados de evidencia F3 permanecen definidos por la nomenclatura oficial del
 - `DEMOSTRADA`
 - `CERRADA`
 
-La normalización de un `EVID-ID` **no implica automáticamente que pase a `DEMOSTRADA` o `CERRADA`**.
+La normalización de un identificador **no implica automáticamente que su relación pase a `DEMOSTRADA` o `CERRADA`**.
+
+En el caso de `EVID-DESC-HIS-003`, `DEMOSTRADA` se refiere exclusivamente a la definición documental de `R-HIS-003`.
 
 ---
 
-# 11. RESULTADO DEL PASO 2
+# 13. DECISIÓN F3 — RECLASIFICACIÓN DE EVID-HIS-003
 
-El control de identificadores ha quedado completado.
+**Decisión:** `EVID-HIS-003` no constituye una evidencia relacional canónica.
 
-### Resultado
+**Motivo:** su supuesto destino `LÓGICA DERIVADA` no es una entidad formal identificable y no existe evidencia documental explícita de una relación `R-HIS-003 → X`.
 
-- No existen `EVID-ID` duplicados.
-- No se renumeran los `EVID-HIS-*` ni `EVID-PAG-001…003`.
-- Se detectaron dos evidencias históricas que agrupaban relaciones múltiples.
-- Se desdoblaron en cuatro identificadores hoja:
-  - `EVID-PAG-004-A`
-  - `EVID-PAG-004-B`
-  - `EVID-PAG-005-A`
-  - `EVID-PAG-005-B`
-- Los identificadores padre se conservan únicamente como referencia histórica/agrupadora.
-- `DUP-HIS-001/002` permanecen correctamente separados como objetos `DUP-*`.
+**Acción:** conservar `EVID-HIS-003` como alias histórico y clasificarlo canónicamente como `EVID-DESC-HIS-003`.
 
-**Estado del Paso 2: CERRADO.**
+**Prohibición:** no crear una relación `R-HIS-003 → R-PRE-001`, `R-HIS-003 → CRC` ni otra dependencia por inferencia.
+
+**Consecuencia:** la ausencia de una dependencia formal no se considera un error del Registro; queda correctamente representada como ausencia de relación demostrada.
 
 ---
 
-# 12. CONTROL DE CAMBIOS
+# 14. CONTROL DE CAMBIOS
 
-**v1.7 — 22/08/2026**
+**v1.8 — 22/08/2026**
 
-Se valida la unicidad de los `EVID-ID` y se aplica la regla canónica de una relación por evidencia. Se desdoblan las relaciones múltiples históricas de `EVID-PAG-004` y `EVID-PAG-005` en identificadores hoja `-A` / `-B`, conservando los identificadores padre como referencia histórica.
+Se resuelve la anomalía estructural de `EVID-HIS-003`: se determina que es evidencia descriptiva de `R-HIS-003`, no evidencia relacional. Se crea el tipo canónico `EVID-DESC-*`, se asigna `EVID-DESC-HIS-003` como identificador canónico y se conserva `EVID-HIS-003` como alias histórico. Se elimina `EVID-HIS-003` del inventario relacional sin crear ninguna relación artificial.
