@@ -2,11 +2,11 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.1  
-**Estado:** CERRADO — F3 / C-07  
+**Versión:** 1.2  
+**Estado:** CERRADO — F3 / C-07 / GAP-HIS-01 / GAP-HIS-02  
 **Ámbito:** EIOS Vertical MVP  
 **Fecha:** 22/08/2026  
-**Especificación aplicable:** `00_Gobierno/Especificacion_Evidencia_Trazabilidad_F3.md`
+**Especificación aplicable:** `00_Gobierno/Especificacion_Evidencia_Trazabilidad_F3.md` v1.2
 
 ---
 
@@ -37,12 +37,13 @@ Este documento no crea ni modifica parámetros o reglas. Registra la evidencia e
 **Parámetro consumidor:** `P-DAT-002`  
 **Tipo de relación:** REGLA → PARAMETRO  
 **Fuente primaria:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1  
-**Fuente secundaria:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7  
-**Decisión aplicable:** `C-01` de `02_Parametros/Decision_Log_Parametros_MVP.md` v0.4  
-**Evidencia encontrada:** `C-01` establece que `PRE-003` se mantiene como criterio/metodología y no como parámetro directo. La Matriz de Parámetros establece `P-DAT-002 → R-HIS-001` como relación directa.  
+**Fuente secundaria:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8  
+**Decisión aplicable:** `C-01` de `02_Parametros/Decision_Log_Parametros_MVP.md` v0.6  
+**Expediente especializado:** `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2  
+**Evidencia encontrada:** `C-01` establece que `P-PRE-003` se mantiene como criterio/metodología y no como parámetro directo. La Matriz de Parámetros establece `P-DAT-002 → R-HIS-001` como relación directa. El expediente histórico documenta además que no existe relación maestro → derivado demostrada.  
 **Evidencia-tipo:** DIRECTA  
 **Estado:** CERRADA  
-**Conclusión:** `R-HIS-001` utiliza `P-DAT-002` como parámetro configurable de antigüedad de referencia. `P-PRE-003` no es consumidor directo.  
+**Conclusión:** `R-HIS-001` utiliza `P-DAT-002` como parámetro configurable de antigüedad de referencia. `P-PRE-003` no es consumidor directo.
 
 ---
 
@@ -52,11 +53,13 @@ Este documento no crea ni modifica parámetros o reglas. Registra la evidencia e
 **Parámetro consumidor:** `P-PRE-006`  
 **Tipo de relación:** REGLA → PARAMETRO  
 **Fuente primaria:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1  
-**Fuente secundaria:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7  
-**Evidencia encontrada:** `R-HIS-002` exige un número mínimo de operaciones comparables. La Matriz de Parámetros establece `P-PRE-006 → R-HIS-002` como relación directa y distingue `P-DAT-003` como parámetro sin consumidor directo demostrado.  
+**Fuente secundaria:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8  
+**Decisión aplicable:** `GAP-HIS-02` de `02_Parametros/Decision_Log_Parametros_MVP.md` v0.6  
+**Expediente especializado:** `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2  
+**Evidencia encontrada:** `R-HIS-002` exige un número mínimo de operaciones comparables. La Matriz de Parámetros establece `P-PRE-006 → R-HIS-002` como relación directa y distingue `P-DAT-003` como parámetro sin consumidor directo demostrado. El expediente histórico documenta además que no existe relación maestro → derivado demostrada.  
 **Evidencia-tipo:** DIRECTA  
 **Estado:** CERRADA  
-**Conclusión:** `P-PRE-006` es el parámetro configurable que establece el mínimo de operaciones comparables para `R-HIS-002`. `P-DAT-003` no sustituye este parámetro.  
+**Conclusión:** `P-PRE-006` es el parámetro configurable que establece el mínimo de operaciones comparables para `R-HIS-002`. `P-DAT-003` no sustituye este parámetro.
 
 ---
 
@@ -94,7 +97,7 @@ Este documento no crea ni modifica parámetros o reglas. Registra la evidencia e
 **Tipo:** DIRECTA  
 **Evidencia primaria:** `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0  
 **Evidencia secundaria:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1  
-**Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7  
+**Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8  
 **Estado:** DEMOSTRADA / CERRADA
 
 ## EVID-PAG-002
@@ -103,7 +106,7 @@ Este documento no crea ni modifica parámetros o reglas. Registra la evidencia e
 **Tipo:** DIRECTA  
 **Evidencia primaria:** `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0  
 **Evidencia secundaria:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1  
-**Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7  
+**Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8  
 **Estado:** DEMOSTRADA / CERRADA
 
 ## EVID-PAG-003
@@ -112,7 +115,7 @@ Este documento no crea ni modifica parámetros o reglas. Registra la evidencia e
 **Tipo:** DERIVADA  
 **Evidencia primaria:** `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0  
 **Evidencia secundaria:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1  
-**Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7  
+**Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8  
 **Estado:** DEMOSTRADA / CERRADA
 
 ## EVID-PAG-004
@@ -121,7 +124,7 @@ Este documento no crea ni modifica parámetros o reglas. Registra la evidencia e
 **Tipo:** CONTROL FUNCIONAL  
 **Evidencia primaria:** `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0  
 **Evidencia secundaria:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1  
-**Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7  
+**Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8  
 **Estado:** DEMOSTRADA / CERRADA
 
 ## EVID-PAG-005
@@ -130,7 +133,7 @@ Este documento no crea ni modifica parámetros o reglas. Registra la evidencia e
 **Tipo:** INDIRECTA / DERIVADA  
 **Evidencia primaria:** `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0  
 **Evidencia secundaria:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1  
-**Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7  
+**Evidencia de enlace:** `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8  
 **Estado:** DEMOSTRADA / CERRADA
 
 ### C-07 — estado de evidencia
@@ -145,15 +148,15 @@ La especificación especializada de configuración de pagos aporta la evidencia 
 
 ## DUP-HIS-001
 
-**Pares:** `PRE-003` ↔ `DAT-002`  
+**Pares:** `P-PRE-003` ↔ `P-DAT-002`  
 **Estado:** CERRADO  
-**Resolución:** `C-01` mantiene `PRE-003` como criterio/metodología; `P-DAT-002` es el parámetro configurable consumidor de `R-HIS-001`.
+**Resolución:** `C-01` mantiene `P-PRE-003` como criterio/metodología; `P-DAT-002` es el parámetro configurable consumidor de `R-HIS-001`. No existe relación maestro → derivado demostrada.
 
 ## DUP-HIS-002
 
-**Pares:** `PRE-006` ↔ `DAT-003`  
+**Pares:** `P-PRE-006` ↔ `P-DAT-003`  
 **Estado:** CERRADO  
-**Resolución:** `P-PRE-006` establece el mínimo de operaciones comparables de `R-HIS-002`; `P-DAT-003` no sustituye este parámetro y queda sin consumidor directo demostrado en el MVP actual.
+**Resolución:** `P-PRE-006` establece el mínimo de operaciones comparables de `R-HIS-002`; `P-DAT-003` no sustituye este parámetro y queda sin consumidor directo demostrado en el MVP actual. No existe relación maestro → derivado demostrada.
 
 ---
 
@@ -162,8 +165,8 @@ La especificación especializada de configuración de pagos aporta la evidencia 
 Las siguientes acciones siguen expresamente descartadas:
 
 - crear parámetros `HIS-*` para cubrir la ausencia de trazabilidad;
-- fusionar `PRE-003` con `DAT-002`;
-- fusionar `PRE-006` con `DAT-003`;
+- fusionar `P-PRE-003` con `P-DAT-002`;
+- fusionar `P-PRE-006` con `P-DAT-003`;
 - crear una dependencia `R-HIS-* → R-PRE-001` sin evidencia adicional.
 
 ---
@@ -186,11 +189,19 @@ Todo cambio posterior deberá conservar la cadena:
 | HIS-002 | 🟢 CERRADO |
 | HIS-003 | 🟢 CERRADO |
 | HIS-004 | 🟡 No demostrada como dependencia formal |
-| Duplicidad PRE-003 / DAT-002 | 🟢 CERRADA |
-| Duplicidad PRE-006 / DAT-003 | 🟢 CERRADA |
+| Duplicidad P-PRE-003 / P-DAT-002 | 🟢 CERRADA |
+| Duplicidad P-PRE-006 / P-DAT-003 | 🟢 CERRADA |
 | PAG-001 | 🟢 DEMOSTRADA |
 | PAG-002 | 🟢 DEMOSTRADA |
 | PAG-003 | 🟢 DEMOSTRADA |
 | PAG-004 | 🟢 DEMOSTRADA |
 | PAG-005 | 🟢 DEMOSTRADA |
 | C-07 | 🟢 CERRADO |
+
+---
+
+# 10. CONTROL DE CAMBIOS
+
+**v1.2 — 22/08/2026**
+
+Se alinean las referencias de versión de `Matriz_Parametros_Reglas_MVP` a v0.8 y `Decision_Log_Parametros_MVP` a v0.6, y se incorpora `Especificacion_Reglas_Historico_MVP` v1.2 como expediente especializado de cierre de `GAP-HIS-01` y `GAP-HIS-02`.
