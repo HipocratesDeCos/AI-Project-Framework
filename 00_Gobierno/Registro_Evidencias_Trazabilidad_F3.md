@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.11  
+**Versión:** 1.12  
 **Estado:** ACTIVO — REGISTRO MAESTRO DE EVIDENCIAS F3  
 **Ámbito:** EIOS Vertical MVP  
 **Fecha:** 23/08/2026  
@@ -208,6 +208,8 @@ No se renumeran los identificadores históricos.
 - `EVID-PAG-004` → identificador histórico agrupador.
 - `EVID-PAG-005` → identificador histórico agrupador.
 
+Los identificadores `EVID-PAG-004-A/B` y `EVID-PAG-005-A/B` son **identificadores canónicos derivados por normalización** de los registros históricos agrupadores `EVID-PAG-004` y `EVID-PAG-005`.
+
 ---
 
 # 9. INVENTARIO CANÓNICO DE EVIDENCIAS RELACIONALES
@@ -216,19 +218,19 @@ No se renumeran los identificadores históricos.
 |---|---|---|---|---|---|---|---|---|---|
 | `EVID-HIS-001` | `P-DAT-002` | `R-HIS-001` | PARÁMETRO → REGLA | DIRECTA | **DEMOSTRADA / CERRADA** | — | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 | §4.1 Determinación del parámetro efectivo; §8 Relaciones confirmadas | No determinado para la v0.8; cierre documental fijado en `dbede0c...` |
 | `EVID-HIS-002` | `P-PRE-006` | `R-HIS-002` | PARÁMETRO → REGLA | DIRECTA | **DEMOSTRADA / CERRADA** | — | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 | §5.1 Determinación del parámetro efectivo; §8 Relaciones confirmadas | No determinado para la v0.8; cierre documental fijado en `dbede0c...` |
-| `EVID-PAG-001` | `P-PAG-001` | `R-PAG-002` | PARÁMETRO → REGLA | DIRECTA | **NO DEMOSTRADA** | `IDENTIFICADOR VALIDADO` | Fuentes de configuración de pagos | Según fuente | — |
-| `EVID-PAG-002` | `P-PAG-002` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | **NO DEMOSTRADA** | `IDENTIFICADOR VALIDADO` | Fuentes de configuración de pagos | Según fuente | — |
-| `EVID-PAG-003` | `P-PAG-003` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | **NO DEMOSTRADA** | `IDENTIFICADOR VALIDADO` | Fuentes de configuración de pagos | Según fuente | — |
-| `EVID-PAG-004-A` | `P-PAG-004` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | **NO DEMOSTRADA** | `NUEVO ID HOJA — DESDOBLADO` | Fuentes de configuración de pagos | Según fuente | — |
-| `EVID-PAG-004-B` | `P-PAG-004` | `R-PAG-002` | PARÁMETRO → REGLA | DIRECTA | **NO DEMOSTRADA** | `NUEVO ID HOJA — DESDOBLADO` | Fuentes de configuración de pagos | Según fuente | — |
-| `EVID-PAG-005-A` | `P-PAG-005` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | **NO DEMOSTRADA** | `NUEVO ID HOJA — DESDOBLADO` | Fuentes de configuración de pagos | Según fuente | — |
-| `EVID-PAG-005-B` | `P-PAG-005` | `R-PAG-002` | PARÁMETRO → REGLA | DIRECTA | **NO DEMOSTRADA** | `NUEVO ID HOJA — DESDOBLADO` | Fuentes de configuración de pagos | Según fuente | — |
+| `EVID-PAG-001` | `P-PAG-001` | `R-PAG-002` | PARÁMETRO → REGLA | DIRECTA | **DEMOSTRADA / CERRADA** | `IDENTIFICADOR VALIDADO` | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0; `04_Reglas/Matriz_Reglas_MVP.md` v2.1; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7 | C-07 / resolución funcional aprobada | `9e3683e5...`; cierre C-07 `ca137932...` |
+| `EVID-PAG-002` | `P-PAG-002` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | **DEMOSTRADA / CERRADA** | `IDENTIFICADOR VALIDADO` | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0; `04_Reglas/Matriz_Reglas_MVP.md` v2.1; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7 | C-07 / resolución funcional aprobada | `9e3683e5...`; cierre C-07 `ca137932...` |
+| `EVID-PAG-003` | `P-PAG-003` | `R-PAG-001` | PARÁMETRO → REGLA | DERIVADA | **DEMOSTRADA / CERRADA** | `IDENTIFICADOR VALIDADO` | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0; `04_Reglas/Matriz_Reglas_MVP.md` v2.1; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7 | C-07 / resolución funcional aprobada | `9e3683e5...`; cierre C-07 `ca137932...` |
+| `EVID-PAG-004-A` | `P-PAG-004` | `R-PAG-001` | PARÁMETRO → REGLA | CONTROL FUNCIONAL | **DEMOSTRADA / CERRADA** | `EVID-PAG-004` histórico agrupador; desdoblamiento canónico | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0; `04_Reglas/Matriz_Reglas_MVP.md` v2.1; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7 | C-07 / resolución funcional aprobada | `9e3683e5...`; cierre C-07 `ca137932...` |
+| `EVID-PAG-004-B` | `P-PAG-004` | `R-PAG-002` | PARÁMETRO → REGLA | CONTROL FUNCIONAL | **DEMOSTRADA / CERRADA** | `EVID-PAG-004` histórico agrupador; desdoblamiento canónico | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0; `04_Reglas/Matriz_Reglas_MVP.md` v2.1; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7 | C-07 / resolución funcional aprobada | `9e3683e5...`; cierre C-07 `ca137932...` |
+| `EVID-PAG-005-A` | `P-PAG-005` | `R-PAG-001` | PARÁMETRO → REGLA | INDIRECTA / DERIVADA | **DEMOSTRADA / CERRADA** | `EVID-PAG-005` histórico agrupador; desdoblamiento canónico | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0; `04_Reglas/Matriz_Reglas_MVP.md` v2.1; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7 | C-07 / resolución funcional aprobada | `9e3683e5...`; cierre C-07 `ca137932...` |
+| `EVID-PAG-005-B` | `P-PAG-005` | `R-PAG-002` | PARÁMETRO → REGLA | INDIRECTA / DERIVADA | **DEMOSTRADA / CERRADA** | `EVID-PAG-005` histórico agrupador; desdoblamiento canónico | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0; `04_Reglas/Matriz_Reglas_MVP.md` v2.1; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7 | C-07 / resolución funcional aprobada | `9e3683e5...`; cierre C-07 `ca137932...` |
 
 Para `EVID-HIS-001` y `EVID-HIS-002`, la evidencia especializada determina además que no existe duplicidad funcional ni relación maestro → derivado demostrada entre los parámetros históricos contrastados.
 
 `EVID-HIS-003` y `EVID-HIS-004` **no aparecen en este inventario relacional**, porque han sido reclasificados respectivamente como evidencia descriptiva y relación funcional no formalizada.
 
-Los registros `EVID-PAG-*` conservan sus clasificaciones históricas como observaciones, pero su **Estado** se expresa exclusivamente mediante la nomenclatura oficial F3. La ausencia de evidencia localizada no se eleva a `GAP` sin demostrar que exista una obligación documental pendiente.
+Para PAG, la fuente histórica de C-07 agrupa `EVID-PAG-004` y `EVID-PAG-005` en dos relaciones cada una. El inventario F3 las desdobla porque la regla canónica exige que cada `EVID-ID` relacional represente una única relación origen → destino. Los identificadores agrupadores se conservan como referencia histórica.
 
 ---
 
@@ -294,7 +296,7 @@ En el caso de `EVID-DESC-HIS-003`, `DEMOSTRADA` se refiere exclusivamente a la d
 
 `REL-FUNC-HIS-004` utiliza el estado específico `NO FORMALIZADA`; este estado no equivale a `NO DEMOSTRADA` de una evidencia relacional, porque `REL-FUNC-*` no es una evidencia.
 
-En `EVID-PAG-*`, `IDENTIFICADOR VALIDADO` y `NUEVO ID HOJA — DESDOBLADO` son **clasificaciones/observaciones históricas**, no estados oficiales F3.
+En `EVID-PAG-*`, `IDENTIFICADOR VALIDADO`, `NUEVO ID HOJA — DESDOBLADO` y `EVID-PAG-004/005` agrupador son **clasificaciones/observaciones históricas**, no estados oficiales F3.
 
 ---
 
@@ -324,23 +326,25 @@ En `EVID-PAG-*`, `IDENTIFICADOR VALIDADO` y `NUEVO ID HOJA — DESDOBLADO` son *
 
 ## 15.3 `EVID-PAG-*`
 
-**Decisión:** los registros `EVID-PAG-001` a `EVID-PAG-005-B` mantienen sus identificadores y clasificaciones históricas, pero adoptan la nomenclatura oficial F3 para el campo `Estado`.
+**Decisión:** los registros históricos `EVID-PAG-001…005` quedan normalizados en el inventario canónico F3 como siete relaciones independientes: `EVID-PAG-001`, `002`, `003`, `004-A`, `004-B`, `005-A` y `005-B`.
 
-**Estado:** `NO DEMOSTRADA`.
+**Evidencia documental:** el cierre de C-07 documenta las relaciones `P-PAG-001 → R-PAG-002`, `P-PAG-002 → R-PAG-001`, `P-PAG-003 → R-PAG-001`, `P-PAG-004 → R-PAG-001 / R-PAG-002` y `P-PAG-005 → R-PAG-001 / R-PAG-002` como cerradas. La evidencia se formaliza mediante `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0, `04_Reglas/Matriz_Reglas_MVP.md` v2.1 y `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7. El cierre C-07 se registra en el commit `ca137932aaf21852ef0296ece45e601cd18f3e27`; el registro específico de evidencias F3 aparece en el commit `9e3683e5a029230b4b2f11fd8ea8b7efcbde8343`.
 
-**Motivo:** la búsqueda documental realizada en el repositorio no localizó evidencia probatoria independiente suficiente para demostrar las relaciones registradas.
+**Estado:** `DEMOSTRADA / CERRADA` para las siete relaciones canónicas.
 
-**Importante:** esta clasificación no implica que las relaciones sean falsas ni que exista un GAP. Significa exclusivamente que **no están demostradas por la evidencia actualmente localizada**.
+**Normalización:** `EVID-PAG-004` y `EVID-PAG-005` se conservan como identificadores históricos agrupadores; sus relaciones individuales se representan mediante los IDs canónicos `004-A/B` y `005-A/B`.
 
-**Clasificaciones conservadas como observación:**
-- `IDENTIFICADOR VALIDADO` para `EVID-PAG-001/002/003`.
-- `NUEVO ID HOJA — DESDOBLADO` para `EVID-PAG-004-A/B` y `EVID-PAG-005-A/B`.
+**Clasificaciones históricas:** `IDENTIFICADOR VALIDADO` y `NUEVO ID HOJA — DESDOBLADO` se conservan únicamente como observaciones de procedencia y no como estados.
 
-**Prohibición:** no convertir estos registros en `DEMOSTRADA`, `CERRADA` o `GAP` sin nueva evidencia o una decisión formal que establezca el requisito correspondiente.
+**Consecuencia:** queda anulada la clasificación provisional `NO DEMOSTRADA` asignada durante 10A.1, al haberse localizado posteriormente la evidencia documental real del cierre C-07.
 
 ---
 
 # 16. CONTROL DE CAMBIOS
+
+**v1.12 — 23/08/2026**
+
+Se completa la auditoría del bloque PAG. Se localiza y valida la cadena documental de C-07 en los commits `9e3683e5a029230b4b2f11fd8ea8b7efcbde8343` y `ca137932aaf21852ef0296ece45e601cd18f3e27`. Se corrige la clasificación provisional `NO DEMOSTRADA` de `EVID-PAG-001` a `EVID-PAG-005-B` y pasan a `DEMOSTRADA / CERRADA`. Se confirma que `EVID-PAG-004` y `EVID-PAG-005` eran registros históricos agrupadores y se mantiene su desdoblamiento canónico en `004-A/B` y `005-A/B`, porque cada `EVID-ID` canónico debe representar una única relación origen → destino. Se conservan los identificadores agrupadores como alias históricos y las etiquetas de desdoblamiento como observaciones de procedencia.
 
 **v1.11 — 23/08/2026**
 
