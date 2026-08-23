@@ -2,10 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.10  
+**Versión:** 1.11  
 **Estado:** ACTIVO — REGISTRO MAESTRO DE EVIDENCIAS F3  
 **Ámbito:** EIOS Vertical MVP  
-**Fecha:** 22/08/2026  
+**Fecha:** 23/08/2026  
 **Especificación aplicable:** `00_Gobierno/Especificacion_Evidencia_Trazabilidad_F3.md` v1.2
 
 ---
@@ -212,21 +212,23 @@ No se renumeran los identificadores históricos.
 
 # 9. INVENTARIO CANÓNICO DE EVIDENCIAS RELACIONALES
 
-| EVID-ID canónico | Origen | Destino | Relación | Evidencia-tipo | Estado | Fuente / versión | Ubicación | Commit |
-|---|---|---|---|---|---|---|---|---|
-| `EVID-HIS-001` | `P-DAT-002` | `R-HIS-001` | PARÁMETRO → REGLA | DIRECTA | **DEMOSTRADA / CERRADA** | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 | §4.1 Determinación del parámetro efectivo; §8 Relaciones confirmadas | No determinado para la v0.8; cierre documental fijado en `dbede0c...` |
-| `EVID-HIS-002` | `P-PRE-006` | `R-HIS-002` | PARÁMETRO → REGLA | DIRECTA | **DEMOSTRADA / CERRADA** | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 | §5.1 Determinación del parámetro efectivo; §8 Relaciones confirmadas | No determinado para la v0.8; cierre documental fijado en `dbede0c...` |
-| `EVID-PAG-001` | `P-PAG-001` | `R-PAG-002` | PARÁMETRO → REGLA | DIRECTA | IDENTIFICADOR VALIDADO | Fuentes de configuración de pagos | Según fuente | — |
-| `EVID-PAG-002` | `P-PAG-002` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | IDENTIFICADOR VALIDADO | Fuentes de configuración de pagos | Según fuente | — |
-| `EVID-PAG-003` | `P-PAG-003` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | IDENTIFICADOR VALIDADO | Fuentes de configuración de pagos | Según fuente | — |
-| `EVID-PAG-004-A` | `P-PAG-004` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | NUEVO ID HOJA — DESDOBLADO | Fuentes de configuración de pagos | Según fuente | — |
-| `EVID-PAG-004-B` | `P-PAG-004` | `R-PAG-002` | PARÁMETRO → REGLA | DIRECTA | NUEVO ID HOJA — DESDOBLADO | Fuentes de configuración de pagos | Según fuente | — |
-| `EVID-PAG-005-A` | `P-PAG-005` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | NUEVO ID HOJA — DESDOBLADO | Fuentes de configuración de pagos | Según fuente | — |
-| `EVID-PAG-005-B` | `P-PAG-005` | `R-PAG-002` | PARÁMETRO → REGLA | DIRECTA | NUEVO ID HOJA — DESDOBLADO | Fuentes de configuración de pagos | Según fuente | — |
+| EVID-ID canónico | Origen | Destino | Relación | Evidencia-tipo | Estado | Clasificación / observación | Fuente / versión | Ubicación | Commit |
+|---|---|---|---|---|---|---|---|---|---|
+| `EVID-HIS-001` | `P-DAT-002` | `R-HIS-001` | PARÁMETRO → REGLA | DIRECTA | **DEMOSTRADA / CERRADA** | — | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 | §4.1 Determinación del parámetro efectivo; §8 Relaciones confirmadas | No determinado para la v0.8; cierre documental fijado en `dbede0c...` |
+| `EVID-HIS-002` | `P-PRE-006` | `R-HIS-002` | PARÁMETRO → REGLA | DIRECTA | **DEMOSTRADA / CERRADA** | — | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.2; `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.8 | §5.1 Determinación del parámetro efectivo; §8 Relaciones confirmadas | No determinado para la v0.8; cierre documental fijado en `dbede0c...` |
+| `EVID-PAG-001` | `P-PAG-001` | `R-PAG-002` | PARÁMETRO → REGLA | DIRECTA | **NO DEMOSTRADA** | `IDENTIFICADOR VALIDADO` | Fuentes de configuración de pagos | Según fuente | — |
+| `EVID-PAG-002` | `P-PAG-002` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | **NO DEMOSTRADA** | `IDENTIFICADOR VALIDADO` | Fuentes de configuración de pagos | Según fuente | — |
+| `EVID-PAG-003` | `P-PAG-003` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | **NO DEMOSTRADA** | `IDENTIFICADOR VALIDADO` | Fuentes de configuración de pagos | Según fuente | — |
+| `EVID-PAG-004-A` | `P-PAG-004` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | **NO DEMOSTRADA** | `NUEVO ID HOJA — DESDOBLADO` | Fuentes de configuración de pagos | Según fuente | — |
+| `EVID-PAG-004-B` | `P-PAG-004` | `R-PAG-002` | PARÁMETRO → REGLA | DIRECTA | **NO DEMOSTRADA** | `NUEVO ID HOJA — DESDOBLADO` | Fuentes de configuración de pagos | Según fuente | — |
+| `EVID-PAG-005-A` | `P-PAG-005` | `R-PAG-001` | PARÁMETRO → REGLA | DIRECTA | **NO DEMOSTRADA** | `NUEVO ID HOJA — DESDOBLADO` | Fuentes de configuración de pagos | Según fuente | — |
+| `EVID-PAG-005-B` | `P-PAG-005` | `R-PAG-002` | PARÁMETRO → REGLA | DIRECTA | **NO DEMOSTRADA** | `NUEVO ID HOJA — DESDOBLADO` | Fuentes de configuración de pagos | Según fuente | — |
 
 Para `EVID-HIS-001` y `EVID-HIS-002`, la evidencia especializada determina además que no existe duplicidad funcional ni relación maestro → derivado demostrada entre los parámetros históricos contrastados.
 
 `EVID-HIS-003` y `EVID-HIS-004` **no aparecen en este inventario relacional**, porque han sido reclasificados respectivamente como evidencia descriptiva y relación funcional no formalizada.
+
+Los registros `EVID-PAG-*` conservan sus clasificaciones históricas como observaciones, pero su **Estado** se expresa exclusivamente mediante la nomenclatura oficial F3. La ausencia de evidencia localizada no se eleva a `GAP` sin demostrar que exista una obligación documental pendiente.
 
 ---
 
@@ -292,6 +294,8 @@ En el caso de `EVID-DESC-HIS-003`, `DEMOSTRADA` se refiere exclusivamente a la d
 
 `REL-FUNC-HIS-004` utiliza el estado específico `NO FORMALIZADA`; este estado no equivale a `NO DEMOSTRADA` de una evidencia relacional, porque `REL-FUNC-*` no es una evidencia.
 
+En `EVID-PAG-*`, `IDENTIFICADOR VALIDADO` y `NUEVO ID HOJA — DESDOBLADO` son **clasificaciones/observaciones históricas**, no estados oficiales F3.
+
 ---
 
 # 15. DECISIONES F3 — RECLASIFICACIONES
@@ -318,9 +322,29 @@ En el caso de `EVID-DESC-HIS-003`, `DEMOSTRADA` se refiere exclusivamente a la d
 
 **Consecuencia:** la relación queda registrada para trazabilidad histórica sin contaminar el inventario de evidencias relacionales.
 
+## 15.3 `EVID-PAG-*`
+
+**Decisión:** los registros `EVID-PAG-001` a `EVID-PAG-005-B` mantienen sus identificadores y clasificaciones históricas, pero adoptan la nomenclatura oficial F3 para el campo `Estado`.
+
+**Estado:** `NO DEMOSTRADA`.
+
+**Motivo:** la búsqueda documental realizada en el repositorio no localizó evidencia probatoria independiente suficiente para demostrar las relaciones registradas.
+
+**Importante:** esta clasificación no implica que las relaciones sean falsas ni que exista un GAP. Significa exclusivamente que **no están demostradas por la evidencia actualmente localizada**.
+
+**Clasificaciones conservadas como observación:**
+- `IDENTIFICADOR VALIDADO` para `EVID-PAG-001/002/003`.
+- `NUEVO ID HOJA — DESDOBLADO` para `EVID-PAG-004-A/B` y `EVID-PAG-005-A/B`.
+
+**Prohibición:** no convertir estos registros en `DEMOSTRADA`, `CERRADA` o `GAP` sin nueva evidencia o una decisión formal que establezca el requisito correspondiente.
+
 ---
 
 # 16. CONTROL DE CAMBIOS
+
+**v1.11 — 23/08/2026**
+
+Se normaliza el campo `Estado` de `EVID-PAG-001` a `EVID-PAG-005-B` conforme a la nomenclatura oficial F3. `IDENTIFICADOR VALIDADO` y `NUEVO ID HOJA — DESDOBLADO` pasan a conservarse como clasificaciones/observaciones históricas. Los siete registros adoptan `NO DEMOSTRADA` porque no se localizó evidencia probatoria independiente suficiente en el repositorio durante la auditoría 10A.1. Se establece expresamente que esta clasificación no implica falsedad ni genera automáticamente un GAP.
 
 **v1.10 — 22/08/2026**
 
