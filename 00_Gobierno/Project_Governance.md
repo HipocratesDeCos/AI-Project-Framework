@@ -2,10 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 2.0  
+**Versión:** 2.1  
 **Estado:** APROBADO  
 **Documento:** Gobierno del proyecto  
-**Última actualización:** 19/08/2026
+**Última actualización:** 24/08/2026
 
 ---
 
@@ -209,6 +209,58 @@ Todo cambio relevante deberá permitir responder a cuatro preguntas:
 Los cambios deberán quedar reflejados en el documento afectado.
 
 No es obligatorio duplicar el contenido histórico dentro del documento si GitHub conserva adecuadamente el historial de versiones.
+
+## 8.1. IDENTIFICACIÓN DE CAMBIOS
+
+Los cambios relevantes deberán identificarse mediante un `CHANGE-ID` único.
+
+Formato:
+
+```text
+EIOS-CHG-001
+EIOS-CHG-002
+EIOS-CHG-003
+...
+```
+
+El `CHANGE-ID` identifica el cambio gobernado y no sustituye al número de versión del documento, al commit SHA ni al Baseline-ID.
+
+Cuando el cambio se implemente mediante Git, el `CHANGE-ID` deberá quedar asociado al commit correspondiente.
+
+Los identificadores de cambio no se reutilizarán.
+
+## 8.2. BASELINE DEL PROYECTO
+
+Un Baseline representa un estado formalmente establecido y validado del proyecto EIOS en un momento determinado.
+
+Cada Baseline tendrá un identificador único:
+
+```text
+EIOS-BL-001
+EIOS-BL-002
+EIOS-BL-003
+...
+```
+
+El Baseline identifica el estado formal resultante y no sustituye al CHANGE-ID, al número de versión ni al commit SHA.
+
+Cada Baseline deberá quedar asociado a un commit SHA concreto del repositorio oficial.
+
+No todo commit constituye un Baseline.
+
+Un Baseline solo podrá establecerse cuando los cambios incluidos hayan sido completados, validados y comprobados respecto a las dependencias y restricciones aplicables.
+
+Cuando resulte conveniente, podrá utilizarse un Git Tag con el mismo identificador del Baseline.
+
+La asociación:
+
+```text
+Baseline-ID → Commit SHA
+```
+
+deberá permitir reconstruir el estado del proyecto correspondiente al Baseline.
+
+Los identificadores de Baseline no se reutilizarán ni eliminarán como consecuencia de la creación de Baselines posteriores.
 
 ---
 
