@@ -225,7 +225,7 @@ Define:
 | Scenario Engine | `05_Motor/Scenario_Engine.md` | Generación, comparación y versionado de escenarios |
 | Decision Twin | `05_Motor/Decision_Twin.md` | Representación de alternativas y estructura de la decisión |
 | Negotiation Intelligence | `05_Motor/Negotiation_Intelligence.md` | Inteligencia y análisis de negociación |
-| Negotiation Ladder | `05_Motor/Negotiation_Ladder.md` | Secuencia y estructura de negociación |
+| Negotiation Ladder | `05_Motor/Negotiation_Ladder.md` | Estructura, representación y secuencia de negociación |
 | Resolución de conflictos | `05_Motor/Capa_resolucion_conflictos.md` | Resolución de resultados contradictorios entre reglas y evaluaciones |
 | Versionado de decisiones | `05_Motor/Decision_Versioning.md` | Identidad, historial y versionado de decisiones |
 | SQL | `06_SQL/06_LEEME_SQL.md` | Organización y criterios de implementación SQL |
@@ -470,11 +470,11 @@ No sustituye la autoridad del CEO.
 
 `Negotiation_Ladder.md` constituye la autoridad sobre:
 
-- niveles de negociación;
-- secuencia de concesiones;
-- límites;
-- alternativas;
-- condiciones de escalado.
+- estructura de negociación;
+- representación de movimientos y condiciones negociadoras;
+- secuencia de negociación;
+- organización de escalones y transiciones;
+- representación de alternativas, fallback y walk-away.
 
 La Negotiation Ladder no puede modificar por sí misma las reglas de decisión empresarial.
 
