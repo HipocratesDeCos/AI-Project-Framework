@@ -60,10 +60,6 @@ class DecisionContext(BaseModel):
     parameters_version: str = Field(min_length=1, max_length=64)
     data_snapshot_id: str = Field(min_length=1, max_length=64)
 
-    @model_validator(mode="after")
-    def context_ids_are_present(self) -> "DecisionContext":
-        return self
-
 
 # Backward-compatible name for the pre-C0 Sprint 1 model.
 EvaluationContext = DecisionContext
@@ -88,8 +84,15 @@ class Evidence(BaseModel):
         return self
 
 
-# Compatibility alias for the pre-C0 reference-only model.
-EvidenceRef = Evidence
+class EvidenceRef(BaseModel):
+    """Legacy Sprint 1 reference-only evidence contract."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    evidence_id: str = Field(min_length=1, max_length=64)
+    source_type: str = Field(min_length=1, max_length=64)
+    source_ref: str = Field(min_length=1, max_length=256)
+    captured_at: date
 
 
 class EvidenceValidation(BaseModel):
@@ -138,7 +141,7 @@ class Assessment(BaseModel):
 
 
 class Trace(BaseModel):
-    """Immutable-in-practice C0 trace record linking the evaluation chain."""
+    """Trace record linking context, rule, evidence and assessment."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -170,7 +173,7 @@ class PurchaseEvaluation(BaseModel):
     context: DecisionContext
     purchase: PurchaseOperation
     quality: QualityStatus
-    evidence: list[Evidence] = Field(default_factory=list)
+    evidence: list[EvidenceRef] = Field(default_factory=list)
 
 
 __all__ = [
