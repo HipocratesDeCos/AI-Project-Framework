@@ -1,10 +1,10 @@
-"""Quality & Trust validation for the EIOS purchase-operation MVP."""
+"""Deterministic validation primitives for the EIOS C0 pipeline."""
 
 from __future__ import annotations
 
 from datetime import date
 
-from .models import PurchaseOperation, QualityStatus
+from .models import Evidence, EvidenceValidation, PurchaseOperation, QualityStatus
 
 
 def validate_purchase_operation(
@@ -12,12 +12,7 @@ def validate_purchase_operation(
     *,
     as_of: date | None = None,
 ) -> QualityStatus:
-    """Apply the Sprint 1 input-quality gate to a validated purchase model.
-
-    This gate checks only structural/business-input quality that is already
-    represented by the domain model. It deliberately does not infer open F3
-    parameter dependencies or evaluate purchase rules.
-    """
+    """Retain the pre-C0 input-quality gate for backward compatibility."""
     reference_date = as_of or date.today()
     reasons: list[str] = []
 
@@ -36,4 +31,26 @@ def validate_purchase_operation(
     return QualityStatus(status="PASS", score=1)
 
 
-__all__ = ["validate_purchase_operation"]
+def validate_evidence(evidence: Evidence) -> EvidenceValidation:
+    """Validate whether an evidence item can support a C0 rule assessment.
+
+    GAP is intentionally valid as a representation of missing evidence, but
+    it is not valid evidence for an assessment that requires demonstrated
+    support. This distinction is what prevents absence of evidence from being
+    converted into FALSE.
+    """
+    if evidence.state == "DEMONSTRATED":
+        return EvidenceValidation(
+            evidence_id=evidence.evidence_id,
+            status="VALID",
+            reason="Evidencia demostrada y trazable",
+        )
+
+    return EvidenceValidation(
+        evidence_id=evidence.evidence_id,
+        status="INVALID",
+        reason="Evidencia en GAP; no demuestra el requisito",
+    )
+
+
+__all__ = ["validate_evidence", "validate_purchase_operation"]
