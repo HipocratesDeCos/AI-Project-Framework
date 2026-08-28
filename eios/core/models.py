@@ -61,7 +61,6 @@ class DecisionContext(BaseModel):
     data_snapshot_id: str = Field(min_length=1, max_length=64)
 
 
-# Backward-compatible name for the pre-C0 Sprint 1 model.
 EvaluationContext = DecisionContext
 
 
@@ -106,12 +105,7 @@ class EvidenceValidation(BaseModel):
 
 
 class Rule(BaseModel):
-    """Minimal C0 rule contract.
-
-    The executable predicate is deliberately supplied by the rule engine,
-    not embedded in this data contract. This keeps the contract declarative
-    and prevents C0 from introducing a rule DSL or persistence dependency.
-    """
+    """Minimal C0 rule contract."""
 
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
@@ -141,13 +135,17 @@ class Assessment(BaseModel):
 
 
 class Trace(BaseModel):
-    """Trace record linking context, rule, evidence and assessment."""
+    """C0 trace containing all material context for reproducibility."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     trace_id: str = Field(min_length=1, max_length=128)
     decision_id: str = Field(min_length=1, max_length=64)
     scenario_id: str = Field(min_length=1, max_length=64)
+    rules_version: str = Field(min_length=1, max_length=64)
+    parameters_version: str = Field(min_length=1, max_length=64)
+    data_snapshot_id: str = Field(min_length=1, max_length=64)
+    input_fingerprint: str = Field(min_length=64, max_length=64)
     rule_id: str = Field(min_length=1, max_length=64)
     assessment_status: AssessmentStatus
     assessment_outcome: AssessmentOutcome | None = None
@@ -177,21 +175,9 @@ class PurchaseEvaluation(BaseModel):
 
 
 __all__ = [
-    "Assessment",
-    "AssessmentOutcome",
-    "AssessmentStatus",
-    "Currency",
-    "DecisionContext",
-    "Evidence",
-    "EvidenceRef",
-    "EvidenceState",
-    "EvidenceValidation",
-    "EvidenceValidationStatus",
-    "EvaluationContext",
-    "InputContract",
-    "PurchaseEvaluation",
-    "PurchaseOperation",
-    "QualityStatus",
-    "Rule",
-    "Trace",
+    "Assessment", "AssessmentOutcome", "AssessmentStatus", "Currency",
+    "DecisionContext", "Evidence", "EvidenceRef", "EvidenceState",
+    "EvidenceValidation", "EvidenceValidationStatus", "EvaluationContext",
+    "InputContract", "PurchaseEvaluation", "PurchaseOperation", "QualityStatus",
+    "Rule", "Trace",
 ]
