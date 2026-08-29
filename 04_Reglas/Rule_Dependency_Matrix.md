@@ -43,7 +43,7 @@ No sustituye a:
 - `02_Parametros/Centro_Parametrizacion.md` para los valores y gobierno de configuración;
 - `04_Reglas/Matriz_Reglas_MVP.md` para condiciones, evaluación y resultados de reglas;
 - `04_Reglas/Evidence_Contract.md` para el contrato general de evidencia;
-- `05_Motor/Capa_resolucion_conflictos.md` para la resolución de resultados incompatibles.
+- `04_Reglas/Capa_resolucion_conflictos.md` para la resolución de resultados incompatibles.
 
 Tampoco sustituye a las especificaciones especializadas que aporten evidencia o detalle funcional sobre relaciones concretas.
 
