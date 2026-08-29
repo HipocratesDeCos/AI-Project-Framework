@@ -125,11 +125,13 @@ Documentación correspondiente al motor y comportamiento decisional.
 
 `06_SQL/`
 
-Dominio reservado para la futura implementación SQL.
+Dominio correspondiente a la implementación y persistencia SQL, bajo la autoridad documental específica definida para este dominio.
 
-### Estado actual
+### Documentos actuales
 
-No contiene todavía documentos de implementación SQL. La referencia de autoridad `06_LEEME_SQL.md` de la Matriz de Autoridad es, por tanto, una **referencia reservada de autoridad futura** y no un documento actual.
+- `06_LEEME_SQL.md`
+
+`06_LEEME_SQL.md` constituye el contrato documental del dominio SQL y establece su organización y criterios de implementación. La existencia de este documento no atribuye a SQL autoridad funcional, decisional, de versionado ni de reconstrucción semántica.
 
 ---
 
