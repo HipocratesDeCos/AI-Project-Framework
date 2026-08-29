@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 2.1  
+**Versión:** 2.2  
 **Estado:** APROBADO  
 **Ubicación:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
@@ -222,7 +222,7 @@ Define:
 | Evidencia | `04_Reglas/Evidence_Contract.md` | Contrato general de evidencia, criterios de admisibilidad y suficiencia |
 | Dependencias | `04_Reglas/Rule_Dependency_Matrix.md` | Dependencias canónicas entre reglas, datos, evidencias, parámetros, componentes y requisitos concretos de evaluabilidad |
 | Viability Frontier | `05_Motor/Viability_Frontier.md` | Definición y comportamiento de la frontera de viabilidad |
-| Scenario Engine | `05_Motor/Scenario_Engine.md` | Generación, comparación y versionado de escenarios |
+| Scenario Engine | `05_Motor/Viability_Scenario_Engine.md` | Generación, comparación y versionado de escenarios |
 | Decision Twin | `05_Motor/Decision_Twin.md` | Representación de alternativas y estructura de la decisión |
 | Negotiation Intelligence | `05_Motor/Negotiation_Intelligence.md` | Inteligencia y análisis de negociación |
 | Negotiation Ladder | `05_Motor/Negotiation_Ladder.md` | Estructura, representación y secuencia de negociación |
@@ -469,7 +469,7 @@ La decisión final depende del conjunto de evaluaciones y de la lógica de decis
 
 # 15. Autoridad del Scenario Engine
 
-El `Scenario_Engine.md` constituye la autoridad sobre:
+El `Viability_Scenario_Engine.md` constituye la autoridad sobre:
 
 - generación de escenarios;
 - variables modificables;
@@ -481,6 +481,38 @@ El `Scenario_Engine.md` constituye la autoridad sobre:
 Los escenarios deben ser reproducibles y trazables.
 
 Un escenario no debe sobrescribir otro escenario existente.
+
+## 15.1 Frontera de comparación: escenarios vs alternativas
+
+La comparación de **escenarios** pertenece al dominio del Scenario Engine: establece las diferencias y relaciones entre representaciones de escenario y sus resultados, sin convertir por ello un escenario en una alternativa decisional ni seleccionar una alternativa.
+
+La comparación de **alternativas** pertenece al dominio del Decision Twin: recibe alternativas ya disponibles, junto con sus resultados y criterios aplicables, y permite compararlas y analizar sus consecuencias.
+
+Por tanto:
+
+```text
+SCENARIO ENGINE
+    │
+    └── compara escenarios
+             │
+             ▼
+      escenarios / resultados
+             │
+             ▼
+      alternativas viables
+             │
+             ▼
+DECISION TWIN
+    │
+    └── compara alternativas
+        y analiza consecuencias
+```
+
+Esta frontera no autoriza:
+
+- al Scenario Engine a seleccionar o recomendar una alternativa;
+- al Decision Twin a generar o redefinir escenarios fuera de su representación estructurada;
+- a ninguno de los dos a asumir autoridad sobre la consolidación final de la CRC.
 
 ---
 
@@ -710,7 +742,7 @@ No se debe:
 
 # 28. Estado de la Matriz
 
-**Versión:** 2.1  
+**Versión:** 2.2  
 **Estado:** APROBADO  
 **Ámbito:** Gobierno documental EIOS  
 **Carácter:** Fuente oficial de autoridad y precedencia documental
