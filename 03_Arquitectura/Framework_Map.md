@@ -2,7 +2,7 @@
 
 ## Índice Maestro del Framework
 
-**Versión:** 2.0  
+**Versión:** 2.1  
 **Estado:** APROBADO  
 **Función:** Índice maestro de la estructura documental EIOS  
 **Ubicación:** `03_Arquitectura/Framework_Map.md`
@@ -25,7 +25,7 @@ No desarrolla conceptos, reglas ni especificaciones.
 
 `00_Gobierno/`
 
-Documentación de gobierno, autoridad, contexto, control y salvaguarda del proyecto.
+Documentación de gobierno, autoridad, contexto, control, trazabilidad y salvaguarda del proyecto.
 
 ### Documentos actuales
 
@@ -35,6 +35,8 @@ Documentación de gobierno, autoridad, contexto, control y salvaguarda del proye
 - `Matriz_Autoridad_Documental.md`
 - `Manual_Maestro_Proyecto_EIOS.md`
 - `EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md`
+- `Especificacion_Evidencia_Trazabilidad_F3.md`
+- `Registro_Evidencias_Trazabilidad_F3.md`
 
 ---
 
@@ -42,12 +44,13 @@ Documentación de gobierno, autoridad, contexto, control y salvaguarda del proye
 
 `01_Modelo/`
 
-Documentación correspondiente al dominio de modelo.
+Documentación correspondiente al dominio de modelo funcional y empresarial.
 
 ### Documentos actuales
 
-- `01_LEEME_Que_necesita_la_empresa.md`
 - `Especificacion_funcional.md`
+
+Los documentos históricos o sustituidos se conservan en `99_Archivo/`.
 
 ---
 
@@ -55,12 +58,14 @@ Documentación correspondiente al dominio de modelo.
 
 `02_Parametros/`
 
-Documentación correspondiente al catálogo y parametrización.
+Documentación correspondiente al catálogo, gobierno, decisiones y relaciones de parametrización.
 
 ### Documentos actuales
 
-- `Catalogo_Parametros_MVP_v0.2.md`
+- `Catalogo_Parametros_MVP_v0.3.md`
 - `Centro_Parametrizacion.md`
+- `Decision_Log_Parametros_MVP.md`
+- `Matriz_Parametros_Reglas_MVP.md`
 
 ---
 
@@ -74,6 +79,7 @@ Documentación correspondiente a la organización arquitectónica y mapa del Fra
 
 - `03_LEEME_Como_se_organiza_EIOS.md`
 - `Architecture_Blueprint.md`
+- `DSS_Functional_Architecture.md`
 - `Framework_Map.md`
 - `Master_Project_Map.md`
 
@@ -83,12 +89,17 @@ Documentación correspondiente a la organización arquitectónica y mapa del Fra
 
 `04_Reglas/`
 
-Documentación correspondiente al sistema de reglas y resolución de conflictos.
+Documentación correspondiente al sistema de reglas, evidencia, dependencias y resolución de conflictos.
 
 ### Documentos actuales
 
 - `Capa_resolucion_conflictos.md`
+- `Evidence_Contract.md`
+- `Especificacion_Reglas_Configuracion_Pagos_MVP.md`
+- `Especificacion_Reglas_Historico_MVP.md`
 - `Matriz_Reglas_MVP.md`
+- `Reglas_MVP.md`
+- `Rule_Dependency_Matrix.md`
 
 ---
 
@@ -100,9 +111,13 @@ Documentación correspondiente al motor y comportamiento decisional.
 
 ### Documentos actuales
 
-- `04_LEEME_Como_piensa_y_decide_EIOS.md`
-- `05_LEEME_Como_se_presenta.md`
 - `Modelo_Empresarial_Decision.md`
+- `Viability_Frontier.md`
+- `Viability_Scenario_Engine.md`
+- `Decision_Twin.md`
+- `Decision_Versioning.md`
+- `Negotiation_Intelligence.md`
+- `Negotiation_Ladder.md`
 
 ---
 
@@ -110,11 +125,11 @@ Documentación correspondiente al motor y comportamiento decisional.
 
 `06_SQL/`
 
-Documentación correspondiente al dominio SQL.
+Dominio reservado para la futura implementación SQL.
 
-### Documentos actuales
+### Estado actual
 
-- `06_LEEME_Como_funciona_en_produccion.md`
+No contiene todavía documentos de implementación SQL. La referencia de autoridad `06_LEEME_SQL.md` de la Matriz de Autoridad es, por tanto, una **referencia reservada de autoridad futura** y no un documento actual.
 
 ---
 
@@ -126,7 +141,22 @@ Documentación correspondiente a pruebas y verificación.
 
 ### Documentos actuales
 
-- `07_LEEME_Como_se_construye.md`
+- `Plan_Pruebas_MVP.md`
+
+---
+
+## 08 — IMPLEMENTACIÓN
+
+`08_Implementacion/`
+
+Documentación correspondiente a la materialización técnica controlada del diseño y sus contratos de implementación.
+
+### Documentos actuales
+
+- `Assessment_Individual_Result_Contract.md`
+- `C0_CI_Verification.md`
+
+La implementación ejecutable se encuentra materializada adicionalmente en `eios/` y verificada mediante `tests/`.
 
 ---
 
