@@ -2,9 +2,9 @@
 
 > **Documento de recuperación y continuidad del proyecto**
 >
-> **Versión:** 2.0
+> **Versión:** 2.1
 > **Estado:** APROBADO
-> **Última actualización:** 19/08/2026
+> **Última actualización:** 29/08/2026
 > **Proyecto:** EIOS — Enterprise Intelligent Operations System
 
 ---
@@ -471,7 +471,7 @@ Debe existir una jerarquía formal que contemple:
 
 La resolución formal de conflictos corresponde a:
 
-`05_Motor/Capa_resolucion_conflictos.md`
+`04_Reglas/Capa_resolucion_conflictos.md`
 
 ---
 
@@ -543,7 +543,7 @@ Debe partir de valores estándar editables.
 
 La definición de qué parámetros existen corresponde al:
 
-`02_Parametros/Catalogo_Parametros_MVP_v0.2.md`
+`02_Parametros/Catalogo_Parametros_MVP_v0.3.md`
 
 La configuración y gobierno de sus valores corresponde al:
 
