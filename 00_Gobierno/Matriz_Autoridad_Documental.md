@@ -226,7 +226,7 @@ Define:
 | Decision Twin | `05_Motor/Decision_Twin.md` | Representación de alternativas y estructura de la decisión |
 | Negotiation Intelligence | `05_Motor/Negotiation_Intelligence.md` | Inteligencia y análisis de negociación |
 | Negotiation Ladder | `05_Motor/Negotiation_Ladder.md` | Estructura, representación y secuencia de negociación |
-| Resolución de conflictos | `05_Motor/Capa_resolucion_conflictos.md` | Resolución de resultados contradictorios entre reglas y evaluaciones |
+| Resolución de conflictos | `04_Reglas/Capa_resolucion_conflictos.md` | Resolución de resultados contradictorios entre reglas y evaluaciones |
 | Versionado de decisiones | `05_Motor/Decision_Versioning.md` | Identidad, historial y versionado de decisiones |
 | SQL | `06_SQL/06_LEEME_SQL.md` | Organización y criterios de implementación SQL |
 | Aplicación | `07_Implementacion/07_LEEME_Implementacion.md` | Construcción e integración de la aplicación |
@@ -530,7 +530,7 @@ La Negotiation Ladder no puede modificar por sí misma las reglas de decisión e
 
 # 19. Autoridad de Resolución de Conflictos
 
-`Capa_resolucion_conflictos.md` constituye la autoridad sobre cómo resolver resultados incompatibles entre:
+`04_Reglas/Capa_resolucion_conflictos.md` constituye la autoridad sobre cómo resolver resultados incompatibles entre:
 
 - reglas;
 - evaluaciones;
