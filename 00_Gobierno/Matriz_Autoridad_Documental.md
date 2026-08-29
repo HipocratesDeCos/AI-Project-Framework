@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 2.2  
+**Versión:** 2.3  
 **Estado:** APROBADO  
 **Ubicación:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
@@ -213,10 +213,10 @@ Define:
 | Gobierno del proyecto | `00_Gobierno/Project_Governance.md` | Gobierno, control y evolución del proyecto |
 | Autoridad documental | `00_Gobierno/Matriz_Autoridad_Documental.md` | Precedencia y resolución de contradicciones documentales |
 | Marco del Vertical MVP | `00_Gobierno/EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md` | Marco congelado, principios, límites y arquitectura conceptual del Vertical MVP |
-| Modelo empresarial | `01_Modelo/Modelo_Empresarial_Decision.md` | Conceptos empresariales, significado y lógica general de la decisión |
+| Modelo empresarial | `05_Motor/Modelo_Empresarial_Decision.md` | Conceptos empresariales, significado y lógica general de la decisión |
 | Arquitectura técnica | `03_Arquitectura/Architecture_Blueprint.md` | Arquitectura lógica, componentes técnicos y flujo de datos |
 | Mapa arquitectónico | `03_Arquitectura/Master_Project_Map.md` | Organización global de componentes y relaciones arquitectónicas |
-| Parámetros | `02_Parametros/Catalogo_Parametros_MVP_v0.2.md` | Definición, identificación, naturaleza y propósito de parámetros |
+| Parámetros | `02_Parametros/Catalogo_Parametros_MVP_v0.3.md` | Definición, identificación, naturaleza y propósito de parámetros |
 | Configuración | `02_Parametros/Centro_Parametrizacion.md` | Valores configurables, vigencia, edición, permisos y gobierno de parámetros |
 | Reglas | `04_Reglas/Matriz_Reglas_MVP.md` | Condiciones, evaluación y resultados de reglas |
 | Evidencia | `04_Reglas/Evidence_Contract.md` | Contrato general de evidencia, criterios de admisibilidad y suficiencia |
@@ -229,9 +229,9 @@ Define:
 | Resolución de conflictos | `04_Reglas/Capa_resolucion_conflictos.md` | Resolución de resultados contradictorios entre reglas y evaluaciones |
 | Versionado de decisiones | `05_Motor/Decision_Versioning.md` | Identidad, historial y versionado de decisiones |
 | SQL | `06_SQL/06_LEEME_SQL.md` | Organización y criterios de implementación SQL |
-| Aplicación | `07_Implementacion/07_LEEME_Implementacion.md` | Construcción e integración de la aplicación |
-| Operación | `07_Implementacion/07_LEEME_Implementacion.md` | Criterios de funcionamiento operativo de la implementación |
-| Desarrollo | `07_Implementacion/07_LEEME_Implementacion.md` | Criterios de construcción e implementación |
+| Aplicación | `08_Implementacion/` | Construcción e integración de la implementación técnica |
+| Operación | `08_Implementacion/` | Criterios de funcionamiento operativo de la implementación |
+| Desarrollo | `08_Implementacion/` | Criterios de construcción e implementación |
 | Pruebas | `07_Pruebas/` | Verificación y validación del sistema |
 | Archivo histórico | `99_Archivo/` | Material histórico, obsoleto o conservado por trazabilidad |
 
@@ -303,7 +303,7 @@ Si una especificación especializada necesita cambiar una decisión congelada po
 
 # 9. Autoridad del Modelo Empresarial de Decisión
 
-El `Modelo_Empresarial_Decision.md` constituye la autoridad sobre:
+El `05_Motor/Modelo_Empresarial_Decision.md` constituye la autoridad sobre:
 
 - conceptos empresariales;
 - significado de una decisión;
@@ -324,7 +324,7 @@ No define por sí mismo:
 
 # 10. Autoridad de Parámetros y Configuración
 
-El `02_Parametros/Catalogo_Parametros_MVP_v0.2.md` define qué parámetros existen y qué representan.
+El `02_Parametros/Catalogo_Parametros_MVP_v0.3.md` define qué parámetros existen y qué representan.
 
 El `02_Parametros/Centro_Parametrizacion.md` define cómo se configuran y gobiernan sus valores.
 
@@ -742,7 +742,7 @@ No se debe:
 
 # 28. Estado de la Matriz
 
-**Versión:** 2.2  
+**Versión:** 2.3  
 **Estado:** APROBADO  
 **Ámbito:** Gobierno documental EIOS  
 **Carácter:** Fuente oficial de autoridad y precedencia documental
