@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 2.0  
+**Versión:** 2.1  
 **Estado:** APROBADO  
 **Ubicación:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
@@ -220,7 +220,7 @@ Define:
 | Configuración | `02_Parametros/Centro_Parametrizacion.md` | Valores configurables, vigencia, edición, permisos y gobierno de parámetros |
 | Reglas | `04_Reglas/Matriz_Reglas_MVP.md` | Condiciones, evaluación y resultados de reglas |
 | Evidencia | `04_Reglas/Evidence_Contract.md` | Contrato general de evidencia, criterios de admisibilidad y suficiencia |
-| Dependencias | `04_Reglas/Rule_Dependency_Matrix.md` | Dependencias entre reglas, datos, evidencias, parámetros, componentes y requisitos concretos de evaluabilidad |
+| Dependencias | `04_Reglas/Rule_Dependency_Matrix.md` | Dependencias canónicas entre reglas, datos, evidencias, parámetros, componentes y requisitos concretos de evaluabilidad |
 | Viability Frontier | `05_Motor/Viability_Frontier.md` | Definición y comportamiento de la frontera de viabilidad |
 | Scenario Engine | `05_Motor/Scenario_Engine.md` | Generación, comparación y versionado de escenarios |
 | Decision Twin | `05_Motor/Decision_Twin.md` | Representación de alternativas y estructura de la decisión |
@@ -389,20 +389,64 @@ La ausencia o insuficiencia de evidencia debe conservar su significado explícit
 
 # 13. Autoridad de Rule Dependency Matrix
 
-La `Rule_Dependency_Matrix.md` constituye la autoridad sobre:
+La `Rule_Dependency_Matrix.md` constituye la **fuente canónica transversal de dependencias** dentro de EIOS.
+
+Su autoridad comprende:
 
 - dependencias entre reglas;
 - datos necesarios para cada regla;
 - evidencias concretas requeridas por cada regla;
-- parámetros implicados;
+- parámetros implicados en cada dependencia;
 - componentes afectados;
-- condiciones concretas de evaluabilidad derivadas de dichas dependencias.
+- condiciones concretas de evaluabilidad derivadas de dichas dependencias;
+- relación estructural entre estas dependencias.
 
 Esta matriz instancia los requisitos de evidencia del contrato general en el contexto de cada regla.
 
 Debe permitir determinar qué ocurre cuando una dependencia crítica no está disponible.
 
-No puede redefinir los criterios generales de admisibilidad y suficiencia establecidos por `Evidence_Contract.md`.
+No puede redefinir:
+
+- la definición de un parámetro, cuya autoridad corresponde al Catálogo;
+- la condición o resultado de una regla, cuya autoridad corresponde a la Matriz de Reglas;
+- los criterios generales de admisibilidad y suficiencia, cuya autoridad corresponde a `Evidence_Contract.md`;
+- la resolución de conflictos entre resultados, cuya autoridad corresponde a la CRC.
+
+## 13.1 Relación con matrices y especificaciones especializadas
+
+`02_Parametros/Matriz_Parametros_Reglas_MVP.md` mantiene su función como **matriz especializada de enlace y vista parámetro ↔ regla**. No constituye una segunda fuente canónica de autoridad sobre el grafo transversal de dependencias.
+
+Las especificaciones especializadas, como:
+
+- `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md`;
+- `04_Reglas/Especificacion_Reglas_Historico_MVP.md`;
+
+pueden aportar evidencia documental, detalle funcional o determinaciones especializadas sobre relaciones concretas, pero no crean una autoridad paralela sobre el modelo transversal de dependencias.
+
+Cuando una relación especializada deba incorporarse al mapa canónico de dependencias, la `Rule_Dependency_Matrix.md` deberá reflejarla sin alterar la autoridad de la fuente especializada sobre su propio detalle.
+
+Por tanto:
+
+```text
+Evidence Contract
+       │
+       ▼
+Rule Dependency Matrix
+       │
+       ├── datos
+       ├── parámetros
+       ├── evidencia
+       ├── componentes
+       └── evaluabilidad
+              ▲
+              │
+   ┌──────────┴──────────┐
+   │                     │
+Matriz P↔R       Especificaciones
+(vista/enlace)    especializadas
+```
+
+La existencia de una vista o especificación especializada no duplica la autoridad canónica de la `Rule_Dependency_Matrix.md`.
 
 ---
 
@@ -666,7 +710,7 @@ No se debe:
 
 # 28. Estado de la Matriz
 
-**Versión:** 2.0  
+**Versión:** 2.1  
 **Estado:** APROBADO  
 **Ámbito:** Gobierno documental EIOS  
 **Carácter:** Fuente oficial de autoridad y precedencia documental
