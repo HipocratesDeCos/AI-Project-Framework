@@ -2,7 +2,7 @@
 
 ## Índice Maestro del Framework
 
-**Versión:** 2.1  
+**Versión:** 2.2  
 **Estado:** APROBADO  
 **Función:** Índice maestro de la estructura documental EIOS  
 **Ubicación:** `03_Arquitectura/Framework_Map.md`
@@ -144,6 +144,9 @@ Documentación correspondiente a pruebas y verificación.
 ### Documentos actuales
 
 - `Plan_Pruebas_MVP.md`
+- `Matriz_Trazabilidad_Ejecutable.md`
+
+`Matriz_Trazabilidad_Ejecutable.md` materializa la estructura de trazabilidad ejecutable entre requisitos verificables, fuentes autorizadas, artefactos físicos, dependencias, estados y condiciones de ejecución. No crea una autoridad funcional ni una taxonomía paralela de pruebas.
 
 ---
 
