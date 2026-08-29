@@ -219,8 +219,8 @@ Define:
 | Parámetros | `02_Parametros/Catalogo_Parametros_MVP_v0.2.md` | Definición, identificación, naturaleza y propósito de parámetros |
 | Configuración | `02_Parametros/Centro_Parametrizacion.md` | Valores configurables, vigencia, edición, permisos y gobierno de parámetros |
 | Reglas | `04_Reglas/Matriz_Reglas_MVP.md` | Condiciones, evaluación y resultados de reglas |
-| Evidencia | `04_Reglas/Evidence_Contract.md` | Evidencia requerida y criterios de suficiencia para la evaluación |
-| Dependencias | `04_Reglas/Rule_Dependency_Matrix.md` | Dependencias entre reglas, datos, evidencias y componentes |
+| Evidencia | `04_Reglas/Evidence_Contract.md` | Contrato general de evidencia, criterios de admisibilidad y suficiencia |
+| Dependencias | `04_Reglas/Rule_Dependency_Matrix.md` | Dependencias entre reglas, datos, evidencias, parámetros, componentes y requisitos concretos de evaluabilidad |
 | Viability Frontier | `05_Motor/Viability_Frontier.md` | Definición y comportamiento de la frontera de viabilidad |
 | Scenario Engine | `05_Motor/Scenario_Engine.md` | Generación, comparación y versionado de escenarios |
 | Decision Twin | `05_Motor/Decision_Twin.md` | Representación de alternativas y estructura de la decisión |
@@ -373,17 +373,17 @@ Debe utilizar parámetros cuya definición oficial corresponda al Catálogo.
 
 # 12. Autoridad de Evidence Contract
 
-El `Evidence_Contract.md` constituye la autoridad sobre:
+El `Evidence_Contract.md` constituye la autoridad sobre el **contrato general de evidencia**:
 
-- evidencia requerida;
-- suficiencia de evidencia;
-- calidad mínima;
-- condiciones de evaluabilidad;
-- tratamiento de evidencia insuficiente.
+- naturaleza y estructura contractual de la evidencia;
+- criterios generales de admisibilidad;
+- criterios generales de suficiencia;
+- requisitos mínimos de trazabilidad y demostrabilidad;
+- estados y tratamiento general de evidencia insuficiente.
 
-Una regla no puede asumir que un dato está disponible simplemente porque aparece mencionado en otro documento.
+No determina qué evidencias concretas necesita una regla determinada.
 
-La ausencia de evidencia debe conservar su significado explícito.
+La ausencia o insuficiencia de evidencia debe conservar su significado explícito y no puede convertirse por defecto en un resultado de regla.
 
 ---
 
@@ -392,13 +392,17 @@ La ausencia de evidencia debe conservar su significado explícito.
 La `Rule_Dependency_Matrix.md` constituye la autoridad sobre:
 
 - dependencias entre reglas;
-- datos necesarios;
-- evidencias requeridas;
+- datos necesarios para cada regla;
+- evidencias concretas requeridas por cada regla;
 - parámetros implicados;
 - componentes afectados;
-- condiciones de evaluabilidad.
+- condiciones concretas de evaluabilidad derivadas de dichas dependencias.
 
-Esta matriz debe permitir determinar qué ocurre cuando una dependencia crítica no está disponible.
+Esta matriz instancia los requisitos de evidencia del contrato general en el contexto de cada regla.
+
+Debe permitir determinar qué ocurre cuando una dependencia crítica no está disponible.
+
+No puede redefinir los criterios generales de admisibilidad y suficiencia establecidos por `Evidence_Contract.md`.
 
 ---
 
@@ -534,145 +538,3 @@ La carpeta `07_Pruebas/` constituye la referencia para:
 - evidencia de funcionamiento.
 
 Una prueba puede demostrar que una implementación cumple una especificación, pero no puede modificar la especificación por sí misma.
-
----
-
-# 23. Precedencia ante conflictos
-
-Cuando dos documentos entren en conflicto se aplicará el siguiente procedimiento:
-
-```text
-1. IDENTIFICAR EL CONCEPTO
-        ↓
-2. IDENTIFICAR SU DOMINIO
-        ↓
-3. CONSULTAR ESTA MATRIZ
-        ↓
-4. IDENTIFICAR LA FUENTE OFICIAL
-        ↓
-5. COMPROBAR SI EXISTE UNA DECISIÓN CONGELADA
-        ↓
-6. APLICAR LA FUENTE DE MAYOR AUTORIDAD
-        ↓
-7. ACTUALIZAR LOS DOCUMENTOS SECUNDARIOS
-        ↓
-8. REGISTRAR EL CAMBIO
-```
-
-No debe resolverse una contradicción simplemente utilizando el documento más reciente.
-
-La antigüedad no determina por sí sola la autoridad.
-
----
-
-# 24. Relación entre documentos de gobierno
-
-Los documentos de gobierno deben entenderse así:
-
-```text
-PROJECT CHARTER
-      │
-      ├── identidad
-      ├── propósito
-      ├── alcance
-      └── límites
-              │
-              ▼
-PROJECT CONTEXT
-      │
-      └── continuidad y estado
-              │
-              ▼
-PROJECT GOVERNANCE
-      │
-      └── reglas de gobierno
-              │
-              ▼
-MATRIZ DE AUTORIDAD
-      │
-      └── quién tiene autoridad
-              │
-              ▼
-SALVAGUARDA VERTICAL MVP
-      │
-      └── qué está congelado
-              │
-              ▼
-DOCUMENTOS ESPECIALIZADOS
-      │
-      └── cómo se desarrolla cada dominio
-```
-
-El `Manual_Maestro_Proyecto_EIOS.md` actúa como documento de orientación y navegación, no como autoridad paralela.
-
----
-
-# 25. Reglas de mantenimiento
-
-La Matriz deberá actualizarse cuando:
-
-- se cree un nuevo documento con autoridad;
-- se modifique la autoridad de un documento;
-- se elimine un documento oficial;
-- se cambie una ruta oficial;
-- se cree un nuevo dominio de autoridad;
-- se produzca una decisión estructural que afecte a la precedencia documental.
-
-No debe actualizarse por simples cambios de redacción en documentos subordinados.
-
----
-
-# 26. Control de documentos futuros
-
-Una ruta incluida en esta matriz puede encontrarse en uno de estos estados:
-
-### EXISTENTE
-
-El documento está creado y constituye la fuente oficial.
-
-### RESERVADA
-
-La autoridad está definida, pero el documento todavía no existe.
-
-### OBSOLETA
-
-El documento existió, pero ya no constituye fuente oficial.
-
-### SUSTITUIDA
-
-La autoridad ha pasado formalmente a otro documento.
-
-Una referencia reservada no debe interpretarse como un documento existente.
-
----
-
-# 27. Regla de no regresión documental
-
-Una modificación de estructura documental no debe reducir la trazabilidad existente.
-
-No se debe:
-
-- eliminar una fuente oficial sin designar sustituta;
-- crear dos fuentes oficiales para el mismo concepto;
-- mover un documento sin actualizar las referencias;
-- convertir una decisión congelada en una recomendación informal;
-- introducir lógica contradictoria en documentos subordinados.
-
----
-
-# 28. Estado de la Matriz
-
-**Versión:** 2.0  
-**Estado:** APROBADO  
-**Ámbito:** Gobierno documental EIOS  
-**Carácter:** Fuente oficial de autoridad y precedencia documental
-
-La Matriz define la autoridad necesaria para evitar ambigüedad cuando los documentos especializados sean creados.
-
----
-
-# 29. Principio final
-
-> **Cuando exista una duda sobre qué documento manda, no se interpreta: se consulta la Matriz de Autoridad Documental.**
-
-La Matriz constituye el mecanismo oficial para preservar una única fuente de verdad documental dentro de EIOS.
