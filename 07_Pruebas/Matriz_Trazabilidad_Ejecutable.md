@@ -83,9 +83,9 @@ La existencia de un artefacto físico no le confiere autoridad documental.
 
 ### 3.4 `Test_ID`
 
-Identificador oficial del Plan de Pruebas cuando el caso correspondiente exista.
+Identificador oficial del Plan de Pruebas para el caso correspondiente cuando este exista.
 
-La matriz no crea una taxonomía paralela de pruebas ni nuevos casos de prueba.
+La matriz no crea una taxonomía paralela de pruebas ni nuevos casos de prueba. Si no existe todavía un `Test_ID` oficial para una relación trazada, la matriz no lo inventa; la relación permanece sin caso oficial asignado hasta que el Plan de Pruebas lo establezca.
 
 ### 3.5 `Dependencia`
 
@@ -159,16 +159,16 @@ Una prueba de reproducibilidad de C0 no permite afirmar por sí sola que una dec
 
 | Requirement_ID | Fuente autorizada | Requisito verificable | Test_ID | Artefacto físico probado | Dependencia | Estado | Condición de ejecución |
 |---|---|---|---|---|---|---|---|
-| REQ-C0-001 | Contrato C0 / documentación autorizada aplicable | `decision_id` válido y presente donde el contrato C0 lo exige | Según Plan | `PurchaseOperation` / artefacto C0 correspondiente | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-002 | `05_Motor/Decision_Versioning.md` | La identidad de la unidad decisional EIOS se conserva coherentemente durante la ejecución C0 | Según Plan | `DecisionContext` / artefacto C0 correspondiente | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-003 | `04_Reglas/Evidence_Contract.md` | `DEMONSTRATED` requiere referencia de demostración | Según Plan | `Evidence` | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-004 | `04_Reglas/Evidence_Contract.md` | `GAP` no habilita resultado `TRUE/FALSE` | Según Plan | `Evidence` / `Assessment` | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-005 | `04_Reglas/Evidence_Contract.md` | Ausencia de evidencia no equivale a `FALSE` | Según Plan | C0 / artefacto correspondiente | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-006 | Contrato de `Assessment` autorizado | `NOT_EVALUABLE` no produce `outcome` decisional | Según Plan | `Assessment` | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-007 | Contrato de `Assessment` autorizado | `EVALUABLE` produce un `outcome` conforme al contrato | Según Plan | `Assessment` | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-008 | Contrato C0 / documentación de trazabilidad autorizada | El contexto de ejecución C0 se conserva en `Trace` | `T-TRZ-*` correspondiente, si existe | `Trace` | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-009 | Contrato C0 / documentación de trazabilidad autorizada | El fingerprint de entrada se conserva | `T-TRZ-*` correspondiente, si existe | `Trace` | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-010 | Contrato C0 / documentación de reproducibilidad autorizada | La ejecución C0 es reproducible conforme al contrato físico disponible | `T-TRZ-*` correspondiente, si existe | C0 / `Trace` | — | PENDIENTE | EXECUTABLE |
+| REQ-C0-001 | Contrato C0 / documentación autorizada aplicable | `decision_id` válido y presente donde el contrato C0 lo exige | — | `PurchaseOperation` / artefacto C0 correspondiente | — | PENDIENTE | EXECUTABLE |
+| REQ-C0-002 | `05_Motor/Decision_Versioning.md` | La identidad de la unidad decisional EIOS se conserva coherentemente durante la ejecución C0 | — | `DecisionContext` / artefacto C0 correspondiente | — | PENDIENTE | EXECUTABLE |
+| REQ-C0-003 | `04_Reglas/Evidence_Contract.md` | `DEMONSTRATED` requiere referencia de demostración | — | `Evidence` | — | PENDIENTE | EXECUTABLE |
+| REQ-C0-004 | `04_Reglas/Evidence_Contract.md` | `GAP` no habilita resultado `TRUE/FALSE` | — | `Evidence` / `Assessment` | — | PENDIENTE | EXECUTABLE |
+| REQ-C0-005 | `04_Reglas/Evidence_Contract.md` | Ausencia de evidencia no equivale a `FALSE` | — | C0 / artefacto correspondiente | — | PENDIENTE | EXECUTABLE |
+| REQ-C0-006 | Contrato de `Assessment` autorizado | `NOT_EVALUABLE` no produce `outcome` decisional | — | `Assessment` | — | PENDIENTE | EXECUTABLE |
+| REQ-C0-007 | Contrato de `Assessment` autorizado | `EVALUABLE` produce un `outcome` conforme al contrato | — | `Assessment` | — | PENDIENTE | EXECUTABLE |
+| REQ-C0-008 | Contrato C0 / documentación de trazabilidad autorizada | El contexto de ejecución C0 se conserva en `Trace` | — | `Trace` | — | PENDIENTE | EXECUTABLE |
+| REQ-C0-009 | Contrato C0 / documentación de trazabilidad autorizada | El fingerprint de entrada se conserva | — | `Trace` | — | PENDIENTE | EXECUTABLE |
+| REQ-C0-010 | Contrato C0 / documentación de reproducibilidad autorizada | La ejecución C0 es reproducible conforme al contrato físico disponible | — | C0 / `Trace` | — | PENDIENTE | EXECUTABLE |
 
 ---
 
