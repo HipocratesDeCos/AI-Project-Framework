@@ -538,3 +538,145 @@ La carpeta `07_Pruebas/` constituye la referencia para:
 - evidencia de funcionamiento.
 
 Una prueba puede demostrar que una implementación cumple una especificación, pero no puede modificar la especificación por sí misma.
+
+---
+
+# 23. Precedencia ante conflictos
+
+Cuando dos documentos entren en conflicto se aplicará el siguiente procedimiento:
+
+```text
+1. IDENTIFICAR EL CONCEPTO
+        ↓
+2. IDENTIFICAR SU DOMINIO
+        ↓
+3. CONSULTAR ESTA MATRIZ
+        ↓
+4. IDENTIFICAR LA FUENTE OFICIAL
+        ↓
+5. COMPROBAR SI EXISTE UNA DECISIÓN CONGELADA
+        ↓
+6. APLICAR LA FUENTE DE MAYOR AUTORIDAD
+        ↓
+7. ACTUALIZAR LOS DOCUMENTOS SECUNDARIOS
+        ↓
+8. REGISTRAR EL CAMBIO
+```
+
+No debe resolverse una contradicción simplemente utilizando el documento más reciente.
+
+La antigüedad no determina por sí sola la autoridad.
+
+---
+
+# 24. Relación entre documentos de gobierno
+
+Los documentos de gobierno deben entenderse así:
+
+```text
+PROJECT CHARTER
+      │
+      ├── identidad
+      ├── propósito
+      ├── alcance
+      └── límites
+              │
+              ▼
+PROJECT CONTEXT
+      │
+      └── continuidad y estado
+              │
+              ▼
+PROJECT GOVERNANCE
+      │
+      └── reglas de gobierno
+              │
+              ▼
+MATRIZ DE AUTORIDAD
+      │
+      └── quién tiene autoridad
+              │
+              ▼
+SALVAGUARDA VERTICAL MVP
+      │
+      └── qué está congelado
+              │
+              ▼
+DOCUMENTOS ESPECIALIZADOS
+      │
+      └── cómo se desarrolla cada dominio
+```
+
+El `Manual_Maestro_Proyecto_EIOS.md` actúa como documento de orientación y navegación, no como autoridad paralela.
+
+---
+
+# 25. Reglas de mantenimiento
+
+La Matriz deberá actualizarse cuando:
+
+- se cree un nuevo documento con autoridad;
+- se modifique la autoridad de un documento;
+- se elimine un documento oficial;
+- se cambie una ruta oficial;
+- se cree un nuevo dominio de autoridad;
+- se produzca una decisión estructural que afecte a la precedencia documental.
+
+No debe actualizarse por simples cambios de redacción en documentos subordinados.
+
+---
+
+# 26. Control de documentos futuros
+
+Una ruta incluida en esta matriz puede encontrarse en uno de estos estados:
+
+### EXISTENTE
+
+El documento está creado y constituye la fuente oficial.
+
+### RESERVADA
+
+La autoridad está definida, pero el documento todavía no existe.
+
+### OBSOLETA
+
+El documento existió, pero ya no constituye fuente oficial.
+
+### SUSTITUIDA
+
+La autoridad ha pasado formalmente a otro documento.
+
+Una referencia reservada no debe interpretarse como un documento existente.
+
+---
+
+# 27. Regla de no regresión documental
+
+Una modificación de estructura documental no debe reducir la trazabilidad existente.
+
+No se debe:
+
+- eliminar una fuente oficial sin designar sustituta;
+- crear dos fuentes oficiales para el mismo concepto;
+- mover un documento sin actualizar las referencias;
+- convertir una decisión congelada en una recomendación informal;
+- introducir lógica contradictoria en documentos subordinados.
+
+---
+
+# 28. Estado de la Matriz
+
+**Versión:** 2.0  
+**Estado:** APROBADO  
+**Ámbito:** Gobierno documental EIOS  
+**Carácter:** Fuente oficial de autoridad y precedencia documental
+
+La Matriz define la autoridad necesaria para evitar ambigüedad cuando los documentos especializados sean creados.
+
+---
+
+# 29. Principio final
+
+> **Cuando exista una duda sobre qué documento manda, no se interpreta: se consulta la Matriz de Autoridad Documental.**
+
+La Matriz constituye el mecanismo oficial para preservar una única fuente de verdad documental dentro de EIOS.
