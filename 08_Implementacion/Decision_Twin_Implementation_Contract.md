@@ -3,7 +3,7 @@
 ## 1. Identidad
 
 **Documento:** Decision Twin Implementation Contract  
-**Versión:** 1.0.1  
+**Versión:** 1.0.2  
 **Estado:** EN VALIDACIÓN — contrato técnico de implementación  
 **Baseline:** EIOS Vertical MVP  
 **Ubicación:** `08_Implementacion/Decision_Twin_Implementation_Contract.md`
@@ -50,7 +50,7 @@ Conceptualmente:
 
 ```text
 Alternative
-├── identity
+├── representation reference
 ├── scenario reference
 ├── viability result
 ├── associated results
@@ -60,21 +60,31 @@ Alternative
 
 Estos elementos representan información ya producida por las autoridades correspondientes; Decision Twin no los recalcula.
 
+La autoridad funcional no define actualmente una identidad persistente propia para `Alternative`. Por tanto, esta implementación no introduce todavía un `Alternative_ID` ni presupone que la alternativa deba constituir una entidad física independiente.
+
 ---
 
 ## 5. Separación de identidades
 
-Deben conservarse separadas:
+Deben conservarse separadas las identidades que ya poseen autoridad documental:
 
 ```text
 Scenario_ID       → identifica escenario
-Alternative_ID    → identifica alternativa representada
 Decision_ID       → identifica unidad decisional cuando corresponda
 ```
 
-Ninguna de estas identidades sustituye a las demás.
+`Alternative` es actualmente una opción representada para comparación, no una identidad funcional formalmente definida por este contrato.
 
-Un escenario puede dar lugar a una alternativa representada, pero `Scenario_ID` no adquiere automáticamente semántica de `Alternative_ID`.
+Por tanto:
+
+```text
+Scenario_ID ≠ Alternative
+Alternative ≠ Decision_ID
+```
+
+`Scenario_ID` no adquiere automáticamente semántica de alternativa, y ninguna identidad existente puede reutilizarse como `Alternative_ID` por conveniencia física.
+
+Si una futura necesidad técnica exige una identidad propia de alternativa, deberá justificarse y especificarse mediante autoridad documental antes de su materialización física.
 
 ---
 
@@ -83,7 +93,7 @@ Un escenario puede dar lugar a una alternativa representada, pero `Scenario_ID` 
 La implementación puede recibir:
 
 - referencia al escenario evaluado, cuando exista;
-- identidad de la alternativa;
+- referencia de representación de la alternativa, cuando sea necesaria y esté definida por la capa correspondiente;
 - resultado de `Viability Frontier`;
 - resultados de evaluación ya producidos;
 - consecuencias conocidas ya determinadas;
@@ -305,7 +315,7 @@ Estos elementos solo podrán definirse después de cerrar sus requisitos técnic
 
 Antes de materializar persistencia específica deberán estar demostrados:
 
-1. identificador técnico de alternativa;
+1. si `Alternative` requiere identidad técnica propia;
 2. relación física con escenario, cuando proceda;
 3. referencias necesarias a resultados de viabilidad;
 4. referencias de trazabilidad;
@@ -328,7 +338,11 @@ El contrato ha sido contrastado contra:
 - `06_SQL/Decision_Versioning_Physical_Model.md`;
 - `05_Motor/Modelo_Empresarial_Decision.md`.
 
-Corrección aplicada tras auditoría física: el flujo de `Decision Twin` incorpora explícitamente `Scenario Engine` entre `Viability Frontier` y la representación de alternativas, manteniendo separadas las autoridades de viabilidad, escenarios y representación.
+Correcciones aplicadas tras auditoría física:
+
+- el flujo de `Decision Twin` incorpora explícitamente `Scenario Engine` entre `Viability Frontier` y la representación de alternativas;
+- no se presume una identidad persistente propia de `Alternative` sin autoridad documental;
+- no se reutiliza `Scenario_ID` ni `Decision_ID` como sustituto de un futuro `Alternative_ID`.
 
 Resultado de la auditoría:
 
@@ -340,9 +354,10 @@ Resultado de la auditoría:
 - evidencia permanece bajo su contrato;
 - parámetros y dependencias no son modificados;
 - versionado no se duplica;
+- identidad física de Alternative no se inventa;
 - persistencia física no se anticipa sin evidencia técnica suficiente.
 
-**DICTAMEN: CORRECCIÓN DOCUMENTAL APLICADA; PENDIENTE VALIDACIÓN FINAL Y CI.**
+**DICTAMEN: CORRECCIÓN DOCUMENTAL APLICADA; PENDIENTE VALIDACIÓN CI.**
 
 ---
 
@@ -352,6 +367,7 @@ Resultado de la auditoría:
 CONTRATO FUNCIONAL                  CERRADO
 FRONTERA DE AUTORIDAD               CERRADA
 FLUJO ARQUITECTÓNICO                CORREGIDO
+IDENTIDAD ALTERNATIVE               NO FORMALIZADA
 SEPARACIÓN DE VIABILITY             CERRADA
 SEPARACIÓN DE SCENARIO ENGINE       CERRADA
 SEPARACIÓN DE ASSESSMENT/EVIDENCE   CERRADA
