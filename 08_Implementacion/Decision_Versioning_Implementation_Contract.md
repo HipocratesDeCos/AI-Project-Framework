@@ -3,7 +3,7 @@
 ## 1. Identidad
 
 **Documento:** Decision Versioning Implementation Contract  
-**Versión:** 1.1  
+**Versión:** 1.2  
 **Estado:** CERRADO — Contrato técnico de implementación  
 **Baseline:** EIOS Vertical MVP  
 **Ubicación:** `08_Implementacion/Decision_Versioning_Implementation_Contract.md`
@@ -93,11 +93,11 @@ La materialización reutiliza las referencias producidas o conservadas por C0:
 Decision_ID
 Scenario_ID
 Data_Snapshot_ID
-Rules_Version
-Parameters_Version
 input_fingerprint
 Trace
 ```
+
+`Rules_Version` y `Parameters_Version` continúan siendo referencias del `DecisionContext` de C0; no se duplican como nuevas autoridades.
 
 `input_fingerprint` y `Trace` se conservan como referencias o valores derivados del flujo C0 según corresponda.
 
@@ -116,23 +116,30 @@ No se modifica C0 para implementar Decision Versioning.
 
 `Timestamp` representa el momento temporal del registro del estado.
 
-La implementación deberá fijar técnicamente:
+**Decisión técnica cerrada:**
 
-- tipo de dato;
-- precisión;
-- zona horaria;
-- origen del reloj;
-- política de generación.
+```text
+Tipo SQL          → datetimeoffset(7)
+Zona horaria      → UTC
+Origen conceptual → instante de registro del estado
+```
 
-Estos aspectos son decisiones técnicas de persistencia y no alteran la semántica conceptual de `Timestamp`.
+La implementación deberá mantener una fuente de reloj coherente y no introducir una segunda semántica temporal para Decision Versioning.
 
-Hasta que se cierre el diseño físico, no se prescribe un tipo SQL concreto en este documento.
+El precedente técnico es `Trace.created_at` de C0, que ya utiliza `datetimeoffset(7)` y se genera con un `datetime` consciente de zona horaria en UTC.
+
+Esta decisión no convierte `Trace.created_at` en `Decision Versioning.Timestamp`; son atributos distintos que comparten una convención temporal común.
 
 ---
 
 ## 9. User
 
-`User` identifica técnicamente al usuario asociado al registro.
+`User` identifica técnicamente al **actor que origina o registra el estado en EIOS**.
+
+El actor puede ser:
+
+- un usuario humano;
+- un servicio o proceso técnico autorizado.
 
 No implica que sea:
 
@@ -144,6 +151,8 @@ No implica que sea:
 
 La implementación no creará semántica adicional de roles dentro de Decision Versioning.
 
+La semántica de `User` no autoriza por sí sola una política de identidad, autenticación o autorización; esas materias permanecen fuera de este contrato.
+
 ---
 
 ## 10. Inmutabilidad histórica
@@ -153,6 +162,8 @@ Un registro histórico materializado no debe sobrescribirse para representar un 
 La evolución se representa mediante registros distinguibles.
 
 La implementación no introducirá un mecanismo paralelo de versionado funcional.
+
+La inmutabilidad funcional queda cerrada como invariante; el mecanismo físico concreto se definirá en `06_SQL` sin alterar esta semántica.
 
 ---
 
@@ -222,7 +233,9 @@ Antes de crear el DDL deberán estar cerrados:
 6. estrategia de referencia de `input_fingerprint` y `Trace`;
 7. alcance exacto de las referencias opcionales.
 
-La ausencia de estos cierres impide pasar legítimamente a DDL.
+Con la decisión de `Timestamp` y `User` adoptada para EIOS, quedan resueltos los puntos 1 y 3. Los puntos restantes continúan siendo criterios técnicos previos al DDL y serán resueltos por la autoridad de persistencia sin redefinir este contrato.
+
+La ausencia de estos cierres restantes impide pasar legítimamente a DDL.
 
 ---
 
