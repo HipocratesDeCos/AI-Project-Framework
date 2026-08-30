@@ -3,8 +3,8 @@
 ## 1. Identidad
 
 **Documento:** Decision Twin Implementation Contract  
-**Versión:** 1.0.4  
-**Estado:** EN VALIDACIÓN — contrato técnico de implementación  
+**Versión:** 1.0.5  
+**Estado:** CERRADO — contrato técnico de implementación  
 **Baseline:** EIOS Vertical MVP  
 **Ubicación:** `08_Implementacion/Decision_Twin_Implementation_Contract.md`
 
@@ -49,9 +49,9 @@ El objeto lógico de implementación es una **alternativa decisional representad
 Conceptualmente:
 
 ```text
-Alternative
+Alternative representation
 ├── representation reference
-├── scenario reference
+├── scenario reference, when available
 ├── viability result
 ├── associated results
 ├── known consequences
@@ -60,7 +60,7 @@ Alternative
 
 Estos elementos representan información ya producida por las autoridades correspondientes; Decision Twin no los recalcula.
 
-La autoridad funcional no define actualmente una identidad persistente propia para `Alternative`. Por tanto, esta implementación no introduce todavía un `Alternative_ID` ni presupone que la alternativa deba constituir una entidad física independiente.
+La autoridad funcional no define una identidad persistente propia para `Alternative`. Por tanto, la implementación MVP no introduce un `Alternative_ID` ni presupone que la alternativa deba constituir una entidad física independiente.
 
 ---
 
@@ -73,7 +73,7 @@ Scenario_ID       → identifica escenario
 Decision_ID       → identifica unidad decisional cuando corresponda
 ```
 
-`Alternative` es actualmente una opción representada para comparación, no una identidad funcional formalmente definida por este contrato.
+`Alternative` es una opción representada para comparación, no una identidad funcional persistente definida por este contrato.
 
 Por tanto:
 
@@ -299,43 +299,66 @@ La implementación deberá conservar como invariantes:
 7. ausencia de información opcional no puede producir valores ficticios;
 8. trazabilidad no puede adquirir autoridad decisional;
 9. un único `trace_id` no se presume suficiente para todos los resultados de una alternativa;
-10. una referencia de trazabilidad no puede sustituir al objeto fuente ni alterar su ciclo de vida.
+10. una referencia de trazabilidad no puede sustituir al objeto fuente ni alterar su ciclo de vida;
+11. dos alternativas simultáneas no pueden distinguirse mediante una identidad física inventada por conveniencia;
+12. la multiplicidad de alternativas no constituye por sí misma un requisito de persistencia.
 
 ---
 
 ## 18. Límites físicos
 
-Este contrato no fija todavía:
+Para el Vertical MVP, `Decision Twin` no requiere una entidad SQL persistente propia de `Alternative`.
 
-- esquema SQL;
-- tipos físicos;
-- índices;
-- API;
-- serialización concreta;
-- estrategia de almacenamiento;
-- mecanismo de selección futura.
+No se materializa una tabla `eios.alternative` ni un `Alternative_ID` mientras no exista un requisito funcional que exija conservar una identidad independiente de las referencias ya disponibles.
 
-Estos elementos solo podrán definirse después de cerrar sus requisitos técnicos y demostrar que no introducen autoridad funcional nueva.
+Tampoco se crean índices específicos de `Decision Twin` para una entidad que no existe físicamente.
+
+Los datos que deban conservar continuidad histórica permanecen bajo las estructuras de `Decision Versioning` y las autoridades fuente correspondientes.
+
+Este contrato no fija API ni serialización concreta.
 
 ---
 
-## 19. Dependencias previas al DDL o implementación física
+## 19. Dependencias previas a una futura persistencia
 
-Antes de materializar persistencia específica deberán estar demostrados:
+Una futura persistencia específica solo podrá plantearse si se demuestra, mediante requisito o caso de uso verificable:
 
-1. si `Alternative` requiere identidad persistente propia;
-2. si la relación con `Scenario_ID` es necesaria y, en tal caso, su cardinalidad y opcionalidad;
-3. referencias necesarias a resultados de viabilidad;
-4. referencias de trazabilidad;
-5. necesidad real de persistencia frente a representación transitoria;
-6. patrones de acceso que justifiquen índices;
-7. relación con Decision Versioning sin duplicar su autoridad.
+1. necesidad de reconstruir una alternativa como entidad independiente;
+2. necesidad de distinguir múltiples alternativas más allá del contexto ya disponible;
+3. identidad y ciclo de vida de esa entidad;
+4. relación con `Scenario_ID`, si existe;
+5. referencias de trazabilidad necesarias;
+6. necesidad real de almacenamiento frente a representación transitoria;
+7. patrones de acceso que justifiquen índices;
+8. relación con Decision Versioning sin duplicar su autoridad.
 
-La ausencia de estos cierres impide inferir un modelo físico definitivo.
+La ausencia de cualquiera de estos elementos impide inferir persistencia física.
 
 ---
 
-## 20. Auditoría de cierre provisional
+## 20. Prueba de reconstrucción adversarial
+
+Se ha comprobado el caso de múltiples alternativas simultáneas dentro de un mismo `Decision_ID`.
+
+```text
+Decision D1
+ ├── Alternative A
+ ├── Alternative B
+ └── Alternative C
+```
+
+Resultado:
+
+- cuando las alternativas están asociadas a escenarios evaluados, su contexto puede reconstruirse mediante las referencias de escenario, resultados y trazabilidad existentes;
+- la multiplicidad no exige por sí misma una tabla `Alternative`;
+- cuando una alternativa no procede de escenario, el contrato permite su representación, pero no establece actualmente un requisito de persistencia histórica independiente;
+- por tanto, no se inventa una identidad física para resolver una necesidad que el MVP no exige.
+
+**DICTAMEN H5: NO EXISTE REQUISITO DEMOSTRADO DE PERSISTENCIA PROPIA DE `Alternative` EN EL VERTICAL MVP.**
+
+---
+
+## 21. Auditoría de cierre
 
 El contrato ha sido contrastado contra:
 
@@ -345,7 +368,8 @@ El contrato ha sido contrastado contra:
 - `08_Implementacion/Assessment_Individual_Result_Contract.md`;
 - `08_Implementacion/Decision_Versioning_Implementation_Contract.md`;
 - `06_SQL/Decision_Versioning_Physical_Model.md`;
-- `05_Motor/Modelo_Empresarial_Decision.md`.
+- `05_Motor/Modelo_Empresarial_Decision.md`;
+- C0 físico y sus patrones de acceso.
 
 Resultado:
 
@@ -358,13 +382,15 @@ Resultado:
 - parámetros y dependencias no son modificados;
 - versionado no se duplica;
 - trazabilidad reutiliza referencias existentes y no crea un segundo Trace;
-- persistencia física no se anticipa sin evidencia técnica suficiente.
+- `Alternative` no se convierte artificialmente en entidad persistente;
+- no se justifican índices propios de una entidad inexistente;
+- C0 permanece intacto.
 
-**DICTAMEN: CONTRATO ALINEADO; MATERIALIZACIÓN FÍSICA AÚN NO AUTORIZADA.**
+**DICTAMEN: CONTRATO DE IMPLEMENTACIÓN CERRADO; NO PROCEDE DDL ESPECÍFICO PARA `Alternative` EN EL VERTICAL MVP.**
 
 ---
 
-## 21. Estado
+## 22. Estado
 
 ```text
 CONTRATO FUNCIONAL                  CERRADO
@@ -374,10 +400,11 @@ SEPARACIÓN DE VIABILITY             CERRADA
 SEPARACIÓN DE SCENARIO ENGINE       CERRADA
 SEPARACIÓN DE ASSESSMENT/EVIDENCE   CERRADA
 SEPARACIÓN DE SELECCIÓN/DECISIÓN    CERRADA
-IDENTIDAD DE ALTERNATIVE             PENDIENTE DE JUSTIFICACIÓN
-RELACIÓN SCENARIO ↔ ALTERNATIVE      PENDIENTE DE JUSTIFICACIÓN
-TRAZABILIDAD FÍSICA                 PENDIENTE DE DISEÑO
-PERSISTENCIA FÍSICA                 PENDIENTE
-DDL                                 PENDIENTE
-IMPLEMENTACIÓN DE CÓDIGO            PENDIENTE
+IDENTIDAD DE ALTERNATIVE             CERRADA: no persistente en MVP
+RELACIÓN SCENARIO ↔ ALTERNATIVE      CERRADA: contextual/opcional
+TRAZABILIDAD                         CERRADA: referencias existentes
+PERSISTENCIA DE ALTERNATIVE          CERRADA: no requerida en MVP
+DDL ESPECÍFICO ALTERNATIVE           NO PROCEDE
+ÍNDICES ESPECÍFICOS                  NO PROCEDE
+IMPLEMENTACIÓN DE CÓDIGO             PENDIENTE
 ```
