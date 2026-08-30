@@ -8,13 +8,13 @@ La autoridad funcional permanece en `05_Motor/Decision_Twin.md`.
 
 ## 2. Entrada
 
-Una comparación recibe dos o más alternativas representables y los datos ya autorizados asociados a ellas:
+Una comparación recibe dos o más alternativas representables y únicamente los datos ya autorizados asociados a ellas:
 
 - resultados;
 - estado de viabilidad;
 - condiciones;
 - consecuencias conocidas;
-- riesgos ya determinados;
+- riesgos ya determinados por una autoridad competente;
 - referencias de trazabilidad.
 
 No genera información nueva de las capas fuente.
@@ -35,19 +35,19 @@ Comparison
 └── traceability references
 ```
 
-La salida no contiene por defecto:
+La salida **no contiene**:
 
 - score;
 - ranking;
 - utilidad;
-- peso;
+- peso decisional;
 - ganador;
 - alternativa preferente;
 - decisión.
 
 ## 4. Regla de comparación
 
-Para cada atributo comparable, el resultado debe conservar el valor o estado observado por alternativa y, cuando sea posible, describir la diferencia.
+Para cada atributo comparable, el resultado debe conservar el valor o estado observado por alternativa y, cuando proceda, describir la diferencia sin inferir superioridad.
 
 ```text
 A = valor X
@@ -57,6 +57,8 @@ B = valor Y
 ```
 
 La existencia de una diferencia no implica que uno de los valores sea superior.
+
+Una comparación direccional solo podrá expresarse cuando la relación de superioridad esté previamente definida y autorizada por la fuente competente; Decision Twin no la crea.
 
 ## 5. Heterogeneidad
 
