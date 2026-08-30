@@ -110,3 +110,21 @@ def test_nested_values_use_value_equality_not_repr_only():
     right = {"cost": {"currency": "EUR", "amount": 100}}
     result = compare([alt("A", left), alt("B", right)])
     assert "cost" not in result.differences
+
+
+@pytest.mark.parametrize(
+    "forbidden",
+    [
+        "score",
+        "ranking",
+        "winner",
+        "preferred_alternative",
+        "utility",
+        "optimization",
+        "selection",
+        "business_decision",
+    ],
+)
+def test_forbidden_decision_outputs_are_absent(forbidden):
+    result = compare([alt("A", {"cost": 100}), alt("B", {"cost": 110})])
+    assert not hasattr(result, forbidden)
