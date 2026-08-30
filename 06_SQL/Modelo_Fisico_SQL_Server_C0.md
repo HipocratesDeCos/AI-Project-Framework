@@ -2,8 +2,8 @@
 
 ## Estado
 
-**Versión:** 0.1  
-**Estado:** DISEÑO TÉCNICO — PENDIENTE DE CIERRE  
+**Versión:** 0.2  
+**Estado:** CERRADO — Diseño técnico  
 **Fase:** 8 — Implementación Técnica  
 **SGBD objetivo:** Microsoft SQL Server  
 **Ámbito:** Persistencia del perímetro C0 ya materializado
@@ -12,9 +12,9 @@
 
 # 1. Propósito
 
-Este documento define el diseño físico inicial de persistencia SQL Server para el perímetro C0 ya materializado.
+Este documento define el diseño físico de persistencia SQL Server para el perímetro C0 ya materializado.
 
-No constituye una nueva autoridad funcional. Su finalidad es traducir a persistencia relacional los contratos ya autorizados de:
+No constituye una nueva autoridad funcional. Traduce a persistencia relacional los contratos ya autorizados de:
 
 - InputContract / PurchaseOperation;
 - DecisionContext;
@@ -34,10 +34,10 @@ No implementa todavía Decision Versioning completo, Scenario Engine, Viability,
 2. **Separación contractual:** InputContract, DecisionContext, Evidence, Rule, Assessment y Trace permanecen distinguibles.
 3. **No inferencia funcional:** ninguna tabla crea dependencias DATA/EVIDENCE/COMPONENT no demostradas por la RDM.
 4. **Reproducibilidad preservada:** `input_fingerprint`, contexto y Trace se almacenan sin recalcular ni sustituir los artefactos producidos por C0.
-5. **NOT_EVALUABLE ≠ FALSE:** la restricción física debe conservar esta semántica.
+5. **NOT_EVALUABLE ≠ FALSE:** la restricción física conserva esta semántica.
 6. **Versiones funcionales preservadas:** `rules_version`, `parameters_version` y `data_snapshot_id` se almacenan como referencias, no como versiones SQL.
-7. **Identificadores técnicos separados:** los identificadores `IDENTITY` utilizados para relacionar filas son exclusivamente técnicos y no adquieren significado empresarial.
-8. **Sin JSON como sustituto del modelo:** el perímetro C0 se persiste relacionalmente; no se utilizará un documento JSON como fuente alternativa de verdad.
+7. **Identificadores técnicos separados:** los identificadores `IDENTITY` son exclusivamente técnicos y no adquieren significado empresarial.
+8. **Sin JSON como sustituto del modelo:** el perímetro C0 se persiste relacionalmente; no se utiliza un documento JSON como fuente alternativa de verdad.
 9. **Sin triggers en esta fase:** el contrato SQL no los exige y C0 no delega en SQL ninguna semántica de ejecución.
 10. **Sin temporalidad automática en esta fase:** la continuidad histórica de Decision Versioning no se sustituye por temporal tables de SQL Server.
 
@@ -60,10 +60,10 @@ Representa persistentemente `InputContract` / `PurchaseOperation`.
 | Columna | SQL Server | Null | Origen |
 |---|---|---:|---|
 | `input_row_id` | `bigint IDENTITY` | NO | Identificador técnico |
-| `decision_id` | `varchar(64)` | NO | `PurchaseOperation` |
-| `scenario_id` | `varchar(64)` | NO | `PurchaseOperation` |
-| `article_id` | `varchar(64)` | NO | `PurchaseOperation` |
-| `supplier_id` | `varchar(64)` | NO | `PurchaseOperation` |
+| `decision_id` | `nvarchar(64)` | NO | `PurchaseOperation` |
+| `scenario_id` | `nvarchar(64)` | NO | `PurchaseOperation` |
+| `article_id` | `nvarchar(64)` | NO | `PurchaseOperation` |
+| `supplier_id` | `nvarchar(64)` | NO | `PurchaseOperation` |
 | `quantity` | `decimal(38,4)` | NO | `PurchaseOperation` |
 | `unit_price` | `decimal(38,4)` | NO | `PurchaseOperation` |
 | `currency` | `char(3)` | NO | `PurchaseOperation` |
@@ -83,13 +83,13 @@ Representa persistentemente `DecisionContext`.
 | Columna | SQL Server | Null | Origen |
 |---|---|---:|---|
 | `context_row_id` | `bigint IDENTITY` | NO | Identificador técnico |
-| `decision_id` | `varchar(64)` | NO | `DecisionContext` |
-| `scenario_id` | `varchar(64)` | NO | `DecisionContext` |
-| `rules_version` | `varchar(64)` | NO | `DecisionContext` |
-| `parameters_version` | `varchar(64)` | NO | `DecisionContext` |
-| `data_snapshot_id` | `varchar(64)` | NO | `DecisionContext` |
+| `decision_id` | `nvarchar(64)` | NO | `DecisionContext` |
+| `scenario_id` | `nvarchar(64)` | NO | `DecisionContext` |
+| `rules_version` | `nvarchar(64)` | NO | `DecisionContext` |
+| `parameters_version` | `nvarchar(64)` | NO | `DecisionContext` |
+| `data_snapshot_id` | `nvarchar(64)` | NO | `DecisionContext` |
 
-La combinación de referencias contextuales se conservará íntegramente. SQL no crea una `Decision State Version` propia.
+La combinación de referencias contextuales se conserva íntegramente. SQL no crea una `Decision State Version` propia.
 
 ---
 
@@ -99,12 +99,12 @@ Representa persistentemente `Evidence`.
 
 | Columna | SQL Server | Null | Origen |
 |---|---|---:|---|
-| `evidence_id` | `varchar(64)` | NO | `Evidence` |
-| `source_type` | `varchar(64)` | NO | `Evidence` |
-| `source_ref` | `varchar(256)` | NO | `Evidence` |
+| `evidence_id` | `nvarchar(64)` | NO | `Evidence` |
+| `source_type` | `nvarchar(64)` | NO | `Evidence` |
+| `source_ref` | `nvarchar(256)` | NO | `Evidence` |
 | `captured_at` | `date` | NO | `Evidence` |
 | `state` | `varchar(16)` | NO | `Evidence` |
-| `demonstration_ref` | `varchar(256)` | SÍ | `Evidence` |
+| `demonstration_ref` | `nvarchar(256)` | SÍ | `Evidence` |
 
 `state` queda restringido físicamente a `DEMONSTRATED` / `GAP`.
 
@@ -118,9 +118,9 @@ Representa persistentemente `EvidenceValidation`.
 
 | Columna | SQL Server | Null | Origen |
 |---|---|---:|---|
-| `evidence_id` | `varchar(64)` | NO | `EvidenceValidation` |
+| `evidence_id` | `nvarchar(64)` | NO | `EvidenceValidation` |
 | `status` | `varchar(8)` | NO | `EvidenceValidation` |
-| `reason` | `varchar(256)` | NO | `EvidenceValidation` |
+| `reason` | `nvarchar(256)` | NO | `EvidenceValidation` |
 
 Clave primaria: `evidence_id`.
 
@@ -136,8 +136,8 @@ Representa exclusivamente el contrato mínimo `Rule` utilizado por C0.
 
 | Columna | SQL Server | Null | Origen |
 |---|---|---:|---|
-| `rule_id` | `varchar(64)` | NO | `Rule` |
-| `version` | `varchar(64)` | NO | `Rule` |
+| `rule_id` | `nvarchar(64)` | NO | `Rule` |
+| `version` | `nvarchar(64)` | NO | `Rule` |
 | `requires_evidence` | `bit` | NO | `Rule` |
 
 Clave primaria: (`rule_id`, `version`).
@@ -153,10 +153,10 @@ Representa exclusivamente `Assessment`.
 | Columna | SQL Server | Null | Origen |
 |---|---|---:|---|
 | `assessment_row_id` | `bigint IDENTITY` | NO | Identificador técnico |
-| `rule_id` | `varchar(64)` | NO | `Assessment` |
+| `rule_id` | `nvarchar(64)` | NO | `Assessment` |
 | `status` | `varchar(16)` | NO | `Assessment` |
 | `outcome` | `bit` | SÍ | `Assessment` |
-| `reason` | `varchar(256)` | NO | `Assessment` |
+| `reason` | `nvarchar(256)` | NO | `Assessment` |
 
 Restricción de integridad:
 
@@ -173,14 +173,17 @@ No se añaden a esta tabla `severity`, `effect`, `recommendation`, `decision`, `
 
 ## 4.7 `eios.c0_assessment_evidence`
 
-Normaliza la colección `Assessment.evidence_ids`.
+Normaliza la colección `Assessment.evidence_ids` y conserva su orden original sin convertirlo en semántica decisional.
 
 | Columna | SQL Server | Null | Origen |
 |---|---|---:|---|
 | `assessment_row_id` | `bigint` | NO | Referencia técnica a Assessment |
-| `evidence_id` | `varchar(64)` | NO | `Assessment.evidence_ids` |
+| `evidence_ordinal` | `int` | NO | Posición técnica de la colección |
+| `evidence_id` | `nvarchar(64)` | NO | `Assessment.evidence_ids` |
 
-Clave primaria: (`assessment_row_id`, `evidence_id`).
+Clave primaria: (`assessment_row_id`, `evidence_ordinal`).
+
+Restricción única adicional: (`assessment_row_id`, `evidence_id`).
 
 Claves externas:
 
@@ -189,7 +192,7 @@ assessment_row_id → eios.c0_assessment.assessment_row_id
 evidence_id       → eios.c0_evidence.evidence_id
 ```
 
-La tabla no introduce una nueva semántica de evidencia; solo conserva la colección definida por el contrato.
+La tabla no introduce una nueva semántica de evidencia; conserva la colección definida por el contrato.
 
 ---
 
@@ -199,14 +202,14 @@ Representa persistentemente `Trace`.
 
 | Columna | SQL Server | Null | Origen |
 |---|---|---:|---|
-| `trace_id` | `varchar(128)` | NO | `Trace` |
-| `decision_id` | `varchar(64)` | NO | `Trace` |
-| `scenario_id` | `varchar(64)` | NO | `Trace` |
-| `rules_version` | `varchar(64)` | NO | `Trace` |
-| `parameters_version` | `varchar(64)` | NO | `Trace` |
-| `data_snapshot_id` | `varchar(64)` | NO | `Trace` |
+| `trace_id` | `nvarchar(128)` | NO | `Trace` |
+| `decision_id` | `nvarchar(64)` | NO | `Trace` |
+| `scenario_id` | `nvarchar(64)` | NO | `Trace` |
+| `rules_version` | `nvarchar(64)` | NO | `Trace` |
+| `parameters_version` | `nvarchar(64)` | NO | `Trace` |
+| `data_snapshot_id` | `nvarchar(64)` | NO | `Trace` |
 | `input_fingerprint` | `char(64)` | NO | `Trace` |
-| `rule_id` | `varchar(64)` | NO | `Trace` |
+| `rule_id` | `nvarchar(64)` | NO | `Trace` |
 | `assessment_status` | `varchar(16)` | NO | `Trace` |
 | `assessment_outcome` | `bit` | SÍ | `Trace` |
 | `created_at` | `datetimeoffset(7)` | NO | `Trace` |
@@ -219,14 +222,17 @@ La combinación de `decision_id`, `scenario_id`, versiones, `data_snapshot_id`, 
 
 ## 4.9 `eios.c0_trace_evidence`
 
-Normaliza la colección `Trace.evidence_ids`.
+Normaliza la colección `Trace.evidence_ids` y conserva su orden original.
 
 | Columna | SQL Server | Null | Origen |
 |---|---|---:|---|
-| `trace_id` | `varchar(128)` | NO | `Trace` |
-| `evidence_id` | `varchar(64)` | NO | `Trace.evidence_ids` |
+| `trace_id` | `nvarchar(128)` | NO | `Trace` |
+| `evidence_ordinal` | `int` | NO | Posición técnica de la colección |
+| `evidence_id` | `nvarchar(64)` | NO | `Trace.evidence_ids` |
 
-Clave primaria: (`trace_id`, `evidence_id`).
+Clave primaria: (`trace_id`, `evidence_ordinal`).
+
+Restricción única adicional: (`trace_id`, `evidence_id`).
 
 Claves externas:
 
@@ -275,9 +281,10 @@ Restricciones mínimas:
 - `Assessment.status` en `EVALUABLE/NOT_EVALUABLE`;
 - coherencia `Assessment.status/outcome`;
 - `Trace.assessment_status` en `EVALUABLE/NOT_EVALUABLE`;
-- `Trace.assessment_status/outcome` con la misma semántica;
+- coherencia `Trace.assessment_status/assessment_outcome`;
 - `input_fingerprint` exactamente 64 caracteres;
-- `Trace.input_fingerprint` exactamente 64 caracteres.
+- `Trace.input_fingerprint` exactamente 64 caracteres;
+- `evidence_ordinal >= 0`.
 
 Estas restricciones son técnicas y no redefinen reglas empresariales.
 
@@ -285,7 +292,7 @@ Estas restricciones son técnicas y no redefinen reglas empresariales.
 
 # 7. Tipos numéricos
 
-`quantity` y `unit_price` se almacenarán como `decimal(38,4)` para preservar el carácter exacto de los valores decimales del contrato Python y evitar tipos aproximados.
+`quantity` y `unit_price` se almacenarán como `decimal(38,4)` para preservar los cuatro decimales autorizados por el contrato Python y evitar tipos aproximados. La precisión 38 es el máximo decimal soportado por SQL Server y no introduce una cota funcional adicional respecto al contrato Python, que no establece un máximo superior.
 
 No se utilizará `float` para estos campos.
 
@@ -388,18 +395,23 @@ Cualquier incorporación posterior deberá superar la auditoría correspondiente
 
 ---
 
-# 14. Criterio de cierre del diseño
+# 14. Auditoría de cierre
 
-El diseño podrá considerarse cerrado cuando la auditoría confirme:
+La auditoría de diseño ha confirmado:
 
-1. correspondencia completa entre columnas y contratos físicos;
-2. ausencia de campos semánticos inventados;
-3. ausencia de relaciones funcionales inferidas;
-4. preservación de `NOT_EVALUABLE ≠ FALSE`;
-5. preservación del fingerprint y Trace producidos por C0;
-6. integridad referencial únicamente donde existe autoridad suficiente;
-7. independencia entre versionado SQL y versionado funcional/decisional;
-8. compatibilidad con SQL Server;
-9. ausencia de necesidad de modificar autoridades superiores.
+- correspondencia de las columnas con los contratos físicos C0;
+- preservación de cadenas y referencias Unicode mediante tipos Unicode donde corresponde;
+- ausencia de campos funcionales inventados;
+- ausencia de relaciones funcionales inferidas;
+- preservación de `NOT_EVALUABLE ≠ FALSE`;
+- preservación del fingerprint y Trace producidos por C0;
+- integridad referencial limitada a relaciones físicamente demostradas;
+- independencia entre versionado SQL y versionado funcional/decisional;
+- compatibilidad de los tipos y restricciones propuestos con SQL Server;
+- ausencia de necesidad de modificar autoridades superiores.
 
-**Estado actual: DISEÑO TÉCNICO — PENDIENTE DE AUDITORÍA.**
+La auditoría detectó y corrigió en esta versión la utilización inicial de `varchar` para campos de texto procedentes de contratos Python `str`; el diseño final utiliza `nvarchar` para conservar Unicode sin depender de la colación del servidor.
+
+El orden de las colecciones `evidence_ids` se conserva mediante un ordinal técnico, sin atribuirle significado decisional.
+
+**Estado de cierre: CERRADO.**
