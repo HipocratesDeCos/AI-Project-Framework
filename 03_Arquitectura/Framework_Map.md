@@ -2,7 +2,7 @@
 
 ## Índice Maestro del Framework
 
-**Versión:** 2.2  
+**Versión:** 2.3  
 **Estado:** APROBADO  
 **Función:** Índice maestro de la estructura documental EIOS  
 **Ubicación:** `03_Arquitectura/Framework_Map.md`
@@ -131,9 +131,14 @@ Dominio correspondiente a la implementación y persistencia SQL, bajo la autorid
 
 - `06_LEEME_SQL.md`
 - `Modelo_Fisico_SQL_Server_C0.md`
+- `Decision_Versioning_Physical_Model.md`
 - `001_C0_Schema.sql`
+- `002_Decision_Versioning_Schema.sql`
 
-Los artefactos de validación SQL de CI se mantienen en `.github/sql/` y forman parte del mecanismo de verificación, no del índice documental de `06_SQL`.
+Los artefactos de validación SQL de CI se mantienen en `.github/sql/` y forman parte del mecanismo de verificación, no del índice documental de `06_SQL`:
+
+- `.github/sql/validate_c0_schema.sql`
+- `.github/sql/validate_decision_versioning_schema.sql`
 
 `06_LEEME_SQL.md` constituye el contrato documental del dominio SQL y establece su organización y criterios de implementación. La existencia de este documento no atribuye a SQL autoridad funcional, decisional, de versionado ni de reconstrucción semántica.
 
@@ -164,6 +169,7 @@ Documentación correspondiente a la materialización técnica controlada del dis
 
 - `Assessment_Individual_Result_Contract.md`
 - `C0_CI_Verification.md`
+- `Decision_Versioning_Implementation_Contract.md`
 
 La implementación ejecutable se encuentra materializada adicionalmente en `eios/` y verificada mediante `tests/`.
 
