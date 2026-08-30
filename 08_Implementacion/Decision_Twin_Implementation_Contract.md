@@ -3,8 +3,8 @@
 ## 1. Identidad
 
 **Documento:** Decision Twin Implementation Contract  
-**Versión:** 1.0  
-**Estado:** CERRADO — Contrato técnico de implementación  
+**Versión:** 1.0.1  
+**Estado:** EN VALIDACIÓN — contrato técnico de implementación  
 **Baseline:** EIOS Vertical MVP  
 **Ubicación:** `08_Implementacion/Decision_Twin_Implementation_Contract.md`
 
@@ -93,30 +93,52 @@ La ausencia de un elemento opcional no se convierte en un valor ficticio ni en u
 
 ---
 
-## 7. Viability Frontier
+## 7. Flujo con Viability y Scenario Engine
 
-`Decision Twin` consume el resultado de `Viability Frontier` y no lo determina.
+`Decision Twin` consume resultados ya producidos por las autoridades anteriores y no los determina.
+
+El flujo arquitectónico aplicable a la representación de alternativas es:
 
 ```text
 Assessment
     ↓
 Viability Frontier
     ↓
-Viability Result
+Scenario Engine
+    ↓
+Escenario evaluado
+    ↓
+Alternativa representada
     ↓
 Decision Twin
 ```
 
+Cuando una alternativa requiere una hipótesis, modificación o recálculo, dicha operación regresa al `Scenario Engine`:
+
+```text
+Decision Twin
+      ↓
+hipótesis / alternativa a evaluar
+      ↓
+Scenario Engine
+      ↓
+escenario evaluado
+      ↓
+Decision Twin
+```
+
+`Decision Twin` no determina ni recalcula la viabilidad y no genera, modifica ni recalcula escenarios como mecanismo propio.
+
 No puede transformar:
 
 ```text
-VIABLE              → COMPRAR
-VIABLE CON CONDICIONES → COMPRAR CONDICIONADO
-NOT_EVALUABLE       → NO COMPRAR
-NOT_VIABLE          → decisión empresarial automática
+VIABLE                  → COMPRAR
+VIABLE CON CONDICIONES  → COMPRAR CONDICIONADO
+NOT_EVALUABLE           → NO COMPRAR
+NOT_VIABLE              → decisión empresarial automática
 ```
 
-La semántica de los cuatro estados permanece bajo `Viability Frontier`.
+La semántica de los estados de viabilidad permanece bajo `Viability Frontier`; la decisión empresarial permanece bajo las autoridades posteriores y el decisor humano.
 
 ---
 
@@ -162,19 +184,7 @@ Cualquier autoridad futura de selección deberá disponer de un contrato indepen
 
 `Decision Twin` no crea, modifica ni recalcula escenarios.
 
-Las hipótesis que requieran evaluación formal regresan al `Scenario Engine`:
-
-```text
-Decision Twin
-      ↓
-hipótesis / alternativa a evaluar
-      ↓
-Scenario Engine
-      ↓
-escenario evaluado
-      ↓
-Decision Twin
-```
+Las hipótesis que requieran evaluación formal regresan al `Scenario Engine`.
 
 El historial de un escenario no se convierte en una restricción normativa de una alternativa posterior.
 
@@ -318,6 +328,8 @@ El contrato ha sido contrastado contra:
 - `06_SQL/Decision_Versioning_Physical_Model.md`;
 - `05_Motor/Modelo_Empresarial_Decision.md`.
 
+Corrección aplicada tras auditoría física: el flujo de `Decision Twin` incorpora explícitamente `Scenario Engine` entre `Viability Frontier` y la representación de alternativas, manteniendo separadas las autoridades de viabilidad, escenarios y representación.
+
 Resultado de la auditoría:
 
 - no se crea autoridad paralela;
@@ -330,7 +342,7 @@ Resultado de la auditoría:
 - versionado no se duplica;
 - persistencia física no se anticipa sin evidencia técnica suficiente.
 
-**DICTAMEN: CONTRATO DE IMPLEMENTACIÓN CERRADO PARA DISEÑO TÉCNICO.**
+**DICTAMEN: CORRECCIÓN DOCUMENTAL APLICADA; PENDIENTE VALIDACIÓN FINAL Y CI.**
 
 ---
 
@@ -339,7 +351,7 @@ Resultado de la auditoría:
 ```text
 CONTRATO FUNCIONAL                  CERRADO
 FRONTERA DE AUTORIDAD               CERRADA
-ENTRADA/SALIDA                      CERRADA
+FLUJO ARQUITECTÓNICO                CORREGIDO
 SEPARACIÓN DE VIABILITY             CERRADA
 SEPARACIÓN DE SCENARIO ENGINE       CERRADA
 SEPARACIÓN DE ASSESSMENT/EVIDENCE   CERRADA
@@ -347,4 +359,5 @@ SEPARACIÓN DE SELECCIÓN/DECISIÓN    CERRADA
 PERSISTENCIA FÍSICA                 PENDIENTE DE DISEÑO
 DDL                                 PENDIENTE
 IMPLEMENTACIÓN DE CÓDIGO            PENDIENTE
+VALIDACIÓN CI                       PENDIENTE
 ```
