@@ -65,7 +65,14 @@ BEGIN
 
         CONSTRAINT PK_c0_evidence PRIMARY KEY CLUSTERED (evidence_id),
         CONSTRAINT CK_c0_evidence_state
-            CHECK (state IN ('DEMONSTRATED', 'GAP'))
+            CHECK (state IN ('DEMONSTRATED', 'GAP')),
+        CONSTRAINT CK_c0_evidence_demonstration
+            CHECK
+            (
+                (state = 'DEMONSTRATED' AND demonstration_ref IS NOT NULL)
+                OR
+                (state = 'GAP')
+            )
     );
 END;
 GO
@@ -159,7 +166,7 @@ BEGIN
         rules_version        nvarchar(64) NOT NULL,
         parameters_version   nvarchar(64) NOT NULL,
         data_snapshot_id     nvarchar(64) NOT NULL,
-        input_fingerprint     char(64) NOT NULL,
+        input_fingerprint    char(64) NOT NULL,
         rule_id              nvarchar(64) NOT NULL,
         assessment_status    varchar(16) NOT NULL,
         assessment_outcome   bit NULL,
@@ -186,7 +193,7 @@ BEGIN
     CREATE TABLE eios.c0_trace_evidence
     (
         trace_id          nvarchar(128) NOT NULL,
-        evidence_ordinal   int NOT NULL,
+        evidence_ordinal  int NOT NULL,
         evidence_id       nvarchar(64) NOT NULL,
 
         CONSTRAINT PK_c0_trace_evidence
