@@ -89,8 +89,8 @@ IF EXISTS (
     OR c.DATA_TYPE<>e.data_type
     OR c.IS_NULLABLE <> CASE WHEN e.is_nullable=1 THEN 'YES' ELSE 'NO' END
     OR ISNULL(c.CHARACTER_MAXIMUM_LENGTH,-999)<>ISNULL(e.char_length,-999)
-    OR ISNULL(c.NUMERIC_PRECISION,-999)<>ISNULL(e.numeric_precision,-999)
-    OR ISNULL(c.NUMERIC_SCALE,-999)<>ISNULL(e.numeric_scale,-999)
+    OR ISNULL(CONVERT(int,c.NUMERIC_PRECISION),-999)<>ISNULL(e.numeric_precision,-999)
+    OR ISNULL(CONVERT(int,c.NUMERIC_SCALE),-999)<>ISNULL(e.numeric_scale,-999)
     OR ISNULL(COLUMNPROPERTY(OBJECT_ID(N'eios.'+e.table_name),e.column_name,'IsIdentity'),0)<>e.is_identity
 )
 BEGIN SET @failures+=1; PRINT 'FAIL V2: column definition differs from C0 SQL contract'; END;
