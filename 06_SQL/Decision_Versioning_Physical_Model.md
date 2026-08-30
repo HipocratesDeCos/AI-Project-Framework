@@ -2,8 +2,8 @@
 
 ## Estado
 
-**Versión:** 0.2  
-**Estado:** DISEÑO DEPURADO — PENDIENTE DE AUDITORÍA 2  
+**Versión:** 1.0  
+**Estado:** CERRADO — Diseño físico técnico  
 **Fase:** 8 — Implementación Técnica  
 **SGBD objetivo:** Microsoft SQL Server  
 **Ámbito:** Persistencia mínima de Decision Versioning
@@ -24,7 +24,7 @@ No implementa Scenario Engine, Viability, Decision Twin, Negotiation, CRC, Forec
 
 ## 2. Objeto físico
 
-Se propone un único objeto principal:
+Se materializa un único objeto principal:
 
 ```text
 eios.decision_state
@@ -74,7 +74,7 @@ Reutiliza la semántica de `Decision_ID` ya establecida por C0 y Decision Versio
 | `input_fingerprint` | `char(64)` | SÍ | Fingerprint producido por C0, cuando exista |
 | `trace_id` | `nvarchar(128)` | SÍ | Referencia al Trace C0 pertinente, cuando exista |
 
-En el DDL, `timestamp` deberá delimitarse como identificador SQL Server (`[timestamp]`) o sustituirse por un nombre físico equivalente documentado, sin cambiar la semántica contractual.
+En el DDL, `timestamp` se delimita como identificador SQL Server (`[timestamp]`).
 
 ---
 
@@ -138,7 +138,7 @@ La tabla es conceptualmente append-only. Un nuevo estado se representa mediante 
 
 No se utiliza trigger de versionado, temporal table como sustituto de Decision Versioning, `current_flag` como identidad histórica, ni una `Decision State Version` generada por SQL.
 
-La protección física contra modificación o borrado destructivo se implementará mediante un perfil de permisos de persistencia que permita `SELECT` e `INSERT` sobre la tabla al actor de escritura y no conceda `UPDATE` ni `DELETE`. La definición concreta de roles y grants pertenece al despliegue SQL y no altera la semántica funcional.
+La protección física se realiza mediante el perfil de permisos de persistencia: el rol de escritura recibe `SELECT` e `INSERT` y tiene `UPDATE` y `DELETE` expresamente denegados sobre `eios.decision_state`.
 
 ---
 
@@ -167,7 +167,7 @@ PK_decision_state
     → decision_state_record_id
 ```
 
-No se materializan todavía índices adicionales sobre `decision_id`, `scenario_id`, `user_id`, `input_fingerprint` ni versiones.
+No se materializan índices adicionales.
 
 La razón es metodológica: el contrato de implementación exige que los índices respondan a patrones de acceso demostrados por implementación y pruebas. En ausencia de implementación específica de Decision Versioning y de tests de acceso, añadir índices adicionales sería una inferencia documental y no una necesidad demostrada.
 
@@ -206,26 +206,38 @@ Este modelo no define escenarios, reglas, parámetros, Forecast, RFP, versión f
 
 ---
 
-## 14. Auditoría previa al DDL
+## 14. Auditoría 2 — dictamen
 
-Antes de materializar el DDL deberán comprobarse:
+El diseño ha sido contrastado contra:
 
-1. correspondencia exacta con `Decision_Versioning_Implementation_Contract.md`;
-2. ausencia de contradicciones con C0;
-3. ausencia de FKs sobre artefactos futuros;
-4. validez de `datetimeoffset(7)` / UTC;
-5. adecuación del límite de `user_id`;
-6. validación hexadecimal del fingerprint;
-7. mecanismo append-only mediante permisos SQL;
-8. ausencia de índices no justificados;
-9. rollback/limpieza segura en CI;
-10. ausencia de modificación de autoridades superiores;
-11. validez del uso del identificador físico `[timestamp]` en SQL Server.
+- `05_Motor/Decision_Versioning.md`;
+- `08_Implementacion/Decision_Versioning_Implementation_Contract.md`;
+- `06_SQL/06_LEEME_SQL.md`;
+- modelos y tipos físicos de C0;
+- límites y nulabilidad de C0;
+- reglas de no duplicación de fingerprint/Trace/snapshot;
+- frontera de referencias futuras;
+- patrón SQL Server ya materializado en C0;
+- criterio de índices basado en acceso demostrado.
+
+Resultado:
+
+- no se modifica ninguna autoridad funcional;
+- no se modifica C0;
+- no se introducen FKs sobre artefactos futuros;
+- `Timestamp` queda resuelto como `datetimeoffset(7)` UTC;
+- `User` queda representado técnicamente mediante `user_id nvarchar(128)` como identificador de actor;
+- la inmutabilidad se expresa como frontera de permisos, sin trigger ni temporal table;
+- no se introducen índices no demostrados;
+- el uso de `[timestamp]` queda explícitamente delimitado para SQL Server;
+- el DDL resultante coincide con esta frontera técnica.
+
+**DICTAMEN: AUDITORÍA 2 SUPERADA. DISEÑO FÍSICO CERRADO.**
 
 ---
 
 ## 15. Estado
 
-**DISEÑO DEPURADO — PENDIENTE DE AUDITORÍA 2**
+**CERRADO — DISEÑO FÍSICO TÉCNICO**
 
-Este documento no autoriza todavía la creación del DDL.
+El DDL puede someterse ahora a validación real en SQL Server y CI. La validación no autoriza cambios funcionales ni modifica las autoridades superiores.
