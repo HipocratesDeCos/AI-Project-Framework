@@ -3,8 +3,8 @@
 ## 1. Identidad
 
 **Documento:** Decision Versioning Implementation Contract  
-**Versión:** 1.0  
-**Estado:** DISEÑO TÉCNICO — PENDIENTE DE AUDITORÍA DE CIERRE  
+**Versión:** 1.1  
+**Estado:** CERRADO — Contrato técnico de implementación  
 **Baseline:** EIOS Vertical MVP  
 **Ubicación:** `08_Implementacion/Decision_Versioning_Implementation_Contract.md`
 
@@ -49,9 +49,9 @@ La identidad funcional continúa siendo la definida por `Decision Versioning`.
 
 ---
 
-## 5. Referencias obligatorias de materialización
+## 5. Referencias mínimas de materialización
 
-El registro físico mínimo debe poder conservar:
+El registro físico debe poder conservar, cuando formen parte del contexto disponible:
 
 ```text
 Decision_ID
@@ -65,7 +65,7 @@ User
 
 Estas referencias se almacenan sin modificar su semántica.
 
-La obligatoriedad física concreta deberá respetar el alcance efectivo de cada ejecución: referencias que conceptualmente sean aplicables pero no estén disponibles por no existir todavía el componente correspondiente no deben inventarse.
+La presencia física de una referencia debe reflejar su aplicabilidad y disponibilidad reales. No se inventarán valores para satisfacer restricciones físicas.
 
 ---
 
@@ -173,7 +173,7 @@ Assurance utiliza esa continuidad para verificar reconstruibilidad.
 El esquema físico deberá impedir, cuando sea técnicamente determinable:
 
 - referencias imposibles dentro del mismo registro;
-- pérdida silenciosa de identificadores obligatorios;
+- pérdida silenciosa de identificadores necesarios cuando estén disponibles;
 - modificación destructiva de registros históricos;
 - duplicación semántica de mecanismos C0.
 
@@ -250,24 +250,27 @@ DDL
 
 ## 17. Criterio de cierre
 
-El presente contrato podrá cerrarse cuando:
+El presente contrato queda cerrado cuando:
 
 - sus campos y referencias sean trazables a autoridades existentes;
 - no introduzca semántica funcional nueva;
 - C0 permanezca inalterado;
 - las referencias opcionales permanezcan explícitamente condicionadas;
-- Timestamp y User tengan frontera técnica suficiente;
+- Timestamp y User mantengan una frontera técnica sin inventar semántica funcional;
 - la inmutabilidad sea implementable sin crear una nueva versión funcional;
 - los índices puedan justificarse por acceso real;
 - la materialización física pueda auditarse contra este contrato.
+
+La auditoría de cierre confirma estas condiciones para el nivel de contrato técnico definido aquí. Los detalles físicos enumerados en la sección 15 permanecen como criterios previos al DDL y no constituyen un bloqueo del contrato de implementación.
 
 ---
 
 ## 18. Estado
 
-**DISEÑO TÉCNICO: PENDIENTE DE AUDITORÍA 2**
+**DICTAMEN:** CERRADO
 
 **Tipo de cambio:** DOCUMENTACIÓN DE IMPLEMENTACIÓN  
 **Cambios técnicos derivados:** NINGUNO  
 **C0:** NO ALTERADO  
-**DDL:** NO CREADO
+**DDL:** NO CREADO  
+**Método:** DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR
