@@ -67,6 +67,15 @@ def test_consequences_are_descriptive_without_priority():
     assert not hasattr(result, "winner")
 
 
+def test_scenario_and_trace_references_are_preserved():
+    result = compare([
+        alt("A", {}, scenario_ref="S1", trace_refs=("T1",)),
+        alt("B", {}, scenario_ref="S2", trace_refs=("T2",)),
+    ])
+    assert result.traceability == {"A": ("T1",), "B": ("T2",)}
+    assert not hasattr(result, "selected_scenario")
+
+
 def test_redundant_trace_references_do_not_create_weight():
     result = compare([
         alt("A", {"cost": 100}, trace_refs=("T1", "T2", "T2")),
