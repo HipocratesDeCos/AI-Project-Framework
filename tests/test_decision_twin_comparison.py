@@ -30,7 +30,7 @@ def test_reverse_order_preserves_observations_and_difference_set():
     forward = compare([alt("A", {"cost": 100}), alt("B", {"cost": 110})])
     reverse = compare([alt("B", {"cost": 110}), alt("A", {"cost": 100})])
     assert forward.observations == reverse.observations
-    assert set(map(repr, forward.differences["cost"])) == set(map(repr, reverse.differences["cost"]))
+    assert set(forward.differences["cost"]) == set(reverse.differences["cost"])
 
 
 def test_missing_value_is_not_penalized():
@@ -103,3 +103,10 @@ def test_requires_two_or_more_alternatives():
 def test_duplicate_representation_refs_are_rejected():
     with pytest.raises(ValueError):
         compare([alt("A", {"cost": 100}), alt("A", {"cost": 110})])
+
+
+def test_nested_values_use_value_equality_not_repr_only():
+    left = {"cost": {"amount": 100, "currency": "EUR"}}
+    right = {"cost": {"currency": "EUR", "amount": 100}}
+    result = compare([alt("A", left), alt("B", right)])
+    assert "cost" not in result.differences
