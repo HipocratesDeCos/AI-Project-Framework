@@ -3,7 +3,7 @@
 ## 1. Identidad
 
 **Documento:** Decision Twin Implementation Contract  
-**Versión:** 1.0.2  
+**Versión:** 1.0.3  
 **Estado:** EN VALIDACIÓN — contrato técnico de implementación  
 **Baseline:** EIOS Vertical MVP  
 **Ubicación:** `08_Implementacion/Decision_Twin_Implementation_Contract.md`
@@ -315,8 +315,8 @@ Estos elementos solo podrán definirse después de cerrar sus requisitos técnic
 
 Antes de materializar persistencia específica deberán estar demostrados:
 
-1. si `Alternative` requiere identidad técnica propia;
-2. relación física con escenario, cuando proceda;
+1. si `Alternative` requiere identidad persistente propia;
+2. si la relación con `Scenario_ID` es necesaria y, en tal caso, su cardinalidad y opcionalidad;
 3. referencias necesarias a resultados de viabilidad;
 4. referencias de trazabilidad;
 5. necesidad real de persistencia frente a representación transitoria;
@@ -327,37 +327,31 @@ La ausencia de estos cierres impide inferir un modelo físico definitivo.
 
 ---
 
-## 20. Auditoría de cierre
+## 20. Auditoría de cierre provisional
 
 El contrato ha sido contrastado contra:
 
 - `05_Motor/Decision_Twin.md`;
 - `05_Motor/Viability_Frontier.md`;
+- `05_Motor/Viability_Scenario_Engine.md`;
 - `08_Implementacion/Assessment_Individual_Result_Contract.md`;
 - `08_Implementacion/Decision_Versioning_Implementation_Contract.md`;
 - `06_SQL/Decision_Versioning_Physical_Model.md`;
 - `05_Motor/Modelo_Empresarial_Decision.md`.
 
-Correcciones aplicadas tras auditoría física:
-
-- el flujo de `Decision Twin` incorpora explícitamente `Scenario Engine` entre `Viability Frontier` y la representación de alternativas;
-- no se presume una identidad persistente propia de `Alternative` sin autoridad documental;
-- no se reutiliza `Scenario_ID` ni `Decision_ID` como sustituto de un futuro `Alternative_ID`.
-
-Resultado de la auditoría:
+Resultado:
 
 - no se crea autoridad paralela;
 - comparación queda separada de selección;
 - viabilidad queda separada de decisión;
-- escenarios permanecen bajo Scenario Engine;
+- Scenario Engine conserva la autoridad sobre hipótesis y recálculo;
 - Assessment permanece individual;
 - evidencia permanece bajo su contrato;
 - parámetros y dependencias no son modificados;
 - versionado no se duplica;
-- identidad física de Alternative no se inventa;
 - persistencia física no se anticipa sin evidencia técnica suficiente.
 
-**DICTAMEN: CORRECCIÓN DOCUMENTAL APLICADA; PENDIENTE VALIDACIÓN CI.**
+**DICTAMEN: CONTRATO ALINEADO; MATERIALIZACIÓN FÍSICA AÚN NO AUTORIZADA.**
 
 ---
 
@@ -366,14 +360,14 @@ Resultado de la auditoría:
 ```text
 CONTRATO FUNCIONAL                  CERRADO
 FRONTERA DE AUTORIDAD               CERRADA
-FLUJO ARQUITECTÓNICO                CORREGIDO
-IDENTIDAD ALTERNATIVE               NO FORMALIZADA
+ENTRADA/SALIDA                      CERRADA
 SEPARACIÓN DE VIABILITY             CERRADA
 SEPARACIÓN DE SCENARIO ENGINE       CERRADA
 SEPARACIÓN DE ASSESSMENT/EVIDENCE   CERRADA
 SEPARACIÓN DE SELECCIÓN/DECISIÓN    CERRADA
-PERSISTENCIA FÍSICA                 PENDIENTE DE DISEÑO
+IDENTIDAD DE ALTERNATIVE             PENDIENTE DE JUSTIFICACIÓN
+RELACIÓN SCENARIO ↔ ALTERNATIVE      PENDIENTE DE JUSTIFICACIÓN
+PERSISTENCIA FÍSICA                 PENDIENTE
 DDL                                 PENDIENTE
 IMPLEMENTACIÓN DE CÓDIGO            PENDIENTE
-VALIDACIÓN CI                       PENDIENTE
 ```
