@@ -75,7 +75,7 @@ INSERT INTO @expected_columns VALUES
 (N'c0_trace',N'rule_id',N'nvarchar',64,NULL,NULL,0,0),
 (N'c0_trace',N'assessment_status',N'varchar',16,NULL,NULL,0,0),
 (N'c0_trace',N'assessment_outcome',N'bit',NULL,1,0,1,0),
-(N'c0_trace',N'created_at',N'datetimeoffset',NULL,NULL,7,0,0),
+(N'c0_trace',N'created_at',N'datetimeoffset',NULL,NULL,NULL,0,0),
 (N'c0_trace_evidence',N'trace_id',N'nvarchar',128,NULL,NULL,0,0),
 (N'c0_trace_evidence',N'evidence_ordinal',N'int',NULL,10,0,0,0),
 (N'c0_trace_evidence',N'evidence_id',N'nvarchar',64,NULL,NULL,0,0);
