@@ -38,10 +38,22 @@ class Comparison:
     traceability: Mapping[str, tuple[str, ...]]
 
 
+def _equal(left: Any, right: Any) -> bool:
+    """Use value equality without assigning business semantics."""
+    try:
+        result = left == right
+    except (TypeError, ValueError):
+        return repr(left) == repr(right)
+    return bool(result) if isinstance(result, bool) else repr(left) == repr(right)
+
+
 def _differences(values: Sequence[Any]) -> tuple[Any, ...]:
-    if len({repr(value) for value in values}) > 1:
-        return tuple(values)
-    return ()
+    if len(values) < 2:
+        return ()
+    first = values[0]
+    if all(_equal(first, value) for value in values[1:]):
+        return ()
+    return tuple(values)
 
 
 def compare(alternatives: Sequence[AlternativeRepresentation]) -> Comparison:
@@ -73,9 +85,7 @@ def compare(alternatives: Sequence[AlternativeRepresentation]) -> Comparison:
         if absent:
             missing[key] = tuple(absent)
 
-    scenario_refs = {
-        a.representation_ref: a.scenario_ref for a in alternatives
-    }
+    scenario_refs = {a.representation_ref: a.scenario_ref for a in alternatives}
     viability = {a.representation_ref: a.viability for a in alternatives}
     viability_diff = _differences(tuple(a.viability for a in alternatives))
 
@@ -95,10 +105,7 @@ def compare(alternatives: Sequence[AlternativeRepresentation]) -> Comparison:
         if diff:
             consequence_differences[key] = diff
 
-    traces = {
-        a.representation_ref: tuple(a.trace_refs)
-        for a in alternatives
-    }
+    traces = {a.representation_ref: tuple(a.trace_refs) for a in alternatives}
 
     return Comparison(
         alternatives=refs,
