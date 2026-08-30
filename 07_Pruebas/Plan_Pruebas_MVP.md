@@ -2,10 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.2  
+**Versión:** 0.3  
 **Estado:** APROBADO  
 **Baseline:** EIOS Vertical MVP  
-**Fecha:** 20/08/2026
+**Fecha:** 30/08/2026
 
 ---
 
@@ -194,7 +194,9 @@ Una prueba funcional podrá considerarse aprobada cuando:
 
 La ejecución completa de este Plan requiere que las capas de implementación necesarias estén disponibles.
 
-En particular, `06_SQL` está actualmente reservada para la futura implementación y no contiene todavía artefactos SQL del MVP. Por ello, los casos de ejecución física permanecen pendientes.
+El slice físico `06_SQL` correspondiente a C0 ya está materializado en `06_SQL/Modelo_Fisico_SQL_Server_C0.md` y `06_SQL/001_C0_Schema.sql`, y su estructura es validada en CI mediante el mecanismo específico de validación SQL de `.github/sql/validate_c0_schema.sql`.
+
+Esta validación de infraestructura física no convierte automáticamente en ejecutables los casos funcionales del presente Plan que dependan de capacidades todavía no materializadas. Por ello, los casos funcionales no implementados permanecen en su estado correspondiente según sus dependencias.
 
 Este documento define **qué debe comprobarse**, no cómo construir la infraestructura técnica para hacerlo.
 
@@ -213,6 +215,6 @@ Este documento define **qué debe comprobarse**, no cómo construir la infraestr
 
 # 17. Estado documental
 
-**Versión:** 0.2  
+**Versión:** 0.3  
 **Estado:** APROBADO  
 **Baseline:** EIOS Vertical MVP
