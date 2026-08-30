@@ -30,8 +30,18 @@ BEGIN
         CONSTRAINT CK_c0_input_quantity CHECK (quantity > 0),
         CONSTRAINT CK_c0_input_unit_price CHECK (unit_price >= 0),
         CONSTRAINT CK_c0_input_currency CHECK (currency = 'EUR'),
+        CONSTRAINT CK_c0_input_identifiers_nonempty CHECK
+            (
+                decision_id <> N'' AND
+                scenario_id <> N'' AND
+                article_id <> N'' AND
+                supplier_id <> N''
+            ),
         CONSTRAINT CK_c0_input_fingerprint CHECK
-            (input_fingerprint NOT LIKE '%[^0-9A-Fa-f]%')
+            (
+                input_fingerprint NOT LIKE '%[^0-9A-Fa-f]%'
+                AND LEN(input_fingerprint) = 64
+            )
     );
 END;
 GO
@@ -47,7 +57,15 @@ BEGIN
         parameters_version  nvarchar(64) NOT NULL,
         data_snapshot_id    nvarchar(64) NOT NULL,
 
-        CONSTRAINT PK_c0_context PRIMARY KEY CLUSTERED (context_row_id)
+        CONSTRAINT PK_c0_context PRIMARY KEY CLUSTERED (context_row_id),
+        CONSTRAINT CK_c0_context_nonempty CHECK
+            (
+                decision_id <> N'' AND
+                scenario_id <> N'' AND
+                rules_version <> N'' AND
+                parameters_version <> N'' AND
+                data_snapshot_id <> N''
+            )
     );
 END;
 GO
@@ -66,6 +84,16 @@ BEGIN
         CONSTRAINT PK_c0_evidence PRIMARY KEY CLUSTERED (evidence_id),
         CONSTRAINT CK_c0_evidence_state
             CHECK (state IN ('DEMONSTRATED', 'GAP')),
+        CONSTRAINT CK_c0_evidence_nonempty CHECK
+            (
+                evidence_id <> N'' AND
+                source_type <> N'' AND
+                source_ref <> N'' AND
+                (
+                    demonstration_ref IS NULL
+                    OR demonstration_ref <> N''
+                )
+            ),
         CONSTRAINT CK_c0_evidence_demonstration
             CHECK
             (
@@ -90,7 +118,12 @@ BEGIN
             FOREIGN KEY (evidence_id)
             REFERENCES eios.c0_evidence (evidence_id),
         CONSTRAINT CK_c0_evidence_validation_status
-            CHECK (status IN ('VALID', 'INVALID'))
+            CHECK (status IN ('VALID', 'INVALID')),
+        CONSTRAINT CK_c0_evidence_validation_nonempty CHECK
+            (
+                evidence_id <> N'' AND
+                reason <> N''
+            )
     );
 END;
 GO
@@ -103,7 +136,12 @@ BEGIN
         version            nvarchar(64) NOT NULL,
         requires_evidence  bit NOT NULL,
 
-        CONSTRAINT PK_c0_rule_contract PRIMARY KEY CLUSTERED (rule_id, version)
+        CONSTRAINT PK_c0_rule_contract PRIMARY KEY CLUSTERED (rule_id, version),
+        CONSTRAINT CK_c0_rule_contract_nonempty CHECK
+            (
+                rule_id <> N'' AND
+                version <> N''
+            )
     );
 END;
 GO
@@ -127,6 +165,11 @@ BEGIN
                 (status = 'EVALUABLE' AND outcome IS NOT NULL)
                 OR
                 (status = 'NOT_EVALUABLE' AND outcome IS NULL)
+            ),
+        CONSTRAINT CK_c0_assessment_nonempty CHECK
+            (
+                rule_id <> N'' AND
+                reason <> N''
             )
     );
 END;
@@ -151,7 +194,9 @@ BEGIN
             FOREIGN KEY (evidence_id)
             REFERENCES eios.c0_evidence (evidence_id),
         CONSTRAINT CK_c0_assessment_evidence_ordinal
-            CHECK (evidence_ordinal >= 0)
+            CHECK (evidence_ordinal >= 0),
+        CONSTRAINT CK_c0_assessment_evidence_id_nonempty
+            CHECK (evidence_id <> N'')
     );
 END;
 GO
@@ -182,8 +227,21 @@ BEGIN
                 OR
                 (assessment_status = 'NOT_EVALUABLE' AND assessment_outcome IS NULL)
             ),
-        CONSTRAINT CK_c0_trace_fingerprint
-            CHECK (input_fingerprint NOT LIKE '%[^0-9A-Fa-f]%')
+        CONSTRAINT CK_c0_trace_nonempty CHECK
+            (
+                trace_id <> N'' AND
+                decision_id <> N'' AND
+                scenario_id <> N'' AND
+                rules_version <> N'' AND
+                parameters_version <> N'' AND
+                data_snapshot_id <> N'' AND
+                rule_id <> N''
+            ),
+        CONSTRAINT CK_c0_trace_fingerprint CHECK
+            (
+                input_fingerprint NOT LIKE '%[^0-9A-Fa-f]%'
+                AND LEN(input_fingerprint) = 64
+            )
     );
 END;
 GO
@@ -207,7 +265,9 @@ BEGIN
             FOREIGN KEY (evidence_id)
             REFERENCES eios.c0_evidence (evidence_id),
         CONSTRAINT CK_c0_trace_evidence_ordinal
-            CHECK (evidence_ordinal >= 0)
+            CHECK (evidence_ordinal >= 0),
+        CONSTRAINT CK_c0_trace_evidence_id_nonempty
+            CHECK (evidence_id <> N'')
     );
 END;
 GO
