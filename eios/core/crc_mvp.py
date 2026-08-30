@@ -128,22 +128,17 @@ def resolve_crc(
         if item.outcome == "TRUE":
             active.append((item, rule_metadata[item.rule_id]))
 
-    # A known R0 remains dominant even when other information is incomplete.
     if active:
         active.sort(key=lambda pair: _EFFECT_PRIORITY[pair[1].effect])
         dominant_assessment, dominant_rule = active[0]
         dominant_effect = dominant_rule.effect
         consolidated = _EFFECT_RESULT[dominant_effect] or crc_input.base_result
 
-        lower_reasons = tuple(
+        relevant = tuple(
             item.reason
             for item, metadata in active[1:]
             if metadata.effect != dominant_effect
         )
-        informative_reasons = tuple(
-            item.reason for item, metadata in active if metadata.effect == "R3" and item is not dominant_assessment
-        )
-        relevant = lower_reasons + informative_reasons
 
         conflicts = tuple(
             f"{item.rule_id}:{metadata.effect}"
