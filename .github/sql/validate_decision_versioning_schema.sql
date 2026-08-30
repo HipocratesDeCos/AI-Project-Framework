@@ -9,16 +9,8 @@ DECLARE @failures int = 0;
 
 /* V1 — exact Decision Versioning table */
 IF OBJECT_ID(N'eios.decision_state', N'U') IS NULL
-BEGIN SET @failures += 1; PRINT 'FAIL V1: eios.decision_state missing'; END;
-IF EXISTS (
-    SELECT 1
-    FROM sys.tables t
-    WHERE t.schema_id = SCHEMA_ID(N'eios')
-      AND t.name = N'decision_state'
-      AND t.is_ms_shipped = 0
-      AND EXISTS (SELECT 1 FROM sys.tables x WHERE x.schema_id = SCHEMA_ID(N'eios') AND x.name = N'decision_state')
-)
-BEGIN PRINT 'PASS V1: eios.decision_state exists'; END;
+BEGIN SET @failures += 1; PRINT 'FAIL V1: eios.decision_state missing'; END
+ELSE PRINT 'PASS V1: eios.decision_state exists';
 
 /* V2 — exact columns, SQL type, length, precision, scale, datetime precision, nullability, identity */
 DECLARE @expected_columns TABLE
@@ -32,20 +24,19 @@ DECLARE @expected_columns TABLE
     is_nullable bit,
     is_identity bit
 );
-INSERT INTO @expected_columns VALUES
-(N'decision_state_record_id',N'bigint',NULL,19,0,NULL,0,1),
-(N'decision_id',N'nvarchar',64,NULL,NULL,NULL,0,0),
-(N'scenario_id',N'nvarchar',64,NULL,NULL,NULL,0,0),
-(N'data_snapshot_id',N'nvarchar',64,NULL,NULL,NULL,0,0),
-(N'rules_version',N'nvarchar',64,NULL,NULL,NULL,0,0),
-(N'parameters_version',N'nvarchar',64,NULL,NULL,NULL,0,0),
-(N'forecast_version',N'nvarchar',64,NULL,NULL,NULL,1,0),
-(N'rfp_version',N'nvarchar',64,NULL,NULL,NULL,1,0),
-(N'eios_version',N'nvarchar',64,NULL,NULL,NULL,1,0),
-(N'timestamp',N'datetimeoffset',NULL,NULL,NULL,7,0),
-(N'user_id',N'nvarchar',128,NULL,NULL,NULL,0,0),
-(N'input_fingerprint',N'char',64,NULL,NULL,NULL,1,0),
-(N'trace_id',N'nvarchar',128,NULL,NULL,NULL,1,0);
+INSERT INTO @expected_columns (column_name,data_type,char_length,numeric_precision,numeric_scale,datetime_precision,is_nullable,is_identity) VALUES (N'decision_state_record_id',N'bigint',NULL,19,0,NULL,0,1);
+INSERT INTO @expected_columns (column_name,data_type,char_length,numeric_precision,numeric_scale,datetime_precision,is_nullable,is_identity) VALUES (N'decision_id',N'nvarchar',64,NULL,NULL,NULL,0,0);
+INSERT INTO @expected_columns (column_name,data_type,char_length,numeric_precision,numeric_scale,datetime_precision,is_nullable,is_identity) VALUES (N'scenario_id',N'nvarchar',64,NULL,NULL,NULL,0,0);
+INSERT INTO @expected_columns (column_name,data_type,char_length,numeric_precision,numeric_scale,datetime_precision,is_nullable,is_identity) VALUES (N'data_snapshot_id',N'nvarchar',64,NULL,NULL,NULL,0,0);
+INSERT INTO @expected_columns (column_name,data_type,char_length,numeric_precision,numeric_scale,datetime_precision,is_nullable,is_identity) VALUES (N'rules_version',N'nvarchar',64,NULL,NULL,NULL,0,0);
+INSERT INTO @expected_columns (column_name,data_type,char_length,numeric_precision,numeric_scale,datetime_precision,is_nullable,is_identity) VALUES (N'parameters_version',N'nvarchar',64,NULL,NULL,NULL,0,0);
+INSERT INTO @expected_columns (column_name,data_type,char_length,numeric_precision,numeric_scale,datetime_precision,is_nullable,is_identity) VALUES (N'forecast_version',N'nvarchar',64,NULL,NULL,NULL,1,0);
+INSERT INTO @expected_columns (column_name,data_type,char_length,numeric_precision,numeric_scale,datetime_precision,is_nullable,is_identity) VALUES (N'rfp_version',N'nvarchar',64,NULL,NULL,NULL,1,0);
+INSERT INTO @expected_columns (column_name,data_type,char_length,numeric_precision,numeric_scale,datetime_precision,is_nullable,is_identity) VALUES (N'eios_version',N'nvarchar',64,NULL,NULL,NULL,1,0);
+INSERT INTO @expected_columns (column_name,data_type,char_length,numeric_precision,numeric_scale,datetime_precision,is_nullable,is_identity) VALUES (N'timestamp',N'datetimeoffset',NULL,NULL,NULL,7,0,0);
+INSERT INTO @expected_columns (column_name,data_type,char_length,numeric_precision,numeric_scale,datetime_precision,is_nullable,is_identity) VALUES (N'user_id',N'nvarchar',128,NULL,NULL,NULL,0,0);
+INSERT INTO @expected_columns (column_name,data_type,char_length,numeric_precision,numeric_scale,datetime_precision,is_nullable,is_identity) VALUES (N'input_fingerprint',N'char',64,NULL,NULL,NULL,1,0);
+INSERT INTO @expected_columns (column_name,data_type,char_length,numeric_precision,numeric_scale,datetime_precision,is_nullable,is_identity) VALUES (N'trace_id',N'nvarchar',128,NULL,NULL,NULL,1,0);
 
 IF (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=N'eios' AND TABLE_NAME=N'decision_state') <> (SELECT COUNT(*) FROM @expected_columns)
 BEGIN SET @failures += 1; PRINT 'FAIL V2: column count differs'; END;
@@ -84,23 +75,21 @@ BEGIN SET @failures += 1; PRINT 'FAIL V3: unexpected UNIQUE constraint'; END;
 
 /* V4 — expected CHECK constraints */
 DECLARE @expected_checks TABLE(name sysname PRIMARY KEY);
-INSERT INTO @expected_checks VALUES
-(N'CK_decision_state_decision_id_nonempty'),
-(N'CK_decision_state_scenario_id_nonempty'),
-(N'CK_decision_state_data_snapshot_id_nonempty'),
-(N'CK_decision_state_rules_version_nonempty'),
-(N'CK_decision_state_parameters_version_nonempty'),
-(N'CK_decision_state_user_id_nonempty'),
-(N'CK_decision_state_timestamp_utc'),
-(N'CK_decision_state_fingerprint_hex'),
-(N'CK_decision_state_forecast_version_nonempty'),
-(N'CK_decision_state_rfp_version_nonempty'),
-(N'CK_decision_state_eios_version_nonempty'),
-(N'CK_decision_state_trace_id_nonempty');
+INSERT INTO @expected_checks(name) VALUES (N'CK_decision_state_decision_id_nonempty');
+INSERT INTO @expected_checks(name) VALUES (N'CK_decision_state_scenario_id_nonempty');
+INSERT INTO @expected_checks(name) VALUES (N'CK_decision_state_data_snapshot_id_nonempty');
+INSERT INTO @expected_checks(name) VALUES (N'CK_decision_state_rules_version_nonempty');
+INSERT INTO @expected_checks(name) VALUES (N'CK_decision_state_parameters_version_nonempty');
+INSERT INTO @expected_checks(name) VALUES (N'CK_decision_state_user_id_nonempty');
+INSERT INTO @expected_checks(name) VALUES (N'CK_decision_state_timestamp_utc');
+INSERT INTO @expected_checks(name) VALUES (N'CK_decision_state_fingerprint_hex');
+INSERT INTO @expected_checks(name) VALUES (N'CK_decision_state_forecast_version_nonempty');
+INSERT INTO @expected_checks(name) VALUES (N'CK_decision_state_rfp_version_nonempty');
+INSERT INTO @expected_checks(name) VALUES (N'CK_decision_state_eios_version_nonempty');
+INSERT INTO @expected_checks(name) VALUES (N'CK_decision_state_trace_id_nonempty');
 IF EXISTS (SELECT 1 FROM @expected_checks e WHERE NOT EXISTS (SELECT 1 FROM sys.check_constraints c WHERE c.parent_object_id=OBJECT_ID(N'eios.decision_state') AND c.name=e.name))
 BEGIN SET @failures += 1; PRINT 'FAIL V4: expected CHECK missing'; END
 ELSE PRINT 'PASS V4: expected CHECK constraints';
-
 IF EXISTS (SELECT 1 FROM sys.check_constraints c WHERE c.parent_object_id=OBJECT_ID(N'eios.decision_state') AND NOT EXISTS (SELECT 1 FROM @expected_checks e WHERE e.name=c.name))
 BEGIN SET @failures += 1; PRINT 'FAIL V4: unexpected CHECK constraint'; END;
 
@@ -125,21 +114,16 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM sys.database_permissions WHERE major_id=OBJECT_ID(N'eios.decision_state') AND grantee_principal_id=@role_id AND permission_name=N'DELETE' AND state='D')
     BEGIN SET @failures += 1; PRINT 'FAIL V6: DELETE deny missing'; END;
 END
-IF @failures = 0 PRINT 'PASS V6: append-only writer permissions';
 
 /* V7 — valid rows, including NULL optional references */
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT INTO eios.decision_state
     (decision_id,scenario_id,data_snapshot_id,rules_version,parameters_version,forecast_version,rfp_version,eios_version,[timestamp],user_id,input_fingerprint,trace_id)
-    VALUES
-    (N'DEC-0001',N'SCN-0001',N'DS-1',N'R-1',N'P-1',NULL,NULL,NULL,'2026-08-21T10:00:00+00:00',N'human:001',REPLICATE('A',64),N'T-001');
-
+    VALUES (N'DEC-0001',N'SCN-0001',N'DS-1',N'R-1',N'P-1',NULL,NULL,NULL,'2026-08-21T10:00:00+00:00',N'human:001',REPLICATE('A',64),N'T-001');
     INSERT INTO eios.decision_state
     (decision_id,scenario_id,data_snapshot_id,rules_version,parameters_version,forecast_version,rfp_version,eios_version,[timestamp],user_id,input_fingerprint,trace_id)
-    VALUES
-    (N'DEC-0002',N'SCN-0002',N'DS-2',N'R-2',N'P-2',N'F-1',N'RFP-1',N'EIOS-1','2026-08-21T11:00:00+00:00',N'service:erp-sync',NULL,NULL);
-
+    VALUES (N'DEC-0002',N'SCN-0002',N'DS-2',N'R-2',N'P-2',N'F-1',N'RFP-1',N'EIOS-1','2026-08-21T11:00:00+00:00',N'service:erp-sync',NULL,NULL);
     COMMIT;
     PRINT 'PASS V7: valid rows accepted';
 END TRY
