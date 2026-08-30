@@ -2,8 +2,8 @@
 
 ## Estado
 
-**Versión:** 0.1  
-**Estado:** BORRADOR DE DISEÑO TÉCNICO  
+**Versión:** 0.2  
+**Estado:** DISEÑO DEPURADO — PENDIENTE DE AUDITORÍA 2  
 **Fase:** 8 — Implementación Técnica  
 **SGBD objetivo:** Microsoft SQL Server  
 **Ámbito:** Persistencia mínima de Decision Versioning
@@ -74,6 +74,8 @@ Reutiliza la semántica de `Decision_ID` ya establecida por C0 y Decision Versio
 | `input_fingerprint` | `char(64)` | SÍ | Fingerprint producido por C0, cuando exista |
 | `trace_id` | `nvarchar(128)` | SÍ | Referencia al Trace C0 pertinente, cuando exista |
 
+En el DDL, `timestamp` deberá delimitarse como identificador SQL Server (`[timestamp]`) o sustituirse por un nombre físico equivalente documentado, sin cambiar la semántica contractual.
+
 ---
 
 ## 5. Tipos y límites
@@ -126,6 +128,8 @@ Si `input_fingerprint IS NOT NULL`, debe cumplirse longitud 64 y contenido hexad
 
 `decision_state_record_id` es la única identidad técnica de la fila. No se establece `UNIQUE(decision_id)`, porque una unidad decisional puede tener múltiples estados históricos.
 
+No se establece unicidad sobre la combinación contextual: dos registros físicamente distintos pueden representar estados históricos distinguibles aun cuando algunas referencias coincidan.
+
 ---
 
 ## 8. Continuidad histórica
@@ -134,7 +138,7 @@ La tabla es conceptualmente append-only. Un nuevo estado se representa mediante 
 
 No se utiliza trigger de versionado, temporal table como sustituto de Decision Versioning, `current_flag` como identidad histórica, ni una `Decision State Version` generada por SQL.
 
-La protección física contra modificación o borrado destructivo se resolverá mediante el mecanismo de permisos/operación de persistencia definido por `06_SQL`, sin alterar la semántica del contrato.
+La protección física contra modificación o borrado destructivo se implementará mediante un perfil de permisos de persistencia que permita `SELECT` e `INSERT` sobre la tabla al actor de escritura y no conceda `UPDATE` ni `DELETE`. La definición concreta de roles y grants pertenece al despliegue SQL y no altera la semántica funcional.
 
 ---
 
@@ -144,7 +148,7 @@ Cuando exista una evaluación C0 asociada, la fila puede conservar `input_finger
 
 La tabla no sustituye a `eios.c0_context` ni `eios.c0_trace`, y no genera un segundo fingerprint, Trace, snapshot o DecisionContext.
 
-La relación física inicial se mantiene deliberadamente sin FK hacia esos objetos hasta que su ciclo de vida de persistencia defina una relación de largo plazo.
+No se crea FK hacia `c0_trace` en esta primera materialización porque el contrato de implementación exige conservar la referencia sin imponer todavía una política de ciclo de vida compartido entre ambas persistencias.
 
 ---
 
@@ -156,22 +160,18 @@ No se crean FKs ni catálogos ficticios para `forecast_version`, `rfp_version` o
 
 ## 11. Índices
 
-Índices iniciales propuestos:
+En esta etapa solo queda justificado el índice implícito de la clave primaria:
 
 ```text
 PK_decision_state
     → decision_state_record_id
-
-IX_decision_state_decision_timestamp
-    → (decision_id, timestamp)
-
-IX_decision_state_scenario_timestamp
-    → (scenario_id, timestamp)
 ```
 
-Se justifican por reconstrucción histórica de una unidad decisional y recuperación histórica por escenario y tiempo.
+No se materializan todavía índices adicionales sobre `decision_id`, `scenario_id`, `user_id`, `input_fingerprint` ni versiones.
 
-No se indexan inicialmente `user_id`, `input_fingerprint`, `forecast_version`, `rfp_version` ni `eios_version` por ausencia de un patrón de acceso demostrado.
+La razón es metodológica: el contrato de implementación exige que los índices respondan a patrones de acceso demostrados por implementación y pruebas. En ausencia de implementación específica de Decision Versioning y de tests de acceso, añadir índices adicionales sería una inferencia documental y no una necesidad demostrada.
+
+Los índices adicionales podrán diseñarse posteriormente, pero deberán justificar su existencia mediante evidencia de acceso real y pasar la auditoría correspondiente.
 
 ---
 
@@ -216,15 +216,16 @@ Antes de materializar el DDL deberán comprobarse:
 4. validez de `datetimeoffset(7)` / UTC;
 5. adecuación del límite de `user_id`;
 6. validación hexadecimal del fingerprint;
-7. mecanismo append-only definido por `06_SQL`;
-8. justificación de índices por patrones reales de acceso;
+7. mecanismo append-only mediante permisos SQL;
+8. ausencia de índices no justificados;
 9. rollback/limpieza segura en CI;
-10. ausencia de modificación de autoridades superiores.
+10. ausencia de modificación de autoridades superiores;
+11. validez del uso del identificador físico `[timestamp]` en SQL Server.
 
 ---
 
 ## 15. Estado
 
-**BORRADOR DE DISEÑO TÉCNICO — PENDIENTE DE AUDITORÍA**
+**DISEÑO DEPURADO — PENDIENTE DE AUDITORÍA 2**
 
 Este documento no autoriza todavía la creación del DDL.
