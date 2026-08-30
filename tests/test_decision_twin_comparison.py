@@ -72,6 +72,7 @@ def test_scenario_and_trace_references_are_preserved():
         alt("A", {}, scenario_ref="S1", trace_refs=("T1",)),
         alt("B", {}, scenario_ref="S2", trace_refs=("T2",)),
     ])
+    assert result.scenario_refs == {"A": "S1", "B": "S2"}
     assert result.traceability == {"A": ("T1",), "B": ("T2",)}
     assert not hasattr(result, "selected_scenario")
 
