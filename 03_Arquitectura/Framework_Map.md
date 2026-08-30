@@ -130,6 +130,10 @@ Dominio correspondiente a la implementación y persistencia SQL, bajo la autorid
 ### Documentos actuales
 
 - `06_LEEME_SQL.md`
+- `Modelo_Fisico_SQL_Server_C0.md`
+- `001_C0_Schema.sql`
+
+Los artefactos de validación SQL de CI se mantienen en `.github/sql/` y forman parte del mecanismo de verificación, no del índice documental de `06_SQL`.
 
 `06_LEEME_SQL.md` constituye el contrato documental del dominio SQL y establece su organización y criterios de implementación. La existencia de este documento no atribuye a SQL autoridad funcional, decisional, de versionado ni de reconstrucción semántica.
 
