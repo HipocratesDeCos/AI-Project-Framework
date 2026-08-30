@@ -2,7 +2,7 @@
 
 ## Mapa Maestro del Proyecto y de la Arquitectura
 
-**Versión:** 2.0  
+**Versión:** 2.1  
 **Estado:** APROBADO  
 **Función:** Mapa global de estructura y relaciones del sistema EIOS  
 **Ubicación:** `03_Arquitectura/Master_Project_Map.md`
@@ -90,7 +90,7 @@ No sustituye a la documentación especializada de cada dominio.
                     │      06 — SQL       │
                     │                     │
                     │ Implementación      │
-                    │ persistencia        │
+                    │ Persistencia        │
                     └──────────┬──────────┘
                                │
                                ▼
@@ -103,7 +103,16 @@ No sustituye a la documentación especializada de cada dominio.
                                │
                                ▼
                     ┌─────────────────────┐
-                    │     99 — ARCHIVO     │
+                    │ 08 — IMPLEMENTACIÓN │
+                    │                     │
+                    │ Materialización     │
+                    │ Integración         │
+                    │ Verificación CI     │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │     99 — ARCHIVO    │
                     │                     │
                     │ Histórico           │
                     │ Obsoleto            │
@@ -139,6 +148,9 @@ SQL
    │
    ▼
 PRUEBAS
+   │
+   ▼
+IMPLEMENTACIÓN
 ```
 
 Esta secuencia representa una relación de dependencia conceptual y no implica que todos los dominios deban ejecutarse secuencialmente en tiempo de ejecución.
@@ -287,7 +299,19 @@ Su función es comprobar que la implementación satisface las especificaciones y
 
 ---
 
-# 12. ARCHIVO
+# 12. IMPLEMENTACIÓN
+
+`08_Implementacion/`
+
+Representa la capa de materialización técnica controlada de los contratos y diseños autorizados.
+
+Incluye los contratos de implementación, registros de verificación y documentación necesaria para conectar diseño, persistencia, código y CI sin crear autoridad funcional paralela.
+
+La implementación ejecutable puede encontrarse adicionalmente en `eios/` y sus verificaciones en `tests/`.
+
+---
+
+# 13. ARCHIVO
 
 `99_Archivo/`
 
@@ -297,7 +321,7 @@ Los documentos archivados no constituyen autoridad sobre el diseño vigente salv
 
 ---
 
-# 13. EIOS VERTICAL MVP
+# 14. EIOS VERTICAL MVP
 
 El EIOS Vertical MVP se encuentra gobernado por la Salvaguarda Vertical MVP.
 
@@ -321,14 +345,15 @@ DOMINIOS EIOS
       ├── Reglas
       ├── Motor
       ├── SQL
-      └── Pruebas
+      ├── Pruebas
+      └── Implementación
 ```
 
 La Salvaguarda establece las restricciones y principios que deben respetarse durante la evolución del Vertical MVP.
 
 ---
 
-# 14. RELACIÓN CON FRAMEWORK MAP
+# 15. RELACIÓN CON FRAMEWORK MAP
 
 Los dos documentos cumplen funciones diferentes:
 
@@ -347,7 +372,7 @@ El `Master_Project_Map.md` responde principalmente a:
 
 ---
 
-# 15. REGLA DE AUTORIDAD
+# 16. REGLA DE AUTORIDAD
 
 Este documento no constituye una fuente de autoridad funcional por encima de los documentos especializados.
 
@@ -357,17 +382,17 @@ Cuando exista una contradicción documental, se deberá consultar:
 
 ---
 
-# 16. ESTADO
+# 17. ESTADO
 
 **Framework:** EIOS  
 **Baseline:** EIOS Vertical MVP  
 **Estado:** En desarrollo  
 **Gobierno:** Activo  
 **Salvaguarda Vertical MVP:** Vigente  
-**Versión del mapa:** 2.0
+**Versión del mapa:** 2.1
 
 ---
 
-# 17. PRINCIPIO FINAL
+# 18. PRINCIPIO FINAL
 
 > El Master Project Map muestra cómo se estructura EIOS; los documentos especializados definen cada dominio.
