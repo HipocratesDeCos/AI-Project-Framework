@@ -3,7 +3,7 @@
 ## 1. Identidad
 
 **Documento:** Decision Twin Implementation Contract  
-**Versión:** 1.0.3  
+**Versión:** 1.0.4  
 **Estado:** EN VALIDACIÓN — contrato técnico de implementación  
 **Baseline:** EIOS Vertical MVP  
 **Ubicación:** `08_Implementacion/Decision_Twin_Implementation_Contract.md`
@@ -232,14 +232,20 @@ Una consecuencia representada mantiene referencia a su fuente cuando esta exista
 
 ## 14. Trazabilidad
 
-La representación debe permitir reconstruir la procedencia de la información comparada sin crear una segunda autoridad de evidencia.
+La trazabilidad de `Decision Twin` se limita a conservar referencias a las fuentes ya existentes. No se crea un segundo mecanismo de Trace.
+
+Cuando una alternativa proceda de un escenario evaluado, la referencia contextual puede conservar `Scenario_ID` cuando esté disponible. Esta referencia no convierte al escenario en identidad de la alternativa.
+
+Cuando existan resultados C0 asociados, podrán conservarse sus referencias ya existentes, como `trace_id` o `input_fingerprint`, sin recalcularlos ni redefinir su semántica.
+
+No se presume que un único `trace_id` sea suficiente para representar todos los resultados de una alternativa. Si una alternativa requiere múltiples resultados trazables, la implementación deberá conservar las referencias correspondientes sin convertirlas en una nueva autoridad de evidencia.
 
 Cadena mínima:
 
 ```text
 Decision Twin
       ↓
-Alternative
+Alternative representation
       ↓
 Scenario / Viability / Assessment
       ↓
@@ -291,7 +297,9 @@ La implementación deberá conservar como invariantes:
 5. un escenario previo no puede imponer restricciones por mera continuidad histórica;
 6. información redundante no puede crear un nuevo peso decisional por conteo;
 7. ausencia de información opcional no puede producir valores ficticios;
-8. trazabilidad no puede adquirir autoridad decisional.
+8. trazabilidad no puede adquirir autoridad decisional;
+9. un único `trace_id` no se presume suficiente para todos los resultados de una alternativa;
+10. una referencia de trazabilidad no puede sustituir al objeto fuente ni alterar su ciclo de vida.
 
 ---
 
@@ -349,6 +357,7 @@ Resultado:
 - evidencia permanece bajo su contrato;
 - parámetros y dependencias no son modificados;
 - versionado no se duplica;
+- trazabilidad reutiliza referencias existentes y no crea un segundo Trace;
 - persistencia física no se anticipa sin evidencia técnica suficiente.
 
 **DICTAMEN: CONTRATO ALINEADO; MATERIALIZACIÓN FÍSICA AÚN NO AUTORIZADA.**
@@ -367,6 +376,7 @@ SEPARACIÓN DE ASSESSMENT/EVIDENCE   CERRADA
 SEPARACIÓN DE SELECCIÓN/DECISIÓN    CERRADA
 IDENTIDAD DE ALTERNATIVE             PENDIENTE DE JUSTIFICACIÓN
 RELACIÓN SCENARIO ↔ ALTERNATIVE      PENDIENTE DE JUSTIFICACIÓN
+TRAZABILIDAD FÍSICA                 PENDIENTE DE DISEÑO
 PERSISTENCIA FÍSICA                 PENDIENTE
 DDL                                 PENDIENTE
 IMPLEMENTACIÓN DE CÓDIGO            PENDIENTE
