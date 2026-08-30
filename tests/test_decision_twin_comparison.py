@@ -52,8 +52,19 @@ def test_viability_is_preserved_without_selection():
         alt("A", {"cost": 100}, viability="VIABLE"),
         alt("B", {"cost": 110}, viability="NOT_VIABLE"),
     ])
-    assert result.observations["cost"] == {"A": 100, "B": 110}
+    assert result.viability == {"A": "VIABLE", "B": "NOT_VIABLE"}
+    assert result.viability_differences == ("VIABLE", "NOT_VIABLE")
     assert not hasattr(result, "preferred_alternative")
+
+
+def test_consequences_are_descriptive_without_priority():
+    result = compare([
+        alt("A", {}, consequences={"risk": "low"}),
+        alt("B", {}, consequences={"risk": "high"}),
+    ])
+    assert result.consequence_observations["risk"] == {"A": "low", "B": "high"}
+    assert result.consequence_differences["risk"] == ("low", "high")
+    assert not hasattr(result, "winner")
 
 
 def test_redundant_trace_references_do_not_create_weight():
