@@ -30,7 +30,17 @@ class Comparison:
     observations: Mapping[str, Mapping[str, Any]]
     differences: Mapping[str, tuple[Any, ...]]
     missing: Mapping[str, tuple[str, ...]]
+    viability: Mapping[str, Any]
+    viability_differences: tuple[Any, ...]
+    consequence_observations: Mapping[str, Mapping[str, Any]]
+    consequence_differences: Mapping[str, tuple[Any, ...]]
     traceability: Mapping[str, tuple[str, ...]]
+
+
+def _differences(values: Sequence[Any]) -> tuple[Any, ...]:
+    if len({repr(value) for value in values}) > 1:
+        return tuple(values)
+    return ()
 
 
 def compare(alternatives: Sequence[AlternativeRepresentation]) -> Comparison:
@@ -46,7 +56,6 @@ def compare(alternatives: Sequence[AlternativeRepresentation]) -> Comparison:
     observations: dict[str, dict[str, Any]] = {}
     differences: dict[str, tuple[Any, ...]] = {}
     missing: dict[str, tuple[str, ...]] = {}
-    traces: dict[str, tuple[str, ...]] = {}
 
     for key in keys:
         row: dict[str, Any] = {}
@@ -57,19 +66,44 @@ def compare(alternatives: Sequence[AlternativeRepresentation]) -> Comparison:
             else:
                 absent.append(alt.representation_ref)
         observations[key] = row
-        values = tuple(row.values())
-        if len(set(map(repr, values))) > 1:
-            differences[key] = values
+        diff = _differences(tuple(row.values()))
+        if diff:
+            differences[key] = diff
         if absent:
             missing[key] = tuple(absent)
 
-    for alt in alternatives:
-        traces[alt.representation_ref] = tuple(alt.trace_refs)
+    viability = {a.representation_ref: a.viability for a in alternatives}
+    viability_diff = _differences(tuple(a.viability for a in alternatives))
+
+    consequence_keys = sorted(
+        {key for alt in alternatives for key in (alt.consequences or {})}
+    )
+    consequence_observations: dict[str, dict[str, Any]] = {}
+    consequence_differences: dict[str, tuple[Any, ...]] = {}
+    for key in consequence_keys:
+        row = {
+            a.representation_ref: (a.consequences or {})[key]
+            for a in alternatives
+            if key in (a.consequences or {})
+        }
+        consequence_observations[key] = row
+        diff = _differences(tuple(row.values()))
+        if diff:
+            consequence_differences[key] = diff
+
+    traces = {
+        a.representation_ref: tuple(a.trace_refs)
+        for a in alternatives
+    }
 
     return Comparison(
         alternatives=refs,
         observations=observations,
         differences=differences,
         missing=missing,
+        viability=viability,
+        viability_differences=viability_diff,
+        consequence_observations=consequence_observations,
+        consequence_differences=consequence_differences,
         traceability=traces,
     )
