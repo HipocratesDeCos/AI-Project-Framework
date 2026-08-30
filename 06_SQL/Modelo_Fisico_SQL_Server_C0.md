@@ -331,8 +331,7 @@ Además de las claves primarias y restricciones `UNIQUE`, el diseño contempla �
 - `c0_input(decision_id, scenario_id)`;
 - `c0_context(decision_id, scenario_id, rules_version, parameters_version, data_snapshot_id)`;
 - `c0_assessment(rule_id, status)`;
-- `c0_trace(decision_id, scenario_id, created_at)`;
-- claves externas de las tablas de relación.
+- `c0_trace(decision_id, scenario_id, created_at)`.
 
 No se crean índices sobre campos cuya utilidad no esté justificada por el perímetro actual.
 
