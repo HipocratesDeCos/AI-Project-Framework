@@ -40,7 +40,113 @@ BEGIN
     PRINT 'FAIL V1: unexpected table count in schema eios';
 END;
 
-/* V2 — expected indexes */
+/* V2 — expected columns, SQL types, lengths, precision/scale and nullability */
+DECLARE @expected_columns TABLE
+(
+    table_name sysname,
+    column_name sysname,
+    type_name sysname,
+    max_length smallint NULL,
+    precision tinyint NULL,
+    scale tinyint NULL,
+    is_nullable bit,
+    is_identity bit,
+    PRIMARY KEY (table_name, column_name)
+);
+
+INSERT INTO @expected_columns
+    (table_name, column_name, type_name, max_length, precision, scale, is_nullable, is_identity)
+VALUES
+    (N'c0_input', N'input_row_id',      N'bigint',          8,   NULL, NULL, 0, 1),
+    (N'c0_input', N'decision_id',       N'nvarchar',       128, NULL, NULL, 0, 0),
+    (N'c0_input', N'scenario_id',       N'nvarchar',       128, NULL, NULL, 0, 0),
+    (N'c0_input', N'article_id',        N'nvarchar',       128, NULL, NULL, 0, 0),
+    (N'c0_input', N'supplier_id',       N'nvarchar',       128, NULL, NULL, 0, 0),
+    (N'c0_input', N'quantity',          N'decimal',         17,  38,  4, 0, 0),
+    (N'c0_input', N'unit_price',        N'decimal',         17,  38,  4, 0, 0),
+    (N'c0_input', N'currency',          N'char',              3, NULL, NULL, 0, 0),
+    (N'c0_input', N'operation_date',    N'date',              3, NULL, NULL, 0, 0),
+    (N'c0_input', N'input_fingerprint', N'char',             64, NULL, NULL, 0, 0),
+
+    (N'c0_context', N'context_row_id',     N'bigint',    8,   NULL, NULL, 0, 1),
+    (N'c0_context', N'decision_id',        N'nvarchar', 128, NULL, NULL, 0, 0),
+    (N'c0_context', N'scenario_id',        N'nvarchar', 128, NULL, NULL, 0, 0),
+    (N'c0_context', N'rules_version',      N'nvarchar', 128, NULL, NULL, 0, 0),
+    (N'c0_context', N'parameters_version', N'nvarchar', 128, NULL, NULL, 0, 0),
+    (N'c0_context', N'data_snapshot_id',   N'nvarchar', 128, NULL, NULL, 0, 0),
+
+    (N'c0_evidence', N'evidence_id',       N'nvarchar', 128, NULL, NULL, 0, 0),
+    (N'c0_evidence', N'source_type',       N'nvarchar', 128, NULL, NULL, 0, 0),
+    (N'c0_evidence', N'source_ref',        N'nvarchar', 512, NULL, NULL, 0, 0),
+    (N'c0_evidence', N'captured_at',        N'date',       3, NULL, NULL, 0, 0),
+    (N'c0_evidence', N'state',              N'varchar',    16, NULL, NULL, 0, 0),
+    (N'c0_evidence', N'demonstration_ref',  N'nvarchar', 512, NULL, NULL, 1, 0),
+
+    (N'c0_evidence_validation', N'evidence_id', N'nvarchar', 128, NULL, NULL, 0, 0),
+    (N'c0_evidence_validation', N'status',      N'varchar',   8, NULL, NULL, 0, 0),
+    (N'c0_evidence_validation', N'reason',      N'nvarchar',512, NULL, NULL, 0, 0),
+
+    (N'c0_rule_contract', N'rule_id',           N'nvarchar',128, NULL, NULL, 0, 0),
+    (N'c0_rule_contract', N'version',           N'nvarchar',128, NULL, NULL, 0, 0),
+    (N'c0_rule_contract', N'requires_evidence', N'bit',       1, NULL, NULL, 0, 0),
+
+    (N'c0_assessment', N'assessment_row_id', N'bigint',    8, NULL, NULL, 0, 1),
+    (N'c0_assessment', N'rule_id',           N'nvarchar',128, NULL, NULL, 0, 0),
+    (N'c0_assessment', N'status',            N'varchar',  16, NULL, NULL, 0, 0),
+    (N'c0_assessment', N'outcome',            N'bit',       1, NULL, NULL, 1, 0),
+    (N'c0_assessment', N'reason',             N'nvarchar',512, NULL, NULL, 0, 0),
+
+    (N'c0_assessment_evidence', N'assessment_row_id', N'bigint',    8, NULL, NULL, 0, 0),
+    (N'c0_assessment_evidence', N'evidence_ordinal',  N'int',        4, NULL, NULL, 0, 0),
+    (N'c0_assessment_evidence', N'evidence_id',       N'nvarchar',128, NULL, NULL, 0, 0),
+
+    (N'c0_trace', N'trace_id',           N'nvarchar',      256, NULL, NULL, 0, 0),
+    (N'c0_trace', N'decision_id',        N'nvarchar',      128, NULL, NULL, 0, 0),
+    (N'c0_trace', N'scenario_id',       N'nvarchar',      128, NULL, NULL, 0, 0),
+    (N'c0_trace', N'rules_version',     N'nvarchar',      128, NULL, NULL, 0, 0),
+    (N'c0_trace', N'parameters_version',N'nvarchar',      128, NULL, NULL, 0, 0),
+    (N'c0_trace', N'data_snapshot_id',  N'nvarchar',      128, NULL, NULL, 0, 0),
+    (N'c0_trace', N'input_fingerprint', N'char',           64, NULL, NULL, 0, 0),
+    (N'c0_trace', N'rule_id',            N'nvarchar',      128, NULL, NULL, 0, 0),
+    (N'c0_trace', N'assessment_status',  N'varchar',       16, NULL, NULL, 0, 0),
+    (N'c0_trace', N'assessment_outcome', N'bit',             1, NULL, NULL, 1, 0),
+    (N'c0_trace', N'created_at',         N'datetimeoffset', 10, NULL, 7, 0, 0),
+
+    (N'c0_trace_evidence', N'trace_id',         N'nvarchar',128, NULL, NULL, 0, 0),
+    (N'c0_trace_evidence', N'evidence_ordinal', N'int',       4, NULL, NULL, 0, 0),
+    (N'c0_trace_evidence', N'evidence_id',      N'nvarchar',128, NULL, NULL, 0, 0);
+
+IF (SELECT COUNT(*) FROM sys.columns c JOIN sys.tables t ON t.object_id = c.object_id
+    WHERE t.schema_id = SCHEMA_ID(N'eios')) <> (SELECT COUNT(*) FROM @expected_columns)
+BEGIN
+    SET @failures += 1;
+    PRINT 'FAIL V2: unexpected C0 column count';
+END;
+
+IF EXISTS
+(
+    SELECT 1
+    FROM @expected_columns e
+    LEFT JOIN sys.tables t
+      ON t.schema_id = SCHEMA_ID(N'eios') AND t.name = e.table_name
+    LEFT JOIN sys.columns c
+      ON c.object_id = t.object_id AND c.name = e.column_name
+    LEFT JOIN sys.types ty
+      ON ty.user_type_id = c.user_type_id
+    WHERE c.column_id IS NULL
+       OR ty.name <> e.type_name
+       OR c.is_nullable <> e.is_nullable
+       OR c.is_identity <> e.is_identity
+       OR (e.max_length IS NOT NULL AND c.max_length <> e.max_length)
+       OR (e.precision IS NOT NULL AND c.precision <> e.precision)
+       OR (e.scale IS NOT NULL AND c.scale <> e.scale)
+)
+BEGIN
+    SET @failures += 1;
+    PRINT 'FAIL V2: column definition differs from C0 SQL contract';
+END;
+
+/* V3 — expected indexes */
 DECLARE @expected_indexes TABLE (index_name sysname, table_name sysname, PRIMARY KEY (index_name, table_name));
 INSERT INTO @expected_indexes (index_name, table_name)
 VALUES
@@ -55,18 +161,16 @@ IF EXISTS
     FROM @expected_indexes e
     WHERE NOT EXISTS
     (
-        SELECT 1
-        FROM sys.indexes i
-        WHERE i.name = e.index_name
-          AND i.object_id = OBJECT_ID(N'eios.' + e.table_name)
+        SELECT 1 FROM sys.indexes i
+        WHERE i.name = e.index_name AND i.object_id = OBJECT_ID(N'eios.' + e.table_name)
     )
 )
 BEGIN
     SET @failures += 1;
-    PRINT 'FAIL V2: expected index is missing';
+    PRINT 'FAIL V3: expected index is missing';
 END;
 
-/* V3 — expected foreign keys */
+/* V4 — expected foreign keys */
 DECLARE @expected_fks TABLE (fk_name sysname PRIMARY KEY);
 INSERT INTO @expected_fks (fk_name)
 VALUES
@@ -76,18 +180,41 @@ VALUES
     (N'FK_c0_trace_evidence_trace'),
     (N'FK_c0_trace_evidence_evidence');
 
+IF (SELECT COUNT(*) FROM sys.foreign_keys WHERE parent_object_id IN
+    (SELECT object_id FROM sys.tables WHERE schema_id = SCHEMA_ID(N'eios'))) <> 5
+BEGIN
+    SET @failures += 1;
+    PRINT 'FAIL V4: unexpected foreign key count';
+END;
+
 IF EXISTS
 (
-    SELECT 1
-    FROM @expected_fks e
+    SELECT 1 FROM @expected_fks e
     WHERE NOT EXISTS (SELECT 1 FROM sys.foreign_keys fk WHERE fk.name = e.fk_name)
 )
 BEGIN
     SET @failures += 1;
-    PRINT 'FAIL V3: expected foreign key is missing';
+    PRINT 'FAIL V4: expected foreign key is missing';
 END;
 
-/* V4 — expected CHECK constraints */
+/* V5 — expected primary/unique constraints */
+IF (SELECT COUNT(*) FROM sys.key_constraints kc
+    WHERE kc.parent_object_id IN (SELECT object_id FROM sys.tables WHERE schema_id = SCHEMA_ID(N'eios'))
+      AND kc.type = 'PK') <> 9
+BEGIN
+    SET @failures += 1;
+    PRINT 'FAIL V5: unexpected primary key count';
+END;
+
+IF (SELECT COUNT(*) FROM sys.key_constraints kc
+    WHERE kc.parent_object_id IN (SELECT object_id FROM sys.tables WHERE schema_id = SCHEMA_ID(N'eios'))
+      AND kc.type = 'UQ') <> 3
+BEGIN
+    SET @failures += 1;
+    PRINT 'FAIL V5: unexpected unique constraint count';
+END;
+
+/* V6 — expected CHECK constraints */
 DECLARE @expected_checks TABLE (constraint_name sysname PRIMARY KEY);
 INSERT INTO @expected_checks (constraint_name)
 VALUES
@@ -115,18 +242,24 @@ VALUES
     (N'CK_c0_trace_evidence_ordinal'),
     (N'CK_c0_trace_evidence_id_nonempty');
 
+IF (SELECT COUNT(*) FROM sys.check_constraints cc
+    WHERE cc.parent_object_id IN (SELECT object_id FROM sys.tables WHERE schema_id = SCHEMA_ID(N'eios'))) <> 22
+BEGIN
+    SET @failures += 1;
+    PRINT 'FAIL V6: unexpected CHECK constraint count';
+END;
+
 IF EXISTS
 (
-    SELECT 1
-    FROM @expected_checks e
+    SELECT 1 FROM @expected_checks e
     WHERE NOT EXISTS (SELECT 1 FROM sys.check_constraints c WHERE c.name = e.constraint_name)
 )
 BEGIN
     SET @failures += 1;
-    PRINT 'FAIL V4: expected CHECK constraint is missing';
+    PRINT 'FAIL V6: expected CHECK constraint is missing';
 END;
 
-/* V5 — valid rows must be accepted */
+/* V7 — valid rows must be accepted */
 BEGIN TRY
     BEGIN TRANSACTION;
 
@@ -171,102 +304,73 @@ END TRY
 BEGIN CATCH
     IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
     SET @failures += 1;
-    PRINT 'FAIL V5: valid C0 rows were rejected';
+    PRINT 'FAIL V7: valid C0 rows were rejected';
 END CATCH;
 
-/* V6 — invalid states must be rejected */
+/* V8 — invalid states must be rejected */
 DECLARE @case_failed bit;
 
-/* Empty contractual identifiers */
 SET @case_failed = 0;
 BEGIN TRY
     INSERT INTO eios.c0_input
         (decision_id, scenario_id, article_id, supplier_id, quantity, unit_price, currency, operation_date, input_fingerprint)
     VALUES (N'', N'SCN-0001', N'ART-001', N'PROV-001', 1.0000, 1.0000, 'EUR', '2026-08-21', REPLICATE('A', 64));
 END TRY
-BEGIN CATCH
-    SET @case_failed = 1;
-END CATCH;
-IF @case_failed = 0
-BEGIN SET @failures += 1; PRINT 'FAIL V6.1: empty identifier accepted'; END;
+BEGIN CATCH SET @case_failed = 1; END CATCH;
+IF @case_failed = 0 BEGIN SET @failures += 1; PRINT 'FAIL V8.1: empty identifier accepted'; END;
 
-/* Invalid quantity */
 SET @case_failed = 0;
 BEGIN TRY
     INSERT INTO eios.c0_input
         (decision_id, scenario_id, article_id, supplier_id, quantity, unit_price, currency, operation_date, input_fingerprint)
     VALUES (N'DEC-X', N'SCN-X', N'ART-X', N'PROV-X', 0.0000, 1.0000, 'EUR', '2026-08-21', REPLICATE('B', 64));
 END TRY
-BEGIN CATCH
-    SET @case_failed = 1;
-END CATCH;
-IF @case_failed = 0
-BEGIN SET @failures += 1; PRINT 'FAIL V6.2: non-positive quantity accepted'; END;
+BEGIN CATCH SET @case_failed = 1; END CATCH;
+IF @case_failed = 0 BEGIN SET @failures += 1; PRINT 'FAIL V8.2: non-positive quantity accepted'; END;
 
-/* Invalid currency */
 SET @case_failed = 0;
 BEGIN TRY
     INSERT INTO eios.c0_input
         (decision_id, scenario_id, article_id, supplier_id, quantity, unit_price, currency, operation_date, input_fingerprint)
     VALUES (N'DEC-Y', N'SCN-Y', N'ART-Y', N'PROV-Y', 1.0000, 1.0000, 'USD', '2026-08-21', REPLICATE('C', 64));
 END TRY
-BEGIN CATCH
-    SET @case_failed = 1;
-END CATCH;
-IF @case_failed = 0
-BEGIN SET @failures += 1; PRINT 'FAIL V6.3: non-EUR currency accepted'; END;
+BEGIN CATCH SET @case_failed = 1; END CATCH;
+IF @case_failed = 0 BEGIN SET @failures += 1; PRINT 'FAIL V8.3: non-EUR currency accepted'; END;
 
-/* Invalid fingerprint */
 SET @case_failed = 0;
 BEGIN TRY
     INSERT INTO eios.c0_input
         (decision_id, scenario_id, article_id, supplier_id, quantity, unit_price, currency, operation_date, input_fingerprint)
     VALUES (N'DEC-Z', N'SCN-Z', N'ART-Z', N'PROV-Z', 1.0000, 1.0000, 'EUR', '2026-08-21', REPLICATE('D', 63) + 'G');
 END TRY
-BEGIN CATCH
-    SET @case_failed = 1;
-END CATCH;
-IF @case_failed = 0
-BEGIN SET @failures += 1; PRINT 'FAIL V6.4: invalid fingerprint accepted'; END;
+BEGIN CATCH SET @case_failed = 1; END CATCH;
+IF @case_failed = 0 BEGIN SET @failures += 1; PRINT 'FAIL V8.4: invalid fingerprint accepted'; END;
 
-/* Demonstrated evidence without reference */
 SET @case_failed = 0;
 BEGIN TRY
     INSERT INTO eios.c0_evidence
         (evidence_id, source_type, source_ref, captured_at, state, demonstration_ref)
     VALUES (N'E-BAD-1', N'ERP', N'ref', '2026-08-21', 'DEMONSTRATED', NULL);
 END TRY
-BEGIN CATCH
-    SET @case_failed = 1;
-END CATCH;
-IF @case_failed = 0
-BEGIN SET @failures += 1; PRINT 'FAIL V6.5: demonstrated evidence without reference accepted'; END;
+BEGIN CATCH SET @case_failed = 1; END CATCH;
+IF @case_failed = 0 BEGIN SET @failures += 1; PRINT 'FAIL V8.5: demonstrated evidence without reference accepted'; END;
 
-/* EVALUABLE without outcome */
 SET @case_failed = 0;
 BEGIN TRY
     INSERT INTO eios.c0_assessment (rule_id, status, outcome, reason)
     VALUES (N'R-BAD-1', 'EVALUABLE', NULL, N'bad');
 END TRY
-BEGIN CATCH
-    SET @case_failed = 1;
-END CATCH;
-IF @case_failed = 0
-BEGIN SET @failures += 1; PRINT 'FAIL V6.6: EVALUABLE without outcome accepted'; END;
+BEGIN CATCH SET @case_failed = 1; END CATCH;
+IF @case_failed = 0 BEGIN SET @failures += 1; PRINT 'FAIL V8.6: EVALUABLE without outcome accepted'; END;
 
-/* NOT_EVALUABLE with outcome */
 SET @case_failed = 0;
 BEGIN TRY
     INSERT INTO eios.c0_assessment (rule_id, status, outcome, reason)
     VALUES (N'R-BAD-2', 'NOT_EVALUABLE', 0, N'bad');
 END TRY
-BEGIN CATCH
-    SET @case_failed = 1;
-END CATCH;
-IF @case_failed = 0
-BEGIN SET @failures += 1; PRINT 'FAIL V6.7: NOT_EVALUABLE with outcome accepted'; END;
+BEGIN CATCH SET @case_failed = 1; END CATCH;
+IF @case_failed = 0 BEGIN SET @failures += 1; PRINT 'FAIL V8.7: NOT_EVALUABLE with outcome accepted'; END;
 
-/* Negative evidence ordinal */
 SET @case_failed = 0;
 BEGIN TRY
     INSERT INTO eios.c0_assessment (rule_id, status, outcome, reason)
@@ -275,23 +379,16 @@ BEGIN TRY
     INSERT INTO eios.c0_assessment_evidence (assessment_row_id, evidence_ordinal, evidence_id)
     VALUES (@bad_assessment_id, -1, N'E-001');
 END TRY
-BEGIN CATCH
-    SET @case_failed = 1;
-END CATCH;
-IF @case_failed = 0
-BEGIN SET @failures += 1; PRINT 'FAIL V6.8: negative evidence ordinal accepted'; END;
+BEGIN CATCH SET @case_failed = 1; END CATCH;
+IF @case_failed = 0 BEGIN SET @failures += 1; PRINT 'FAIL V8.8: negative evidence ordinal accepted'; END;
 
-/* FK violation */
 SET @case_failed = 0;
 BEGIN TRY
     INSERT INTO eios.c0_evidence_validation (evidence_id, status, reason)
     VALUES (N'E-NOT-FOUND', 'VALID', N'bad');
 END TRY
-BEGIN CATCH
-    SET @case_failed = 1;
-END CATCH;
-IF @case_failed = 0
-BEGIN SET @failures += 1; PRINT 'FAIL V6.9: FK violation accepted'; END;
+BEGIN CATCH SET @case_failed = 1; END CATCH;
+IF @case_failed = 0 BEGIN SET @failures += 1; PRINT 'FAIL V8.9: FK violation accepted'; END;
 
 IF @failures <> 0
 BEGIN
