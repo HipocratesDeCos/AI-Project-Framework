@@ -96,6 +96,36 @@ IF EXISTS (
 )
 BEGIN SET @failures+=1; PRINT 'FAIL V2: column definition differs from C0 SQL contract'; END;
 
+/* V2 diagnostic — expose the exact mismatched metadata row(s) in CI */
+SELECT
+    e.table_name,
+    e.column_name,
+    e.data_type AS expected_data_type,
+    c.DATA_TYPE AS actual_data_type,
+    e.char_length AS expected_char_length,
+    c.CHARACTER_MAXIMUM_LENGTH AS actual_char_length,
+    e.numeric_precision AS expected_numeric_precision,
+    CONVERT(int,c.NUMERIC_PRECISION) AS actual_numeric_precision,
+    e.numeric_scale AS expected_numeric_scale,
+    CONVERT(int,c.NUMERIC_SCALE) AS actual_numeric_scale,
+    e.datetime_precision AS expected_datetime_precision,
+    CONVERT(int,c.DATETIME_PRECISION) AS actual_datetime_precision,
+    CASE WHEN e.is_nullable=1 THEN 'YES' ELSE 'NO' END AS expected_nullable,
+    c.IS_NULLABLE AS actual_nullable,
+    e.is_identity AS expected_identity,
+    COLUMNPROPERTY(OBJECT_ID(N'eios.'+e.table_name),e.column_name,'IsIdentity') AS actual_identity
+FROM @expected_columns e
+LEFT JOIN INFORMATION_SCHEMA.COLUMNS c
+  ON c.TABLE_SCHEMA='eios' AND c.TABLE_NAME=e.table_name AND c.COLUMN_NAME=e.column_name
+WHERE c.COLUMN_NAME IS NULL
+   OR c.DATA_TYPE<>e.data_type
+   OR c.IS_NULLABLE <> CASE WHEN e.is_nullable=1 THEN 'YES' ELSE 'NO' END
+   OR ISNULL(CONVERT(int,c.CHARACTER_MAXIMUM_LENGTH),-999)<>ISNULL(e.char_length,-999)
+   OR ISNULL(CONVERT(int,c.NUMERIC_PRECISION),-999)<>ISNULL(e.numeric_precision,-999)
+   OR ISNULL(CONVERT(int,c.NUMERIC_SCALE),-999)<>ISNULL(e.numeric_scale,-999)
+   OR ISNULL(CONVERT(int,c.DATETIME_PRECISION),-999)<>ISNULL(e.datetime_precision,-999)
+   OR ISNULL(COLUMNPROPERTY(OBJECT_ID(N'eios.'+e.table_name),e.column_name,'IsIdentity'),0)<>e.is_identity;
+
 /* V3 — expected indexes */
 DECLARE @expected_indexes TABLE(index_name sysname PRIMARY KEY, table_name sysname);
 INSERT INTO @expected_indexes VALUES
