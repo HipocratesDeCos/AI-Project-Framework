@@ -2,8 +2,8 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.2  
-**Estado:** BORRADOR DEPURADO — PENDIENTE DE AUDITORÍA DE CIERRE  
+**Versión:** 1.3  
+**Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
@@ -430,11 +430,30 @@ No se debe:
 
 # 22. Estado
 
-**Versión:** 1.2  
-**Estado:** BORRADOR DEPURADO — PENDIENTE DE AUDITORÍA DE CIERRE  
+**Versión:** 1.3  
+**Estado:** CERRADO  
 **Ámbito:** Dependencias transversales de reglas EIOS  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
 Esta versión depura quirúrgicamente las inferencias detectadas en `Criticality` y `Evaluability_Impact`. No amplía la cobertura de `DATA`, `EVIDENCE` ni `COMPONENT`.
 
-La matriz solo podrá pasar a estado cerrado tras superar una auditoría formal de contrato y autoridad.
+La matriz queda formalmente cerrada tras superar la auditoría de contrato y autoridad realizada sobre el baseline `1183c4ae1a67d63e0051c45a84022353adbc1463`.
+
+### Dictamen de cierre
+
+La auditoría de cierre confirma:
+
+- conformidad con `00_Gobierno/Matriz_Autoridad_Documental.md`;
+- coherencia con la Matriz de Parámetros y la Matriz de Reglas;
+- compatibilidad con `04_Reglas/Evidence_Contract.md`;
+- conformidad con `03_Arquitectura/Architecture_Blueprint.md`;
+- ausencia de contradicciones con el C0 físico y sus tests;
+- coherencia con el historial Git revisado;
+- ausencia de autoridad superior que deba modificarse;
+- mantenimiento explícito de los gaps no demostrados como `PENDING`, sin inferencias.
+
+El cierre es **contractual y documental**. No implica completar las dependencias `DATA`, `EVIDENCE` o `COMPONENT` que carezcan de evidencia demostrable, ni asignar `Criticality` o `Evaluability_Impact` por inferencia.
+
+Los pendientes declarados en esta versión constituyen deuda controlada de cobertura y no invalidan el contrato cerrado de la matriz. Cualquier nueva dependencia deberá incorporarse mediante el procedimiento de actualización establecido en esta matriz y con evidencia documental suficiente.
+
+**Estado de cierre: CERRADO.**
