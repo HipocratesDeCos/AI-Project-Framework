@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Versión:** 0.2  
+**Versión:** 0.3  
 **Estado:** CERRADO — Diseño técnico  
 **Fase:** 8 — Implementación Técnica  
 **SGBD objetivo:** Microsoft SQL Server  
@@ -40,6 +40,8 @@ No implementa todavía Decision Versioning completo, Scenario Engine, Viability,
 8. **Sin JSON como sustituto del modelo:** el perímetro C0 se persiste relacionalmente; no se utiliza un documento JSON como fuente alternativa de verdad.
 9. **Sin triggers en esta fase:** el contrato SQL no los exige y C0 no delega en SQL ninguna semántica de ejecución.
 10. **Sin temporalidad automática en esta fase:** la continuidad histórica de Decision Versioning no se sustituye por temporal tables de SQL Server.
+11. **Equivalencia de entrada preservada:** la persistencia SQL recibe objetos C0 ya validados; SQL no normaliza cadenas ni recalcula fingerprints.
+12. **No pérdida silenciosa:** el adaptador de persistencia debe rechazar valores no representables por el tipo SQL elegido antes de ejecutar la escritura; SQL no debe utilizar redondeo implícito como mecanismo de adaptación contractual.
 
 ---
 
@@ -273,6 +275,7 @@ Se aplicarán `PRIMARY KEY`, `UNIQUE`, `FOREIGN KEY` y `CHECK` únicamente para 
 Restricciones mínimas:
 
 - identificadores obligatorios: `NOT NULL`;
+- cadenas contractuales no vacías: el adaptador de persistencia debe preservar `min_length=1`; el DDL deberá materializar esta condición donde la escritura SQL sea una frontera de contrato;
 - `quantity > 0`;
 - `unit_price >= 0`;
 - `currency = 'EUR'`;
@@ -292,7 +295,9 @@ Estas restricciones son técnicas y no redefinen reglas empresariales.
 
 # 7. Tipos numéricos
 
-`quantity` y `unit_price` se almacenarán como `decimal(38,4)` para preservar los cuatro decimales autorizados por el contrato Python y evitar tipos aproximados. La precisión 38 es el máximo decimal soportado por SQL Server y no introduce una cota funcional adicional respecto al contrato Python, que no establece un máximo superior.
+`quantity` y `unit_price` se almacenarán como `decimal(38,4)` para preservar los cuatro decimales autorizados por el contrato Python. La precisión 38 impone un límite físico de magnitud que no está definido por el contrato Python; por ello, el adaptador de persistencia es responsable de rechazar antes de la escritura cualquier valor fuera del dominio representable por `decimal(38,4)`. No se permite redondeo implícito como mecanismo de adaptación.
+
+Esta decisión no redefine el dominio funcional de C0: establece únicamente el límite representacional de la persistencia SQL Server y la obligación de impedir pérdida silenciosa de valor.
 
 No se utilizará `float` para estos campos.
 
@@ -314,6 +319,8 @@ El fingerprint de C0 se almacena como `char(64)` en representación hexadecimal.
 SQL no lo recalcula.
 
 El algoritmo y la serialización canónica permanecen bajo la autoridad de C0. SQL solo conserva el resultado.
+
+La validación física debe comprobar conjuntamente longitud efectiva de 64 caracteres y contenido hexadecimal; la existencia de `char(64)` no se considera por sí sola una prueba suficiente de la invariante.
 
 ---
 
@@ -351,67 +358,26 @@ No se implementan todavía migraciones concretas en este documento.
 
 ---
 
-# 12. Fuera de alcance
+# 12. Decisión de representación numérica y frontera de persistencia
 
-Este diseño no define todavía:
+La revisión de compatibilidad Python ↔ SQL Server identifica que Python admite `Decimal` con escala máxima de cuatro decimales pero no establece un límite superior de magnitud equivalente a `decimal(38,4)`.
 
-- tablas funcionales de parámetros;
-- catálogo completo de reglas;
-- persistencia completa de RDM;
-- Decision Versioning físico completo;
-- Scenario Engine;
-- Viability;
-- CRC;
-- Negotiation;
-- Decision Twin;
-- API;
-- ORM;
-- driver Python;
-- conexión operacional;
-- despliegue SQL Server;
-- permisos de producción;
-- particionamiento;
-- temporal tables;
-- triggers;
-- procedimientos almacenados.
+Se mantiene `decimal(38,4)` como representación física del MVP por razones de precisión exacta y ausencia de tipos aproximados.
 
-Cualquier incorporación posterior deberá superar la auditoría correspondiente.
+La decisión técnica queda cerrada bajo estas condiciones:
+
+1. C0 valida el objeto antes de persistirlo.
+2. El adaptador de persistencia debe comprobar representabilidad en `decimal(38,4)` antes de ejecutar la escritura.
+3. Un valor no representable se rechaza; nunca se redondea silenciosamente para hacerlo caber.
+4. SQL Server no adquiere autoridad para redefinir el valor de negocio.
+5. Esta decisión no fija una precisión funcional futura de EIOS fuera del perímetro C0/MVP.
+
+Con ello, la divergencia de rango queda clasificada como **límite representacional de persistencia controlado**, no como contradicción funcional.
 
 ---
 
-# 13. Trazabilidad de diseño
+# 13. Cierre técnico
 
-| Elemento físico | Autoridad principal |
-|---|---|
-| `c0_input` | C0 `PurchaseOperation` / InputContract |
-| `c0_context` | C0 `DecisionContext` |
-| `c0_evidence` | C0 `Evidence` + Evidence Contract |
-| `c0_evidence_validation` | C0 `EvidenceValidation` |
-| `c0_rule_contract` | C0 `Rule` + Matriz de Reglas |
-| `c0_assessment` | Assessment Contract |
-| `c0_assessment_evidence` | Assessment Contract |
-| `c0_trace` | C0 `Trace` + Decision Versioning para referencias |
-| `c0_trace_evidence` | C0 `Trace` |
+El diseño físico C0 para SQL Server queda cerrado bajo las fronteras anteriores.
 
----
-
-# 14. Auditoría de cierre
-
-La auditoría de diseño ha confirmado:
-
-- correspondencia de las columnas con los contratos físicos C0;
-- preservación de cadenas y referencias Unicode mediante tipos Unicode donde corresponde;
-- ausencia de campos funcionales inventados;
-- ausencia de relaciones funcionales inferidas;
-- preservación de `NOT_EVALUABLE ≠ FALSE`;
-- preservación del fingerprint y Trace producidos por C0;
-- integridad referencial limitada a relaciones físicamente demostradas;
-- independencia entre versionado SQL y versionado funcional/decisional;
-- compatibilidad de los tipos y restricciones propuestos con SQL Server;
-- ausencia de necesidad de modificar autoridades superiores.
-
-La auditoría detectó y corrigió en esta versión la utilización inicial de `varchar` para campos de texto procedentes de contratos Python `str`; el diseño final utiliza `nvarchar` para conservar Unicode sin depender de la colación del servidor.
-
-El orden de las colecciones `evidence_ids` se conserva mediante un ordinal técnico, sin atribuirle significado decisional.
-
-**Estado de cierre: CERRADO.**
+La validación posterior deberá comprobar tanto la estructura SQL como las invariantes físicas relevantes y, específicamente, que ningún mecanismo de persistencia permita pérdida silenciosa de precisión o aceptación de valores fuera del contrato materializado.
