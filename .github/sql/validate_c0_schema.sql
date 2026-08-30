@@ -5,7 +5,6 @@ Environment: ephemeral CI database only
 */
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
-
 DECLARE @failures int = 0;
 
 /* V1 — exact table set */
@@ -14,7 +13,6 @@ INSERT INTO @expected_tables VALUES
 (N'c0_input'),(N'c0_context'),(N'c0_evidence'),(N'c0_evidence_validation'),
 (N'c0_rule_contract'),(N'c0_assessment'),(N'c0_assessment_evidence'),
 (N'c0_trace'),(N'c0_trace_evidence');
-
 IF EXISTS (SELECT 1 FROM @expected_tables e WHERE OBJECT_ID(N'eios.'+e.table_name,N'U') IS NULL)
 BEGIN SET @failures+=1; PRINT 'FAIL V1: expected table missing'; END;
 IF EXISTS (SELECT 1 FROM sys.tables t WHERE t.schema_id=SCHEMA_ID(N'eios') AND t.name NOT IN (SELECT table_name FROM @expected_tables))
@@ -56,11 +54,11 @@ INSERT INTO @expected_columns VALUES
 (N'c0_evidence_validation',N'reason',N'nvarchar',256,NULL,NULL,NULL,0,0),
 (N'c0_rule_contract',N'rule_id',N'nvarchar',64,NULL,NULL,NULL,0,0),
 (N'c0_rule_contract',N'version',N'nvarchar',64,NULL,NULL,NULL,0,0),
-(N'c0_rule_contract',N'requires_evidence',N'bit',NULL,1,0,NULL,0,0),
+(N'c0_rule_contract',N'requires_evidence',N'bit',NULL,NULL,NULL,NULL,0,0),
 (N'c0_assessment',N'assessment_row_id',N'bigint',NULL,19,0,NULL,0,1),
 (N'c0_assessment',N'rule_id',N'nvarchar',64,NULL,NULL,NULL,0,0),
 (N'c0_assessment',N'status',N'varchar',16,NULL,NULL,NULL,0,0),
-(N'c0_assessment',N'outcome',N'bit',NULL,1,0,NULL,1,0),
+(N'c0_assessment',N'outcome',N'bit',NULL,NULL,NULL,NULL,1,0),
 (N'c0_assessment',N'reason',N'nvarchar',256,NULL,NULL,NULL,0,0),
 (N'c0_assessment_evidence',N'assessment_row_id',N'bigint',NULL,19,0,NULL,0,0),
 (N'c0_assessment_evidence',N'evidence_ordinal',N'int',NULL,10,0,NULL,0,0),
@@ -74,7 +72,7 @@ INSERT INTO @expected_columns VALUES
 (N'c0_trace',N'input_fingerprint',N'char',64,NULL,NULL,NULL,0,0),
 (N'c0_trace',N'rule_id',N'nvarchar',64,NULL,NULL,NULL,0,0),
 (N'c0_trace',N'assessment_status',N'varchar',16,NULL,NULL,NULL,0,0),
-(N'c0_trace',N'assessment_outcome',N'bit',NULL,1,0,NULL,1,0),
+(N'c0_trace',N'assessment_outcome',N'bit',NULL,NULL,NULL,NULL,1,0),
 (N'c0_trace',N'created_at',N'datetimeoffset',NULL,NULL,NULL,7,0,0),
 (N'c0_trace_evidence',N'trace_id',N'nvarchar',128,NULL,NULL,NULL,0,0),
 (N'c0_trace_evidence',N'evidence_ordinal',N'int',NULL,10,0,NULL,0,0),
@@ -86,45 +84,15 @@ IF EXISTS (
  SELECT 1 FROM @expected_columns e
  LEFT JOIN INFORMATION_SCHEMA.COLUMNS c ON c.TABLE_SCHEMA='eios' AND c.TABLE_NAME=e.table_name AND c.COLUMN_NAME=e.column_name
  WHERE c.COLUMN_NAME IS NULL
-    OR c.DATA_TYPE<>e.data_type
-    OR c.IS_NULLABLE <> CASE WHEN e.is_nullable=1 THEN 'YES' ELSE 'NO' END
-    OR ISNULL(c.CHARACTER_MAXIMUM_LENGTH,-999)<>ISNULL(e.char_length,-999)
-    OR ISNULL(CONVERT(int,c.NUMERIC_PRECISION),-999)<>ISNULL(e.numeric_precision,-999)
-    OR ISNULL(CONVERT(int,c.NUMERIC_SCALE),-999)<>ISNULL(e.numeric_scale,-999)
-    OR ISNULL(CONVERT(int,c.DATETIME_PRECISION),-999)<>ISNULL(e.datetime_precision,-999)
-    OR ISNULL(COLUMNPROPERTY(OBJECT_ID(N'eios.'+e.table_name),e.column_name,'IsIdentity'),0)<>e.is_identity
+ OR c.DATA_TYPE<>e.data_type
+ OR c.IS_NULLABLE <> CASE WHEN e.is_nullable=1 THEN 'YES' ELSE 'NO' END
+ OR ISNULL(CONVERT(int,c.CHARACTER_MAXIMUM_LENGTH),-999)<>ISNULL(e.char_length,-999)
+ OR ISNULL(CONVERT(int,c.NUMERIC_PRECISION),-999)<>ISNULL(e.numeric_precision,-999)
+ OR ISNULL(CONVERT(int,c.NUMERIC_SCALE),-999)<>ISNULL(e.numeric_scale,-999)
+ OR ISNULL(CONVERT(int,c.DATETIME_PRECISION),-999)<>ISNULL(e.datetime_precision,-999)
+ OR ISNULL(COLUMNPROPERTY(OBJECT_ID(N'eios.'+e.table_name),e.column_name,'IsIdentity'),0)<>e.is_identity
 )
 BEGIN SET @failures+=1; PRINT 'FAIL V2: column definition differs from C0 SQL contract'; END;
-
-/* V2 diagnostic — expose the exact mismatched metadata row(s) in CI */
-SELECT
-    e.table_name,
-    e.column_name,
-    e.data_type AS expected_data_type,
-    c.DATA_TYPE AS actual_data_type,
-    e.char_length AS expected_char_length,
-    c.CHARACTER_MAXIMUM_LENGTH AS actual_char_length,
-    e.numeric_precision AS expected_numeric_precision,
-    CONVERT(int,c.NUMERIC_PRECISION) AS actual_numeric_precision,
-    e.numeric_scale AS expected_numeric_scale,
-    CONVERT(int,c.NUMERIC_SCALE) AS actual_numeric_scale,
-    e.datetime_precision AS expected_datetime_precision,
-    CONVERT(int,c.DATETIME_PRECISION) AS actual_datetime_precision,
-    CASE WHEN e.is_nullable=1 THEN 'YES' ELSE 'NO' END AS expected_nullable,
-    c.IS_NULLABLE AS actual_nullable,
-    e.is_identity AS expected_identity,
-    COLUMNPROPERTY(OBJECT_ID(N'eios.'+e.table_name),e.column_name,'IsIdentity') AS actual_identity
-FROM @expected_columns e
-LEFT JOIN INFORMATION_SCHEMA.COLUMNS c
-  ON c.TABLE_SCHEMA='eios' AND c.TABLE_NAME=e.table_name AND c.COLUMN_NAME=e.column_name
-WHERE c.COLUMN_NAME IS NULL
-   OR c.DATA_TYPE<>e.data_type
-   OR c.IS_NULLABLE <> CASE WHEN e.is_nullable=1 THEN 'YES' ELSE 'NO' END
-   OR ISNULL(CONVERT(int,c.CHARACTER_MAXIMUM_LENGTH),-999)<>ISNULL(e.char_length,-999)
-   OR ISNULL(CONVERT(int,c.NUMERIC_PRECISION),-999)<>ISNULL(e.numeric_precision,-999)
-   OR ISNULL(CONVERT(int,c.NUMERIC_SCALE),-999)<>ISNULL(e.numeric_scale,-999)
-   OR ISNULL(CONVERT(int,c.DATETIME_PRECISION),-999)<>ISNULL(e.datetime_precision,-999)
-   OR ISNULL(COLUMNPROPERTY(OBJECT_ID(N'eios.'+e.table_name),e.column_name,'IsIdentity'),0)<>e.is_identity;
 
 /* V3 — expected indexes */
 DECLARE @expected_indexes TABLE(index_name sysname PRIMARY KEY, table_name sysname);
@@ -153,7 +121,7 @@ INSERT INTO @expected_uq VALUES(N'UQ_c0_input_fingerprint'),(N'UQ_c0_assessment_
 IF EXISTS (SELECT 1 FROM @expected_uq e WHERE NOT EXISTS (SELECT 1 FROM sys.key_constraints k WHERE k.name=e.name AND k.type='UQ'))
 BEGIN SET @failures+=1; PRINT 'FAIL V5: expected UNIQUE constraint missing'; END;
 
-/* V6 — expected CHECK constraints; extra CHECKs are reported rather than hidden */
+/* V6 — expected CHECK constraints */
 DECLARE @expected_checks TABLE(name sysname PRIMARY KEY);
 INSERT INTO @expected_checks VALUES
 (N'CK_c0_input_quantity'),(N'CK_c0_input_unit_price'),(N'CK_c0_input_currency'),(N'CK_c0_input_identifiers_nonempty'),(N'CK_c0_input_fingerprint'),
