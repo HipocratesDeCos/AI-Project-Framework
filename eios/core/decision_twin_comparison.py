@@ -27,6 +27,7 @@ class Comparison:
     """Descriptive comparison only."""
 
     alternatives: tuple[str, ...]
+    scenario_refs: Mapping[str, str | None]
     observations: Mapping[str, Mapping[str, Any]]
     differences: Mapping[str, tuple[Any, ...]]
     missing: Mapping[str, tuple[str, ...]]
@@ -72,6 +73,9 @@ def compare(alternatives: Sequence[AlternativeRepresentation]) -> Comparison:
         if absent:
             missing[key] = tuple(absent)
 
+    scenario_refs = {
+        a.representation_ref: a.scenario_ref for a in alternatives
+    }
     viability = {a.representation_ref: a.viability for a in alternatives}
     viability_diff = _differences(tuple(a.viability for a in alternatives))
 
@@ -98,6 +102,7 @@ def compare(alternatives: Sequence[AlternativeRepresentation]) -> Comparison:
 
     return Comparison(
         alternatives=refs,
+        scenario_refs=scenario_refs,
         observations=observations,
         differences=differences,
         missing=missing,
