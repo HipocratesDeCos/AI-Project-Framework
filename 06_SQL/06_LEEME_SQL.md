@@ -300,11 +300,30 @@ Si un elemento físico introduce un concepto nuevo, dicho concepto deberá haber
 
 ---
 
-# 14. Fuera de alcance de este contrato
+# 14. SGBD objetivo y alcance físico
+
+El SGBD objetivo del EIOS MVP es **Microsoft SQL Server**.
+
+Esta decisión fija la plataforma física de persistencia, pero no define por sí misma:
+
+- versión concreta de SQL Server;
+- infraestructura de despliegue;
+- configuración operacional;
+- permisos de producción;
+- driver de acceso desde Python;
+- ORM;
+- estrategia de migraciones.
+
+El diseño físico debe respetar esta plataforma y continuar subordinado a los contratos funcionales y de implementación ya aprobados.
+
+Este contrato no autoriza por sí mismo la creación de tablas, columnas, índices, triggers, procedimientos ni código de acceso.
+
+---
+
+# 15. Fuera de alcance de este contrato
 
 Este contrato no determina todavía:
 
-- el SGBD definitivo;
 - el esquema físico definitivo;
 - tablas concretas;
 - columnas concretas;
@@ -321,7 +340,7 @@ Esos elementos pertenecen a fases posteriores de implementación técnica y debe
 
 ---
 
-# 15. Regla de escalado ante conflictos
+# 16. Regla de escalado ante conflictos
 
 Si durante la implementación SQL aparece una necesidad que no pueda resolverse únicamente mediante criterios técnicos de persistencia, no debe resolverse creando una nueva semántica local en SQL.
 
@@ -346,7 +365,7 @@ Esto mantiene la separación de autoridades y evita que la implementación físi
 
 ---
 
-# 16. Principios de cierre
+# 17. Principios de cierre
 
 `06_SQL` queda sometido a los siguientes principios:
 
