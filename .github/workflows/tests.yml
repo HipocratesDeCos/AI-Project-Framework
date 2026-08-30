@@ -8,6 +8,20 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: "EiosCi_2026#SqlServer!"
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'EiosCi_2026#SqlServer!' -C -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,5 +31,27 @@ jobs:
           python-version: "3.12"
       - name: Install project and test dependencies
         run: python -m pip install --upgrade pip && python -m pip install ".[test]"
-      - name: Run tests
+      - name: Run Python tests
         run: python -m pytest -q
+      - name: Validate SQL Server C0 schema
+        env:
+          MSSQL_SA_PASSWORD: "EiosCi_2026#SqlServer!"
+        run: |
+          set -euo pipefail
+          SQL_CONTAINER="$(docker ps -q --filter 'ancestor=mcr.microsoft.com/mssql/server:2022-latest' | head -n 1)"
+          test -n "$SQL_CONTAINER"
+
+          docker exec -i "$SQL_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
+            -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d master \
+            -Q "IF DB_ID(N'eios_ci') IS NULL CREATE DATABASE eios_ci;"
+
+          docker cp 06_SQL/001_C0_Schema.sql "$SQL_CONTAINER:/tmp/001_C0_Schema.sql"
+          docker cp .github/sql/validate_c0_schema.sql "$SQL_CONTAINER:/tmp/validate_c0_schema.sql"
+
+          docker exec -i "$SQL_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
+            -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d eios_ci \
+            -i /tmp/001_C0_Schema.sql -b
+
+          docker exec -i "$SQL_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
+            -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d eios_ci \
+            -i /tmp/validate_c0_schema.sql -b
