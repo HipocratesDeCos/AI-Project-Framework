@@ -14,14 +14,16 @@ PR es un indicador de referencia de precio para análisis posterior. No constitu
 
 ## 2. Principio híbrido
 
-El PR seguirá una secuencia conceptual de tres etapas:
+El PR seguirá una secuencia conceptual de cuatro etapas metodológicas posteriores a la generación de candidatas:
 
 ```text
 referencias candidatas
         ↓
 comparabilidad
         ↓
-selección / ponderación explícita
+selección
+        ↓
+ponderación
         ↓
 PR
 ```
@@ -238,3 +240,58 @@ Esta separación no autoriza todavía:
 - fórmula de PR.
 
 Cualquier metodología de selección o ponderación deberá ser aprobada antes de convertirse en regla ejecutable.
+
+## 15. CP-90 — Selección híbrida por comparabilidad + representatividad
+
+Se aprueba una selección híbrida: la comparabilidad determina primero el conjunto de referencias admisibles y, sobre ese conjunto, la representatividad determina cuáles participan finalmente en la construcción de PR.
+
+La secuencia normativa queda:
+
+```text
+referencias candidatas
+        ↓
+comparabilidad
+        ↓
+conjunto admisible
+        ↓
+representatividad
+        ↓
+selección
+        ↓
+ponderación
+        ↓
+PR
+```
+
+### 15.1 Comparabilidad como condición previa
+
+Solo las referencias que hayan superado las condiciones de comparabilidad aplicables pueden entrar en la evaluación de representatividad.
+
+Una referencia no comparable o pendiente de evaluación no puede ser seleccionada mediante un criterio posterior de representatividad.
+
+### 15.2 Representatividad
+
+La representatividad expresa la adecuación de una referencia comparable para representar el contexto económico de la evaluación.
+
+La representatividad es conceptualmente distinta de la comparabilidad y de la ponderación.
+
+Su evaluación deberá ser explicable y trazable. No se autoriza todavía ningún score, peso, umbral ni variable concreta para medirla.
+
+### 15.3 Independencia respecto del resultado
+
+La selección no puede basarse retrospectivamente en que una referencia produzca un PR más conveniente, más bajo o más alto para la decisión empresarial.
+
+La representatividad debe evaluarse por criterios previamente definidos, no por la conveniencia del resultado obtenido.
+
+### 15.4 Límites
+
+Esta decisión no autoriza todavía:
+
+- variables concretas de representatividad;
+- score de representatividad;
+- criterios de exclusión concretos;
+- pesos;
+- ponderación por recencia, volumen, proveedor u otra variable;
+- fórmula de PR.
+
+La metodología concreta de representatividad deberá definirse y aprobarse antes de convertirse en regla ejecutable.
