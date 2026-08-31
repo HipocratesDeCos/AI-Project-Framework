@@ -191,3 +191,50 @@ La categoría normalizable no permite compensar una deficiencia en una dimensió
 La dimensión temporal permanece separada de la normalización económica: la antigüedad o pertinencia temporal no se corrige implícitamente mediante un ajuste de precio.
 
 Esta decisión mantiene el modelo híbrido de PR sin introducir todavía umbrales, tolerancias, pesos o fórmulas.
+
+## 14. CP-87 — Separación selección → ponderación
+
+Se aprueba la separación explícita entre **selección** y **ponderación** como etapas independientes del modelo híbrido.
+
+La secuencia normativa de diseño queda:
+
+```text
+referencias candidatas
+        ↓
+comparabilidad
+        ↓
+selección
+        ↓
+ponderación
+        ↓
+PR
+```
+
+### 14.1 Selección
+
+La selección determina qué referencias comparables participan en la construcción de PR.
+
+Una referencia debe haber superado previamente las condiciones de comparabilidad aplicables. La selección no puede utilizarse para convertir una referencia no comparable o pendiente de evaluación en comparable.
+
+La metodología concreta de selección permanece pendiente de especificación funcional.
+
+### 14.2 Ponderación
+
+La ponderación determina, cuando proceda, la influencia relativa de las referencias seleccionadas sobre la construcción de PR.
+
+La ponderación es conceptualmente posterior a la selección y no puede utilizarse para compensar deficiencias de comparabilidad.
+
+La metodología concreta de ponderación permanece pendiente de especificación funcional.
+
+### 14.3 Límites
+
+Esta separación no autoriza todavía:
+
+- criterios concretos de selección;
+- criterios de exclusión por representatividad;
+- pesos;
+- ponderación por recencia, volumen, proveedor u otra variable;
+- media, mediana, percentiles u otra agregación;
+- fórmula de PR.
+
+Cualquier metodología de selección o ponderación deberá ser aprobada antes de convertirse en regla ejecutable.
