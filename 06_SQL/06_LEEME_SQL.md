@@ -320,27 +320,36 @@ Este contrato no autoriza por sí mismo la creación de tablas, columnas, índic
 
 ---
 
-# 15. Fuera de alcance de este contrato
+# 15. Artefactos físicos actualmente materializados
 
-Este contrato no determina todavía:
+A fecha de la reconciliación post-8.5, el dominio SQL contiene:
 
-- el esquema físico definitivo;
-- tablas concretas;
-- columnas concretas;
-- índices concretos;
-- procedimientos almacenados concretos;
-- triggers concretos;
-- ORM;
-- migraciones concretas;
-- código de acceso a datos;
-- infraestructura de despliegue;
-- configuración operacional del entorno.
+- `001_C0_Schema.sql` — persistencia C0;
+- `002_Decision_Versioning_Schema.sql` — persistencia de Decision Versioning;
+- `003_Centro_Parametrizacion_Schema.sql` — persistencia del Centro de Parametrización.
 
-Esos elementos pertenecen a fases posteriores de implementación técnica y deberán respetar este contrato.
+Estos artefactos implementan contratos previamente autorizados y no amplían por sí mismos la autoridad funcional del dominio SQL.
+
+Los scripts de validación correspondientes permanecen en `.github/sql/` y se ejecutan mediante CI.
 
 ---
 
-# 16. Regla de escalado ante conflictos
+# 16. Fuera de alcance de este contrato
+
+Este contrato no determina:
+
+- ORM;
+- infraestructura de despliegue;
+- configuración operacional del entorno;
+- driver de acceso desde Python;
+- API pública;
+- UI.
+
+La materialización concreta de estos elementos debe respetar las autoridades y contratos correspondientes y no puede utilizar SQL como justificación para crear una nueva semántica funcional.
+
+---
+
+# 17. Regla de escalado ante conflictos
 
 Si durante la implementación SQL aparece una necesidad que no pueda resolverse únicamente mediante criterios técnicos de persistencia, no debe resolverse creando una nueva semántica local en SQL.
 
@@ -365,7 +374,7 @@ Esto mantiene la separación de autoridades y evita que la implementación físi
 
 ---
 
-# 17. Principios de cierre
+# 18. Principios de cierre
 
 `06_SQL` queda sometido a los siguientes principios:
 
