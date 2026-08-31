@@ -120,3 +120,74 @@ No autoriza implementación.
 ## 11. Criterio de cierre
 
 PR solo podrá pasar a contrato de implementación cuando exista autoridad suficiente para cerrar la metodología de comparabilidad, normalización, selección/ponderación y tratamiento de insuficiencia y contradicciones.
+
+## 12. CP-69.1 — Matriz de comparabilidad (diseño)
+
+Se adopta el modelo **graduado** de comparabilidad. Las dimensiones se clasifican según su función, sin convertirlas todavía en umbrales ni reglas ejecutables.
+
+| Categoría | Dimensiones | Tratamiento |
+|---|---|---|
+| **Obligatorias** | Producto/concepto; evidencia; fuente/trazabilidad | Deben permitir identificar qué se está comparando y de dónde procede el precio. Su ausencia impide tratar la referencia como comparable por defecto. |
+| **Normalizables** | Unidad; cantidad; moneda; condiciones comerciales | Una diferencia no invalida automáticamente la referencia, pero solo puede corregirse mediante una regla de normalización aprobada. |
+| **Temporales** | Fecha | La proximidad temporal es necesaria para valorar la pertinencia, pero la ventana concreta queda pendiente de especificación. |
+
+### 12.1 Clasificación conceptual
+
+Una referencia puede clasificarse, a efectos de diseño, como:
+
+- **COMPARABLE:** supera las condiciones aplicables y puede contribuir a la fase de selección/ponderación.
+- **NO_COMPARABLE:** no satisface una condición necesaria y no existe normalización autorizada que permita utilizarla.
+- **PENDIENTE_DE_EVALUACIÓN:** falta información necesaria para determinar comparabilidad.
+
+Estas etiquetas son de diseño y **no constituyen todavía estados físicos ni contrato técnico**.
+
+### 12.2 Regla de información faltante
+
+La ausencia de un atributo necesario no se interpreta como equivalencia. Una referencia con información insuficiente debe permanecer pendiente de evaluación o quedar excluida, según la metodología que posteriormente sea aprobada.
+
+### 12.3 Regla de normalización
+
+La normalización solo puede aplicarse cuando exista una regla aprobada que defina cómo transformar la diferencia sin alterar indebidamente el significado económico del precio.
+
+No se autoriza una normalización implícita.
+
+### 12.4 Regla de contradicción
+
+Cuando las fuentes o atributos relevantes sean contradictorios, la referencia no adquiere comparabilidad por selección arbitraria del valor más conveniente. El tratamiento debe conservar la contradicción y esperar la metodología aprobada.
+
+### 12.5 Regla de dependencia entre dimensiones
+
+La clasificación graduada no significa que una dimensión pueda compensar libremente otra.
+
+En particular:
+
+- una referencia no puede ser considerada comparable únicamente porque producto y precio coincidan si carece de evidencia/trazabilidad suficiente;
+- una diferencia normalizable no puede darse por normalizada sin regla aprobada;
+- una dimensión obligatoria no puede ser compensada mediante ponderación estadística;
+- la selección/ponderación solo opera sobre referencias que hayan superado previamente las condiciones de comparabilidad aplicables.
+
+### 12.6 Límites de esta matriz
+
+Esta matriz no fija:
+
+- tolerancias numéricas;
+- ventanas temporales;
+- tipos de cambio;
+- reglas de ajuste de cantidad;
+- reglas de ajuste comercial;
+- criterios de outlier;
+- pesos;
+- algoritmo de selección;
+- fórmula de PR.
+
+Su función es establecer la estructura de evaluación, no completar las decisiones metodológicas pendientes.
+
+## 13. CP-70 — Decisión de comparabilidad graduada
+
+La comparabilidad se interpreta mediante tres categorías funcionales: **obligatoria**, **normalizable** y **temporal**.
+
+La categoría normalizable no permite compensar una deficiencia en una dimensión obligatoria. La selección o ponderación de referencias solo puede actuar después de la evaluación de comparabilidad.
+
+La dimensión temporal permanece separada de la normalización económica: la antigüedad o pertinencia temporal no se corrige implícitamente mediante un ajuste de precio.
+
+Esta decisión mantiene el modelo híbrido de PR sin introducir todavía umbrales, tolerancias, pesos o fórmulas.
