@@ -3,7 +3,7 @@
 ## 1. Identidad
 
 **Documento:** Quality & Trust Implementation Contract  
-**Versión:** 0.2  
+**Versión:** 0.3  
 **Estado:** DISEÑO — pendiente de auditoría y cierre  
 **Baseline de referencia:** EIOS-BL-001  
 **Autoridad conceptual:** `03_Arquitectura/Architecture_Blueprint.md`  
@@ -108,7 +108,8 @@ La confianza se determina cualitativamente mediante la matriz normativa de este 
 - evidencia suficiente para las condiciones aplicables;
 - ausencia de contradicciones críticas no resueltas;
 - temporalidad y semántica suficientes para el uso previsto;
-- trazabilidad suficiente del conjunto evaluado.
+- trazabilidad suficiente del conjunto evaluado;
+- ausencia de limitaciones relevantes que deban comunicarse como advertencia.
 
 **MEDIA** corresponde cuando no existe una deficiencia crítica que impida continuar, pero existe al menos una limitación relevante no crítica, incertidumbre acotada o advertencia que reduce la solidez del conjunto.
 
@@ -181,17 +182,23 @@ Una contradicción no crítica que no impida continuar conduce, como máximo, a 
 
 Quality & Trust no resuelve la contradicción mediante prioridad arbitraria, promedio, último valor, score u otra heurística no autorizada.
 
-### 9.5 Relación entre estado y confianza
+### 9.5 Combinaciones estado/confianza
 
-`NO_APTO` no constituye una decisión empresarial.
+Para evitar ambigüedad, las combinaciones normativas se restringen así:
 
-Un resultado `NO_APTO` no podrá representarse con confianza `ALTA`, porque el propio estado expresa una insuficiencia crítica para continuar.
+| Estado global | Confianza autorizada | Criterio |
+|---|---|---|
+| `APTO` | `ALTA` | Condiciones aplicables satisfechas, sin limitaciones relevantes ni advertencias pendientes. |
+| `APTO_CON_ADVERTENCIAS` | `MEDIA` o `BAJA` | No existe bloqueo crítico, pero sí una o más limitaciones relevantes no críticas. |
+| `NO_APTO` | `BAJA` | Existe insuficiencia o condición crítica que impide continuar con confianza suficiente. |
 
-`APTO` puede coexistir con `ALTA` o `MEDIA` según las limitaciones existentes.
+No se autoriza `APTO + MEDIA`, porque la existencia de una limitación relevante incompatible con `ALTA` debe reflejarse en el estado mediante `APTO_CON_ADVERTENCIAS`.
 
-`APTO_CON_ADVERTENCIAS` puede coexistir con `MEDIA` o `BAJA` cuando las advertencias reduzcan materialmente la solidez sin constituir bloqueo crítico.
+No se autoriza `APTO + BAJA`.
 
-La combinación `NO_APTO + BAJA` es la representación esperada cuando existe insuficiencia crítica.
+No se autoriza `NO_APTO + ALTA` ni `NO_APTO + MEDIA`.
+
+La matriz es normativa y determinista; no constituye scoring.
 
 ---
 
@@ -292,17 +299,17 @@ La persistencia física se diseñará únicamente después de cerrar las estruct
 
 Antes de cerrar la implementación deberán demostrarse, como mínimo:
 
-- entrada íntegra → `APTO`;
-- defecto no crítico → `APTO_CON_ADVERTENCIAS`;
-- defecto crítico → `NO_APTO`;
+- entrada íntegra → `APTO` + `ALTA`;
+- defecto no crítico → `APTO_CON_ADVERTENCIAS` + `MEDIA`;
+- limitación relevante no crítica que reduzca materialmente la solidez → `APTO_CON_ADVERTENCIAS` + `BAJA`;
+- defecto crítico → `NO_APTO` + `BAJA`;
 - ausencia de dato crítico no convertida en cero/falso;
 - contradicción crítica conservada;
 - evidencia trazable conservada;
 - no modificación de C0;
 - no producción de decisión empresarial;
 - determinismo sobre la misma entrada y contexto;
-- `NO_APTO` no asociado a confianza `ALTA`;
-- coherencia de las combinaciones estado/confianza autorizadas;
+- rechazo de combinaciones de estado/confianza no autorizadas;
 - explicación reproducible del motivo del estado y confianza.
 
 ---
