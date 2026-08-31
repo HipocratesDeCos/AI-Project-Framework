@@ -14,7 +14,7 @@ PR es un indicador de referencia de precio para análisis posterior. No constitu
 
 ## 2. Principio híbrido
 
-El PR seguirá una secuencia conceptual de etapas posteriores a la generación de candidatas:
+El PR seguirá la secuencia:
 
 ```text
 referencias candidatas
@@ -28,224 +28,87 @@ ponderación
 PR
 ```
 
-La selección o ponderación deberá ser explicable y trazable. Una única observación no adquiere automáticamente carácter de benchmark representativo por el mero hecho de existir.
+La selección y la ponderación deberán ser explicables y trazables. Una única observación no adquiere automáticamente carácter de benchmark representativo.
 
-## 3. Referencia candidata
+## 3. Entrada canónica
 
-Una referencia candidata debe conservar, cuando estén disponibles y sean aplicables:
+Price Intelligence consume el contexto y los datos autorizados contenidos en el **DECISION INPUT PACKAGE (DIP)**. No crea ni duplica un contexto de evaluación paralelo.
+
+El DIP precede a QTG y a Price Intelligence en la arquitectura funcional. Pricing consume los atributos necesarios para su función respetando la autoridad de cada capa.
+
+## 4. Referencia candidata
+
+Una referencia candidata conserva, cuando estén disponibles y sean aplicables:
 
 - identificación del producto o concepto;
 - unidad de medida;
 - cantidad;
 - fecha;
+- precio;
 - moneda;
 - condiciones comerciales relevantes;
+- proveedor, cuando resulte pertinente;
 - fuente;
 - trazabilidad;
 - vínculo con la evidencia que sustenta el precio.
 
 La ausencia de un atributo necesario no se interpreta silenciosamente como equivalencia.
 
-## 4. Comparabilidad
+## 5. Comparabilidad graduada
 
-La comparabilidad debe evaluarse antes de utilizar una referencia para construir PR.
-
-Como mínimo conceptual, debe considerar:
-
-- equivalencia o relación suficiente del producto/concepto;
-- unidad comparable o normalizable;
-- cantidad comparable o normalizable;
-- proximidad temporal adecuada al uso previsto;
-- condiciones comerciales relevantes;
-- moneda y componentes de precio comparables o normalizables.
-
-Los criterios concretos, tolerancias y ventanas temporales permanecen pendientes de especificación funcional.
-
-## 5. Selección y ponderación
-
-Una referencia que no supere los criterios de comparabilidad aplicables no debe contribuir al PR como si fuera comparable.
-
-Cuando existan varias referencias comparables, el diseño híbrido requiere una fase explícita de selección y/o ponderación.
-
-La metodología concreta de selección y ponderación permanece pendiente. No se prescribe media, mediana, último precio, percentiles ni ningún otro método sin autorización posterior.
-
-## 6. Normalización
-
-Cuando dos referencias sean comparables pero presenten diferencias normalizables, dichas diferencias deberán quedar identificadas antes de su utilización.
-
-La normalización podrá afectar, cuando corresponda, a unidad, cantidad, moneda y condiciones comerciales.
-
-Las reglas concretas de normalización permanecen pendientes de especificación.
-
-## 7. Evidencia y trazabilidad
-
-Cada referencia utilizada para PR debe poder relacionarse con su evidencia y origen.
-
-La ausencia de trazabilidad suficiente no se convierte en una referencia fiable por defecto.
-
-QTG precede a Price Intelligence y conserva la autoridad sobre calidad y confianza. Price Intelligence no duplica sus controles.
-
-## 8. Casos insuficientes
-
-El diseño debe distinguir entre:
-
-- conjunto suficiente de referencias comparables;
-- conjunto limitado pero utilizable;
-- ausencia de referencias comparables suficientes.
-
-La semántica exacta de estos casos y su efecto sobre PR queda pendiente de especificación funcional.
-
-No se inventará un PR cuando la evidencia disponible no permita construirlo de forma justificable.
-
-## 9. Contradicciones
-
-Las referencias contradictorias no se resuelven mediante prioridad arbitraria, último valor, promedio u otra heurística no autorizada.
-
-Su tratamiento concreto queda pendiente de especificación.
-
-## 10. Límites
-
-Este diseño no define:
-
-- fórmula de PR;
-- pesos;
-- umbrales;
-- ventanas temporales concretas;
-- tolerancias concretas;
-- reglas de outliers;
-- metodología de PO;
-- metodología de PPV;
-- metodología o fórmula de PMR.
-
-No autoriza implementación.
-
-## 11. Criterio de cierre
-
-PR solo podrá pasar a contrato de implementación cuando exista autoridad suficiente para cerrar la metodología de comparabilidad, normalización, selección/ponderación y tratamiento de insuficiencia y contradicciones.
-
-## 12. CP-69.1 — Matriz de comparabilidad (diseño)
-
-Se adopta el modelo **graduado** de comparabilidad. Las dimensiones se clasifican según su función, sin convertirlas todavía en umbrales ni reglas ejecutables.
+Se adopta el modelo **graduado**.
 
 | Categoría | Dimensiones | Tratamiento |
 |---|---|---|
-| **Obligatorias** | Producto/concepto; evidencia; fuente/trazabilidad | Deben permitir identificar qué se está comparando y de dónde procede el precio. Su ausencia impide tratar la referencia como comparable por defecto. |
-| **Normalizables** | Unidad; cantidad; moneda; condiciones comerciales | Una diferencia no invalida automáticamente la referencia, pero solo puede corregirse mediante una regla de normalización aprobada. |
-| **Temporales** | Fecha | La proximidad temporal es necesaria para valorar la pertinencia, pero la ventana concreta queda pendiente de especificación. |
+| **Obligatorias** | Producto/concepto; evidencia; fuente/trazabilidad | Su ausencia impide tratar la referencia como comparable por defecto. |
+| **Normalizables** | Unidad; cantidad; moneda; condiciones comerciales | Una diferencia no invalida automáticamente la referencia, pero solo puede corregirse mediante una regla aprobada. |
+| **Temporal** | Fecha | Determina pertinencia temporal; no implica ajuste automático del precio. |
 
-### 12.1 Clasificación conceptual
+Estados conceptuales:
 
-Una referencia puede clasificarse, a efectos de diseño, como:
-
-- **COMPARABLE:** supera las condiciones aplicables y puede contribuir a la fase de selección/ponderación.
-- **NO_COMPARABLE:** no satisface una condición necesaria y no existe normalización autorizada que permita utilizarla.
+- **COMPARABLE:** supera las condiciones aplicables.
+- **NO_COMPARABLE:** no satisface una condición necesaria y no existe normalización autorizada.
 - **PENDIENTE_DE_EVALUACIÓN:** falta información necesaria para determinar comparabilidad.
 
-Estas etiquetas son de diseño y **no constituyen todavía estados físicos ni contrato técnico**.
+La clasificación graduada no permite compensar una deficiencia obligatoria mediante otra dimensión.
 
-### 12.2 Regla de información faltante
+## 6. Normalización
 
-La ausencia de un atributo necesario no se interpreta como equivalencia. Una referencia con información insuficiente debe permanecer pendiente de evaluación o quedar excluida, según la metodología que posteriormente sea aprobada.
+La normalización solo puede aplicarse cuando exista una regla aprobada que defina la transformación sin alterar indebidamente el significado económico del precio.
 
-### 12.3 Regla de normalización
+No se autoriza normalización implícita de unidad, cantidad, moneda, transporte, descuentos, rappels, impuestos o condiciones comerciales.
 
-La normalización solo puede aplicarse cuando exista una regla aprobada que defina cómo transformar la diferencia sin alterar indebidamente el significado económico del precio.
+La moneda puede conservarse como atributo de la referencia, pero su conversión para construir PR requiere metodología autorizada.
 
-No se autoriza una normalización implícita.
+## 7. Evidencia y QTG
 
-### 12.4 Regla de contradicción
+Cada referencia utilizada para PR debe poder relacionarse con su evidencia y origen.
 
-Cuando las fuentes o atributos relevantes sean contradictorios, la referencia no adquiere comparabilidad por selección arbitraria del valor más conveniente. El tratamiento debe conservar la contradicción y esperar la metodología aprobada.
+QTG mantiene la autoridad sobre calidad y confianza. Price Intelligence no duplica ni sustituye esos controles.
 
-### 12.5 Regla de dependencia entre dimensiones
+La evidencia/trazabilidad es condición de confianza y auditabilidad; no constituye por sí misma una variable de representatividad económica.
 
-La clasificación graduada no significa que una dimensión pueda compensar libremente otra.
+## 8. Temporalidad histórica
 
-En particular:
+El Framework dispone de parámetros y reglas temporales diferenciados:
 
-- una referencia no puede ser considerada comparable únicamente porque producto y precio coincidan si carece de evidencia/trazabilidad suficiente;
-- una diferencia normalizable no puede darse por normalizada sin regla aprobada;
-- una dimensión obligatoria no puede ser compensada mediante ponderación estadística;
-- la selección/ponderación solo opera sobre referencias que hayan superado previamente las condiciones de comparabilidad aplicables.
+- `P-PRE-001`: periodo principal de comparación — valor inicial 3 meses.
+- `P-PRE-002`: periodo ampliado de comparación — valor inicial 12 meses.
+- `P-DAT-002`: antigüedad máxima de referencia de precio — valor inicial 12 meses.
 
-### 12.6 Límites de esta matriz
+`R-HIS-001` utiliza `P-DAT-002` como parámetro configurable efectivo para la antigüedad máxima. `P-PRE-003` permanece como criterio/metodología histórica y no como parámetro directo.
 
-Esta matriz no fija:
+Para `R-PRE-001`, la expresión **"referencia comparable reciente"** se interpreta en el diseño MVP como referencia comparable situada dentro del **periodo principal de comparación `P-PRE-001`**, salvo que una autoridad posterior apruebe una definición distinta.
 
-- tolerancias numéricas;
-- ventanas temporales;
-- tipos de cambio;
-- reglas de ajuste de cantidad;
-- reglas de ajuste comercial;
-- criterios de outlier;
-- pesos;
-- algoritmo de selección;
-- fórmula de PR.
+`P-PRE-002` representa el periodo ampliado de análisis histórico y no sustituye a `P-PRE-001` como criterio de referencia reciente.
 
-Su función es establecer la estructura de evaluación, no completar las decisiones metodológicas pendientes.
+`P-DAT-002` opera como límite superior de antigüedad histórica y no como peso de recencia.
 
-## 13. CP-70 — Decisión de comparabilidad graduada
+Esta resolución cierra el **GAP-PI-TEMP-01** sin introducir un parámetro nuevo ni una fórmula de decaimiento temporal.
 
-La comparabilidad se interpreta mediante tres categorías funcionales: **obligatoria**, **normalizable** y **temporal**.
+## 9. Selección → ponderación
 
-La categoría normalizable no permite compensar una deficiencia en una dimensión obligatoria. La selección o ponderación de referencias solo puede actuar después de la evaluación de comparabilidad.
-
-La dimensión temporal permanece separada de la normalización económica: la antigüedad o pertinencia temporal no se corrige implícitamente mediante un ajuste de precio.
-
-Esta decisión mantiene el modelo híbrido de PR sin introducir todavía umbrales, tolerancias, pesos o fórmulas.
-
-## 14. CP-87 — Separación selección → ponderación
-
-Se aprueba la separación explícita entre **selección** y **ponderación** como etapas independientes del modelo híbrido.
-
-La secuencia normativa de diseño queda:
-
-```text
-referencias candidatas
-        ↓
-comparabilidad
-        ↓
-selección
-        ↓
-ponderación
-        ↓
-PR
-```
-
-### 14.1 Selección
-
-La selección determina qué referencias comparables participan en la construcción de PR.
-
-Una referencia debe haber superado previamente las condiciones de comparabilidad aplicables. La selección no puede utilizarse para convertir una referencia no comparable o pendiente de evaluación en comparable.
-
-La metodología concreta de selección permanece pendiente de especificación funcional.
-
-### 14.2 Ponderación
-
-La ponderación determina, cuando proceda, la influencia relativa de las referencias seleccionadas sobre la construcción de PR.
-
-La ponderación es conceptualmente posterior a la selección y no puede utilizarse para compensar deficiencias de comparabilidad.
-
-La metodología concreta de ponderación permanece pendiente de especificación funcional.
-
-### 14.3 Límites
-
-Esta separación no autoriza todavía:
-
-- criterios concretos de selección;
-- criterios de exclusión por representatividad;
-- pesos;
-- ponderación por recencia, volumen, proveedor u otra variable;
-- media, mediana, percentiles u otra agregación;
-- fórmula de PR.
-
-Cualquier metodología de selección o ponderación deberá ser aprobada antes de convertirse en regla ejecutable.
-
-## 15. CP-90 — Selección híbrida por comparabilidad + representatividad
-
-Se aprueba una selección híbrida: la comparabilidad determina primero el conjunto de referencias admisibles y, sobre ese conjunto, la representatividad determina cuáles participan finalmente en la construcción de PR.
-
-La secuencia normativa queda:
+Se aprueba la separación explícita entre ambas etapas:
 
 ```text
 referencias candidatas
@@ -263,73 +126,135 @@ ponderación
 PR
 ```
 
-### 15.1 Comparabilidad como condición previa
+### 9.1 Selección
 
-Solo las referencias que hayan superado las condiciones de comparabilidad aplicables pueden entrar en la evaluación de representatividad.
+La selección determina qué referencias comparables participan en la construcción de PR.
 
-Una referencia no comparable o pendiente de evaluación no puede ser seleccionada mediante un criterio posterior de representatividad.
+No puede convertir una referencia no comparable o pendiente de evaluación en comparable.
 
-### 15.2 Representatividad
+### 9.2 Ponderación
 
-La representatividad expresa la adecuación de una referencia comparable para representar el contexto económico de la evaluación.
+La ponderación determina, cuando proceda, la influencia relativa de las referencias seleccionadas.
 
-La representatividad es conceptualmente distinta de la comparabilidad y de la ponderación.
+No puede utilizarse para compensar deficiencias de comparabilidad.
 
-Su evaluación deberá ser explicable y trazable. No se autoriza todavía ningún score, peso, umbral ni variable concreta para medirla.
+## 10. Representatividad contextual
 
-### 15.3 Independencia respecto del resultado
+La representatividad se evalúa respecto al **contexto de la evaluación de compra para la que se construye PR**.
 
-La selección no puede basarse retrospectivamente en que una referencia produzca un PR más conveniente, más bajo o más alto para la decisión empresarial.
+No es una propiedad absoluta del precio histórico, del mercado, del proveedor o de la categoría.
 
-La representatividad debe evaluarse por criterios previamente definidos, no por la conveniencia del resultado obtenido.
+La representatividad es conceptualmente distinta de:
 
-### 15.4 Límites
+- calidad/confianza de QTG;
+- comparabilidad;
+- selección;
+- ponderación.
 
-Esta decisión no autoriza todavía:
+Una referencia no comparable o pendiente de evaluación no puede adquirir comparabilidad por presentar alta representatividad.
 
-- variables concretas de representatividad;
-- score de representatividad;
-- criterios de exclusión concretos;
+La selección no puede basarse retrospectivamente en que una referencia produzca un PR más conveniente para la decisión empresarial.
+
+## 11. Selección híbrida por comparabilidad + representatividad
+
+Primero se determina el conjunto admisible mediante comparabilidad. Solo después se evalúa la representatividad contextual para determinar el conjunto seleccionado.
+
+La representatividad deberá ser explicable y trazable.
+
+No se autoriza todavía ningún score, peso, umbral ni variable concreta para medirla.
+
+## 12. Dimensiones disponibles
+
+Los datos del DIP que pueden alimentar la evaluación incluyen, según pertinencia:
+
+- producto/concepto;
+- cantidad;
+- unidad;
+- fecha;
+- precio;
+- moneda;
+- proveedor;
+- condiciones comerciales;
+- descuentos/rappels;
+- transporte u otros componentes;
+- datos empresariales pertinentes.
+
+**Dato disponible ≠ criterio metodológico autorizado.** La inclusión de una variable en el DIP no implica que deba intervenir en representatividad o ponderación.
+
+## 13. Insuficiencia
+
+El diseño distingue entre:
+
+- conjunto suficiente de referencias comparables;
+- conjunto limitado pero potencialmente utilizable;
+- ausencia de referencias comparables suficientes.
+
+No se inventará un PR cuando la evidencia disponible no permita construirlo de forma justificable.
+
+La semántica exacta y los umbrales de suficiencia permanecen pendientes.
+
+## 14. Contradicciones
+
+Las referencias contradictorias no se resuelven mediante prioridad arbitraria, último valor, promedio u otra heurística no autorizada.
+
+Su tratamiento concreto permanece pendiente.
+
+## 15. Límites
+
+Este diseño no define todavía:
+
+- fórmula de PR;
 - pesos;
-- ponderación por recencia, volumen, proveedor u otra variable;
-- fórmula de PR.
+- scores;
+- umbrales de representatividad;
+- tolerancias de normalización;
+- reglas de ajuste de cantidad;
+- reglas de conversión monetaria;
+- reglas de ajuste comercial;
+- reglas de outliers;
+- criterios finales de suficiencia;
+- algoritmo concreto de selección;
+- algoritmo concreto de ponderación.
 
-La metodología concreta de representatividad deberá definirse y aprobarse antes de convertirse en regla ejecutable.
+No autoriza implementación.
 
-## 16. CP-97 — Marco de representatividad contextual
+## 16. Invariantes de diseño
 
-Se aprueba como marco de referencia que la representatividad se evalúe **respecto al contexto de la evaluación de compra para la que se construye PR**.
+1. QTG precede a Price Intelligence en materia de calidad/confianza.
+2. La comparabilidad precede a representatividad, selección y ponderación.
+3. La representatividad no modifica la comparabilidad.
+4. La selección precede a la ponderación.
+5. La ponderación no compensa deficiencias de comparabilidad.
+6. La normalización requiere una regla aprobada.
+7. La antigüedad histórica no se convierte automáticamente en peso de recencia.
+8. Pricing consume el DIP y no crea una segunda autoridad contextual.
+9. La selección no puede depender de la conveniencia del PR resultante.
+10. Ningún dato disponible se convierte en criterio metodológico sin decisión explícita.
 
-La representatividad no se define, por defecto, como una propiedad absoluta del precio histórico, del mercado, del proveedor o de la categoría. Su función es determinar la adecuación de una referencia comparable al contexto económico concreto de la evaluación.
+## 17. Estado de cierre parcial
 
-Este marco no autoriza todavía variables, pesos, scores, umbrales ni algoritmos para medir representatividad.
+Quedan cerrados en diseño:
 
-### 16.1 Separación de autoridades
+- modelo híbrido de PR;
+- comparabilidad graduada;
+- separación selección → ponderación;
+- selección híbrida por comparabilidad + representatividad;
+- representatividad contextual respecto a la evaluación de compra;
+- DIP como entrada contextual canónica;
+- resolución temporal de `R-PRE-001`: "reciente" = dentro de `P-PRE-001` para el diseño MVP;
+- distinción entre `P-PRE-001`, `P-PRE-002` y `P-DAT-002`.
 
-La representatividad no sustituye ni modifica:
-
-- la calidad/confianza evaluada por QTG;
-- la comparabilidad;
-- la selección;
-- la ponderación;
-- las reglas de decisión;
-- el CRC.
-
-Una referencia no comparable o pendiente de evaluación no puede adquirir comparabilidad por presentar alta representatividad contextual.
-
-### 16.2 Independencia del resultado
-
-La representatividad debe evaluarse mediante criterios definidos previamente y no mediante la conveniencia del PR resultante para la decisión empresarial.
-
-### 16.3 Límites
-
-Quedan pendientes de especificación funcional:
+Quedan abiertos para posteriores decisiones metodológicas:
 
 - dimensiones concretas de representatividad;
-- variables observables;
-- tratamiento temporal;
-- tratamiento económico/comercial;
-- tratamiento contextual;
-- tratamiento de procedencia;
-- eventuales criterios de exclusión;
-- metodología de selección derivada de representatividad.
+- normalización;
+- criterios de suficiencia;
+- selección concreta;
+- ponderación;
+- agregación/fórmula PR;
+- outliers;
+- contradicciones.
+
+## 18. Criterio de cierre
+
+PR solo podrá pasar a contrato de implementación cuando exista autoridad suficiente para cerrar comparabilidad, normalización, temporalidad aplicable, representatividad, selección, ponderación, suficiencia y contradicciones.
