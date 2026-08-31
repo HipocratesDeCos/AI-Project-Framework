@@ -15,7 +15,17 @@
 - Price Intelligence no constituye por sí mismo un motor de decisión.
 - QTG precede funcionalmente a Price Intelligence.
 
-## 2. Elementos que pueden estructurarse sin fijar metodología
+## 2. Orientación aprobada para PR
+
+Se adopta como orientación de diseño la **opción C — modelo híbrido**:
+
+1. determinar primero la comparabilidad de las referencias;
+2. seleccionar y/o ponderar la evidencia comparable mediante una metodología explícita;
+3. obtener PR a partir del conjunto resultante, evitando que una única observación o una agregación ciega determine por sí sola el benchmark.
+
+Esta orientación no autoriza todavía fórmulas, pesos, umbrales ni algoritmos concretos.
+
+## 3. Elementos que pueden estructurarse sin fijar metodología
 
 Una referencia de precio puede conservar, cuando estén disponibles, sus metadatos de identificación, unidad, cantidad, fecha, moneda, condiciones comerciales, fuente y trazabilidad.
 
@@ -23,7 +33,7 @@ La ausencia o insuficiencia de dichos elementos no debe transformarse silenciosa
 
 Las exclusiones de referencias no comparables deben ser explícitas y trazables.
 
-## 3. Decisiones funcionales pendientes
+## 4. Decisiones funcionales pendientes
 
 Quedan pendientes de autoridad específica:
 
@@ -41,7 +51,7 @@ Quedan pendientes de autoridad específica:
 - metodología de cálculo de PPV;
 - metodología y fórmula de PMR.
 
-## 4. Límites
+## 5. Límites
 
 Este documento no crea fórmulas, pesos, umbrales ni algoritmos de cálculo.
 
@@ -49,6 +59,6 @@ No autoriza implementación de Pricing.
 
 PMR permanece expresamente congelado hasta disponer de especificación aprobada.
 
-## 5. Próximo paso
+## 6. Próximo paso
 
-La siguiente fase deberá obtener autoridad funcional para resolver los gaps anteriores antes de cerrar un contrato de implementación de Price Intelligence.
+Desarrollar el diseño normativo de PR a partir de la orientación híbrida aprobada, manteniendo separadas las decisiones que todavía requieren especificación funcional.
