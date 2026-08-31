@@ -3,7 +3,7 @@
 ## 1. Identidad
 
 **Documento:** Centro de Parametrización — Implementation Contract  
-**Versión:** 1.0  
+**Versión:** 1.1  
 **Estado:** CERRADO — Contrato técnico de implementación  
 **Baseline de referencia:** EIOS-BL-001  
 **Autoridad funcional:** `02_Parametros/Centro_Parametrizacion.md`  
@@ -88,10 +88,8 @@ parameter_id
 company_id
 value
 value_type / unit
-status
 valid_from
 valid_to
-configuration_version
 created_at
 updated_at
 ```
@@ -108,6 +106,10 @@ company_id
 parameter_id
 ```
 
+El contrato **no define una taxonomía propia de estados de configuración**. Cualquier estado funcional deberá provenir de la autoridad documental correspondiente.
+
+El contrato **no fija una unidad concreta de versionado físico de configuración**. La implementación deberá garantizar reconstruibilidad histórica; la representación/versionado físico deberá ser compatible con `06_SQL` y no podrá crear una segunda semántica de versionado decisional.
+
 Los nombres físicos definitivos quedan bajo autoridad de SQL.
 
 ---
@@ -117,13 +119,15 @@ Los nombres físicos definitivos quedan bajo autoridad de SQL.
 ```text
 get_parameter(parameter_id)
 get_current_configuration(company_id, parameter_id)
-get_configuration_version(company_id, parameter_id, version)
+get_configuration_at(company_id, parameter_id, effective_at)
 get_parameter_history(company_id, parameter_id)
 validate_change(company_id, parameter_id, value, validity)
 apply_change(company_id, parameter_id, value, validity, actor, reason)
 ```
 
 Estas operaciones son contractuales y no implican una API pública concreta.
+
+`get_configuration_at` expresa recuperación histórica por momento efectivo; no impone una semántica concreta de versión física.
 
 No se define una operación genérica que permita modificar sin validación cualquier parámetro o regla.
 
@@ -151,7 +155,7 @@ No se define una operación genérica que permita modificar sin validación cual
 
 **CP-I10 — No inferencia:** un parámetro sin consumidor autorizado no adquiere consumidor por estar almacenado.
 
-**CP-I11 — Versionado:** la evolución de configuración es distinguible y reconstruible.
+**CP-I11 — Reconstruibilidad:** la evolución de configuración debe poder reconstruirse históricamente sin imponer una unidad de versionado físico no autorizada.
 
 **CP-I12 — No decisión:** el Centro no produce `BUY`, `BLOCK`, `NEGOTIATE`, viabilidad ni decisión final.
 
@@ -169,7 +173,7 @@ Los elementos de reglas, prioridades y excepciones que estén sometidos a autori
 
 ## 10. Versionado y Decision Versioning
 
-El Centro versiona **configuración**.
+El Centro administra la evolución histórica de **configuración**.
 
 Decision Versioning versiona **estado decisional**.
 
@@ -178,7 +182,7 @@ No se crea una segunda semántica de versionado de decisiones.
 La relación conceptual es:
 
 ```text
-Configuration Version
+Configuración aplicable
         ↓
 DecisionContext
         ↓
@@ -201,7 +205,7 @@ Como mínimo, la persistencia deberá preservar:
 - aislamiento empresarial;
 - vigencia;
 - histórico;
-- versionado;
+- reconstruibilidad;
 - trazabilidad;
 - integridad de los valores.
 
@@ -243,7 +247,7 @@ CP-I07 Type/unit integrity
 CP-I08 No rule authority
 CP-I09 No bypass
 CP-I10 No inferred consumer
-CP-I11 Configuration version integrity
+CP-I11 Historical reconstructibility
 CP-I12 No decision output
 ```
 
@@ -267,7 +271,9 @@ Este contrato no define:
 - autenticación o identidad corporativa;
 - retención legal;
 - UI;
-- API pública.
+- API pública;
+- taxonomía propia de estados de configuración;
+- unidad concreta de versionado físico de configuración.
 
 ---
 
