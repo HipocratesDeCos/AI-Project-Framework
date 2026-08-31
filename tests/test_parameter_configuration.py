@@ -243,3 +243,64 @@ def test_apply_change_does_not_evaluate_rules_or_make_decisions():
     configuration = center.apply_change(request())
     assert not hasattr(configuration, "decision")
     assert not hasattr(configuration, "rule_result")
+
+
+def test_historical_reconstruction_preserves_adjacent_configurations_and_history():
+    center, repository = make_center()
+    first_start = NOW - timedelta(days=30)
+    boundary = NOW + timedelta(days=30)
+    second_end = NOW + timedelta(days=60)
+
+    first = center.apply_change(
+        request(
+            value="12.50",
+            valid_from=first_start,
+            valid_to=boundary,
+            actor="USER-001",
+            reason="Configuración inicial",
+        )
+    )
+    second = center.apply_change(
+        request(
+            value="13.75",
+            valid_from=boundary,
+            valid_to=second_end,
+            actor="USER-002",
+            reason="Actualización posterior",
+        )
+    )
+
+    assert second.valid_from == first.valid_to
+    assert center.get_configuration_at("COMP-001", "PRE-001", NOW) == first
+    assert center.get_configuration_at("COMP-001", "PRE-001", boundary) == second
+    assert center.get_configuration_at("COMP-001", "PRE-001", second_end) is None
+
+    history = center.get_parameter_history("COMP-001", "PRE-001")
+    assert len(history) == 2
+    assert history[0].previous_value is None
+    assert history[0].new_value == "12.50"
+    assert history[0].changed_by == "USER-001"
+    assert history[0].change_reason == "Configuración inicial"
+    assert history[1].previous_value == "12.50"
+    assert history[1].new_value == "13.75"
+    assert history[1].changed_by == "USER-002"
+    assert history[1].change_reason == "Actualización posterior"
+    assert all(entry.company_id == "COMP-001" for entry in history)
+
+
+def test_historical_reconstruction_isolated_between_companies():
+    center, _ = make_center()
+    first_start = NOW - timedelta(days=10)
+    end = NOW + timedelta(days=10)
+
+    center.apply_change(
+        request(company_id="COMP-001", value="12.50", valid_from=first_start, valid_to=end)
+    )
+    center.apply_change(
+        request(company_id="COMP-002", value="99.00", valid_from=first_start, valid_to=end)
+    )
+
+    assert center.get_configuration_at("COMP-001", "PRE-001", NOW).value == "12.50"
+    assert center.get_configuration_at("COMP-002", "PRE-001", NOW).value == "99.00"
+    assert center.get_parameter_history("COMP-001", "PRE-001")[0].new_value == "12.50"
+    assert center.get_parameter_history("COMP-002", "PRE-001")[0].new_value == "99.00"
