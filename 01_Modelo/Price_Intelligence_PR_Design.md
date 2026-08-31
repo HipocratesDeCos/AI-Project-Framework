@@ -14,7 +14,7 @@ PR es un indicador de referencia de precio para análisis posterior. No constitu
 
 ## 2. Principio híbrido
 
-El PR seguirá una secuencia conceptual de cuatro etapas metodológicas posteriores a la generación de candidatas:
+El PR seguirá una secuencia conceptual de etapas posteriores a la generación de candidatas:
 
 ```text
 referencias candidatas
@@ -295,3 +295,41 @@ Esta decisión no autoriza todavía:
 - fórmula de PR.
 
 La metodología concreta de representatividad deberá definirse y aprobarse antes de convertirse en regla ejecutable.
+
+## 16. CP-97 — Marco de representatividad contextual
+
+Se aprueba como marco de referencia que la representatividad se evalúe **respecto al contexto de la evaluación de compra para la que se construye PR**.
+
+La representatividad no se define, por defecto, como una propiedad absoluta del precio histórico, del mercado, del proveedor o de la categoría. Su función es determinar la adecuación de una referencia comparable al contexto económico concreto de la evaluación.
+
+Este marco no autoriza todavía variables, pesos, scores, umbrales ni algoritmos para medir representatividad.
+
+### 16.1 Separación de autoridades
+
+La representatividad no sustituye ni modifica:
+
+- la calidad/confianza evaluada por QTG;
+- la comparabilidad;
+- la selección;
+- la ponderación;
+- las reglas de decisión;
+- el CRC.
+
+Una referencia no comparable o pendiente de evaluación no puede adquirir comparabilidad por presentar alta representatividad contextual.
+
+### 16.2 Independencia del resultado
+
+La representatividad debe evaluarse mediante criterios definidos previamente y no mediante la conveniencia del PR resultante para la decisión empresarial.
+
+### 16.3 Límites
+
+Quedan pendientes de especificación funcional:
+
+- dimensiones concretas de representatividad;
+- variables observables;
+- tratamiento temporal;
+- tratamiento económico/comercial;
+- tratamiento contextual;
+- tratamiento de procedencia;
+- eventuales criterios de exclusión;
+- metodología de selección derivada de representatividad.
