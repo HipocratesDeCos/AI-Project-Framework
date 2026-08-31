@@ -33,7 +33,7 @@ jobs:
         run: python -m pip install --upgrade pip && python -m pip install ".[test]"
       - name: Run Python tests
         run: python -m pytest -q
-      - name: Validate SQL Server C0 and Decision Versioning schema
+      - name: Validate SQL Server C0, Decision Versioning, and Parameter Configuration schemas
         env:
           MSSQL_SA_PASSWORD: "EiosCi_2026#SqlServer!"
         run: |
@@ -47,8 +47,10 @@ jobs:
 
           docker cp 06_SQL/001_C0_Schema.sql "$SQL_CONTAINER:/tmp/001_C0_Schema.sql"
           docker cp 06_SQL/002_Decision_Versioning_Schema.sql "$SQL_CONTAINER:/tmp/002_Decision_Versioning_Schema.sql"
+          docker cp 06_SQL/003_Centro_Parametrizacion_Schema.sql "$SQL_CONTAINER:/tmp/003_Centro_Parametrizacion_Schema.sql"
           docker cp .github/sql/validate_c0_schema.sql "$SQL_CONTAINER:/tmp/validate_c0_schema.sql"
           docker cp .github/sql/validate_decision_versioning_schema.sql "$SQL_CONTAINER:/tmp/validate_decision_versioning_schema.sql"
+          docker cp .github/sql/validate_parameter_configuration_schema.sql "$SQL_CONTAINER:/tmp/validate_parameter_configuration_schema.sql"
 
           docker exec -i "$SQL_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
             -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d eios_ci \
@@ -65,3 +67,11 @@ jobs:
           docker exec -i "$SQL_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
             -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d eios_ci \
             -i /tmp/validate_decision_versioning_schema.sql -b
+
+          docker exec -i "$SQL_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
+            -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d eios_ci \
+            -i /tmp/003_Centro_Parametrizacion_Schema.sql -b
+
+          docker exec -i "$SQL_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
+            -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d eios_ci \
+            -i /tmp/validate_parameter_configuration_schema.sql -b
