@@ -2,10 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 2.1  
+**Versión:** 2.2  
 **Estado:** APROBADO  
 **Documento:** Gobierno del proyecto  
-**Última actualización:** 24/08/2026
+**Última actualización:** 31/08/2026
 
 ---
 
@@ -101,8 +101,7 @@ Dentro de `00_Gobierno/` se consideran documentos fundamentales:
 ├── Project_Context.md
 ├── Project_Governance.md
 ├── Matriz_Autoridad_Documental.md
-├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
-└── EIOS_Assurance_Framework.md
+└── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
 ```
 
 Cada documento tiene una función diferente.
@@ -126,10 +125,6 @@ Determina qué documento prevalece cuando existe una discrepancia.
 ### Salvaguarda Vertical MVP
 
 Establece las restricciones y decisiones congeladas aplicables al Vertical MVP.
-
-### Assurance Framework
-
-Define el marco transversal de assurance del sistema.
 
 ---
 
@@ -372,6 +367,8 @@ Los documentos de contexto no deben duplicar exhaustivamente el contenido de dic
 
 Cuando un concepto especializado tenga una fuente oficial, esa fuente prevalece sobre una descripción resumida incluida en documentos de contexto.
 
+Cuando un documento especializado haya sido formalmente retirado, eliminado o sustituido, las referencias de gobierno que lo presenten como documento vigente deberán actualizarse en consecuencia.
+
 ---
 
 # 13. TRAZABILIDAD
@@ -417,260 +414,3 @@ EIOS debe poder continuar aunque:
 - transcurra un periodo prolongado sin trabajar en el proyecto.
 
 Para ello, el conocimiento esencial debe quedar documentado.
-
-`Project_Context.md` actúa como documento de recuperación del contexto.
-
-La recuperación del proyecto deberá apoyarse prioritariamente en la documentación oficial y no en la memoria de una conversación concreta.
-
----
-
-# 15. CONTROL DE COHERENCIA
-
-Antes de aprobar un cambio relevante deberá comprobarse, cuando corresponda:
-
-- compatibilidad con `Project_Charter.md`;
-- compatibilidad con `Project_Context.md`;
-- compatibilidad con `Matriz_Autoridad_Documental.md`;
-- compatibilidad con la Salvaguarda Vertical MVP;
-- impacto sobre Assurance;
-- impacto sobre documentos especializados;
-- existencia de contradicciones;
-- referencias documentales afectadas.
-
-No se debe aprobar un cambio aislado que provoque una contradicción conocida en otra capa del sistema.
-
----
-
-# 16. GESTIÓN DE VERSIONES
-
-El número de versión deberá reflejar la importancia del cambio documental.
-
-### Versión mayor
-
-Ejemplo:
-
-`v2.0`
-
-Utilizar cuando exista un cambio estructural, conceptual o de contenido suficientemente relevante.
-
-### Versión menor
-
-Ejemplo:
-
-`v2.1`
-
-Utilizar para ampliaciones o mejoras que no alteren la estructura fundamental ni la autoridad del documento.
-
-### Corrección
-
-Ejemplo:
-
-`v2.0.1`
-
-Puede utilizarse para correcciones menores de redacción, formato, referencias o errores que no cambien el contenido conceptual.
-
-El criterio exacto podrá adaptarse al sistema de versionado del proyecto, pero nunca deberá utilizarse el número de versión para ocultar cambios sustanciales.
-
----
-
-# 17. GESTIÓN DE OBSOLESCENCIA
-
-Un documento no debe eliminarse simplemente porque exista una versión posterior.
-
-La sustitución ordinaria consiste en:
-
-```text
-VERSIÓN ANTERIOR
-       ↓
-NUEVA VERSIÓN APROBADA
-       ↓
-MISMO ARCHIVO OFICIAL
-       ↓
-HISTORIAL DE GITHUB
-```
-
-Un documento podrá eliminarse cuando exista una decisión expresa de gobierno que determine que ya no debe formar parte del repositorio.
-
-La eliminación no debe utilizarse para ocultar decisiones anteriores.
-
----
-
-# 18. REGLA SOBRE DUPLICACIÓN
-
-Debe evitarse mantener el mismo criterio en varios documentos como si todos fueran fuentes de autoridad.
-
-Cuando un concepto tenga una fuente oficial:
-
-- otros documentos pueden resumirlo;
-- pueden enlazarlo;
-- pueden contextualizarlo;
-
-pero no deben redefinirlo de forma independiente.
-
-La duplicación de lógica es una fuente de contradicciones y debe minimizarse.
-
----
-
-# 19. CONTROL DE REFERENCIAS
-
-Cuando un documento cambie de nombre, ubicación o función deberá revisarse el resto del repositorio para detectar referencias afectadas.
-
-Especial atención a:
-
-- rutas;
-- nombres de archivos;
-- enlaces;
-- dependencias;
-- documentos de autoridad;
-- referencias cruzadas.
-
-Una actualización documental no se considera completamente cerrada si deja referencias internas críticas rotas.
-
----
-
-# 20. CIERRE DE UNA SESIÓN DE TRABAJO
-
-Al finalizar una sesión significativa deberá determinarse:
-
-1. qué decisiones se han tomado;
-2. cuáles han sido aprobadas;
-3. qué documentos deben actualizarse;
-4. qué cambios quedan pendientes;
-5. qué elementos han quedado congelados;
-6. cuál es el siguiente punto de trabajo.
-
-No es necesario registrar cada conversación.
-
-Debe conservarse únicamente el conocimiento necesario para mantener la continuidad y trazabilidad del proyecto.
-
----
-
-# 21. REGLA DE NO REGRESIÓN
-
-Una modificación no debe degradar una capacidad, garantía o restricción previamente aprobada sin una decisión explícita que lo autorice.
-
-Antes de aceptar una modificación relevante debe comprobarse:
-
-```text
-¿Mejora?
-¿Mantiene?
-¿O degrada?
-```
-
-Si degrada una garantía existente, debe tratarse como un cambio sustancial y someterse al procedimiento de aprobación correspondiente.
-
----
-
-# 22. GOBIERNO DEL EIOS VERTICAL MVP
-
-El EIOS Vertical MVP está sujeto a su Salvaguarda específica.
-
-La Salvaguarda constituye una restricción de gobierno sobre el alcance y comportamiento definido del Vertical.
-
-Por tanto:
-
-```text
-PROPUESTA
-   ↓
-VALIDACIÓN
-   ↓
-COMPATIBILIDAD CON SALVAGUARDA
-   ↓
-APROBACIÓN
-   ↓
-DOCUMENTACIÓN
-```
-
-Una propuesta que contradiga una restricción congelada no puede incorporarse directamente al Vertical MVP.
-
-Debe seguir el procedimiento de modificación correspondiente.
-
----
-
-# 23. REGLA DE ESCALADO
-
-Cuando una decisión afecte a varias capas del proyecto deberá analizarse transversalmente antes de aprobarse.
-
-Ejemplo:
-
-```text
-Cambio de parámetro
-      ↓
-Regla
-      ↓
-Motor
-      ↓
-Recomendación
-      ↓
-Interfaz
-      ↓
-Trazabilidad
-```
-
-No debe considerarse un cambio como local si sus consecuencias afectan a otras capas.
-
----
-
-# 24. RESPONSABILIDAD DE LA DOCUMENTACIÓN
-
-Cada documento debe tener un propósito claro y una autoridad identificable.
-
-Antes de crear un nuevo `.md` deberá comprobarse:
-
-1. si el contenido ya existe;
-2. si puede incorporarse a un documento existente;
-3. si necesita convertirse en documento especializado;
-4. qué autoridad tendrá;
-5. dónde debe ubicarse.
-
-**Crear documentos sin necesidad debe evitarse.**
-
----
-
-# 25. REGLA DE SIMPLICIDAD
-
-La documentación debe ser:
-
-- clara;
-- suficiente;
-- mantenible;
-- trazable;
-- no redundante.
-
-EIOS no debe convertirse en un sistema documental más complejo que el propio sistema que pretende gobernar.
-
-La documentación debe ayudar al proyecto, no convertirse en una carga.
-
----
-
-# 26. CRITERIO FINAL DE GOBIERNO
-
-Ante cualquier duda sobre una modificación, debe aplicarse este orden:
-
-```text
-1. ¿Qué se quiere cambiar?
-        ↓
-2. ¿Qué documento tiene autoridad?
-        ↓
-3. ¿Está aprobado o congelado?
-        ↓
-4. ¿Qué dependencias afecta?
-        ↓
-5. ¿Existe contradicción?
-        ↓
-6. ¿Debe aprobarse formalmente?
-        ↓
-7. ¿Está documentado?
-        ↓
-8. ¿Está implementado correctamente?
-```
-
----
-
-# 27. PRINCIPIO FUNDAMENTAL
-
-> **En EIOS, ninguna decisión importante debe depender de la memoria de una conversación.**
-
-Debe existir una fuente documental oficial, una autoridad identificable y una trazabilidad suficiente para comprender:
-
-**qué se decidió, por qué se decidió, cuándo se decidió y qué versión lo representa.**
