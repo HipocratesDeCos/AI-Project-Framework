@@ -30,12 +30,11 @@ La transformación es estructural, no sustantiva.
 
 `LadderContextReferences` mantiene únicamente referencias a autoridades upstream:
 
-- `decision_id`
-- `decision_version`
-- `scenario_id` opcional
-- `viability_reference` opcional
-- `decision_twin_reference` opcional
-- `negotiation_result_id` opcional
+- `negotiation_result_id` — obligatorio;
+- `decision_id` — obligatorio;
+- `decision_version` — obligatorio;
+- `scenario_id` — opcional;
+- `source_references` — referencias de origen.
 
 No crea un sistema paralelo de versionado.
 
@@ -43,29 +42,26 @@ No crea un sistema paralelo de versionado.
 
 Cada `LadderStep` contiene:
 
-- `step_id`
-- `step_type`
-- `source_content_reference`
-- `position`
-- `representation_metadata`
-
-`source_content_reference` es obligatorio.
-
-`step_type` permitido:
-
-`OBJECTIVE`, `REQUEST`, `MOVE`, `CONCESSION`, `COUNTERPART_CONSIDERATION`, `CONDITION`, `ALTERNATIVE`, `FALLBACK`, `LIMIT`, `WALK_AWAY`.
+- `step_id`;
+- `step_type`;
+- `source_content_reference` — obligatorio;
+- `position` — entero positivo;
+- `representation_metadata`.
 
 El step no contiene una copia editable del contenido sustantivo.
+
+Tipos permitidos:
+
+`OBJECTIVE`, `OPENING_REQUEST`, `MOVE`, `CONCESSION`, `COUNTERPART_CONSIDERATION`, `CONDITION`, `ALTERNATIVE`, `FALLBACK`, `LIMIT`, `WALK_AWAY`.
 
 ### 3.3 Transition
 
 Cada transición contiene:
 
-- `transition_id`
-- `from_step_id`
-- `to_step_id`
-- `trigger_reference` opcional
-- `condition_reference` opcional
+- `transition_id`;
+- `from_step_id`;
+- `to_step_id`;
+- `trigger_reference` opcional.
 
 Solo puede referenciar steps existentes.
 
@@ -73,8 +69,8 @@ Solo puede referenciar steps existentes.
 
 Cada ruta contiene:
 
-- `route_id`
-- `step_references`
+- `route_id`;
+- `step_references`.
 
 Todos los steps referenciados deben existir.
 
@@ -82,34 +78,37 @@ Todos los steps referenciados deben existir.
 
 `NegotiationLadderResult` contiene:
 
-- `ladder_id`
-- `context_references`
-- `steps`
-- `transitions`
-- `routes`
-- `traceability_references`
+- `ladder_id`;
+- `context_references`;
+- `steps`;
+- `transitions`;
+- `routes`;
+- `traceability_references`.
 
-Es inmutable.
+Debe contener al menos un step y es inmutable.
 
 ## 4. Invariantes
 
 1. Los modelos son inmutables.
 2. Los campos no declarados son rechazados.
 3. `ladder_id` es obligatorio.
-4. Cada `step_id` es único.
-5. Cada step tiene `source_content_reference`.
-6. `position` es entero positivo.
-7. Las transiciones solo conectan steps existentes.
-8. Las rutas solo contienen referencias a steps existentes.
-9. No existe contenido estratégico autónomo.
-10. Ladder no crea ni modifica límites.
-11. Ladder no crea escenarios.
-12. Ladder no calcula viabilidad.
-13. Ladder no recalcula Decision Twin.
-14. Ladder no crea decisiones, aprobaciones ni ejecuciones.
-15. La trazabilidad del resultado es obligatoria.
-16. La representación de `WALK_AWAY` no crea un nuevo límite.
-17. Ladder no altera sustantivamente el contenido referenciado por `source_content_reference`.
+4. `negotiation_result_id`, `decision_id` y `decision_version` son obligatorios.
+5. Cada `step_id` es único.
+6. Cada step tiene `source_content_reference`.
+7. `position` es entero positivo y único dentro del resultado.
+8. Las transiciones solo conectan steps existentes.
+9. Cada `transition_id` es único.
+10. Las rutas solo contienen referencias a steps existentes.
+11. Cada `route_id` es único.
+12. No existe contenido estratégico autónomo.
+13. Ladder no crea ni modifica límites.
+14. Ladder no crea escenarios.
+15. Ladder no calcula viabilidad.
+16. Ladder no recalcula Decision Twin.
+17. Ladder no crea decisiones, aprobaciones ni ejecuciones.
+18. La trazabilidad del resultado es obligatoria.
+19. La representación de `WALK_AWAY` no crea un nuevo límite.
+20. Ladder no altera sustantivamente el contenido referenciado por `source_content_reference`.
 
 ## 5. Exclusiones explícitas
 
@@ -140,11 +139,13 @@ La implementación debe probar:
 - construcción válida;
 - rechazo de campos desconocidos;
 - inmutabilidad;
+- identidad y contexto upstream obligatorios;
 - step IDs únicos;
 - referencias de origen obligatorias;
-- posiciones válidas;
+- posiciones positivas y únicas;
 - rechazo de transiciones hacia steps inexistentes;
 - rechazo de rutas hacia steps inexistentes;
+- IDs únicos de transiciones y rutas;
 - ausencia de campos estratégicos/decisionales;
 - ausencia de creación de límites/escenarios;
 - trazabilidad obligatoria;
