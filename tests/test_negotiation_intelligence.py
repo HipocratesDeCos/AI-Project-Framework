@@ -44,34 +44,28 @@ def result(**overrides):
                 confidence=1.0,
                 source_references=("E1",),
             ),
-        ),
-        "epistemic_qualifications": (
             NIAssertion(
                 content="A lower price may be achievable.",
                 epistemic_type="HYPOTHESIS",
                 confidence=0.6,
             ),
-        ),
-        "confidence_uncertainty": (
             NIAssertion(
                 content="Outcome depends on supplier response.",
                 epistemic_type="ESTIMATE",
                 confidence=0.6,
             ),
         ),
-        "source_references": ("E1", "VF1", "DT1"),
         "traceability_references": ("TRACE1",),
-        "version_identity": "NI1-v1",
     }
     values.update(overrides)
     return NegotiationIntelligenceResult(**values)
 
 
-def test_result_requires_context_identity_and_version():
+def test_result_requires_context_identity_and_result_identity():
     value = result()
     assert value.context_references.decision_id == "D1"
     assert value.context_references.decision_version == "DV1"
-    assert value.version_identity == "NI1-v1"
+    assert value.negotiation_result_id == "NI1"
 
 
 def test_upstream_authorities_are_references_not_redefined_objects():
@@ -83,9 +77,21 @@ def test_upstream_authorities_are_references_not_redefined_objects():
 
 @pytest.mark.parametrize(
     "forbidden",
-    ["ladder_step", "sequence_order", "transition", "business_decision", "approved", "executed"],
+    [
+        "ladder_step",
+        "sequence_order",
+        "transition",
+        "business_decision",
+        "approved",
+        "executed",
+        "version_identity",
+        "confidence_uncertainty",
+        "epistemic_qualifications",
+        "source_references",
+        "confidence_score",
+    ],
 )
-def test_forbidden_authority_fields_are_rejected(forbidden):
+def test_forbidden_or_duplicative_fields_are_rejected(forbidden):
     with pytest.raises(ValidationError):
         NegotiationIntelligenceResult.model_validate({**result().model_dump(), forbidden: "x"})
 
@@ -95,10 +101,15 @@ def test_fact_requires_source_reference():
         NIAssertion(content="observed fact", epistemic_type="FACT")
 
 
-def test_epistemic_types_remain_distinct():
+def test_epistemic_types_and_confidence_live_on_single_assertion():
     value = result()
-    types = {item.epistemic_type for item in value.justification + value.epistemic_qualifications + value.confidence_uncertainty}
-    assert {"FACT", "HYPOTHESIS", "ESTIMATE"} <= types
+    assert [item.epistemic_type for item in value.justification] == [
+        "FACT",
+        "HYPOTHESIS",
+        "ESTIMATE",
+    ]
+    assert value.justification[1].confidence == 0.6
+    assert value.justification[1].source_references == ()
 
 
 def test_global_confidence_score_is_not_part_of_contract():
@@ -118,10 +129,9 @@ def test_result_is_immutable():
 
 
 def test_new_result_identity_does_not_overwrite_historical_result():
-    first = result(negotiation_result_id="NI1", version_identity="NI1-v1")
-    second = result(negotiation_result_id="NI2", version_identity="NI2-v1")
+    first = result(negotiation_result_id="NI1")
+    second = result(negotiation_result_id="NI2")
     assert first.negotiation_result_id != second.negotiation_result_id
-    assert first.version_identity != second.version_identity
 
 
 def test_negotiation_content_is_not_ladder_structure():
@@ -133,6 +143,6 @@ def test_negotiation_content_is_not_ladder_structure():
 
 def test_hypothesis_does_not_become_scenario_identity():
     value = result()
-    hypothesis = value.epistemic_qualifications[0]
+    hypothesis = value.justification[1]
     assert hypothesis.epistemic_type == "HYPOTHESIS"
     assert value.context_references.scenario_id == "S1"
