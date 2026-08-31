@@ -2,8 +2,8 @@
 
 ## Índice Maestro del Framework
 
-**Versión:** 2.5  
-**Estado:** APROBADO — reconciliación post-8.5  
+**Versión:** 2.6  
+**Estado:** APROBADO — reconciliación post-8.5 + Quality & Trust  
 **Función:** Índice maestro de la estructura documental EIOS  
 **Ubicación:** `03_Arquitectura/Framework_Map.md`
 
@@ -181,6 +181,7 @@ Documentación correspondiente a la materialización técnica controlada del dis
 - `CRC_MVP_Implementation_Contract.md`
 - `Negotiation_Intelligence_Implementation_Contract.md`
 - `Negotiation_Ladder_Implementation_Contract.md`
+- `Quality_Trust_Implementation_Contract.md`
 
 La implementación ejecutable se encuentra materializada adicionalmente en `eios/` y verificada mediante `tests/`.
 
@@ -237,20 +238,3 @@ La autoridad documental se determina mediante:
 # 6. REGLA DEL FRAMEWORK MAP
 
 Este documento tiene carácter exclusivamente estructural y de navegación.
-
-No debe utilizarse para:
-
-- definir reglas de negocio;
-- definir parámetros;
-- definir arquitectura detallada;
-- definir lógica decisional;
-- sustituir documentos especializados;
-- establecer autoridad documental.
-
-Cuando exista una contradicción entre este documento y un documento especializado, prevalece la autoridad definida en `Matriz_Autoridad_Documental.md`.
-
----
-
-# 7. PRINCIPIO FINAL
-
-> El Framework Map muestra dónde está cada cosa; la Matriz de Autoridad determina qué documento manda.
