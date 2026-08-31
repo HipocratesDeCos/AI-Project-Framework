@@ -2,7 +2,7 @@
 
 ## Índice Maestro del Framework
 
-**Versión:** 2.3  
+**Versión:** 2.4  
 **Estado:** APROBADO  
 **Función:** Índice maestro de la estructura documental EIOS  
 **Ubicación:** `03_Arquitectura/Framework_Map.md`
@@ -170,6 +170,11 @@ Documentación correspondiente a la materialización técnica controlada del dis
 - `Assessment_Individual_Result_Contract.md`
 - `C0_CI_Verification.md`
 - `Decision_Versioning_Implementation_Contract.md`
+- `Decision_Twin_Implementation_Contract.md`
+- `Decision_Twin_Comparison_Contract.md`
+- `CRC_MVP_Implementation_Contract.md`
+- `Negotiation_Intelligence_Implementation_Contract.md`
+- `Negotiation_Ladder_Implementation_Contract.md`
 
 La implementación ejecutable se encuentra materializada adicionalmente en `eios/` y verificada mediante `tests/`.
 
