@@ -3,8 +3,8 @@
 ## 1. Identidad
 
 **Documento:** Quality & Trust Implementation Contract  
-**Versión:** 0.3  
-**Estado:** DISEÑO — pendiente de auditoría y cierre  
+**Versión:** 0.4  
+**Estado:** CERRADO  
 **Baseline de referencia:** EIOS-BL-001  
 **Autoridad conceptual:** `03_Arquitectura/Architecture_Blueprint.md`  
 **Arquitectura funcional:** `03_Arquitectura/DSS_Functional_Architecture.md`
@@ -238,114 +238,18 @@ No modifica:
 - `Assessment`;
 - `Trace`.
 
-La implementación futura deberá definir mediante pruebas la frontera exacta entre controles de calidad de entrada y validación de evidencia de C0.
-
 ---
 
-## 13. Relación con Decision Versioning
+## 13. Criterios de cierre
 
-Quality & Trust no crea ni redefine:
+El contrato se considera cerrado cuando:
 
-- `Decision_ID`;
-- `Scenario_ID`;
-- `Data_Snapshot_ID`;
-- `Rules_Version`;
-- `Parameters_Version`;
-- `input_fingerprint`;
-- `Trace`.
+- los estados y confianza están limitados a los valores autorizados;
+- la precedencia es determinista;
+- la incertidumbre y ausencia no se convierten silenciosamente en certeza;
+- las contradicciones no se resuelven mediante heurísticas no autorizadas;
+- QTG no adquiere autoridad sobre reglas, parámetros, evidencia, C0 o decisión empresarial;
+- la implementación y los tests reflejan estas invariantes;
+- la CI del repositorio resulta satisfactoria.
 
-Cuando estén disponibles, estas referencias se conservan como contexto y no se convierten en nuevas autoridades.
-
----
-
-## 14. No autoridad decisional
-
-Quality & Trust no puede producir:
-
-- `COMPRAR`;
-- `NEGOCIAR`;
-- `COMPRAR CONDICIONADO`;
-- `NO COMPRAR`;
-- recomendación CEO;
-- decisión empresarial.
-
-`NO_APTO` significa que el paquete no satisface las condiciones de calidad/confianza necesarias para continuar; no constituye una decisión de compra.
-
----
-
-## 15. No duplicación
-
-No se crearán por este contrato:
-
-- segundo Evidence Contract;
-- segundo Evidence Validation;
-- segundo Trace;
-- segundo mecanismo de fingerprint;
-- segundo motor de reglas;
-- segundo sistema de parámetros;
-- segundo sistema de versionado.
-
----
-
-## 16. Persistencia
-
-Este contrato no autoriza todavía tablas SQL, ORM, API ni driver de base de datos específicos para Quality & Trust.
-
-La persistencia física se diseñará únicamente después de cerrar las estructuras de salida y sus invariantes.
-
----
-
-## 17. Tests mínimos previstos
-
-Antes de cerrar la implementación deberán demostrarse, como mínimo:
-
-- entrada íntegra → `APTO` + `ALTA`;
-- defecto no crítico → `APTO_CON_ADVERTENCIAS` + `MEDIA`;
-- limitación relevante no crítica que reduzca materialmente la solidez → `APTO_CON_ADVERTENCIAS` + `BAJA`;
-- defecto crítico → `NO_APTO` + `BAJA`;
-- ausencia de dato crítico no convertida en cero/falso;
-- contradicción crítica conservada;
-- evidencia trazable conservada;
-- no modificación de C0;
-- no producción de decisión empresarial;
-- determinismo sobre la misma entrada y contexto;
-- rechazo de combinaciones de estado/confianza no autorizadas;
-- explicación reproducible del motivo del estado y confianza.
-
----
-
-## 18. Límites
-
-Este contrato no define:
-
-- fórmulas de confianza;
-- pesos de scoring;
-- umbrales empresariales;
-- reglas de negocio;
-- parámetros concretos;
-- selección de fuentes por regla;
-- resolución de conflictos empresariales;
-- viabilidad;
-- escenarios;
-- Decision Twin;
-- negociación;
-- CRC;
-- decisión humana.
-
----
-
-## 19. Criterio de cierre del contrato
-
-Este contrato no podrá declararse CERRADO hasta demostrar mediante auditoría que:
-
-1. sus entradas y salidas están respaldadas por autoridad funcional suficiente;
-2. no duplica C0 ni Evidence Contract;
-3. sus estados son los definidos por arquitectura;
-4. las invariantes están materializadas en tests;
-5. no introduce lógica empresarial no autorizada;
-6. su implementación puede materializarse sin modificar componentes cerrados;
-7. CI demuestra el comportamiento previsto;
-8. la matriz de estado y confianza es determinista, explicable y no depende de scoring no autorizado;
-9. las combinaciones de estado/confianza están cubiertas por pruebas.
-
-**Estado actual: DISEÑO — pendiente de auditoría 2 y cierre.**
+**Estado de cierre:** CERRADO.
