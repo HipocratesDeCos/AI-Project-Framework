@@ -3,7 +3,7 @@
 ## 1. Identidad
 
 **Documento:** Negotiation Intelligence Implementation Contract  
-**Versión:** 1.0  
+**Versión:** 1.1  
 **Estado:** IMPLEMENTADO DOCUMENTALMENTE  
 **Baseline de diseño:** EIOS Vertical MVP  
 **Ubicación:** `08_Implementacion/Negotiation_Intelligence_Implementation_Contract.md`
@@ -67,6 +67,10 @@ Data_Snapshot_ID, cuando aplique
 
 NI no crea un sistema paralelo de `Decision Versioning`, `Scenario Versioning`, `Trace` o `input_fingerprint`.
 
+`negotiation_result_id` identifica exclusivamente el artefacto NI. No sustituye ni duplica las identidades de las autoridades upstream.
+
+La versión del resultado NI queda determinada por su propia identidad de artefacto y por las identidades/versiones de contexto que referencia; no se crea una segunda autoridad de versionado mediante un campo semánticamente ambiguo.
+
 Un nuevo contexto materialmente diferente genera un nuevo resultado NI; no se sobrescribe retrospectivamente un resultado histórico.
 
 ## 6. Contenido negociador
@@ -102,7 +106,7 @@ HYPOTHESIS
 RECOMMENDATION
 ```
 
-La confianza/incertidumbre se conserva como atributo del fundamento o conclusión correspondiente cuando aplique.
+La confianza/incertidumbre se conserva como atributo de la afirmación, fundamento o conclusión correspondiente cuando aplique.
 
 No se utiliza un `confidence_score` global como sustituto de la naturaleza epistemológica.
 
@@ -125,6 +129,8 @@ Negotiation content
 ```
 
 NI conserva referencias a las fuentes; no redefine Evidence, Rules, Parameters, Scenario Engine, Decision Twin, C0 o Trace.
+
+La calificación epistemológica y su confianza, cuando existan, pertenecen a una única `NIAssertion` asociada al fundamento o conclusión correspondiente. No deben duplicarse en estructuras paralelas del resultado.
 
 Una inferencia no se convierte en hecho por estar respaldada por una referencia.
 
@@ -259,12 +265,10 @@ negotiation_result_id
 context_references
 negotiation_content
 justification
-epistemic_qualifications
-confidence_uncertainty
-source_references
 traceability_references
-version_identity
 ```
+
+La justificación utiliza `NIAssertion` como unidad única de contenido epistemológico cuando proceda, incluyendo `epistemic_type`, `confidence` y `source_references` en esa misma unidad.
 
 `negotiation_result_id` identifica el artefacto NI y no sustituye `Decision_ID`, `Scenario_ID` ni ninguna identidad de autoridad upstream.
 
@@ -290,6 +294,8 @@ version_identity
 18. Un nuevo resultado no sobrescribe un resultado histórico.
 19. Una hipótesis negociadora no equivale a un escenario formal.
 20. Una recomendación no equivale a una decisión empresarial.
+21. La calificación epistemológica y la confianza de una afirmación no se duplican en estructuras paralelas del resultado.
+22. NI no crea un sistema paralelo de versionado mediante una identidad ambigua distinta de `negotiation_result_id` y las referencias upstream.
 
 ## 18. Exclusiones
 
@@ -321,7 +327,9 @@ El contrato deberá comprobar como mínimo:
 9. separación epistemológica;
 10. trazabilidad completa del contenido material;
 11. ausencia de segundo fingerprint/Trace;
-12. determinismo para entradas y versiones idénticas.
+12. determinismo para entradas y versiones idénticas;
+13. ausencia de duplicación de confianza/calificación epistemológica;
+14. ausencia de identidad paralela de versionado.
 
 ## 20. Cierre de autoridad
 
