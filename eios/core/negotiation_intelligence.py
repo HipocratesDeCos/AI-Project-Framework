@@ -39,7 +39,7 @@ class NIContextReferences(BaseModel):
 
 
 class NIAssertion(BaseModel):
-    """One material NI assertion with epistemic qualification."""
+    """One material NI assertion with its epistemic qualification."""
 
     model_config = ConfigDict(extra="forbid", frozen=True, str_strip_whitespace=True)
 
@@ -82,11 +82,7 @@ class NegotiationIntelligenceResult(BaseModel):
     context_references: NIContextReferences
     negotiation_content: NegotiationContent
     justification: tuple[NIAssertion, ...] = ()
-    epistemic_qualifications: tuple[NIAssertion, ...] = ()
-    confidence_uncertainty: tuple[NIAssertion, ...] = ()
-    source_references: tuple[str, ...] = ()
     traceability_references: tuple[str, ...] = ()
-    version_identity: str = Field(min_length=1, max_length=128)
 
     @model_validator(mode="after")
     def validate_traceability(self) -> "NegotiationIntelligenceResult":
