@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Callable, Protocol
 
 
-ValueValidator = Callable[[str], bool]
+ValueValidation = Callable[[str], str | None]
 
 
 @dataclass(frozen=True)
@@ -22,7 +22,7 @@ class ParameterDefinition:
     parameter_id: str
     value_type: str | None = None
     unit: str | None = None
-    validate_value: ValueValidator | None = None
+    validate_value: ValueValidation | None = None
     restricted: bool = False
 
 
@@ -149,13 +149,19 @@ class ParameterConfigurationCenter:
         if not self._authorization.can_modify(
             request.company_id, request.parameter_id, request.actor
         ):
+            code = "RESTRICTED_PARAMETER" if definition.restricted else "UNAUTHORIZED_CHANGE"
             raise ParameterConfigurationError(
-                "UNAUTHORIZED_CHANGE", "El actor no está autorizado para modificar el parámetro"
+                code, "El actor no está autorizado para modificar el parámetro"
             )
-        if definition.validate_value is not None and not definition.validate_value(request.value):
-            raise ParameterConfigurationError(
-                "INVALID_VALUE", "El valor no cumple la validación autorizada del parámetro"
-            )
+        if definition.validate_value is not None:
+            validation_error = definition.validate_value(request.value)
+            if validation_error is not None:
+                if validation_error not in {"INVALID_VALUE", "INVALID_TYPE"}:
+                    validation_error = "INVALID_VALUE"
+                raise ParameterConfigurationError(
+                    validation_error,
+                    "El valor no cumple la validación autorizada del parámetro",
+                )
         if request.valid_to is not None and request.valid_from >= request.valid_to:
             raise ParameterConfigurationError(
                 "INVALID_VALIDITY", "valid_from debe ser anterior a valid_to"
