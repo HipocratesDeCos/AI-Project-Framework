@@ -66,8 +66,9 @@ BEGIN
         CONSTRAINT PK_parameter_configuration_history
             PRIMARY KEY CLUSTERED (history_id),
         CONSTRAINT FK_parameter_configuration_history_configuration
-            FOREIGN KEY (configuration_id)
-            REFERENCES eios.parameter_configuration (configuration_id),
+            FOREIGN KEY (configuration_id, parameter_id, company_id)
+            REFERENCES eios.parameter_configuration
+                (configuration_id, parameter_id, company_id),
         CONSTRAINT CK_parameter_configuration_history_parameter_nonempty
             CHECK (LEN(LTRIM(RTRIM(parameter_id))) > 0),
         CONSTRAINT CK_parameter_configuration_history_company_nonempty
@@ -105,7 +106,7 @@ DENY UPDATE, DELETE
 GO
 
 /*
-Structural index supporting effective-date lookup.
+Structural indexes supporting effective-date and history lookup.
 No business rule is encoded here.
 */
 IF NOT EXISTS
