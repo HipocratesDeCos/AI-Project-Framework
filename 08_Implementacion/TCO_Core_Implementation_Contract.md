@@ -102,6 +102,8 @@ Ejemplo conceptual:
 
 La discrepancia debe conservarse como condición que afecta a la determinabilidad del cálculo, conforme a la semántica canónica que se materialice en la implementación.
 
+**Limitación v0.1:** el modelo físico canónico `PurchaseOperation` actualmente no contiene un `importe_total` independiente. Por tanto, esta comprobación no es ejecutable con la entrada C0 actual y queda registrada como `GAP-TCO-02`; TCO no introduce un campo paralelo ni modifica C0 para resolverla.
+
 ## 10. Moneda
 
 Los componentes agregados deben ser monetariamente comparables.
@@ -141,6 +143,8 @@ El resultado debe conservar, como mínimo semántico:
 - información necesaria para mantener la trazabilidad del cálculo.
 
 Los nombres físicos de campos de salida se adaptarán al modelo canónico del repositorio durante la implementación.
+
+Un resultado con componentes aplicables no determinables conserva `value = None` y registra esos componentes como no resueltos; no se presenta como un TCO completo.
 
 ## 14. Trazabilidad
 
@@ -190,7 +194,7 @@ Un coste sin relación trazable con la propuesta no contribuye al TCO Core.
 
 **I-TCO-06 — No corrección silenciosa**
 
-Una contradicción entre datos de entrada no se resuelve seleccionando arbitrariamente un valor.
+Una contradicción entre datos de entrada no se resuelve seleccionando arbitrariamente un valor. La comparación contra `importe_total` queda bloqueada mientras C0 no proporcione ese dato independiente (`GAP-TCO-02`).
 
 **I-TCO-07 — No estimación implícita**
 
@@ -202,7 +206,7 @@ Las materias incluidas en GAP-TCO-01 no pueden implementarse como parte del Core
 
 ## 17. Errores y condiciones no determinables
 
-La implementación deberá distinguir entre:
+La implementación distingue entre:
 
 - entrada estructuralmente inválida;
 - componente no aplicable;
@@ -211,7 +215,7 @@ La implementación deberá distinguir entre:
 - cálculo no determinable;
 - moneda no comparable.
 
-Los códigos y nombres concretos de error deben seguir las convenciones físicas ya existentes en el repositorio; este contrato no inventa una taxonomía global de errores.
+Los códigos y nombres concretos de error siguen las convenciones físicas de la implementación TCO; este contrato no crea una taxonomía global de errores.
 
 ## 18. Exclusiones
 
@@ -236,23 +240,31 @@ Este GAP no constituye autorización de implementación.
 
 Cualquier ampliación futura deberá diseñarse, auditarse y cerrarse como extensión normativa antes de su materialización.
 
-## 20. Relación con el MED
+## 20. GAP-TCO-02
+
+**Definición:** el modelo canónico C0 `PurchaseOperation` no contiene un `importe_total` independiente que permita comprobar la contradicción `cantidad × precio_unitario != importe_total`.
+
+Este GAP no autoriza a duplicar el campo dentro de TCO ni a modificar C0 sin una decisión específica de gobierno del modelo canónico.
+
+## 21. Relación con el MED
 
 TCO entrega un resultado analítico al MED.
 
 El MED conserva la autoridad para integrar TCO con los demás resultados y determinar si la evidencia disponible permite continuar hacia una recomendación o si corresponde `INFORMACIÓN INSUFICIENTE`.
 
-## 21. Estado de implementación
+## 22. Estado de implementación
 
 **Contrato:** cerrado para implementación del Core v0.1.
 
-**Implementación física:** pendiente.
+**Implementación física:** materializada.
 
-**Tests contractuales:** pendientes de materialización y trazabilidad.
+**Tests físicos:** materializados y alineados con la semántica de ausencia/incompletitud.
 
-**CI:** pendiente.
+**CI:** verificada satisfactoriamente en los runs `#270` y `#271`.
 
 **Extensiones:** bloqueadas por GAP-TCO-01.
+
+**GAP de modelo:** GAP-TCO-02 permanece abierto y no se implementa mediante modificación de C0.
 
 ---
 
@@ -263,3 +275,7 @@ El MED conserva la autoridad para integrar TCO con los demás resultados y deter
 Primera materialización del contrato TCO Core tras auditoría conceptual y Auditoría 2 global.
 
 Principio rector: materializar únicamente comportamiento suficientemente definido y mantener explícitamente fuera del Core toda decisión económica no autorizada por el baseline.
+
+### v0.1.1
+
+Alineación post-implementación: se documenta GAP-TCO-02 y se formaliza el tratamiento de componentes aplicables con importe ausente como resultado no determinable, sin convertir la ausencia en cero.
