@@ -1,6 +1,5 @@
 from decimal import Decimal
 
-import pytest
 from pydantic import ValidationError
 
 from eios.core.models import PurchaseOperation
@@ -39,9 +38,13 @@ def test_tco_determinable_with_valid_attributable_costs():
     assert result.contributing_components == ("ACQUISITION", "TRANSPORT")
 
 
-def test_missing_applicable_cost_is_rejected_at_input_boundary():
-    with pytest.raises(ValidationError):
-        cost(amount=None)
+def test_missing_applicable_cost_is_preserved_as_unresolved():
+    item = cost(amount=None)
+    result = calculate_tco(TCOInput(purchase_operation=operation(), attributable_costs=(item,)))
+    assert result.value is None
+    assert result.complete is False
+    assert result.unresolved_components == ("TRANSPORT",)
+    assert "MISSING_AMOUNT:TRANSPORT" in result.limitations
 
 
 def test_not_applicable_cost_does_not_contribute():
@@ -67,8 +70,11 @@ def test_incompatible_currency_does_not_aggregate_silently():
 
 
 def test_non_attributable_cost_is_rejected():
-    with pytest.raises(ValidationError):
+    try:
         CostComponent(component="HANDLING", amount=Decimal("20"), currency="EUR", rule_reference="R-1")
+    except ValidationError:
+        return
+    raise AssertionError("Un componente aplicable sin attribution_ref debe rechazarse")
 
 
 def test_purchase_operation_is_not_modified():
