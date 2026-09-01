@@ -14,20 +14,19 @@ PRStatus=Literal["PR_AVAILABLE","PR_LIMITED","PR_NOT_JUSTIFIABLE"]
 AggregationMethod=Literal["MEDIAN_UNWEIGHTED"]
 EconomicBasisStatus=Literal["RESOLVED","NOT_APPLICABLE","PENDING","NOT_RESOLVABLE"]
 EconomicDimension=Literal["UNIT","QUANTITY","CURRENCY","TAX","TRANSPORT","DISCOUNT","SURCHARGE","COMMERCIAL"]
-
 class PriceReference(BaseModel):
     model_config=ConfigDict(extra="forbid",str_strip_whitespace=True)
-    source_transaction_id:str=Field(min_length=1,max_length=128); article_identity:str=Field(min_length=1,max_length=128); supplier_identity:str|None=Field(default=None,max_length=128); quantity:Decimal=Field(gt=0); unit:str=Field(min_length=1,max_length=32); unit_price:Decimal=Field(ge=0,decimal_places=4); currency:str=Field(min_length=3,max_length=3); operation_date:date; commercial_conditions:str|None=Field(default=None,max_length=512); evidence_refs:tuple[str,...]=()
+    source_transaction_id:str=Field(min_length=1,max_length=128);article_identity:str=Field(min_length=1,max_length=128);supplier_identity:str|None=Field(default=None,max_length=128);quantity:Decimal=Field(gt=0);unit:str=Field(min_length=1,max_length=32);unit_price:Decimal=Field(ge=0,decimal_places=4);currency:str=Field(min_length=3,max_length=3);operation_date:date;commercial_conditions:str|None=Field(default=None,max_length=512);evidence_refs:tuple[str,...]=()
     @model_validator(mode="after")
     def finite_values(self)->"PriceReference":
         if not self.unit_price.is_finite() or not self.quantity.is_finite():raise ValueError("Los valores de precio y cantidad deben ser finitos")
         return self
 class NormalizationBasis(BaseModel):
     model_config=ConfigDict(extra="forbid",str_strip_whitespace=True,frozen=True)
-    target_unit:str=Field(min_length=1,max_length=32); target_tax_basis:str|None=Field(default=None,max_length=64); target_transport_basis:str|None=Field(default=None,max_length=64); target_discount_basis:str|None=Field(default=None,max_length=64); target_surcharge_basis:str|None=Field(default=None,max_length=64); target_commercial_basis:str|None=Field(default=None,max_length=128); basis_reference:str=Field(min_length=1,max_length=256); rule_reference:str=Field(min_length=1,max_length=128); trace_reference:str=Field(min_length=1,max_length=128)
+    target_unit:str=Field(min_length=1,max_length=32);target_tax_basis:str|None=Field(default=None,max_length=64);target_transport_basis:str|None=Field(default=None,max_length=64);target_discount_basis:str|None=Field(default=None,max_length=64);target_surcharge_basis:str|None=Field(default=None,max_length=64);target_commercial_basis:str|None=Field(default=None,max_length=128);basis_reference:str=Field(min_length=1,max_length=256);rule_reference:str=Field(min_length=1,max_length=128);trace_reference:str=Field(min_length=1,max_length=128)
 class EconomicBasisEvidence(BaseModel):
     model_config=ConfigDict(extra="forbid",frozen=True)
-    reference_id:str=Field(min_length=1,max_length=128); dimension:EconomicDimension; status:EconomicBasisStatus; evidence_refs:tuple[str,...]=(); rule_reference:str|None=None; trace_reference:str|None=None; justification:str|None=None
+    reference_id:str=Field(min_length=1,max_length=128);dimension:EconomicDimension;status:EconomicBasisStatus;evidence_refs:tuple[str,...]=();rule_reference:str|None=None;trace_reference:str|None=None;justification:str|None=None
     @model_validator(mode="after")
     def trace_requirements(self)->"EconomicBasisEvidence":
         if self.status in {"RESOLVED","NOT_APPLICABLE"} and (not self.evidence_refs or not self.rule_reference or not self.trace_reference):raise ValueError("RESOLVED/NOT_APPLICABLE requieren evidencia, regla y traza")
@@ -38,14 +37,13 @@ class EconomicBasisAssessment(BaseModel):
     records:tuple[EconomicBasisEvidence,...]=()
     @property
     def all_resolved(self)->bool:
-        expected={"UNIT","QUANTITY","CURRENCY","TAX","TRANSPORT","DISCOUNT","SURCHARGE","COMMERCIAL"};by_dimension={r.dimension:r.status for r in self.records}
-        return expected.issubset(by_dimension) and all(by_dimension[d] in {"RESOLVED","NOT_APPLICABLE"} for d in expected)
+        expected=set(EconomicDimension.__args__);by_dimension={r.dimension:r.status for r in self.records};return expected.issubset(by_dimension) and all(by_dimension[d] in {"RESOLVED","NOT_APPLICABLE"} for d in expected)
 class NormalizationRecord(BaseModel):
     model_config=ConfigDict(extra="forbid")
-    field:str=Field(min_length=1,max_length=64); original_value:str; normalized_value:str; rule_reference:str=Field(min_length=1,max_length=128); trace_reference:str=Field(min_length=1,max_length=128)
+    field:str=Field(min_length=1,max_length=64);original_value:str;normalized_value:str;rule_reference:str=Field(min_length=1,max_length=128);trace_reference:str=Field(min_length=1,max_length=128)
 class PriceReferenceAssessment(BaseModel):
     model_config=ConfigDict(extra="forbid")
-    reference_id:str=Field(min_length=1,max_length=128); comparability:ComparabilityStatus; normalization_status:NormalizationStatus="PENDING"; temporal_status:TemporalStatus="INDETERMINATE"; temporal_rule_reference:str|None=None; representativeness:RepresentativenessStatus="INDETERMINATE"; normalized_unit_price:Decimal|None=Field(default=None,ge=0,decimal_places=4); normalization:tuple[NormalizationRecord,...]=(); economic_basis:EconomicBasisAssessment|None=None; limitation_refs:tuple[str,...]=()
+    reference_id:str=Field(min_length=1,max_length=128);comparability:ComparabilityStatus;normalization_status:NormalizationStatus="PENDING";temporal_status:TemporalStatus="INDETERMINATE";temporal_rule_reference:str|None=None;representativeness:RepresentativenessStatus="INDETERMINATE";normalized_unit_price:Decimal|None=Field(default=None,ge=0,decimal_places=4);normalization:tuple[NormalizationRecord,...]=();economic_basis:EconomicBasisAssessment|None=None;limitation_refs:tuple[str,...]=()
     @model_validator(mode="after")
     def normalization_value_matches_status(self)->"PriceReferenceAssessment":
         if self.normalization_status=="NORMALIZED" and self.normalized_unit_price is None:raise ValueError("NORMALIZED requiere normalized_unit_price")
@@ -53,7 +51,7 @@ class PriceReferenceAssessment(BaseModel):
         return self
 class PriceIntelligenceInput(BaseModel):
     model_config=ConfigDict(extra="forbid")
-    decision_context:DecisionContext; purchase_operation:PurchaseOperation; references:tuple[PriceReference,...]=(); evidence_validations:tuple[EvidenceValidation,...]=(); normalization_basis:NormalizationBasis|None=None; economic_basis_evidence:tuple[EconomicBasisEvidence,...]=(); methodology_version:str=Field(min_length=1,max_length=64)
+    decision_context:DecisionContext;purchase_operation:PurchaseOperation;references:tuple[PriceReference,...]=();evidence_validations:tuple[EvidenceValidation,...]=();normalization_basis:NormalizationBasis|None=None;economic_basis_evidence:tuple[EconomicBasisEvidence,...]=();methodology_version:str=Field(min_length=1,max_length=64)
     @model_validator(mode="after")
     def context_matches_purchase(self)->"PriceIntelligenceInput":
         if self.decision_context.decision_id!=self.purchase_operation.decision_id:raise ValueError("decision_id no coincide entre contexto y operación")
@@ -83,8 +81,11 @@ class PriceIntelligenceResult(BaseModel):
     def enforce_result_invariants(self)->"PriceIntelligenceResult":
         expected={"SUFFICIENT":"PR_AVAILABLE","LIMITED":"PR_LIMITED","NOT_JUSTIFIABLE":"PR_NOT_JUSTIFIABLE"}[self.sufficiency_status]
         if self.pr_status!=expected:raise ValueError("pr_status no coincide con sufficiency_status")
+        if self.pr_status=="PR_AVAILABLE" and self.pr_value is None:raise ValueError("PR_AVAILABLE requiere pr_value")
+        if self.pr_status=="PR_LIMITED" and self.pr_value is None:raise ValueError("PR_LIMITED requiere pr_value")
         if self.pr_status=="PR_NOT_JUSTIFIABLE" and self.pr_value is not None:raise ValueError("PR_NOT_JUSTIFIABLE requiere pr_value=null")
         if self.pr_value is not None and self.currency is None:raise ValueError("Un PR disponible requiere moneda")
+        if len(self.reference_set)!=self.counts.n_selected:raise ValueError("reference_set debe coincidir con n_selected")
         if self.counts.n_selected==0 and self.pr_status!="PR_NOT_JUSTIFIABLE":raise ValueError("N_SELECTED=0 requiere PR_NOT_JUSTIFIABLE")
         if self.counts.n_selected==1 and self.pr_status=="PR_AVAILABLE":raise ValueError("N_SELECTED=1 no puede producir PR_AVAILABLE")
         return self
