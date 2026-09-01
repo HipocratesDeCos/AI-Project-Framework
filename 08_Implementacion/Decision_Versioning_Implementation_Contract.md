@@ -3,7 +3,7 @@
 ## 1. Identidad
 
 **Documento:** Decision Versioning Implementation Contract  
-**Versión:** 1.2  
+**Versión:** 1.3  
 **Estado:** CERRADO — Contrato técnico de implementación  
 **Baseline:** EIOS Vertical MVP  
 **Ubicación:** `08_Implementacion/Decision_Versioning_Implementation_Contract.md`
@@ -34,7 +34,7 @@ En particular, `Forecast_Version`, `RFP_Version` y `EIOS_Version` quedan como re
 
 ## 4. Identidad física
 
-La persistencia puede utilizar un identificador técnico interno denominado `decision_state_record_id`.
+La persistencia utiliza un identificador técnico interno denominado `decision_state_record_id`.
 
 Este identificador:
 
@@ -51,7 +51,7 @@ La identidad funcional continúa siendo la definida por `Decision Versioning`.
 
 ## 5. Referencias mínimas de materialización
 
-El registro físico debe poder conservar, cuando formen parte del contexto disponible:
+El registro físico conserva:
 
 ```text
 Decision_ID
@@ -65,7 +65,7 @@ User
 
 Estas referencias se almacenan sin modificar su semántica.
 
-La presencia física de una referencia debe reflejar su aplicabilidad y disponibilidad reales. No se inventarán valores para satisfacer restricciones físicas.
+La presencia física de una referencia refleja su aplicabilidad y disponibilidad reales. No se inventan valores para satisfacer restricciones físicas.
 
 ---
 
@@ -124,7 +124,7 @@ Zona horaria      → UTC
 Origen conceptual → instante de registro del estado
 ```
 
-La implementación deberá mantener una fuente de reloj coherente y no introducir una segunda semántica temporal para Decision Versioning.
+La implementación mantiene una fuente de reloj coherente y no introduce una segunda semántica temporal para Decision Versioning.
 
 El precedente técnico es `Trace.created_at` de C0, que ya utiliza `datetimeoffset(7)` y se genera con un `datetime` consciente de zona horaria en UTC.
 
@@ -157,19 +157,19 @@ La semántica de `User` no autoriza por sí sola una política de identidad, aut
 
 ## 10. Inmutabilidad histórica
 
-Un registro histórico materializado no debe sobrescribirse para representar un estado posterior.
+Un registro histórico materializado no se sobrescribe para representar un estado posterior.
 
 La evolución se representa mediante registros distinguibles.
 
-La implementación no introducirá un mecanismo paralelo de versionado funcional.
+La implementación no introduce un mecanismo paralelo de versionado funcional.
 
-La inmutabilidad funcional queda cerrada como invariante; el mecanismo físico concreto se definirá en `06_SQL` sin alterar esta semántica.
+La inmutabilidad funcional queda cerrada como invariante y se materializa físicamente mediante controles de persistencia definidos en `06_SQL`.
 
 ---
 
 ## 11. Reconstrucción
 
-La persistencia debe permitir recuperar las referencias necesarias para reconstruir un estado decisional, pero no debe prometer la recuperación de artefactos históricos que ya no estén disponibles bajo sus respectivas autoridades.
+La persistencia permite recuperar las referencias necesarias para reconstruir un estado decisional, pero no promete la recuperación de artefactos históricos que ya no estén disponibles bajo sus respectivas autoridades.
 
 SQL proporciona recuperación técnica.
 
@@ -181,22 +181,22 @@ Assurance utiliza esa continuidad para verificar reconstruibilidad.
 
 ## 12. Integridad
 
-El esquema físico deberá impedir, cuando sea técnicamente determinable:
+El esquema físico impide, cuando es técnicamente determinable:
 
 - referencias imposibles dentro del mismo registro;
 - pérdida silenciosa de identificadores necesarios cuando estén disponibles;
 - modificación destructiva de registros históricos;
 - duplicación semántica de mecanismos C0.
 
-Las restricciones no podrán introducir reglas empresariales nuevas.
+Las restricciones no introducen reglas empresariales nuevas.
 
 ---
 
 ## 13. Índices
 
-Los índices físicos se definirán exclusivamente a partir de patrones de acceso demostrados por la implementación y las pruebas.
+Los índices físicos se mantienen exclusivamente a partir de patrones de acceso demostrados por la implementación y las pruebas.
 
-No se considerará obligatorio ningún índice por mera conveniencia documental.
+No se considera obligatorio ningún índice por mera conveniencia documental.
 
 ---
 
@@ -221,31 +221,30 @@ Este contrato no define:
 
 ---
 
-## 15. Dependencias de cierre físico
+## 15. Materialización física
 
-Antes de crear el DDL deberán estar cerrados:
+La materialización física autorizada se encuentra en:
 
-1. tipo y precisión de `Timestamp`;
-2. longitud/tipo técnico de identificadores y referencias;
-3. semántica física de `User`;
-4. política física de inmutabilidad;
-5. patrones de acceso que justifiquen índices;
-6. estrategia de referencia de `input_fingerprint` y `Trace`;
-7. alcance exacto de las referencias opcionales.
+```text
+06_SQL/002_Decision_Versioning_Schema.sql
+06_SQL/Decision_Versioning_Physical_Model.md
+```
 
-Con la decisión de `Timestamp` y `User` adoptada para EIOS, quedan resueltos los puntos 1 y 3. Los puntos restantes continúan siendo criterios técnicos previos al DDL y serán resueltos por la autoridad de persistencia sin redefinir este contrato.
+El DDL crea `eios.decision_state` con el identificador técnico `decision_state_record_id` y las referencias mínimas y opcionales definidas por este contrato.
 
-La ausencia de estos cierres restantes impide pasar legítimamente a DDL.
+La persistencia utiliza `datetimeoffset(7)` para `timestamp`, con control de UTC, y aplica controles físicos de inmutabilidad mediante permisos de escritura.
+
+El modelo físico declara expresamente la frontera técnica cerrada y su correspondencia con el DDL.
 
 ---
 
 ## 16. Relación con SQL
 
-`06_SQL` será responsable de transformar este contrato técnico en persistencia física conforme a sus propias convenciones.
+`06_SQL` transforma este contrato técnico en persistencia física conforme a sus propias convenciones.
 
-SQL no podrá resolver mediante DDL una ambigüedad funcional no resuelta.
+SQL no resuelve mediante DDL una ambigüedad funcional no autorizada.
 
-La relación es:
+La relación materializada es:
 
 ```text
 Decision Versioning
@@ -256,7 +255,7 @@ Implementation Contract
         ↓
 06_SQL
         ↓
-DDL
+DDL materializado
 ```
 
 ---
@@ -265,25 +264,33 @@ DDL
 
 El presente contrato queda cerrado cuando:
 
-- sus campos y referencias sean trazables a autoridades existentes;
-- no introduzca semántica funcional nueva;
-- C0 permanezca inalterado;
-- las referencias opcionales permanezcan explícitamente condicionadas;
-- Timestamp y User mantengan una frontera técnica sin inventar semántica funcional;
-- la inmutabilidad sea implementable sin crear una nueva versión funcional;
-- los índices puedan justificarse por acceso real;
-- la materialización física pueda auditarse contra este contrato.
+- sus campos y referencias son trazables a autoridades existentes;
+- no introduce semántica funcional nueva;
+- C0 permanece inalterado;
+- las referencias opcionales permanecen explícitamente condicionadas;
+- Timestamp y User mantienen una frontera técnica sin inventar semántica funcional;
+- la inmutabilidad es implementable sin crear una nueva versión funcional;
+- los índices pueden justificarse por acceso real;
+- la materialización física puede auditarse contra este contrato.
 
-La auditoría de cierre confirma estas condiciones para el nivel de contrato técnico definido aquí. Los detalles físicos enumerados en la sección 15 permanecen como criterios previos al DDL y no constituyen un bloqueo del contrato de implementación.
+Estas condiciones se encuentran satisfechas para la materialización física actualmente presente en `06_SQL` y validada por CI.
 
 ---
 
 ## 18. Estado
 
-**DICTAMEN:** CERRADO
-
+**DICTAMEN:** CERRADO Y MATERIALIZADO  
 **Tipo de cambio:** DOCUMENTACIÓN DE IMPLEMENTACIÓN  
 **Cambios técnicos derivados:** NINGUNO  
 **C0:** NO ALTERADO  
-**DDL:** NO CREADO  
-**Método:** DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR
+**DDL:** CREADO Y MATERIALIZADO  
+**CI:** VERIFICADA SATISFACTORIAMENTE  
+**Método:** DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI
+
+---
+
+## Historial
+
+### v1.3
+
+Corrección documental post-materialización. Se actualiza el estado del DDL y se sustituyen los criterios previos a la creación física por la referencia a la materialización existente. No se modifica el contrato funcional ni el DDL.
