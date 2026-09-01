@@ -36,12 +36,13 @@ Price Intelligence
 5. La integración no recalcula ni modifica el resultado QTG.
 6. La integración no convierte estados QTG en estados de Price Intelligence.
 7. La integración no transforma `QualityConfidence` en peso, score o parámetro económico.
+8. Un estado QTG permisivo autoriza la ejecución de C1, pero no predetermina ni garantiza el resultado de Price Intelligence.
 
 ## 5. Preservación
 
 Cuando C1 se ejecuta, el `QualityTrustResult` debe permanecer disponible para la capa superior que componga la ejecución.
 
-C1 no recibe el resultado QTG como dato metodológico de Price Intelligence salvo que una interfaz superior lo transporte como metadato de assurance sin alterar el contrato C1.
+C1 no recibe el resultado QTG como dato metodológico de Price Intelligence. Una interfaz superior puede transportarlo como metadato de assurance sin alterar el contrato C1.
 
 ## 6. Detención
 
@@ -49,9 +50,11 @@ Si `status = NO_APTO`, la integración termina antes de ejecutar C1.
 
 No debe fabricarse un `PriceIntelligenceResult` para representar la detención.
 
+La detención por QTG es distinta de cualquier resultado producido por C1, incluido `PR_NOT_JUSTIFIABLE`.
+
 ## 7. Errores e incertidumbre
 
-La integración no interpreta ni corrige estados QTG. En particular, `INDETERMINATE`, contradicciones y ausencia de evidencia permanecen según el contrato QTG y no se convierten silenciosamente en `FALSE`, `NO_APTO`, score o valor por defecto.
+La integración no interpreta ni corrige estados QTG ni amplía el dominio de `QualityStatus`. Las incertidumbres, contradicciones y ausencias que formen parte del resultado QTG se conservan sin transformación conforme al contrato QTG.
 
 ## 8. Fronteras
 
@@ -73,10 +76,13 @@ La integración no:
 - QTG se ejecuta antes que C1.
 - `NO_APTO` bloquea C1.
 - `APTO` y `APTO_CON_ADVERTENCIAS` permiten C1.
-- El resultado QTG se conserva.
+- El resultado QTG se conserva cuando C1 se ejecuta.
 - C1 conserva su contrato físico independiente.
 - La integración no altera la semántica de ningún estado de QTG ni C1.
 - La integración es determinista para las mismas entradas.
+- `QTG = APTO` no equivale a `PR_AVAILABLE`.
+- `QTG = APTO_CON_ADVERTENCIAS` no equivale a `PR_LIMITED`.
+- `C1 = PR_NOT_JUSTIFIABLE` solo puede representar una conclusión producida por C1 tras su ejecución; nunca una detención previa causada por QTG.
 
 ## 10. Tests contractuales mínimos
 
@@ -89,6 +95,8 @@ La implementación debe demostrar al menos:
 - No conversión de confianza QTG en ponderación de C1.
 - No modificación de C0.
 - No fabricación de resultado PR cuando QTG bloquea la ejecución.
+- `QTG APTO` no implica un resultado concreto de C1.
+- `QTG APTO_CON_ADVERTENCIAS` no se convierte en `PR_LIMITED`.
 
 ## 11. Estado de cierre
 
