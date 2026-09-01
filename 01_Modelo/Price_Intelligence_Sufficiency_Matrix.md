@@ -1,7 +1,7 @@
 # EIOS — MATRIZ DE SUFICIENCIA PRICE INTELLIGENCE
 
 **Fase:** 8.5 — Price Intelligence  
-**Versión:** 1.1  
+**Versión:** 1.2  
 **Estado:** CERRADA — METODOLOGÍA ESPECIALIZADA  
 **Autoridad:** subordinada a `Price_Intelligence_Methodological_Matrix.md`
 
@@ -13,7 +13,7 @@ Determinar si el conjunto final de referencias seleccionadas proporciona una bas
 
 Suficiencia es una propiedad del **conjunto seleccionado**, no de una referencia individual.
 
-No debe confundirse con comparabilidad, representatividad, ausencia de outliers, proximidad entre precios o tamaño bruto del histórico.
+No debe confundirse con comparabilidad, representatividad, temporalidad, dispersión ni tamaño bruto del histórico.
 
 ## 3. Estados
 
@@ -33,95 +33,84 @@ N_SELECTED = 1 → como máximo LIMITED
 N_SELECTED >= 2 → puede ser SUFFICIENT
 ```
 
-Por tanto, `N_SELECTED >= 2` es condición necesaria para `SUFFICIENT`, pero nunca condición suficiente por sí sola.
-
-No existe un umbral superior universal.
+`N_SELECTED >= 2` es condición necesaria, pero nunca suficiente por sí sola.
 
 ## 5. Condiciones de SUFFICIENT
 
-Además de `N_SELECTED >= 2`, deben satisfacerse todas las condiciones aplicables:
+Además de `N_SELECTED >= 2`, deben satisfacerse las condiciones cualitativas aplicables:
 
-- referencias comparables;
-- representatividad determinada;
-- normalización válida cuando corresponda;
-- evidencia y trazabilidad suficientes;
-- ausencia de contradicciones materiales no resueltas que afecten al conjunto;
-- contexto temporal aplicable;
-- base de observaciones económicamente defendible.
+- evidencia suficiente para sostener la evaluación del conjunto;
+- ausencia de contradicciones materiales pendientes que afecten a su defendibilidad;
+- ausencia de limitaciones metodológicas pendientes que impidan la defendibilidad requerida;
+- decisión trazada a evidencia, regla y traza.
 
-## 6. N = 0
+Las referencias que llegan a este gate ya han superado los gates anteriores que correspondan. Sufficiency no los reevalúa.
 
-`NOT_JUSTIFIABLE`.
+## 6. Semántica de evidence_sufficient
 
-No existe base empírica seleccionada para calcular un PR defendible.
+`evidence_sufficient = true` significa que existe evidencia suficiente para sostener la evaluación del conjunto seleccionado en los aspectos que la metodología de suficiencia exige y que no hayan quedado resueltos por gates anteriores.
 
-El resultado debe mantener `PR_VALUE = null`.
+No significa simplemente:
 
-## 7. N = 1
+- que todas las evidencias sean válidas;
+- que cada referencia tenga una evidencia;
+- que exista un PR plausible;
+- que las referencias sean numerosas.
 
-`LIMITED` como máximo.
+## 7. Semántica de contradictions_resolved
 
-La existencia de una mediana matemática no convierte una única observación histórica en benchmark suficiente de mercado.
+`contradictions_resolved = true` significa que no permanece una contradicción material no resuelta que afecte a la defendibilidad del conjunto seleccionado.
 
-## 8. N >= 2
+Una diferencia de precio no constituye por sí misma contradicción.
 
-Puede alcanzarse `SUFFICIENT`, pero solo después de evaluar las condiciones cualitativas y las limitaciones del conjunto.
+## 8. N = 0
 
-No se autoriza elevar automáticamente a `SUFFICIENT` por superar el umbral.
+`NOT_JUSTIFIABLE` y `PR_VALUE = null`.
 
-## 9. Dispersión y outliers
+## 9. N = 1
 
-Una elevada dispersión no demuestra por sí misma que el conjunto sea insuficiente.
+`LIMITED` como máximo. Una única observación no constituye por sí sola benchmark suficiente de mercado.
 
-Un outlier no se elimina automáticamente para mejorar N.
+## 10. N >= 2
 
-La exclusión debe proceder de representatividad/selección y mantenerse trazable.
+Puede alcanzarse `SUFFICIENT` únicamente cuando las condiciones cualitativas aplicables estén satisfechas.
 
-## 10. Contradicciones
+## 11. Dispersión y outliers
+
+Una elevada dispersión no demuestra por sí misma insuficiencia. Un outlier no se elimina para aumentar N. Su tratamiento pertenece a representatividad/selección y debe conservar trazabilidad.
+
+## 12. Contradicciones
 
 Una contradicción material no resuelta que afecte al conjunto impide declararlo plenamente suficiente mientras permanezca sin resolver.
 
-La diferencia de precio, por sí sola, no constituye contradicción.
+## 13. Relación con temporalidad
 
-## 11. Estados y PR
-
-```text
-SUFFICIENT
-    → PR_AVAILABLE
-
-LIMITED
-    → PR_LIMITED
-
-NOT_JUSTIFIABLE
-    → PR_NOT_JUSTIFIABLE
-```
-
-La relación es determinista.
-
-## 12. Trazabilidad
-
-La determinación debe conservar:
-
-- N seleccionado;
-- reglas aplicadas;
-- umbral aplicado (`N>=2`, cuando corresponda);
-- limitaciones;
-- referencias de trazabilidad.
-
-## 13. Prohibiciones
-
-La suficiencia no puede determinarse mediante necesidad de producir un PR, conveniencia del decisor, frecuencia histórica, proveedor habitual, último precio, precio mínimo/máximo, score, proximidad al PR o ajuste posterior para alcanzar un umbral.
+Temporalidad es un gate independiente. Sufficiency no contiene una segunda decisión temporal.
 
 ## 14. Frontera con agregación
 
-Suficiencia determina si el conjunto permite emitir el resultado.
+Suficiencia determina si el conjunto permite emitir el resultado. Agregación determina cómo se obtiene el valor del PR a partir del conjunto ya declarado apto. La agregación no puede corregir una insuficiencia.
 
-Agregación determina cómo se obtiene el valor del PR a partir del conjunto ya declarado apto.
+## 15. Trazabilidad
 
-La agregación no puede corregir una insuficiencia.
+Una decisión `SUFFICIENT` debe conservar:
 
-## 15. Autoridad
+- N seleccionado;
+- evidencia utilizada;
+- regla aplicada;
+- traza;
+- limitaciones evaluadas.
 
-`P-PRE-006` conserva exclusivamente la autoridad que ya posee sobre `R-HIS-002`; no constituye el umbral de suficiencia de PR.
+## 16. Prohibiciones
 
-La regla `N_SELECTED >= 2` procede de la matriz metodológica canónica de Price Intelligence.
+La suficiencia no puede determinarse mediante necesidad de producir un PR, conveniencia del decisor, frecuencia histórica, proveedor habitual, último precio, precio mínimo/máximo, score, proximidad al PR o ajuste posterior para alcanzar un umbral.
+
+## 17. Mapeo a resultado
+
+```text
+SUFFICIENT       → PR_AVAILABLE
+LIMITED          → PR_LIMITED
+NOT_JUSTIFIABLE  → PR_NOT_JUSTIFIABLE
+```
+
+La relación es determinista.
