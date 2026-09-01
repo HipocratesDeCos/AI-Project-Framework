@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from eios.core.models import DecisionContext, EvidenceValidation, PurchaseOperation
 
 ComparabilityStatus = Literal["COMPARABLE", "NO_COMPARABLE", "PENDING"]
+NormalizationStatus = Literal["NORMALIZED", "PENDING", "NOT_NORMALIZABLE"]
 RepresentativenessStatus = Literal["REPRESENTATIVE", "NON_REPRESENTATIVE", "INDETERMINATE"]
 SufficiencyStatus = Literal["SUFFICIENT", "LIMITED", "NOT_JUSTIFIABLE"]
 PRStatus = Literal["PR_AVAILABLE", "PR_LIMITED", "PR_NOT_JUSTIFIABLE"]
@@ -53,10 +54,19 @@ class PriceReferenceAssessment(BaseModel):
 
     reference_id: str = Field(min_length=1, max_length=128)
     comparability: ComparabilityStatus
+    normalization_status: NormalizationStatus = "PENDING"
     representativeness: RepresentativenessStatus
     normalized_unit_price: Decimal | None = Field(default=None, ge=0, decimal_places=4)
     normalization: tuple[NormalizationRecord, ...] = ()
     limitation_refs: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def normalization_value_matches_status(self) -> "PriceReferenceAssessment":
+        if self.normalization_status == "NORMALIZED" and self.normalized_unit_price is None:
+            raise ValueError("NORMALIZED requiere normalized_unit_price")
+        if self.normalization_status != "NORMALIZED" and self.normalized_unit_price is not None:
+            raise ValueError("Una referencia no normalizada no puede tener normalized_unit_price")
+        return self
 
 
 class PriceIntelligenceInput(BaseModel):
@@ -141,7 +151,7 @@ class PriceIntelligenceResult(BaseModel):
 
 
 __all__ = [
-    "AggregationMethod", "ComparabilityStatus", "NormalizationRecord",
+    "AggregationMethod", "ComparabilityStatus", "NormalizationRecord", "NormalizationStatus",
     "PRStatus", "PriceCounts", "PriceIntelligenceInput", "PriceIntelligenceResult",
     "PriceReference", "PriceReferenceAssessment", "RepresentativenessStatus",
     "SufficiencyStatus",
