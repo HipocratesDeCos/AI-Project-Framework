@@ -3,7 +3,7 @@
 ## 1. Identidad
 
 **Documento:** Price Intelligence Implementation Contract  
-**Versión:** 1.1  
+**Versión:** 1.2  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad metodológica:** `01_Modelo/Price_Intelligence_Methodological_Matrix.md`  
@@ -71,8 +71,11 @@ PriceIntelligenceInput
 ├── decision_context: DecisionContext
 ├── purchase_operation: PurchaseOperation
 ├── references: list[PriceReference]
+├── evidence_validations: list[EvidenceValidation]
 └── methodology_version: string
 ```
+
+`evidence_validations` contiene los resultados de validación producidos aguas arriba por el contrato canónico de evidencia. C1 los consume; no vuelve a validar la evidencia ni transforma `VALID` en representatividad o suficiencia.
 
 ### 6.1 `PurchaseOperation`
 
@@ -411,6 +414,8 @@ No crea un sistema de versionado paralelo.
 18. C1 no produce una decisión empresarial.
 19. `sufficiency_status` y `pr_status` deben mantener el mapeo cerrado.
 20. Una conversión monetaria requiere fuente/regla autorizada y trazabilidad.
+21. Toda `evidence_ref` consumida por C1 debe disponer de `EvidenceValidation` correspondiente.
+22. C1 no convierte por sí mismo `EvidenceValidation.VALID` en representatividad o suficiencia.
 
 ## 21. No alcance
 
@@ -431,6 +436,6 @@ C1 no define ni implementa:
 
 **C1 — PRICE INTELLIGENCE PHYSICAL CONTRACT: CERRADO.**
 
-Esta revisión 1.1 corrige únicamente dos defectos de contrato físico detectados durante la auditoría de implementación: explicitación de `sufficiency_status` y control de conversiones monetarias. No modifica la metodología normativa.
+Esta revisión 1.2 incorpora explícitamente la interfaz de consumo de `EvidenceValidation` ya existente y el gate de evidencia validada, sin modificar la metodología normativa ni C0.
 
 El código debe materializar este contrato sin introducir semántica adicional.
