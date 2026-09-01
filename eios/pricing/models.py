@@ -5,6 +5,8 @@ from decimal import Decimal
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from eios.core.models import DecisionContext, EvidenceValidation, PurchaseOperation
+from .representativeness import RepresentativenessObservation
+from .sufficiency import SufficiencyObservation
 ComparabilityStatus=Literal["COMPARABLE","NO_COMPARABLE","PENDING"]
 NormalizationStatus=Literal["NORMALIZED","PENDING","NOT_NORMALIZABLE"]
 TemporalStatus=Literal["ELIGIBLE","INELIGIBLE","INDETERMINATE"]
@@ -68,7 +70,9 @@ class PriceIntelligenceInput(BaseModel):
         return self
 class PriceIntelligenceAssessmentContext(BaseModel):
     model_config=ConfigDict(extra="forbid",frozen=True)
-    temporal:dict[str,tuple[TemporalStatus,str|None]]=Field(default_factory=dict);representativeness:dict[str,object]=Field(default_factory=dict);sufficiency:object=None
+    temporal:dict[str,tuple[TemporalStatus,str|None]]=Field(default_factory=dict)
+    representativeness:dict[str,RepresentativenessObservation]=Field(default_factory=dict)
+    sufficiency:SufficiencyObservation
 class PriceCounts(BaseModel):
     model_config=ConfigDict(extra="forbid",frozen=True)
     n_raw:int=Field(ge=0);n_unique:int=Field(ge=0);n_comparable:int=Field(ge=0);n_representative:int=Field(ge=0);n_selected:int=Field(ge=0)
