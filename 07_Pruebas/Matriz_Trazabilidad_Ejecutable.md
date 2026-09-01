@@ -159,7 +159,7 @@ Una prueba de reproducibilidad de C0 no permite afirmar por sí sola que una dec
 | REQ-C0-009 | Contrato C0 / documentación de reproducibilidad autorizada | El fingerprint de entrada se conserva | — | `Trace` | — | APROBADA | EXECUTABLE |
 | REQ-C0-010 | Contrato C0 / documentación de reproducibilidad autorizada | La ejecución C0 es reproducible conforme al contrato físico disponible | — | C0 / `Trace` | — | APROBADA | EXECUTABLE |
 
-**Criterio de cierre de esta matriz:** los diez requisitos anteriores están cubiertos por comprobaciones físicas existentes en `tests/test_c0.py`. La matriz no asigna `Test_ID` cuando el Plan de Pruebas no proporciona un identificador oficial inequívoco para esa relación; por ello se conserva `—` y no se crea una taxonomía paralela. fileciteturn53file0
+**Criterio de cierre de esta matriz:** los diez requisitos anteriores están cubiertos por comprobaciones físicas existentes en `tests/test_c0.py`. La matriz no asigna `Test_ID` cuando el Plan de Pruebas no proporciona un identificador oficial inequívoco para esa relación; por ello se conserva `—` y no se crea una taxonomía paralela.
 
 ---
 
