@@ -34,30 +34,11 @@ Resultado / evidencia
 
 ## 2. Perímetro
 
-El perímetro ejecutable se limita a las capacidades físicas ya disponibles y verificables:
+El perímetro ejecutable se limita a las capacidades físicas ya disponibles y verificables.
 
-- Input / validación;
-- `DecisionContext`;
-- Evidence;
-- Assessment;
-- trazabilidad C0;
-- reproducibilidad C0;
-- integración C0;
-- regresión del baseline C0.
+La matriz histórica C0 permanece válida para sus diez requisitos cerrados. Las capacidades materializadas posteriormente —incluidos parametrización, CRC-MVP, Decision Twin, Decision Versioning, PRICE, TCO, Quality/Trust, Negotiation Intelligence y Negotiation Ladder— se verifican mediante sus contratos, artefactos físicos y pruebas específicas correspondientes, sin ampliar retrospectivamente esta matriz ni crear `Test_ID` inexistentes.
 
-Los casos dependientes de capacidades todavía no materializadas permanecen fuera del perímetro ejecutable.
-
-Quedan fuera, entre otros:
-
-- parametrización avanzada;
-- motor completo de reglas;
-- CRC;
-- motor decisional superior;
-- explicabilidad decisional superior;
-- reconstrucción decisional completa;
-- trazabilidad completa del Vertical;
-- SQL físico;
-- no-regresión del Vertical completo.
+Los casos que dependan de capacidades no materializadas permanecen fuera del perímetro ejecutable. MED/Recommendation no se interpreta como motor físico adicional por ausencia de una implementación autónoma certificada.
 
 ---
 
