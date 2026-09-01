@@ -91,13 +91,7 @@ La matriz no crea una taxonomía paralela de pruebas ni nuevos casos de prueba. 
 
 Referencia exclusivamente a una dependencia previamente establecida por una autoridad existente.
 
-No puede crear:
-
-- requisitos;
-- capacidades;
-- componentes;
-- relaciones arquitectónicas;
-- nuevas dependencias normativas.
+No puede crear requisitos, capacidades, componentes, relaciones arquitectónicas ni nuevas dependencias normativas.
 
 ### 3.6 `Estado`
 
@@ -126,12 +120,7 @@ Esta clasificación nunca sustituye ni modifica el estado oficial del caso.
 
 `Decision_ID` identifica la unidad decisional EIOS dentro del contrato correspondiente.
 
-No identifica:
-
-- al CEO;
-- al aprobador;
-- al decisor humano;
-- el acto empresarial final.
+No identifica al CEO, al aprobador, al decisor humano ni el acto empresarial final.
 
 La matriz solo puede verificar su conservación o coherencia dentro del perímetro C0 que realmente lo materialice.
 
@@ -159,16 +148,18 @@ Una prueba de reproducibilidad de C0 no permite afirmar por sí sola que una dec
 
 | Requirement_ID | Fuente autorizada | Requisito verificable | Test_ID | Artefacto físico probado | Dependencia | Estado | Condición de ejecución |
 |---|---|---|---|---|---|---|---|
-| REQ-C0-001 | Contrato C0 / documentación autorizada aplicable | `decision_id` válido y presente donde el contrato C0 lo exige | — | `PurchaseOperation` / artefacto C0 correspondiente | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-002 | `05_Motor/Decision_Versioning.md` | La identidad de la unidad decisional EIOS se conserva coherentemente durante la ejecución C0 | — | `DecisionContext` / artefacto C0 correspondiente | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-003 | `04_Reglas/Evidence_Contract.md` | `DEMONSTRATED` requiere referencia de demostración | — | `Evidence` | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-004 | `04_Reglas/Evidence_Contract.md` | `GAP` no habilita resultado `TRUE/FALSE` | — | `Evidence` / `Assessment` | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-005 | `04_Reglas/Evidence_Contract.md` | Ausencia de evidencia no equivale a `FALSE` | — | C0 / artefacto correspondiente | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-006 | Contrato de `Assessment` autorizado | `NOT_EVALUABLE` no produce `outcome` decisional | — | `Assessment` | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-007 | Contrato de `Assessment` autorizado | `EVALUABLE` produce un `outcome` conforme al contrato | — | `Assessment` | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-008 | Contrato C0 / documentación de trazabilidad autorizada | El contexto de ejecución C0 se conserva en `Trace` | — | `Trace` | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-009 | Contrato C0 / documentación de trazabilidad autorizada | El fingerprint de entrada se conserva | — | `Trace` | — | PENDIENTE | EXECUTABLE |
-| REQ-C0-010 | Contrato C0 / documentación de reproducibilidad autorizada | La ejecución C0 es reproducible conforme al contrato físico disponible | — | C0 / `Trace` | — | PENDIENTE | EXECUTABLE |
+| REQ-C0-001 | Contrato C0 / documentación autorizada aplicable | `decision_id` válido y presente donde el contrato C0 lo exige | — | `PurchaseOperation` / artefacto C0 correspondiente | — | APROBADA | EXECUTABLE |
+| REQ-C0-002 | `05_Motor/Decision_Versioning.md` | La identidad de la unidad decisional EIOS se conserva coherentemente durante la ejecución C0 | — | `DecisionContext` / artefacto C0 correspondiente | — | APROBADA | EXECUTABLE |
+| REQ-C0-003 | `04_Reglas/Evidence_Contract.md` | `DEMONSTRATED` requiere referencia de demostración | — | `Evidence` | — | APROBADA | EXECUTABLE |
+| REQ-C0-004 | `04_Reglas/Evidence_Contract.md` | `GAP` no habilita resultado `TRUE/FALSE` | — | `Evidence` / `Assessment` | — | APROBADA | EXECUTABLE |
+| REQ-C0-005 | `04_Reglas/Evidence_Contract.md` | Ausencia de evidencia no equivale a `FALSE` | — | C0 / artefacto correspondiente | — | APROBADA | EXECUTABLE |
+| REQ-C0-006 | Contrato de `Assessment` autorizado | `NOT_EVALUABLE` no produce `outcome` decisional | — | `Assessment` | — | APROBADA | EXECUTABLE |
+| REQ-C0-007 | Contrato de `Assessment` autorizado | `EVALUABLE` produce un `outcome` conforme al contrato | — | `Assessment` | — | APROBADA | EXECUTABLE |
+| REQ-C0-008 | Contrato C0 / documentación de trazabilidad autorizada | El contexto de ejecución C0 se conserva en `Trace` | — | `Trace` | — | APROBADA | EXECUTABLE |
+| REQ-C0-009 | Contrato C0 / documentación de reproducibilidad autorizada | El fingerprint de entrada se conserva | — | `Trace` | — | APROBADA | EXECUTABLE |
+| REQ-C0-010 | Contrato C0 / documentación de reproducibilidad autorizada | La ejecución C0 es reproducible conforme al contrato físico disponible | — | C0 / `Trace` | — | APROBADA | EXECUTABLE |
+
+**Criterio de cierre de esta matriz:** los diez requisitos anteriores están cubiertos por comprobaciones físicas existentes en `tests/test_c0.py`. La matriz no asigna `Test_ID` cuando el Plan de Pruebas no proporciona un identificador oficial inequívoco para esa relación; por ello se conserva `—` y no se crea una taxonomía paralela. fileciteturn53file0
 
 ---
 
@@ -215,31 +206,3 @@ Dependencia nueva
   ↓
 requisito / arquitectura nueva
 ```
-
----
-
-## 8. Regla de ausencia de artefacto
-
-La ausencia de un artefacto físico no autoriza a la matriz a crear una implementación.
-
-Cuando un caso dependa de una capacidad no materializada, su ejecución permanece pendiente o bloqueada conforme al Plan de Pruebas y a la dependencia previamente establecida.
-
----
-
-## 9. Estado del documento
-
-Este documento materializa exactamente el diseño cerrado de la Matriz de Trazabilidad Ejecutable.
-
-No introduce cambios funcionales ni amplía el perímetro de `07_Pruebas`.
-
-La materialización no modifica:
-
-- `Plan_Pruebas_MVP.md`;
-- arquitectura;
-- C0;
-- reglas;
-- parámetros;
-- Decision Versioning;
-- ninguna otra autoridad del proyecto.
-
-La siguiente actividad del método es la **CI** sobre el estado materializado.
