@@ -66,6 +66,9 @@ class PriceIntelligenceInput(BaseModel):
         reference_ids={r.source_transaction_id for r in self.references};unknown_references={e.reference_id for e in self.economic_basis_evidence}-reference_ids
         if unknown_references:raise ValueError("EconomicBasisEvidence referencia una PriceReference inexistente")
         return self
+class PriceIntelligenceAssessmentContext(BaseModel):
+    model_config=ConfigDict(extra="forbid",frozen=True)
+    temporal:dict[str,tuple[TemporalStatus,str|None]]={};representativeness:dict[str,object]={};sufficiency:object
 class PriceCounts(BaseModel):
     model_config=ConfigDict(extra="forbid",frozen=True)
     n_raw:int=Field(ge=0);n_unique:int=Field(ge=0);n_comparable:int=Field(ge=0);n_representative:int=Field(ge=0);n_selected:int=Field(ge=0)
@@ -81,12 +84,11 @@ class PriceIntelligenceResult(BaseModel):
     def enforce_result_invariants(self)->"PriceIntelligenceResult":
         expected={"SUFFICIENT":"PR_AVAILABLE","LIMITED":"PR_LIMITED","NOT_JUSTIFIABLE":"PR_NOT_JUSTIFIABLE"}[self.sufficiency_status]
         if self.pr_status!=expected:raise ValueError("pr_status no coincide con sufficiency_status")
-        if self.pr_status=="PR_AVAILABLE" and self.pr_value is None:raise ValueError("PR_AVAILABLE requiere pr_value")
-        if self.pr_status=="PR_LIMITED" and self.pr_value is None:raise ValueError("PR_LIMITED requiere pr_value")
+        if self.pr_status in {"PR_AVAILABLE","PR_LIMITED"} and self.pr_value is None:raise ValueError("PR_AVAILABLE/PR_LIMITED requieren pr_value")
         if self.pr_status=="PR_NOT_JUSTIFIABLE" and self.pr_value is not None:raise ValueError("PR_NOT_JUSTIFIABLE requiere pr_value=null")
-        if self.pr_value is not None and self.currency is None:raise ValueError("Un PR disponible requiere moneda")
+        if self.pr_value is not None and self.currency is None:raise ValueError("Un PR requiere moneda")
         if len(self.reference_set)!=self.counts.n_selected:raise ValueError("reference_set debe coincidir con n_selected")
         if self.counts.n_selected==0 and self.pr_status!="PR_NOT_JUSTIFIABLE":raise ValueError("N_SELECTED=0 requiere PR_NOT_JUSTIFIABLE")
         if self.counts.n_selected==1 and self.pr_status=="PR_AVAILABLE":raise ValueError("N_SELECTED=1 no puede producir PR_AVAILABLE")
         return self
-__all__=["AggregationMethod","ComparabilityStatus","EconomicBasisAssessment","EconomicBasisEvidence","EconomicBasisStatus","EconomicDimension","NormalizationBasis","NormalizationRecord","NormalizationStatus","PRStatus","PriceCounts","PriceIntelligenceInput","PriceIntelligenceResult","PriceReference","PriceReferenceAssessment","RepresentativenessStatus","SufficiencyStatus","TemporalStatus"]
+__all__=["AggregationMethod","ComparabilityStatus","EconomicBasisAssessment","EconomicBasisEvidence","EconomicBasisStatus","EconomicDimension","NormalizationBasis","NormalizationRecord","NormalizationStatus","PRStatus","PriceCounts","PriceIntelligenceAssessmentContext","PriceIntelligenceInput","PriceIntelligenceResult","PriceReference","PriceReferenceAssessment","RepresentativenessStatus","SufficiencyStatus","TemporalStatus"]
