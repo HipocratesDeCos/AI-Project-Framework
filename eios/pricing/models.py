@@ -8,10 +8,11 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from eios.core.models import DecisionContext, PurchaseOperation, Trace
+from eios.core.models import DecisionContext, PurchaseOperation
 
 ComparabilityStatus = Literal["COMPARABLE", "NO_COMPARABLE", "PENDING"]
 RepresentativenessStatus = Literal["REPRESENTATIVE", "NON_REPRESENTATIVE", "INDETERMINATE"]
+SufficiencyStatus = Literal["SUFFICIENT", "LIMITED", "NOT_JUSTIFIABLE"]
 PRStatus = Literal["PR_AVAILABLE", "PR_LIMITED", "PR_NOT_JUSTIFIABLE"]
 AggregationMethod = Literal["MEDIAN_UNWEIGHTED"]
 
@@ -108,7 +109,7 @@ class PriceIntelligenceResult(BaseModel):
     reference_set: tuple[str, ...] = ()
     counts: PriceCounts
     aggregation_method: AggregationMethod
-    trace: tuple[Trace, ...] = ()
+    trace_references: tuple[str, ...] = ()
 
     @model_validator(mode="after")
     def enforce_result_invariants(self) -> "PriceIntelligenceResult":
@@ -127,4 +128,5 @@ __all__ = [
     "AggregationMethod", "ComparabilityStatus", "NormalizationRecord",
     "PRStatus", "PriceCounts", "PriceIntelligenceInput", "PriceIntelligenceResult",
     "PriceReference", "PriceReferenceAssessment", "RepresentativenessStatus",
+    "SufficiencyStatus",
 ]
