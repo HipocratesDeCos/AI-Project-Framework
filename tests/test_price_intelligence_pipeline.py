@@ -33,6 +33,10 @@ def test_pipeline_does_not_select_without_temporal_eligibility():
     result=run_price_intelligence(_payload((_reference(),)),PriceIntelligenceAssessmentContext(temporal={"R1":("INELIGIBLE","RULE-T")},representativeness={"R1":_repr("E1")},sufficiency=_sufficiency(())))
     assert result.reference_set==() and result.pr_value is None
 
+def test_pipeline_does_not_select_indeterminate_temporality():
+    result=run_price_intelligence(_payload((_reference(),)),PriceIntelligenceAssessmentContext(temporal={"R1":("INDETERMINATE","RULE-T")},representativeness={"R1":_repr("E1")},sufficiency=_sufficiency(())))
+    assert result.reference_set==() and result.pr_status=="PR_NOT_JUSTIFIABLE" and result.pr_value is None
+
 def test_pipeline_propagates_snapshot_and_preserves_single_reference_as_limited():
     result=run_price_intelligence(_payload((_reference(),)),_ready_context(("R1",),evidence_sufficient=True,contradictions_resolved=True))
     assert result.data_snapshot_id=="SNAP-1" and result.pr_status=="PR_LIMITED" and result.pr_value==Decimal("10.00")
