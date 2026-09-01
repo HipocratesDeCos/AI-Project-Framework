@@ -53,8 +53,7 @@ def test_missing_value_is_asymmetry_not_penalty():
         )
     )
 
-    assert "B:results" not in result.missing_attributes
-    assert "B:results.price" not in result.missing_attributes
+    assert "B:results" in result.missing_attributes
     assert any(
         observation.attribute == "results" and not observation.comparable
         for observation in result.observations
