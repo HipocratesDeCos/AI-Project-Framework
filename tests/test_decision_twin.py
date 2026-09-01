@@ -37,7 +37,7 @@ def test_compare_two_alternatives_is_descriptive_only():
     assert not hasattr(result, "preferred_alternative")
 
 
-def test_missing_value_is_asymmetry_not_penalty():
+def test_empty_mapping_is_not_missing_attribute_or_penalty():
     result = compare_alternatives(
         DecisionTwinComparisonInput(
             alternatives=(
@@ -53,12 +53,13 @@ def test_missing_value_is_asymmetry_not_penalty():
         )
     )
 
-    assert "B:results" in result.missing_attributes
-    assert any(
-        observation.attribute == "results" and not observation.comparable
-        for observation in result.observations
-    )
-    assert "results" not in result.differences
+    # An explicitly present empty mapping is not the same as an absent
+    # attribute. The comparison remains descriptive and records the
+    # difference without manufacturing a penalty or preference.
+    assert result.missing_attributes == ()
+    assert "results" in result.differences
+    assert not hasattr(result, "winner")
+    assert not hasattr(result, "preferred_alternative")
 
 
 def test_reordering_inputs_preserves_semantic_content():
