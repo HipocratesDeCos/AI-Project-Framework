@@ -3,7 +3,7 @@
 ## 1. Identidad
 
 **Documento:** Price Intelligence Implementation Contract  
-**Versión:** 1.0  
+**Versión:** 1.1  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad metodológica:** `01_Modelo/Price_Intelligence_Methodological_Matrix.md`  
@@ -49,7 +49,7 @@ QTG mantiene autoridad sobre calidad/confianza de evidencia. PR mantiene autorid
 
 ## 5. Identidad y contexto
 
-C1 debe reutilizar, cuando estén disponibles, las identidades canónicas de `DecisionContext`:
+C1 debe reutilizar las identidades canónicas de `DecisionContext`:
 
 ```text
 DecisionContext
@@ -57,11 +57,10 @@ DecisionContext
 ├── scenario_id
 ├── rules_version
 ├── parameters_version
-├── data_snapshot_id
-└── input_fingerprint
+└── data_snapshot_id
 ```
 
-C1 no crea sustitutos semánticos de estas identidades.
+`input_fingerprint`, cuando forme parte del contexto/trazabilidad disponible, debe conservarse por el mecanismo canónico existente. C1 no crea sustitutos semánticos de estas identidades.
 
 ## 6. Entrada física
 
@@ -198,6 +197,14 @@ NormalizationRecord
 
 La ausencia de información necesaria impide la transformación correspondiente; no se sustituye por cero, media, estimación ni valor por defecto.
 
+### 10.1 Moneda
+
+Una referencia en moneda distinta de la moneda objetivo no puede convertirse mediante una tasa inventada, implícita o tomada de una fuente no trazada.
+
+Para aplicar conversión monetaria debe existir una regla/fuente de conversión autorizada y trazable. La tasa o referencia utilizada debe quedar registrada mediante `NormalizationRecord` y su trazabilidad correspondiente.
+
+Si la conversión necesaria no está autorizada o no puede demostrarse, la referencia no puede considerarse normalizada para el cálculo.
+
 ## 11. Representatividad
 
 La evaluación debe conservar el resultado de los criterios observables:
@@ -213,7 +220,7 @@ REP-06
 
 La salida debe permitir identificar el motivo de `NON_REPRESENTATIVE` o `INDETERMINATE` mediante trazabilidad y limitaciones.
 
-No se utiliza frecuencia, precio mínimo, último precio, proveedor habitual, score ni proximidad al PR deseado.
+No se utiliza frecuencia, precio mínimo, último precio, proveedor habitual, score ni proximidad al PR para determinar representatividad.
 
 ## 12. Selección
 
@@ -227,15 +234,16 @@ Reglas físicas mínimas:
 
 ```text
 N_SELECTED = 0
+→ sufficiency_status = NOT_JUSTIFIABLE
 → PR_STATUS = PR_NOT_JUSTIFIABLE
 → PR_VALUE = null
 
 N_SELECTED = 1
-→ PR_STATUS ≠ PR_AVAILABLE
-→ como máximo PR_LIMITED
+→ sufficiency_status = LIMITED
+→ PR_STATUS = PR_LIMITED
 
 N_SELECTED >= 2
-→ condición necesaria, pero no suficiente, para PR_AVAILABLE
+→ condición necesaria, pero no suficiente, para SUFFICIENT
 ```
 
 La suficiencia requiere además el cumplimiento de las condiciones metodológicas de comparabilidad, representatividad, evidencia, trazabilidad, normalización y ausencia de contradicciones materiales no resueltas.
@@ -284,7 +292,7 @@ No existen pesos por:
 El método cerrado para MVP es:
 
 ```text
-MEDIANA NO PONDERADA
+MEDIAN_UNWEIGHTED
 ```
 
 Se calcula exclusivamente sobre `REFERENCE_SET` y precios normalizados válidos.
@@ -302,11 +310,12 @@ PriceIntelligenceResult
 ├── pr_value
 ├── currency
 ├── pr_status
+├── sufficiency_status
 ├── pr_limitations
 ├── reference_set
 ├── counts
 ├── aggregation_method
-└── trace
+└── trace_references
 ```
 
 ### 18.1 `pr_value`
@@ -325,15 +334,25 @@ No se permite representar ausencia de PR mediante `0`.
 
 Código monetario explícito asociado a `pr_value`. No puede existir `pr_value` sin moneda cuando el resultado sea disponible.
 
-### 18.3 `pr_limitations`
+### 18.3 `sufficiency_status`
+
+Representa explícitamente el estado metodológico de suficiencia:
+
+```text
+SUFFICIENT | LIMITED | NOT_JUSTIFIABLE
+```
+
+Debe ser coherente con `pr_status` según el mapeo cerrado del apartado 7.
+
+### 18.4 `pr_limitations`
 
 Lista explícita de limitaciones metodológicas relevantes para interpretar el resultado. No puede utilizarse para ocultar una condición que obligaría a `PR_NOT_JUSTIFIABLE`.
 
-### 18.4 `reference_set`
+### 18.5 `reference_set`
 
 Colección de identificadores de las referencias seleccionadas y sus trazas necesarias. No se duplica la evidencia documental.
 
-### 18.5 `counts`
+### 18.6 `counts`
 
 ```text
 counts
@@ -344,7 +363,7 @@ counts
 └── n_selected
 ```
 
-### 18.6 `aggregation_method`
+### 18.7 `aggregation_method`
 
 Valor cerrado en MVP:
 
@@ -352,9 +371,9 @@ Valor cerrado en MVP:
 MEDIAN_UNWEIGHTED
 ```
 
-### 18.7 `trace`
+### 18.8 `trace_references`
 
-Referencias a los mecanismos de trazabilidad existentes. No crea una nueva entidad `Trace` paralela.
+Referencias a los mecanismos de trazabilidad existentes. No crea una nueva entidad `Trace` paralela ni reutiliza `Trace` de C0 como si Price Intelligence fuese una regla C0.
 
 ## 19. Versionado
 
@@ -378,7 +397,7 @@ No crea un sistema de versionado paralelo.
 4. Duplicado documental no crea observación económica nueva.
 5. `N_SELECTED = 0 → PR_NOT_JUSTIFIABLE`.
 6. `PR_NOT_JUSTIFIABLE → pr_value = null`.
-7. `N_SELECTED = 1 → como máximo PR_LIMITED`.
+7. `N_SELECTED = 1 → PR_LIMITED`.
 8. `N_SELECTED >= 2` es necesario pero no suficiente para `PR_AVAILABLE`.
 9. No existe normalización implícita.
 10. No existe ponderación implícita.
@@ -390,6 +409,8 @@ No crea un sistema de versionado paralelo.
 16. C1 no modifica C0.
 17. C1 no crea una nueva identidad empresarial para la transacción.
 18. C1 no produce una decisión empresarial.
+19. `sufficiency_status` y `pr_status` deben mantener el mapeo cerrado.
+20. Una conversión monetaria requiere fuente/regla autorizada y trazabilidad.
 
 ## 21. No alcance
 
@@ -410,4 +431,6 @@ C1 no define ni implementa:
 
 **C1 — PRICE INTELLIGENCE PHYSICAL CONTRACT: CERRADO.**
 
-Este contrato constituye la frontera física autorizada para la implementación de Price Intelligence MVP. El código debe materializar este contrato sin introducir semántica adicional.
+Esta revisión 1.1 corrige únicamente dos defectos de contrato físico detectados durante la auditoría de implementación: explicitación de `sufficiency_status` y control de conversiones monetarias. No modifica la metodología normativa.
+
+El código debe materializar este contrato sin introducir semántica adicional.
