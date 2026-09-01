@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 2.3  
+**Versión:** 2.4  
 **Estado:** APROBADO  
 **Ubicación:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
@@ -62,6 +62,7 @@ Esta matriz regula la autoridad documental dentro de EIOS sobre:
 - dependencias de reglas;
 - viabilidad;
 - escenarios;
+- Price Intelligence;
 - Decision Twin;
 - negociación;
 - resolución de conflictos;
@@ -177,6 +178,7 @@ Define:
 - dependencias;
 - viabilidad;
 - escenarios;
+- Price Intelligence;
 - Decision Twin;
 - negociación;
 - resolución de conflictos;
@@ -223,6 +225,8 @@ Define:
 | Dependencias | `04_Reglas/Rule_Dependency_Matrix.md` | Dependencias canónicas entre reglas, datos, evidencias, parámetros, componentes y requisitos concretos de evaluabilidad |
 | Viability Frontier | `05_Motor/Viability_Frontier.md` | Definición y comportamiento de la frontera de viabilidad |
 | Scenario Engine | `05_Motor/Viability_Scenario_Engine.md` | Generación, comparación y versionado de escenarios |
+| Price Intelligence — metodología | `01_Modelo/Price_Intelligence_Methodological_Matrix.md` | Metodología normativa de Precio de Referencia: comparabilidad, normalización, temporalidad, representatividad, selección, suficiencia y agregación |
+| Price Intelligence — implementación | `08_Implementacion/Price_Intelligence_Implementation_Contract.md` | Contrato técnico C1, frontera de implementación y materialización de Price Intelligence |
 | Decision Twin | `05_Motor/Decision_Twin.md` | Representación de alternativas y estructura de la decisión |
 | Negotiation Intelligence | `05_Motor/Negotiation_Intelligence.md` | Inteligencia y análisis de negociación |
 | Negotiation Ladder | `05_Motor/Negotiation_Ladder.md` | Estructura, representación y secuencia de negociación |
@@ -450,7 +454,56 @@ La existencia de una vista o especificación especializada no duplica la autorid
 
 ---
 
-# 14. Autoridad de Viability Frontier
+# 14. Autoridad de Price Intelligence
+
+La autoridad de Price Intelligence se divide explícitamente en dos niveles complementarios:
+
+```text
+Price Intelligence Methodological Matrix
+        ↓
+metodología normativa de PR
+        ↓
+Price Intelligence Implementation Contract
+        ↓
+materialización técnica de la metodología
+```
+
+`01_Modelo/Price_Intelligence_Methodological_Matrix.md` constituye la autoridad especializada sobre la metodología económica de Precio de Referencia (PR), incluyendo:
+
+- definición de PR;
+- comparabilidad;
+- normalización;
+- temporalidad;
+- representatividad;
+- selección;
+- suficiencia;
+- outliers;
+- contradicciones;
+- ponderación;
+- agregación;
+- separación respecto de la decisión empresarial.
+
+`08_Implementacion/Price_Intelligence_Implementation_Contract.md` constituye la autoridad de implementación sobre cómo materializar técnicamente dicha metodología, sin modificarla ni crear una autoridad económica paralela.
+
+La implementación debe respetar la siguiente precedencia:
+
+```text
+Salvaguarda / Arquitectura
+        ↓
+Price Intelligence Methodological Matrix
+        ↓
+Price Intelligence Implementation Contract
+        ↓
+código y pruebas
+```
+
+El contrato de implementación no puede introducir criterios económicos no autorizados por la matriz metodológica.
+
+La matriz metodológica tampoco define detalles físicos de implementación que pertenezcan al contrato C1.
+
+---
+
+# 15. Autoridad de Viability Frontier
 
 El documento de `Viability_Frontier` constituye la autoridad sobre:
 
@@ -467,7 +520,7 @@ La decisión final depende del conjunto de evaluaciones y de la lógica de decis
 
 ---
 
-# 15. Autoridad del Scenario Engine
+# 16. Autoridad del Scenario Engine
 
 El `Viability_Scenario_Engine.md` constituye la autoridad sobre:
 
@@ -482,7 +535,7 @@ Los escenarios deben ser reproducibles y trazables.
 
 Un escenario no debe sobrescribir otro escenario existente.
 
-## 15.1 Frontera de comparación: escenarios vs alternativas
+## 16.1 Frontera de comparación: escenarios vs alternativas
 
 La comparación de **escenarios** pertenece al dominio del Scenario Engine: establece las diferencias y relaciones entre representaciones de escenario y sus resultados, sin convertir por ello un escenario en una alternativa decisional ni seleccionar una alternativa.
 
@@ -516,7 +569,7 @@ Esta frontera no autoriza:
 
 ---
 
-# 16. Autoridad del Decision Twin
+# 17. Autoridad del Decision Twin
 
 El `Decision_Twin.md` constituye la autoridad sobre la representación estructurada de:
 
@@ -533,7 +586,7 @@ No sustituye la autoridad del CEO.
 
 ---
 
-# 17. Autoridad de Negotiation Intelligence
+# 18. Autoridad de Negotiation Intelligence
 
 `Negotiation_Intelligence.md` constituye la autoridad sobre:
 
@@ -546,7 +599,7 @@ No sustituye la autoridad del CEO.
 
 ---
 
-# 18. Autoridad de Negotiation Ladder
+# 19. Autoridad de Negotiation Ladder
 
 `Negotiation_Ladder.md` constituye la autoridad sobre:
 
@@ -560,7 +613,7 @@ La Negotiation Ladder no puede modificar por sí misma las reglas de decisión e
 
 ---
 
-# 19. Autoridad de Resolución de Conflictos
+# 20. Autoridad de Resolución de Conflictos
 
 `04_Reglas/Capa_resolucion_conflictos.md` constituye la autoridad sobre cómo resolver resultados incompatibles entre:
 
@@ -574,7 +627,7 @@ La resolución de conflictos debe conservar trazabilidad.
 
 ---
 
-# 20. Autoridad de Versionado de Decisiones
+# 21. Autoridad de Versionado de Decisiones
 
 `Decision_Versioning.md` constituye la autoridad sobre:
 
@@ -588,7 +641,7 @@ Una nueva decisión no debe borrar la existencia de una decisión anterior.
 
 ---
 
-# 21. Autoridad de Implementación
+# 22. Autoridad de Implementación
 
 Los documentos de implementación constituyen autoridad sobre cómo se construye y ejecuta técnicamente EIOS.
 
@@ -597,13 +650,14 @@ La implementación no puede redefinir unilateralmente:
 - reglas empresariales;
 - parámetros;
 - decisiones congeladas;
-- autoridad documental.
+- autoridad documental;
+- metodologías especializadas.
 
 Si la implementación requiere modificar una definición funcional, debe escalarse el cambio al documento que tenga autoridad sobre dicha definición.
 
 ---
 
-# 22. Autoridad de Pruebas
+# 23. Autoridad de Pruebas
 
 La carpeta `07_Pruebas/` constituye la referencia para:
 
@@ -617,7 +671,7 @@ Una prueba puede demostrar que una implementación cumple una especificación, p
 
 ---
 
-# 23. Precedencia ante conflictos
+# 24. Precedencia ante conflictos
 
 Cuando dos documentos entren en conflicto se aplicará el siguiente procedimiento:
 
@@ -645,7 +699,7 @@ La antigüedad no determina por sí sola la autoridad.
 
 ---
 
-# 24. Relación entre documentos de gobierno
+# 25. Relación entre documentos de gobierno
 
 Los documentos de gobierno deben entenderse así:
 
@@ -687,7 +741,7 @@ El `Manual_Maestro_Proyecto_EIOS.md` actúa como documento de orientación y nav
 
 ---
 
-# 25. Reglas de mantenimiento
+# 26. Reglas de mantenimiento
 
 La Matriz deberá actualizarse cuando:
 
@@ -702,7 +756,7 @@ No debe actualizarse por simples cambios de redacción en documentos subordinado
 
 ---
 
-# 26. Control de documentos futuros
+# 27. Control de documentos futuros
 
 Una ruta incluida en esta matriz puede encontrarse en uno de estos estados:
 
@@ -726,7 +780,7 @@ Una referencia reservada no debe interpretarse como un documento existente.
 
 ---
 
-# 27. Regla de no regresión documental
+# 28. Regla de no regresión documental
 
 Una modificación de estructura documental no debe reducir la trazabilidad existente.
 
@@ -740,18 +794,18 @@ No se debe:
 
 ---
 
-# 28. Estado de la Matriz
+# 29. Estado de la Matriz
 
-**Versión:** 2.3  
+**Versión:** 2.4  
 **Estado:** APROBADO  
 **Ámbito:** Gobierno documental EIOS  
 **Carácter:** Fuente oficial de autoridad y precedencia documental
 
-La Matriz define la autoridad necesaria para evitar ambigüedad cuando los documentos especializados sean creados.
+La Matriz incorpora formalmente Price Intelligence como dominio especializado y distingue su autoridad metodológica de su contrato de implementación.
 
 ---
 
-# 29. Principio final
+# 30. Principio final
 
 > **Cuando exista una duda sobre qué documento manda, no se interpreta: se consulta la Matriz de Autoridad Documental.**
 
