@@ -14,6 +14,7 @@ class SufficiencyObservation:
     rule_reference: str | None = None
     trace_reference: str | None = None
     justification: str | None = None
+    selected_reference_ids: tuple[str, ...] = ()
 
 
 def assess_sufficiency(n_selected: int, observation: SufficiencyObservation) -> SufficiencyStatus:
