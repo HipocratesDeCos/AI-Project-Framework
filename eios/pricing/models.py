@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from eios.core.models import DecisionContext, EvidenceValidation, PurchaseOperation
 ComparabilityStatus=Literal["COMPARABLE","NO_COMPARABLE","PENDING"]
 NormalizationStatus=Literal["NORMALIZED","PENDING","NOT_NORMALIZABLE"]
+TemporalStatus=Literal["ELIGIBLE","INELIGIBLE","INDETERMINATE"]
 RepresentativenessStatus=Literal["REPRESENTATIVE","NON_REPRESENTATIVE","INDETERMINATE"]
 SufficiencyStatus=Literal["SUFFICIENT","LIMITED","NOT_JUSTIFIABLE"]
 PRStatus=Literal["PR_AVAILABLE","PR_LIMITED","PR_NOT_JUSTIFIABLE"]
@@ -15,16 +16,7 @@ EconomicBasisStatus=Literal["RESOLVED","NOT_APPLICABLE","PENDING","NOT_RESOLVABL
 
 class PriceReference(BaseModel):
     model_config=ConfigDict(extra="forbid",str_strip_whitespace=True)
-    source_transaction_id:str=Field(min_length=1,max_length=128)
-    article_identity:str=Field(min_length=1,max_length=128)
-    supplier_identity:str|None=Field(default=None,max_length=128)
-    quantity:Decimal=Field(gt=0)
-    unit:str=Field(min_length=1,max_length=32)
-    unit_price:Decimal=Field(ge=0,decimal_places=4)
-    currency:str=Field(min_length=3,max_length=3)
-    operation_date:date
-    commercial_conditions:str|None=Field(default=None,max_length=512)
-    evidence_refs:tuple[str,...]=()
+    source_transaction_id:str=Field(min_length=1,max_length=128); article_identity:str=Field(min_length=1,max_length=128); supplier_identity:str|None=Field(default=None,max_length=128); quantity:Decimal=Field(gt=0); unit:str=Field(min_length=1,max_length=32); unit_price:Decimal=Field(ge=0,decimal_places=4); currency:str=Field(min_length=3,max_length=3); operation_date:date; commercial_conditions:str|None=Field(default=None,max_length=512); evidence_refs:tuple[str,...]=()
     @model_validator(mode="after")
     def finite_values(self)->"PriceReference":
         if not self.unit_price.is_finite() or not self.quantity.is_finite(): raise ValueError("Los valores de precio y cantidad deben ser finitos")
@@ -32,48 +24,21 @@ class PriceReference(BaseModel):
 
 class NormalizationBasis(BaseModel):
     model_config=ConfigDict(extra="forbid",str_strip_whitespace=True,frozen=True)
-    target_unit:str=Field(min_length=1,max_length=32)
-    target_tax_basis:str|None=Field(default=None,max_length=64)
-    target_transport_basis:str|None=Field(default=None,max_length=64)
-    target_discount_basis:str|None=Field(default=None,max_length=64)
-    target_surcharge_basis:str|None=Field(default=None,max_length=64)
-    target_commercial_basis:str|None=Field(default=None,max_length=128)
-    basis_reference:str=Field(min_length=1,max_length=256)
-    rule_reference:str=Field(min_length=1,max_length=128)
-    trace_reference:str=Field(min_length=1,max_length=128)
+    target_unit:str=Field(min_length=1,max_length=32); target_tax_basis:str|None=Field(default=None,max_length=64); target_transport_basis:str|None=Field(default=None,max_length=64); target_discount_basis:str|None=Field(default=None,max_length=64); target_surcharge_basis:str|None=Field(default=None,max_length=64); target_commercial_basis:str|None=Field(default=None,max_length=128); basis_reference:str=Field(min_length=1,max_length=256); rule_reference:str=Field(min_length=1,max_length=128); trace_reference:str=Field(min_length=1,max_length=128)
 
 class EconomicBasisAssessment(BaseModel):
     model_config=ConfigDict(extra="forbid",frozen=True)
-    unit:EconomicBasisStatus="PENDING"
-    quantity:EconomicBasisStatus="PENDING"
-    currency:EconomicBasisStatus="PENDING"
-    tax:EconomicBasisStatus="PENDING"
-    transport:EconomicBasisStatus="PENDING"
-    discount:EconomicBasisStatus="PENDING"
-    surcharge:EconomicBasisStatus="PENDING"
-    commercial:EconomicBasisStatus="PENDING"
+    unit:EconomicBasisStatus="PENDING"; quantity:EconomicBasisStatus="PENDING"; currency:EconomicBasisStatus="PENDING"; tax:EconomicBasisStatus="PENDING"; transport:EconomicBasisStatus="PENDING"; discount:EconomicBasisStatus="PENDING"; surcharge:EconomicBasisStatus="PENDING"; commercial:EconomicBasisStatus="PENDING"
     @property
-    def all_resolved(self)->bool:
-        return all(value in {"RESOLVED","NOT_APPLICABLE"} for value in self.__dict__.values())
+    def all_resolved(self)->bool: return all(v in {"RESOLVED","NOT_APPLICABLE"} for v in self.__dict__.values())
 
 class NormalizationRecord(BaseModel):
     model_config=ConfigDict(extra="forbid")
-    field:str=Field(min_length=1,max_length=64)
-    original_value:str
-    normalized_value:str
-    rule_reference:str=Field(min_length=1,max_length=128)
-    trace_reference:str=Field(min_length=1,max_length=128)
+    field:str=Field(min_length=1,max_length=64); original_value:str; normalized_value:str; rule_reference:str=Field(min_length=1,max_length=128); trace_reference:str=Field(min_length=1,max_length=128)
 
 class PriceReferenceAssessment(BaseModel):
     model_config=ConfigDict(extra="forbid")
-    reference_id:str=Field(min_length=1,max_length=128)
-    comparability:ComparabilityStatus
-    normalization_status:NormalizationStatus="PENDING"
-    representativeness:RepresentativenessStatus
-    normalized_unit_price:Decimal|None=Field(default=None,ge=0,decimal_places=4)
-    normalization:tuple[NormalizationRecord,...]=()
-    economic_basis:EconomicBasisAssessment|None=None
-    limitation_refs:tuple[str,...]=()
+    reference_id:str=Field(min_length=1,max_length=128); comparability:ComparabilityStatus; normalization_status:NormalizationStatus="PENDING"; temporal_status:TemporalStatus="INDETERMINATE"; temporal_rule_reference:str|None=None; representativeness:RepresentativenessStatus="INDETERMINATE"; normalized_unit_price:Decimal|None=Field(default=None,ge=0,decimal_places=4); normalization:tuple[NormalizationRecord,...]=(); economic_basis:EconomicBasisAssessment|None=None; limitation_refs:tuple[str,...]=()
     @model_validator(mode="after")
     def normalization_value_matches_status(self)->"PriceReferenceAssessment":
         if self.normalization_status=="NORMALIZED" and self.normalized_unit_price is None: raise ValueError("NORMALIZED requiere normalized_unit_price")
@@ -82,12 +47,7 @@ class PriceReferenceAssessment(BaseModel):
 
 class PriceIntelligenceInput(BaseModel):
     model_config=ConfigDict(extra="forbid")
-    decision_context:DecisionContext
-    purchase_operation:PurchaseOperation
-    references:tuple[PriceReference,...]=()
-    evidence_validations:tuple[EvidenceValidation,...]=()
-    normalization_basis:NormalizationBasis|None=None
-    methodology_version:str=Field(min_length=1,max_length=64)
+    decision_context:DecisionContext; purchase_operation:PurchaseOperation; references:tuple[PriceReference,...]=(); evidence_validations:tuple[EvidenceValidation,...]=(); normalization_basis:NormalizationBasis|None=None; methodology_version:str=Field(min_length=1,max_length=64)
     @model_validator(mode="after")
     def context_matches_purchase(self)->"PriceIntelligenceInput":
         if self.decision_context.decision_id!=self.purchase_operation.decision_id: raise ValueError("decision_id no coincide entre contexto y operación")
@@ -95,7 +55,7 @@ class PriceIntelligenceInput(BaseModel):
         return self
     @model_validator(mode="after")
     def evidence_refs_are_known(self)->"PriceIntelligenceInput":
-        known={item.evidence_id for item in self.evidence_validations}; referenced={ref for item in self.references for ref in item.evidence_refs}; unknown=referenced-known
+        known={x.evidence_id for x in self.evidence_validations}; referenced={r for item in self.references for r in item.evidence_refs}; unknown=referenced-known
         if unknown: raise ValueError("Existen evidence_refs sin EvidenceValidation correspondiente")
         return self
 
@@ -110,10 +70,7 @@ class PriceCounts(BaseModel):
 
 class PriceIntelligenceResult(BaseModel):
     model_config=ConfigDict(extra="forbid",frozen=True)
-    decision_id:str; scenario_id:str; data_snapshot_id:str; methodology_version:str
-    pr_value:Decimal|None=Field(default=None,ge=0,decimal_places=4)
-    currency:str|None=Field(default=None,min_length=3,max_length=3)
-    sufficiency_status:SufficiencyStatus; pr_status:PRStatus; pr_limitations:tuple[str,...]=(); reference_set:tuple[str,...]=(); counts:PriceCounts; aggregation_method:AggregationMethod; trace_references:tuple[str,...]=()
+    decision_id:str; scenario_id:str; data_snapshot_id:str; methodology_version:str; pr_value:Decimal|None=Field(default=None,ge=0,decimal_places=4); currency:str|None=Field(default=None,min_length=3,max_length=3); sufficiency_status:SufficiencyStatus; pr_status:PRStatus; pr_limitations:tuple[str,...]=(); reference_set:tuple[str,...]=(); counts:PriceCounts; aggregation_method:AggregationMethod; trace_references:tuple[str,...]=()
     @model_validator(mode="after")
     def enforce_result_invariants(self)->"PriceIntelligenceResult":
         expected={"SUFFICIENT":"PR_AVAILABLE","LIMITED":"PR_LIMITED","NOT_JUSTIFIABLE":"PR_NOT_JUSTIFIABLE"}[self.sufficiency_status]
@@ -124,4 +81,4 @@ class PriceIntelligenceResult(BaseModel):
         if self.counts.n_selected==1 and self.pr_status=="PR_AVAILABLE": raise ValueError("N_SELECTED=1 no puede producir PR_AVAILABLE")
         return self
 
-__all__=["AggregationMethod","ComparabilityStatus","EconomicBasisAssessment","EconomicBasisStatus","NormalizationBasis","NormalizationRecord","NormalizationStatus","PRStatus","PriceCounts","PriceIntelligenceInput","PriceIntelligenceResult","PriceReference","PriceReferenceAssessment","RepresentativenessStatus","SufficiencyStatus"]
+__all__=["AggregationMethod","ComparabilityStatus","EconomicBasisAssessment","EconomicBasisStatus","NormalizationBasis","NormalizationRecord","NormalizationStatus","PRStatus","PriceCounts","PriceIntelligenceInput","PriceIntelligenceResult","PriceReference","PriceReferenceAssessment","RepresentativenessStatus","SufficiencyStatus","TemporalStatus"]
