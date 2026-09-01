@@ -1,25 +1,30 @@
-"""Deterministic C1 pipeline skeleton for EIOS Price Intelligence."""
+"""Deterministic C1 pipeline boundaries for EIOS Price Intelligence."""
 
 from __future__ import annotations
 
 from collections.abc import Sequence
 
-from .models import PriceIntelligenceInput, PriceReferenceAssessment
+from .models import (
+    ComparabilityStatus,
+    PriceIntelligenceInput,
+    PriceReference,
+    PriceReferenceAssessment,
+)
 
 
 def identify_references(
     payload: PriceIntelligenceInput,
-) -> tuple[tuple[str, object], ...]:
-    """Expose deterministic reference identities without creating new business identity."""
+) -> tuple[tuple[str, PriceReference], ...]:
+    """Expose source transaction identity without creating new business identity."""
     return tuple((reference.source_transaction_id, reference) for reference in payload.references)
 
 
 def deduplicate_references(
-    references: Sequence[tuple[str, object]],
-) -> tuple[tuple[str, object], ...]:
+    references: Sequence[tuple[str, PriceReference]],
+) -> tuple[tuple[str, PriceReference], ...]:
     """Remove repeated representations of the same source transaction deterministically."""
     seen: set[str] = set()
-    unique: list[tuple[str, object]] = []
+    unique: list[tuple[str, PriceReference]] = []
     for reference_id, reference in references:
         if reference_id in seen:
             continue
@@ -29,10 +34,38 @@ def deduplicate_references(
 
 
 def assess_comparability(
-    references: Sequence[tuple[str, object]],
+    payload: PriceIntelligenceInput,
+    references: Sequence[tuple[str, PriceReference]],
 ) -> tuple[PriceReferenceAssessment, ...]:
-    """Placeholder boundary: comparability rules must be implemented from the methodology."""
-    raise NotImplementedError("Comparability rules are not yet materialized")
+    """Apply only the closed MVP identity/evidence gate for comparability.
+
+    Unit, quantity basis, currency and commercial-condition transformations remain
+    the responsibility of the subsequent authorized normalization stage.
+    """
+    assessments: list[PriceReferenceAssessment] = []
+    target_article_id = payload.purchase_operation.article_id
+
+    for reference_id, reference in references:
+        if reference.article_identity != target_article_id:
+            status: ComparabilityStatus = "NO_COMPARABLE"
+            limitation_refs = ("ARTICLE_IDENTITY_MISMATCH",)
+        elif not reference.evidence_refs:
+            status = "PENDING"
+            limitation_refs = ("MISSING_EVIDENCE_REFERENCE",)
+        else:
+            status = "COMPARABLE"
+            limitation_refs = ()
+
+        assessments.append(
+            PriceReferenceAssessment(
+                reference_id=reference_id,
+                comparability=status,
+                representativeness="INDETERMINATE",
+                limitation_refs=limitation_refs,
+            )
+        )
+
+    return tuple(assessments)
 
 
 __all__ = [
