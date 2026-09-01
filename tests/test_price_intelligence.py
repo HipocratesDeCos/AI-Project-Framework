@@ -1,8 +1,8 @@
 """Contract tests for EIOS Price Intelligence C1."""
-from datetime import date
 from decimal import Decimal
 import pytest
 from eios.pricing.models import PriceCounts, PriceIntelligenceAssessmentContext, PriceIntelligenceResult
+from eios.pricing.sufficiency import SufficiencyObservation
 
 
 def test_counts_are_monotonic():
@@ -49,7 +49,8 @@ def test_snapshot_is_required_in_result():
 
 
 def test_assessment_context_has_independent_default_containers():
-    a = PriceIntelligenceAssessmentContext()
-    b = PriceIntelligenceAssessmentContext()
+    sufficiency = SufficiencyObservation()
+    a = PriceIntelligenceAssessmentContext(sufficiency=sufficiency)
+    b = PriceIntelligenceAssessmentContext(sufficiency=sufficiency)
     assert a.temporal is not b.temporal
     assert a.representativeness is not b.representativeness
