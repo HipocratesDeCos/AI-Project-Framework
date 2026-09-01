@@ -2,9 +2,8 @@
 from __future__ import annotations
 from collections.abc import Sequence
 from .models import ComparabilityStatus, EconomicBasisAssessment, EconomicBasisEvidence, EconomicDimension, PriceIntelligenceInput, PriceReference, PriceReferenceAssessment, TemporalStatus
-
+from .representativeness import RepresentativenessObservation, assess_representativeness
 _EXPECTED_DIMENSIONS: tuple[EconomicDimension,...] = ("UNIT","QUANTITY","CURRENCY","TAX","TRANSPORT","DISCOUNT","SURCHARGE","COMMERCIAL")
-
 def identify_references(payload: PriceIntelligenceInput): return tuple((r.source_transaction_id,r) for r in payload.references)
 def deduplicate_references(references: Sequence[tuple[str,PriceReference]]):
     seen:set[str]=set(); unique=[]
@@ -40,5 +39,8 @@ def assess_temporality(assessment:PriceReferenceAssessment,*,temporal_rule_refer
     if assessment.normalization_status!="NORMALIZED":return assessment.model_copy(update={"temporal_status":"INDETERMINATE"})
     if temporal_rule_reference is None or eligible is None:return assessment.model_copy(update={"temporal_status":"INDETERMINATE","temporal_rule_reference":temporal_rule_reference,"limitation_refs":assessment.limitation_refs+("TEMPORAL_RULE_UNAVAILABLE",)})
     return assessment.model_copy(update={"temporal_status":"ELIGIBLE" if eligible else "INELIGIBLE","temporal_rule_reference":temporal_rule_reference})
+def assess_representativeness_for_reference(assessment:PriceReferenceAssessment,observation:RepresentativenessObservation)->PriceReferenceAssessment:
+    status=assess_representativeness(observation)
+    return assessment.model_copy(update={"representativeness":status})
 def select_references(assessments:Sequence[PriceReferenceAssessment])->tuple[str,...]:return tuple(a.reference_id for a in assessments if a.comparability=="COMPARABLE" and a.normalization_status=="NORMALIZED" and a.temporal_status=="ELIGIBLE" and a.representativeness=="REPRESENTATIVE")
-__all__=["assess_comparability","assess_economic_basis","assess_temporality","deduplicate_references","identify_references","normalize_reference","select_references"]
+__all__=["assess_comparability","assess_economic_basis","assess_representativeness_for_reference","assess_temporality","deduplicate_references","identify_references","normalize_reference","select_references"]
