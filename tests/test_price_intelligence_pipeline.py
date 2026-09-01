@@ -4,7 +4,7 @@ from decimal import Decimal
 import pytest
 from eios.core.models import DecisionContext, EvidenceValidation, PurchaseOperation
 from eios.pricing.engine import run_price_intelligence
-from eios.pricing.models import PriceIntelligenceAssessmentContext, PriceIntelligenceInput, PriceReference, NormalizationBasis
+from eios.pricing.models import EconomicBasisEvidence, PriceIntelligenceAssessmentContext, PriceIntelligenceInput, PriceReference, NormalizationBasis
 from eios.pricing.representativeness import RepresentativenessObservation
 from eios.pricing.sufficiency import SufficiencyObservation
 
@@ -13,9 +13,13 @@ def _operation(): return PurchaseOperation(decision_id="D1", scenario_id="S1", a
 def _reference(ref_id="R1", price="10.00", evidence_id="E1"): return PriceReference(source_transaction_id=ref_id, article_identity="A1", supplier_identity="SUP-1", quantity=Decimal("1"), unit="EA", unit_price=Decimal(price), currency="EUR", operation_date=date(2026,8,1), evidence_refs=(evidence_id,))
 def _evidence(evidence_id): return EvidenceValidation(evidence_id=evidence_id, status="VALID", reason="Validated test evidence")
 def _basis(): return NormalizationBasis(target_unit="EA", basis_reference="TEST-BASIS", rule_reference="RULE-NORM", trace_reference="TRACE-NORM")
+def _economic_basis(reference_id, evidence_id): return EconomicBasisEvidence(reference_id=reference_id, dimension="UNIT", status="RESOLVED", evidence_refs=(evidence_id,), rule_reference="RULE-ECON", trace_reference="TRACE-ECON")
 def _repr(evidence_id): return RepresentativenessObservation(ordinary_market_context=True, exceptional_condition=False, material_commercial_distortion=False, evidence_refs=(evidence_id,), rule_reference="RULE-REP", trace_reference="TRACE-REP")
 def _sufficiency(ids, **kwargs): return SufficiencyObservation(selected_reference_ids=tuple(ids), evidence_refs=kwargs.get("evidence_refs", ("E1",)), rule_reference=kwargs.get("rule_reference", "RULE-SUF"), trace_reference=kwargs.get("trace_reference", "TRACE-SUF"), methodological_limitations=kwargs.get("methodological_limitations", ()), evidence_sufficient=kwargs.get("evidence_sufficient"), contradictions_resolved=kwargs.get("contradictions_resolved"), justification=kwargs.get("justification"))
-def _payload(references=()): return PriceIntelligenceInput(decision_context=_context(), purchase_operation=_operation(), references=tuple(references), evidence_validations=tuple(_evidence(r.evidence_refs[0]) for r in references), normalization_basis=_basis(), methodology_version="8.5")
+def _payload(references=()):
+    evidence_validations=tuple(_evidence(r.evidence_refs[0]) for r in references)
+    economic_basis_evidence=tuple(_economic_basis(r.source_transaction_id, r.evidence_refs[0]) for r in references)
+    return PriceIntelligenceInput(decision_context=_context(), purchase_operation=_operation(), references=tuple(references), evidence_validations=evidence_validations, normalization_basis=_basis(), economic_basis_evidence=economic_basis_evidence, methodology_version="8.5")
 def _ready_context(ids, **kwargs): return PriceIntelligenceAssessmentContext(temporal={rid:("ELIGIBLE","RULE-T") for rid in ids}, representativeness={rid:_repr(rid.replace("R","E")) for rid in ids}, sufficiency=_sufficiency(ids, **kwargs))
 
 def test_pipeline_with_no_references_returns_not_justifiable():
