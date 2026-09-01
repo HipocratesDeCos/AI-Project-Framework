@@ -11,6 +11,7 @@ class RepresentativenessObservation:
     ordinary_market_context: bool | None
     exceptional_condition: bool | None
     material_commercial_distortion: bool | None
+    contradiction_material_unresolved: bool | None = False
     evidence_refs: tuple[str, ...] = ()
     rule_reference: str | None = None
     trace_reference: str | None = None
@@ -19,7 +20,8 @@ class RepresentativenessObservation:
 
 def assess_representativeness(observation: RepresentativenessObservation) -> RepresentativenessStatus:
     """Assess representativeness without frequency, recency, supplier preference, score or PR feedback."""
-    facts=(observation.ordinary_market_context,observation.exceptional_condition,observation.material_commercial_distortion)
+    if observation.contradiction_material_unresolved is not False:
+        return "INDETERMINATE"
     if observation.exceptional_condition is True or observation.material_commercial_distortion is True:
         status="NON_REPRESENTATIVE"
     elif observation.ordinary_market_context is True and observation.exceptional_condition is False and observation.material_commercial_distortion is False:
