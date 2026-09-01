@@ -28,12 +28,15 @@ def _economic_records(payload:PriceIntelligenceInput,reference_id:str)->tuple[Ec
 def assess_economic_basis(payload:PriceIntelligenceInput,reference:PriceReference,assessment:PriceReferenceAssessment):
     if assessment.comparability!="COMPARABLE":return assessment
     basis=payload.normalization_basis;records=_economic_records(payload,reference.source_transaction_id);eb=EconomicBasisAssessment(records=records);limits=assessment.limitation_refs
-    if basis is None:limits+=("NORMALIZATION_BASIS_MISSING",)
-    unit_ok=basis is not None and reference.unit==basis.target_unit;currency_ok=basis is not None and reference.currency==payload.purchase_operation.currency
+    target_unit=basis.target_unit if basis is not None else reference.unit
+    unit_ok=reference.unit==target_unit
+    currency_ok=reference.currency==payload.purchase_operation.currency
+    transformation_required=not unit_ok or not currency_ok
+    if transformation_required and basis is None:limits+=("NORMALIZATION_BASIS_MISSING",)
     if not unit_ok:limits+=("UNIT_CONVERSION_REQUIRED",)
     if not currency_ok:limits+=("CURRENCY_CONVERSION_REQUIRED",)
-    if not eb.all_resolved:limits+=("ECONOMIC_BASIS_INCOMPLETE",)
-    status="NORMALIZED" if basis is not None and eb.all_resolved and unit_ok and currency_ok else "PENDING"
+    if transformation_required and not eb.all_resolved:limits+=("ECONOMIC_BASIS_INCOMPLETE",)
+    status="NORMALIZED" if (not transformation_required or (basis is not None and eb.all_resolved)) else "PENDING"
     return assessment.model_copy(update={"economic_basis":eb,"normalization_status":status,"normalized_unit_price":reference.unit_price if status=="NORMALIZED" else None,"limitation_refs":limits})
 def normalize_reference(payload:PriceIntelligenceInput,reference:PriceReference,assessment:PriceReferenceAssessment): return assess_economic_basis(payload,reference,assessment)
 def assess_temporality(assessment:PriceReferenceAssessment,*,temporal_rule_reference:str|None=None,eligible:bool|None=None):
