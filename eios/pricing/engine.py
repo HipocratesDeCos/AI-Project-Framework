@@ -39,11 +39,16 @@ def assess_comparability(
 ) -> tuple[PriceReferenceAssessment, ...]:
     """Apply only the closed MVP identity/evidence gate for comparability.
 
-    Unit, quantity basis, currency and commercial-condition transformations remain
-    the responsibility of the subsequent authorized normalization stage.
+    A VALID EvidenceValidation is required before this gate can return
+    COMPARABLE. Unit, quantity basis, currency and commercial-condition
+    transformations remain the responsibility of the subsequent authorized
+    normalization stage.
     """
     assessments: list[PriceReferenceAssessment] = []
     target_article_id = payload.purchase_operation.article_id
+    validation_status = {
+        item.evidence_id: item.status for item in payload.evidence_validations
+    }
 
     for reference_id, reference in references:
         if reference.article_identity != target_article_id:
@@ -52,6 +57,9 @@ def assess_comparability(
         elif not reference.evidence_refs:
             status = "PENDING"
             limitation_refs = ("MISSING_EVIDENCE_REFERENCE",)
+        elif any(validation_status[evidence_id] != "VALID" for evidence_id in reference.evidence_refs):
+            status = "PENDING"
+            limitation_refs = ("EVIDENCE_NOT_VALIDATED",)
         else:
             status = "COMPARABLE"
             limitation_refs = ()
