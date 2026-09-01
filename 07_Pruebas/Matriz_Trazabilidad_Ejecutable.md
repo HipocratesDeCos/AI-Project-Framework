@@ -4,7 +4,7 @@
 
 **Estado:** CERRADO — Diseño documental materializado  
 **Dominio:** `07_Pruebas`  
-**Naturaleza:** Matriz de trazabilidad ejecutable  
+**Naturaleza:** Matriz de trazabilidad y verificación  
 
 ---
 
