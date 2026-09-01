@@ -3,7 +3,7 @@
 ## 1. Identidad
 
 **Documento:** Price Intelligence Implementation Contract  
-**Versión:** 1.2  
+**Versión:** 1.3  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad metodológica:** `01_Modelo/Price_Intelligence_Methodological_Matrix.md`  
@@ -72,6 +72,7 @@ PriceIntelligenceInput
 ├── purchase_operation: PurchaseOperation
 ├── references: list[PriceReference]
 ├── evidence_validations: list[EvidenceValidation]
+├── normalization_basis: NormalizationBasis (nullable)
 └── methodology_version: string
 ```
 
@@ -80,6 +81,8 @@ PriceIntelligenceInput
 ### 6.1 `PurchaseOperation`
 
 Representa la operación de compra evaluada y debe contener únicamente los datos necesarios para establecer el contexto de comparabilidad. No constituye una nueva entidad de decisión.
+
+C0 no contiene una unidad objetivo de compra. C1 no añade ese atributo a `PurchaseOperation` ni modifica C0 para obtenerlo.
 
 ### 6.2 `PriceReference`
 
@@ -103,6 +106,28 @@ PriceReference
 
 Ningún campo adquiere significado metodológico adicional por existir en el contrato.
 
+### 6.3 `NormalizationBasis`
+
+`NormalizationBasis` es una interfaz física especializada de C1 para datos objetivo que no forman parte del contrato C0 y son necesarios para ejecutar transformaciones autorizadas.
+
+```text
+NormalizationBasis
+├── target_unit
+├── basis_reference
+├── rule_reference
+└── trace_reference
+```
+
+Reglas:
+
+1. `target_unit` no se infiere de `article_id`, proveedor, historial o contexto implícito.
+2. `basis_reference` identifica la fuente o referencia que sustenta la unidad objetivo.
+3. `rule_reference` identifica la regla autorizada que permite utilizar esa base.
+4. `trace_reference` permite reconstruir la procedencia de la base.
+5. La ausencia de `NormalizationBasis` impide ejecutar una transformación que requiera conocer la unidad objetivo.
+6. `NormalizationBasis` no crea una nueva identidad empresarial ni modifica C0.
+7. La base no autoriza por sí misma una conversión: la transformación concreta debe seguir estando autorizada por la matriz de normalización.
+
 ## 7. Estados físicos cerrados
 
 ### Comparabilidad
@@ -111,6 +136,14 @@ Ningún campo adquiere significado metodológico adicional por existir en el con
 COMPARABLE
 NO_COMPARABLE
 PENDING
+```
+
+### Normalización
+
+```text
+NORMALIZED
+PENDING
+NOT_NORMALIZABLE
 ```
 
 ### Representatividad
@@ -227,7 +260,7 @@ No se utiliza frecuencia, precio mínimo, último precio, proveedor habitual, sc
 
 ## 12. Selección
 
-Solo referencias `COMPARABLE` + `REPRESENTATIVE` pueden integrar `REFERENCE_SET`.
+Solo referencias `COMPARABLE` + `REPRESENTATIVE` + `NORMALIZED` pueden integrar `REFERENCE_SET`.
 
 La selección precede a la agregación y no puede depender del PR calculado.
 
@@ -416,6 +449,9 @@ No crea un sistema de versionado paralelo.
 20. Una conversión monetaria requiere fuente/regla autorizada y trazabilidad.
 21. Toda `evidence_ref` consumida por C1 debe disponer de `EvidenceValidation` correspondiente.
 22. C1 no convierte por sí mismo `EvidenceValidation.VALID` en representatividad o suficiencia.
+23. Una transformación que requiera unidad objetivo no puede ejecutarse sin `NormalizationBasis`.
+24. `NormalizationBasis` no autoriza transformaciones por sí misma.
+25. Una referencia no normalizada no entra en `REFERENCE_SET`.
 
 ## 21. No alcance
 
@@ -436,6 +472,6 @@ C1 no define ni implementa:
 
 **C1 — PRICE INTELLIGENCE PHYSICAL CONTRACT: CERRADO.**
 
-Esta revisión 1.2 incorpora explícitamente la interfaz de consumo de `EvidenceValidation` ya existente y el gate de evidencia validada, sin modificar la metodología normativa ni C0.
+Esta revisión 1.3 incorpora la interfaz explícita de `NormalizationBasis` necesaria para materializar transformaciones que requieren una unidad objetivo ausente de C0. No modifica C0 ni la metodología normativa.
 
 El código debe materializar este contrato sin introducir semántica adicional.
