@@ -3,8 +3,8 @@
 ## 1. Identidad
 
 **Documento:** Price Intelligence Implementation Contract  
-**Versión:** 0.3  
-**Estado:** AUDITADO 2 — PENDIENTE DE CIERRE  
+**Versión:** 1.0  
+**Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad metodológica:** `01_Modelo/Price_Intelligence_Methodological_Matrix.md`  
 **Autoridad arquitectónica:** `03_Arquitectura/Architecture_Blueprint.md`  
@@ -12,15 +12,13 @@
 
 ## 2. Propósito
 
-Define la frontera técnica mínima para materializar Price Intelligence / Precio de Referencia (PR) sin redefinir su metodología.
+Define el contrato físico C1 para materializar Price Intelligence / Precio de Referencia (PR) sin redefinir su metodología.
 
 No constituye una nueva autoridad funcional. La metodología de PR permanece en `01_Modelo/Price_Intelligence_Methodological_Matrix.md`.
 
 La implementación debe materializar únicamente semántica previamente autorizada.
 
 ## 3. Posición arquitectónica
-
-El flujo funcional es:
 
 ```text
 Decision Input Package
@@ -32,11 +30,11 @@ Price Intelligence / PR
 TCO
 ```
 
-La arquitectura reconoce Price Intelligence como Capa 1 y QTG como control anterior. Assurance, trazabilidad y versionado atraviesan el flujo.
+Price Intelligence es Capa 1. Assurance, trazabilidad y versionado atraviesan el flujo.
 
 ## 4. Frontera con C0 y QTG
 
-Price Intelligence recibe el contexto y los datos autorizados del flujo existente. No crea un contexto paralelo y no redefine:
+PR consume el contexto y datos autorizados del flujo existente. No crea un contexto paralelo y no redefine:
 
 - `InputContract`;
 - `DecisionContext`;
@@ -45,56 +43,111 @@ Price Intelligence recibe el contexto y los datos autorizados del flujo existent
 - `Assessment`;
 - `Trace`.
 
-La implementación no modifica C0 para resolver necesidades de PR.
-
-La evidencia conserva los estados y semántica definidos por `Evidence_Contract.md` y C0. `GAP` no se convierte en evidencia demostrada ni en valor de precio.
+No modifica C0 para resolver necesidades de PR.
 
 QTG mantiene autoridad sobre calidad/confianza de evidencia. PR mantiene autoridad sobre su metodología económica. QTG confidence no es ponderación de precio ni representatividad.
 
-## 5. Entrada lógica
+## 5. Identidad y contexto
 
-La entrada de PR debe poder identificar, cuando corresponda:
+C1 debe reutilizar, cuando estén disponibles, las identidades canónicas de `DecisionContext`:
 
 ```text
 DecisionContext
-PurchaseOperation / propuesta de compra
-referencias históricas autorizadas
-Evidence / referencias de evidencia
-parámetros temporales autorizados, cuando sean aplicables
-referencias de trazabilidad existentes
+├── decision_id
+├── scenario_id
+├── rules_version
+├── parameters_version
+├── data_snapshot_id
+└── input_fingerprint
 ```
 
-La implementación no crea identificadores paralelos para sustituir `decision_id`, `scenario_id`, `data_snapshot_id`, `rules_version` o `parameters_version`.
+C1 no crea sustitutos semánticos de estas identidades.
 
-PR no adquiere autoridad propia sobre las reglas de evaluación. Cuando una regla existente determine la admisibilidad o disponibilidad de una referencia, se consume su resultado autorizado; no se redefine la regla dentro de pricing.
+## 6. Entrada física
 
-## 6. Referencia lógica y frontera de identidad
-
-Una referencia histórica es una observación económica procedente de una fuente autorizada.
-
-La implementación **no introduce una nueva identidad empresarial persistente para la transacción**. Cuando exista una identidad de origen, se conserva. Si la implementación necesita una clave técnica interna para operar sobre la colección, esta clave es auxiliar, determinista y no adquiere semántica empresarial ni sustituye la identidad de origen.
-
-La representación lógica puede requerir, cuando estén disponibles y sean aplicables:
+La operación de PR recibe una estructura equivalente a:
 
 ```text
-source transaction identity
-article / economic identity
-supplier identity, cuando sea pertinente
-quantity
-unit
-unit_price
-currency
-operation_date
-commercial conditions, cuando sean relevantes
-source / evidence references
-traceability references
+PriceIntelligenceInput
+├── decision_context: DecisionContext
+├── purchase_operation: PurchaseOperation
+├── references: list[PriceReference]
+└── methodology_version: string
 ```
 
-Ningún campo se interpreta como criterio metodológico por el mero hecho de existir.
+### 6.1 `PurchaseOperation`
 
-## 7. Pipeline obligatorio
+Representa la operación de compra evaluada y debe contener únicamente los datos necesarios para establecer el contexto de comparabilidad. No constituye una nueva entidad de decisión.
 
-La implementación debe respetar este orden:
+### 6.2 `PriceReference`
+
+Cada referencia histórica puede contener:
+
+```text
+PriceReference
+├── source_transaction_id
+├── article_identity
+├── supplier_identity (nullable)
+├── quantity
+├── unit
+├── unit_price
+├── currency
+├── operation_date
+├── commercial_conditions (nullable)
+└── evidence_refs
+```
+
+`source_transaction_id` conserva la identidad de origen cuando exista. Cualquier clave técnica interna será auxiliar, determinista y sin semántica empresarial.
+
+Ningún campo adquiere significado metodológico adicional por existir en el contrato.
+
+## 7. Estados físicos cerrados
+
+### Comparabilidad
+
+```text
+COMPARABLE
+NO_COMPARABLE
+PENDING
+```
+
+### Representatividad
+
+```text
+REPRESENTATIVE
+NON_REPRESENTATIVE
+INDETERMINATE
+```
+
+### Suficiencia
+
+```text
+SUFFICIENT
+LIMITED
+NOT_JUSTIFIABLE
+```
+
+### Estado final PR
+
+```text
+PR_AVAILABLE
+PR_LIMITED
+PR_NOT_JUSTIFIABLE
+```
+
+No se permiten estados adicionales en MVP.
+
+Mapeo obligatorio:
+
+```text
+SUFFICIENT        → PR_AVAILABLE
+LIMITED           → PR_LIMITED
+NOT_JUSTIFIABLE   → PR_NOT_JUSTIFIABLE
+```
+
+## 8. Pipeline físico
+
+El motor debe ejecutar exactamente:
 
 ```text
 INPUT
@@ -102,21 +155,21 @@ INPUT
 → DEDUPLICATION
 → COMPARABILITY
 → NORMALIZATION
-→ TEMPORAL RELEVANCE
+→ TEMPORAL_RELEVANCE
 → REPRESENTATIVENESS
 → SELECTION
 → SUFFICIENCY
 → AGGREGATION
-→ PR RESULT
+→ PR_RESULT
 ```
 
-Una etapa posterior no puede corregir retrospectivamente una deficiencia de una etapa anterior.
+Una etapa posterior no puede corregir retrospectivamente una deficiencia anterior.
 
-## 8. Identidad y deduplicación
+## 9. Deduplificación
 
-Los duplicados documentales de una misma transacción no incrementan el conjunto económico de observaciones.
+Los duplicados documentales de una misma transacción no incrementan el conjunto económico.
 
-Debe poder distinguirse conceptualmente:
+El resultado debe conservar, como mínimo, los conteos:
 
 ```text
 N_RAW
@@ -126,123 +179,82 @@ N_REPRESENTATIVE
 N_SELECTED
 ```
 
-La deduplicación debe ser determinista y trazable. No se permite deducir que dos transacciones son distintas únicamente porque aparezcan en documentos diferentes.
-
-## 9. Comparabilidad
-
-Estados:
-
-```text
-COMPARABLE
-NO_COMPARABLE
-PENDING
-```
-
-La comparabilidad requiere identidad económica suficiente y evidencia/trazabilidad adecuadas. Una diferencia normalizable solo puede resolverse mediante una transformación autorizada.
-
-Una referencia `NO_COMPARABLE` o `PENDING` no puede entrar en el conjunto seleccionado como si fuera comparable.
+La deduplicación debe ser determinista y trazable.
 
 ## 10. Normalización
 
 No existe normalización implícita.
 
-Solo pueden aplicarse transformaciones que sean:
-
-- económicamente válidas;
-- reproducibles;
-- suficientemente informadas;
-- autorizadas por la metodología vigente.
-
-No se introducen automáticamente ajustes de unidad, cantidad, moneda, impuestos, transporte, descuentos, rappels o condiciones comerciales.
-
-La ausencia de información necesaria para una normalización no se sustituye por cero, media, estimación ni valor por defecto.
-
-## 11. Temporalidad
-
-La temporalidad determina pertinencia, no peso automático.
-
-Los parámetros temporales existentes conservan su autoridad y significado. La implementación no introduce decaimiento temporal ni ponderación por antigüedad.
-
-## 12. Representatividad
-
-Estados exclusivos:
+Toda transformación aplicada debe conservar:
 
 ```text
-REPRESENTATIVE
-NON_REPRESENTATIVE
-INDETERMINATE
+NormalizationRecord
+├── field
+├── original_value
+├── normalized_value
+├── rule_reference
+└── trace_reference
 ```
 
-La clasificación es criterial y explicable. Una referencia solo puede ser `REPRESENTATIVE` cuando todos los criterios aplicables estén satisfechos y no exista una condición negativa documentada.
+La ausencia de información necesaria impide la transformación correspondiente; no se sustituye por cero, media, estimación ni valor por defecto.
 
-Criterios observables:
+## 11. Representatividad
 
-- `REP-01`: contexto económico ordinario y relevante para la compra evaluada;
-- `REP-02`: condiciones comerciales ordinarias, sin circunstancia excepcional documentada que distorsione materialmente el precio;
-- `REP-03`: ausencia de anomalía transaccional conocida que distorsione materialmente el precio, como devolución, error, liquidación, promoción excepcional, compensación extraordinaria, compra de emergencia u otra incidencia excepcional documentada;
-- `REP-04`: cantidad, unidad y alcance económicamente interpretables, sin circunstancia conocida que distorsione materialmente el precio;
-- `REP-05`: evidencia suficiente para sustentar identidad y criterios de representatividad;
-- `REP-06`: ausencia de contradicción material no resuelta que impida determinar el precio o condiciones efectivos.
-
-`NON_REPRESENTATIVE` requiere al menos una condición negativa material documentada.
-
-`INDETERMINATE` se utiliza cuando la evidencia no permite afirmar representatividad ni no representatividad.
-
-No se determina representatividad mediante frecuencia, precio mínimo, último precio, proveedor habitual, score ni proximidad al PR deseado.
-
-## 13. Selección
-
-Solo las referencias que hayan superado las condiciones de comparabilidad y estén clasificadas como `REPRESENTATIVE` pueden integrar el conjunto seleccionado.
-
-La selección es previa a la agregación y no puede depender del resultado que produzca la agregación.
-
-No existe selección retrospectiva para aproximar un precio objetivo o favorecer una decisión empresarial.
-
-## 14. Suficiencia
-
-Estados:
+La evaluación debe conservar el resultado de los criterios observables:
 
 ```text
-SUFFICIENT
-LIMITED
-NOT_JUSTIFIABLE
+REP-01
+REP-02
+REP-03
+REP-04
+REP-05
+REP-06
 ```
 
-La suficiencia no es equivalente a N. Requiere conjuntamente referencias seleccionadas comparables, representatividad determinada, normalización válida cuando corresponda, evidencia y trazabilidad suficientes, ausencia de contradicciones materiales no resueltas y contexto temporal aplicable.
+La salida debe permitir identificar el motivo de `NON_REPRESENTATIVE` o `INDETERMINATE` mediante trazabilidad y limitaciones.
 
-Reglas mínimas:
+No se utiliza frecuencia, precio mínimo, último precio, proveedor habitual, score ni proximidad al PR deseado.
+
+## 12. Selección
+
+Solo referencias `COMPARABLE` + `REPRESENTATIVE` pueden integrar `REFERENCE_SET`.
+
+La selección precede a la agregación y no puede depender del PR calculado.
+
+## 13. Suficiencia
+
+Reglas físicas mínimas:
 
 ```text
 N_SELECTED = 0
-→ NOT_JUSTIFIABLE
+→ PR_STATUS = PR_NOT_JUSTIFIABLE
 → PR_VALUE = null
 
 N_SELECTED = 1
-→ como máximo LIMITED
+→ PR_STATUS ≠ PR_AVAILABLE
+→ como máximo PR_LIMITED
 
 N_SELECTED >= 2
-→ condición necesaria para SUFFICIENT
+→ condición necesaria, pero no suficiente, para PR_AVAILABLE
 ```
 
-`N_SELECTED >= 2` no garantiza `SUFFICIENT`: deben satisfacerse además las demás condiciones metodológicas.
+La suficiencia requiere además el cumplimiento de las condiciones metodológicas de comparabilidad, representatividad, evidencia, trazabilidad, normalización y ausencia de contradicciones materiales no resueltas.
 
-No se introduce un umbral superior universal.
+No se reutilizan parámetros existentes como umbrales universales de PR.
 
-No se reutilizan parámetros existentes como umbrales universales de PR sin autoridad específica.
+## 14. Outliers
 
-## 15. Outliers
+Un outlier no se elimina automáticamente por distancia estadística.
 
-Un outlier no es automáticamente un error ni una referencia no representativa.
+La implementación no puede utilizar un filtro estadístico como criterio autónomo de no representatividad.
 
-La implementación no elimina observaciones únicamente por distancia respecto del conjunto.
+Toda exclusión debe tener causa metodológica autorizada y trazable.
 
-Una exclusión requiere una causa metodológica autorizada y trazable.
+## 15. Contradicciones
 
-## 16. Contradicciones
+Una diferencia de precio no es por sí sola una contradicción.
 
-Una diferencia de precio no constituye por sí sola contradicción.
-
-Una contradicción material no resuelta no puede transformarse mediante:
+Una contradicción material no resuelta no puede resolverse mediante:
 
 ```text
 average
@@ -252,15 +264,13 @@ score
 fallback
 ```
 
-en un valor único artificial.
+Si existe reconciliación autorizada, debe quedar registrada. Si no existe, la referencia afectada no puede sostener el cálculo.
 
-Cuando una contradicción pueda reconciliarse mediante una regla autorizada, la reconciliación debe conservarse en trazabilidad. Si no puede reconciliarse, la evidencia afectada no puede sostener el cálculo.
+## 16. Ponderación
 
-## 17. Ponderación
+El MVP utiliza exclusivamente agregación no ponderada.
 
-El MVP no utiliza ponderación.
-
-No se introducen pesos por:
+No existen pesos por:
 
 - recencia;
 - frecuencia;
@@ -269,64 +279,121 @@ No se introducen pesos por:
 - QTG confidence;
 - conveniencia empresarial.
 
-## 18. Agregación
+## 17. Agregación
 
-El método MVP es:
+El método cerrado para MVP es:
 
 ```text
 MEDIANA NO PONDERADA
 ```
 
-Se aplica exclusivamente sobre el conjunto seleccionado y sobre precios normalizados válidos.
+Se calcula exclusivamente sobre `REFERENCE_SET` y precios normalizados válidos.
 
-La mediana no decide comparabilidad, representatividad, suficiencia ni exclusión.
+## 18. Salida física C1
 
-## 19. Contrato de salida C1
-
-La salida lógica mínima es:
+La estructura cerrada es:
 
 ```text
-PR_RESULT
-├── PR_VALUE
-├── PR_STATUS
-├── PR_LIMITATIONS
-├── REFERENCE_SET
-├── AGGREGATION_METHOD
-├── METHODOLOGY_VERSION
-└── TRACE
+PriceIntelligenceResult
+├── decision_id
+├── scenario_id
+├── data_snapshot_id
+├── methodology_version
+├── pr_value
+├── currency
+├── pr_status
+├── pr_limitations
+├── reference_set
+├── counts
+├── aggregation_method
+└── trace
 ```
 
-`TRACE` representa referencias a los mecanismos de trazabilidad existentes y no crea una nueva entidad `Trace` paralela al contrato C0.
+### 18.1 `pr_value`
 
-Semántica mínima:
+Tipo lógico: decimal monetario nullable.
+
+Debe ser `null` cuando:
 
 ```text
-PR_STATUS = NOT_JUSTIFIABLE
-⇒ PR_VALUE = null
+pr_status = PR_NOT_JUSTIFIABLE
 ```
 
-`PR_RESULT` no constituye una decisión empresarial ni una recomendación de compra.
+No se permite representar ausencia de PR mediante `0`.
 
-La serialización, nombres definitivos de tipos y persistencia física quedan sujetos al cierre de este contrato antes de implementación ejecutable.
+### 18.2 `currency`
 
-## 20. Versionado y trazabilidad
+Código monetario explícito asociado a `pr_value`. No puede existir `pr_value` sin moneda cuando el resultado sea disponible.
 
-El resultado debe poder reconstruirse respecto de:
+### 18.3 `pr_limitations`
 
-- identidad de decisión;
+Lista explícita de limitaciones metodológicas relevantes para interpretar el resultado. No puede utilizarse para ocultar una condición que obligaría a `PR_NOT_JUSTIFIABLE`.
+
+### 18.4 `reference_set`
+
+Colección de identificadores de las referencias seleccionadas y sus trazas necesarias. No se duplica la evidencia documental.
+
+### 18.5 `counts`
+
+```text
+counts
+├── n_raw
+├── n_unique
+├── n_comparable
+├── n_representative
+└── n_selected
+```
+
+### 18.6 `aggregation_method`
+
+Valor cerrado en MVP:
+
+```text
+MEDIAN_UNWEIGHTED
+```
+
+### 18.7 `trace`
+
+Referencias a los mecanismos de trazabilidad existentes. No crea una nueva entidad `Trace` paralela.
+
+## 19. Versionado
+
+C1 debe conservar la versión metodológica utilizada y permitir reconstruir el resultado respecto de:
+
+- decisión;
 - escenario, cuando corresponda;
 - snapshot de datos;
-- versión metodológica;
 - referencias seleccionadas;
-- transformaciones de normalización;
+- normalizaciones;
 - exclusiones justificadas;
-- método de agregación.
+- agregación.
 
-La implementación no crea un sistema de versionado paralelo al `DecisionContext`/`Decision Versioning` existente.
+No crea un sistema de versionado paralelo.
+
+## 20. Invariantes físicas
+
+1. `PR = comparable + normalizado + trazable`.
+2. `COMPARABLE ≠ REPRESENTATIVE`.
+3. `REPRESENTATIVE ≠ SUFFICIENT`.
+4. Duplicado documental no crea observación económica nueva.
+5. `N_SELECTED = 0 → PR_NOT_JUSTIFIABLE`.
+6. `PR_NOT_JUSTIFIABLE → pr_value = null`.
+7. `N_SELECTED = 1 → como máximo PR_LIMITED`.
+8. `N_SELECTED >= 2` es necesario pero no suficiente para `PR_AVAILABLE`.
+9. No existe normalización implícita.
+10. No existe ponderación implícita.
+11. No existe selección retrospectiva.
+12. No existe fallback silencioso.
+13. Outlier no equivale a error.
+14. Contradicción no equivale a outlier.
+15. QTG confidence no se convierte en peso de precio.
+16. C1 no modifica C0.
+17. C1 no crea una nueva identidad empresarial para la transacción.
+18. C1 no produce una decisión empresarial.
 
 ## 21. No alcance
 
-Este contrato no define ni implementa:
+C1 no define ni implementa:
 
 - PO;
 - PMR;
@@ -336,29 +403,11 @@ Este contrato no define ni implementa:
 - decisión empresarial;
 - nuevos parámetros;
 - nuevas reglas;
-- cambios en C0;
+- modificaciones de C0;
 - tests.
 
-## 22. Invariantes
+## 22. Estado de cierre
 
-1. `PR = comparable + normalizado + trazable`.
-2. `COMPARABLE ≠ REPRESENTATIVE`.
-3. `REPRESENTATIVE ≠ SUFFICIENT`.
-4. `N ≠ SUFFICIENCY`.
-5. `OUTLIER ≠ ERROR`.
-6. `CONTRADICTION ≠ OUTLIER`.
-7. Duplicado documental no crea una observación económica nueva.
-8. `N_SELECTED = 0 → NOT_JUSTIFIABLE`.
-9. `N_SELECTED = 1 → como máximo LIMITED`.
-10. `N_SELECTED >= 2` es necesario, pero no suficiente, para `SUFFICIENT`.
-11. No existe normalización implícita.
-12. No existe ponderación implícita en MVP.
-13. No existe selección retrospectiva.
-14. No existe fallback silencioso.
-15. No se modifica C0.
-16. QTG confidence no se convierte en peso de precio.
-17. `NOT_JUSTIFIABLE → PR_VALUE = null`.
+**C1 — PRICE INTELLIGENCE PHYSICAL CONTRACT: CERRADO.**
 
-## 23. Estado
-
-Este documento queda en **AUDITADO 2 — PENDIENTE DE CIERRE**. No autoriza todavía código ejecutable ni modificación de tests.
+Este contrato constituye la frontera física autorizada para la implementación de Price Intelligence MVP. El código debe materializar este contrato sin introducir semántica adicional.
