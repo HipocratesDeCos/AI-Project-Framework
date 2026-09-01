@@ -3,8 +3,8 @@
 ## 1. Identidad
 
 **Documento:** Price Intelligence Implementation Contract  
-**Versión:** 0.1  
-**Estado:** DISEÑO DE CONTRATO — PENDIENTE DE CIERRE  
+**Versión:** 0.2  
+**Estado:** AUDITADO 1 — PENDIENTE DE AUDITORÍA 2  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad metodológica:** `01_Modelo/Price_Intelligence_Methodological_Matrix.md`  
 **Autoridad arquitectónica:** `03_Arquitectura/Architecture_Blueprint.md`  
@@ -60,20 +60,26 @@ DecisionContext
 PurchaseOperation / propuesta de compra
 referencias históricas autorizadas
 Evidence / referencias de evidencia
-parámetros y reglas aplicables
-Trace / referencias de trazabilidad
+parámetros temporales autorizados, cuando sean aplicables
+referencias de trazabilidad existentes
 ```
 
 La implementación no crea identificadores paralelos para sustituir `decision_id`, `scenario_id`, `data_snapshot_id`, `rules_version` o `parameters_version`.
 
-## 6. Referencia física mínima
+PR no adquiere autoridad propia sobre las reglas de evaluación. Cuando una regla existente determine la admisibilidad o disponibilidad de una referencia, se consume su resultado autorizado; no se redefine la regla dentro de pricing.
 
-Una referencia histórica debe conservar, cuando esté disponible y sea aplicable:
+## 6. Referencia lógica y frontera de identidad
+
+Una referencia histórica es una observación económica procedente de una fuente autorizada.
+
+La implementación **no introduce una nueva identidad empresarial persistente para la transacción**. Cuando exista una identidad de origen, se conserva. Si la implementación necesita una clave técnica interna para operar sobre la colección, esta clave es auxiliar, determinista y no adquiere semántica empresarial ni sustituye la identidad de origen.
+
+La representación lógica puede requerir, cuando estén disponibles y sean aplicables:
 
 ```text
-reference_id
-article_id / economic identity
-supplier_id, cuando sea pertinente
+source transaction identity
+article / economic identity
+supplier identity, cuando sea pertinente
 quantity
 unit
 unit_price
@@ -84,7 +90,7 @@ source / evidence references
 traceability references
 ```
 
-La estructura exacta y los tipos físicos deben permanecer alineados con los contratos fuente existentes. Ningún campo se interpreta como criterio metodológico por el mero hecho de existir.
+Ningún campo se interpreta como criterio metodológico por el mero hecho de existir.
 
 ## 7. Pipeline obligatorio
 
@@ -278,6 +284,8 @@ PR_RESULT
 └── TRACE
 ```
 
+`TRACE` representa referencias a los mecanismos de trazabilidad existentes y no crea una nueva entidad `Trace` paralela al contrato C0.
+
 Semántica mínima:
 
 ```text
@@ -287,7 +295,7 @@ PR_STATUS = NOT_JUSTIFIABLE
 
 `PR_RESULT` no constituye una decisión empresarial ni una recomendación de compra.
 
-La serialización, nombres definitivos de tipos y persistencia física quedan sujetos a este contrato antes de implementación ejecutable.
+La serialización, nombres definitivos de tipos y persistencia física quedan sujetos al cierre de este contrato antes de implementación ejecutable.
 
 ## 20. Versionado y trazabilidad
 
@@ -340,4 +348,4 @@ Este contrato no define ni implementa:
 
 ## 23. Estado
 
-Este documento constituye el contrato candidato de implementación C1 y debe superar la auditoría transversal y una segunda auditoría antes de declararse CERRADO y autorizar código ejecutable.
+Este documento queda en **AUDITADO 1 — PENDIENTE DE AUDITORÍA 2**. No autoriza todavía código ejecutable ni modificación de tests.
