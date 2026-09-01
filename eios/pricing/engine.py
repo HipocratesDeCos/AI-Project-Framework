@@ -5,6 +5,7 @@ from .aggregation import aggregate_selected_prices
 from .models import (ComparabilityStatus,EconomicBasisAssessment,EconomicBasisEvidence,PriceCounts,PriceIntelligenceAssessmentContext,PriceIntelligenceInput,PriceIntelligenceResult,PriceReference,PriceReferenceAssessment)
 from .representativeness import RepresentativenessObservation, assess_representativeness
 from .sufficiency import assess_sufficiency
+
 def identify_references(payload:PriceIntelligenceInput): return tuple((r.source_transaction_id,r) for r in payload.references)
 def deduplicate_references(references:Sequence[tuple[str,PriceReference]]):
     seen:set[str]=set();unique=[]
@@ -23,8 +24,7 @@ def assess_comparability(payload:PriceIntelligenceInput,references:Sequence[tupl
         else:status="COMPARABLE";limits=()
         out.append(PriceReferenceAssessment(reference_id=reference_id,comparability=status,limitation_refs=limits))
     return tuple(out)
-def _economic_records(payload:PriceIntelligenceInput,reference_id:str)->tuple[EconomicBasisEvidence,...]:
-    return tuple(r for r in payload.economic_basis_evidence if r.reference_id==reference_id)
+def _economic_records(payload:PriceIntelligenceInput,reference_id:str)->tuple[EconomicBasisEvidence,...]: return tuple(r for r in payload.economic_basis_evidence if r.reference_id==reference_id)
 def assess_economic_basis(payload:PriceIntelligenceInput,reference:PriceReference,assessment:PriceReferenceAssessment):
     if assessment.comparability!="COMPARABLE":return assessment
     basis=payload.normalization_basis;records=_economic_records(payload,reference.source_transaction_id);eb=EconomicBasisAssessment(records=records);limits=assessment.limitation_refs
@@ -35,18 +35,23 @@ def assess_economic_basis(payload:PriceIntelligenceInput,reference:PriceReferenc
     if not eb.all_resolved:limits+=("ECONOMIC_BASIS_INCOMPLETE",)
     status="NORMALIZED" if basis is not None and eb.all_resolved and unit_ok and currency_ok else "PENDING"
     return assessment.model_copy(update={"economic_basis":eb,"normalization_status":status,"normalized_unit_price":reference.unit_price if status=="NORMALIZED" else None,"limitation_refs":limits})
-def normalize_reference(payload:PriceIntelligenceInput,reference:PriceReference,assessment:PriceReferenceAssessment):return assess_economic_basis(payload,reference,assessment)
+def normalize_reference(payload:PriceIntelligenceInput,reference:PriceReference,assessment:PriceReferenceAssessment): return assess_economic_basis(payload,reference,assessment)
 def assess_temporality(assessment:PriceReferenceAssessment,*,temporal_rule_reference:str|None=None,eligible:bool|None=None):
     if assessment.normalization_status!="NORMALIZED":return assessment.model_copy(update={"temporal_status":"INDETERMINATE"})
     if temporal_rule_reference is None or eligible is None:return assessment.model_copy(update={"temporal_status":"INDETERMINATE","temporal_rule_reference":temporal_rule_reference,"limitation_refs":assessment.limitation_refs+("TEMPORAL_RULE_UNAVAILABLE",)})
     return assessment.model_copy(update={"temporal_status":"ELIGIBLE" if eligible else "INELIGIBLE","temporal_rule_reference":temporal_rule_reference})
 def assess_representativeness_for_reference(assessment:PriceReferenceAssessment,observation:RepresentativenessObservation)->PriceReferenceAssessment:return assessment.model_copy(update={"representativeness":assess_representativeness(observation)})
-def select_references(assessments:Sequence[PriceReferenceAssessment])->tuple[str,...]:return tuple(a.reference_id for a in assessments if a.comparability=="COMPARABLE" and a.normalization_status=="NORMALIZED" and a.temporal_status=="ELIGIBLE" and a.representativeness=="REPRESENTATIVE")
+def select_references(assessments:Sequence[PriceReferenceAssessment])->tuple[str,...]: return tuple(a.reference_id for a in assessments if a.comparability=="COMPARABLE" and a.normalization_status=="NORMALIZED" and a.temporal_status=="ELIGIBLE" and a.representativeness=="REPRESENTATIVE")
 def run_price_intelligence(payload:PriceIntelligenceInput,context:PriceIntelligenceAssessmentContext)->PriceIntelligenceResult:
     identified=identify_references(payload);unique=deduplicate_references(identified);_validate_context(context,{rid for rid,_ in unique});assessments={a.reference_id:a for a in assess_comparability(payload,unique)}
     for rid,ref in unique:
-        assessments[rid]=normalize_reference(payload,ref,assessments[rid]);temporal=context.temporal.get(rid);assessments[rid]=assess_temporality(assessments[rid]) if temporal is None else assess_temporality(assessments[rid],temporal_rule_reference=temporal[1],eligible=temporal[0]=="ELIGIBLE");observation=context.representativeness.get(rid)
-        if observation is not None:assessments[rid]=assess_representativeness_for_reference(assessments[rid],observation)
+        assessments[rid]=normalize_reference(payload,ref,assessments[rid]);temporal=context.temporal.get(rid)
+        if temporal is None: assessments[rid]=assess_temporality(assessments[rid])
+        elif temporal[0]=="ELIGIBLE": assessments[rid]=assess_temporality(assessments[rid],temporal_rule_reference=temporal[1],eligible=True)
+        elif temporal[0]=="INELIGIBLE": assessments[rid]=assess_temporality(assessments[rid],temporal_rule_reference=temporal[1],eligible=False)
+        else: assessments[rid]=assess_temporality(assessments[rid],temporal_rule_reference=temporal[1],eligible=None)
+        observation=context.representativeness.get(rid)
+        if observation is not None: assessments[rid]=assess_representativeness_for_reference(assessments[rid],observation)
     ordered=tuple(assessments[rid] for rid,_ in unique);selected=select_references(ordered);obs_ids=tuple(context.sufficiency.selected_reference_ids)
     if set(obs_ids)!=set(selected):raise ValueError("SufficiencyObservation no corresponde al conjunto seleccionado")
     values=tuple(assessments[rid].normalized_unit_price for rid in selected if assessments[rid].normalized_unit_price is not None);status=assess_sufficiency(len(selected),context.sufficiency);pr_value,method=aggregate_selected_prices(values) if selected else (None,"MEDIAN_UNWEIGHTED");limitations=list(dict.fromkeys(x for a in ordered for x in a.limitation_refs));limitations.extend(x for x in context.sufficiency.methodological_limitations if x not in limitations);traces=list(dict.fromkeys(x for a in ordered for x in (a.temporal_rule_reference,) if x));traces.extend(x for x in context.sufficiency.evidence_refs+(context.sufficiency.rule_reference,context.sufficiency.trace_reference) if x and x not in traces)
