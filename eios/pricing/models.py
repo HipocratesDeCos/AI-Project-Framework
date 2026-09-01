@@ -104,6 +104,7 @@ class PriceIntelligenceResult(BaseModel):
     methodology_version: str
     pr_value: Decimal | None = Field(default=None, ge=0, decimal_places=4)
     currency: str | None = Field(default=None, min_length=3, max_length=3)
+    sufficiency_status: SufficiencyStatus
     pr_status: PRStatus
     pr_limitations: tuple[str, ...] = ()
     reference_set: tuple[str, ...] = ()
@@ -113,6 +114,13 @@ class PriceIntelligenceResult(BaseModel):
 
     @model_validator(mode="after")
     def enforce_result_invariants(self) -> "PriceIntelligenceResult":
+        expected_status = {
+            "SUFFICIENT": "PR_AVAILABLE",
+            "LIMITED": "PR_LIMITED",
+            "NOT_JUSTIFIABLE": "PR_NOT_JUSTIFIABLE",
+        }[self.sufficiency_status]
+        if self.pr_status != expected_status:
+            raise ValueError("pr_status no coincide con sufficiency_status")
         if self.pr_status == "PR_NOT_JUSTIFIABLE" and self.pr_value is not None:
             raise ValueError("PR_NOT_JUSTIFIABLE requiere pr_value=null")
         if self.pr_value is not None and self.currency is None:
