@@ -3,8 +3,8 @@
 ## 1. Identidad
 
 **Documento:** CRC-MVP Implementation Contract  
-**Versión:** 1.0  
-**Estado:** IMPLEMENTADO DOCUMENTALMENTE  
+**Versión:** 1.1  
+**Estado:** CERRADO Y MATERIALIZADO  
 **Baseline:** EIOS Vertical MVP  
 **Ubicación:** `08_Implementacion/CRC_MVP_Implementation_Contract.md`
 
@@ -342,7 +342,7 @@ CRCResult
 └── traceability
 ```
 
-Los siguientes elementos quedan fuera de la primera materialización hasta disponer de autoridad estructural suficiente:
+Los siguientes elementos quedan fuera de la materialización actual por no disponer de autoridad estructural suficiente:
 
 ```text
 conditions
@@ -445,22 +445,34 @@ Estas exclusiones forman parte del contrato técnico y no son funcionalidades pe
 
 ---
 
-## 22. Estado de implementación
+## 22. Estado de materialización
 
-Este contrato autoriza únicamente la siguiente secuencia posterior:
+La implementación mínima definida por este contrato está materializada en:
 
 ```text
-CONTRATO
-   ↓
-AUDITORÍA CRUZADA
-   ↓
-TESTS CRC-MVP
-   ↓
-IMPLEMENTACIÓN MÍNIMA
-   ↓
-AUDITORÍA FÍSICA
-   ↓
-CI
+eios/core/crc_mvp.py
+tests/test_crc_mvp.py
+```
+
+La implementación mantiene las invariantes del contrato, incluida la integridad de `rule_id`/`rules_version`, separación `effect`/`severity`, precedencia R0→R1→R2→R3, no amplificación por multiplicidad, tratamiento explícito de `NOT_EVALUABLE`, ausencia de scoring/ranking/selección y trazabilidad mediante `DecisionContext`.
+
+La verificación CI de la implementación forma parte del estado materializado del MVP. Las exclusiones de la sección 21 permanecen vigentes.
+
+## 23. Dictamen de cierre
+
+```text
+DICTAMEN: CERRADO Y MATERIALIZADO
+Tipo de cambio: DOCUMENTACIÓN DE IMPLEMENTACIÓN
+Cambios técnicos derivados: NINGUNO
+Código CRC: MATERIALIZADO
+Tests CRC: MATERIALIZADOS
+CI: VERIFICADA SATISFACTORIAMENTE
+```
+
+Método aplicado:
+
+```text
+DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI
 ```
 
 No se autoriza implementar las capacidades excluidas en este documento hasta que exista autoridad documental y/o metodológica suficiente.
