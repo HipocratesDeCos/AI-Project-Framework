@@ -1,31 +1,49 @@
-"""Deterministic C1 pipeline boundaries for EIOS Price Intelligence."""
+"""Deterministic C1 pipeline for EIOS Price Intelligence."""
 from __future__ import annotations
 from collections.abc import Sequence
-from .models import ComparabilityStatus, EconomicBasisAssessment, EconomicBasisEvidence, EconomicDimension, PriceIntelligenceInput, PriceReference, PriceReferenceAssessment, TemporalStatus
-from .representativeness import RepresentativenessObservation, assess_representativeness
+from .aggregation import aggregate_selected_prices
+from .models import (
+    ComparabilityStatus, EconomicBasisAssessment, EconomicBasisEvidence, EconomicDimension,
+    PriceCounts, PriceIntelligenceAssessmentContext, PriceIntelligenceInput, PriceIntelligenceResult,
+    PriceReference, PriceReferenceAssessment, TemporalStatus,
+)
+from .representativeness import RepresentativenessObservation
+from .sufficiency import assess_sufficiency
 _EXPECTED_DIMENSIONS: tuple[EconomicDimension,...] = ("UNIT","QUANTITY","CURRENCY","TAX","TRANSPORT","DISCOUNT","SURCHARGE","COMMERCIAL")
-def identify_references(payload: PriceIntelligenceInput): return tuple((r.source_transaction_id,r) for r in payload.references)
+
+def identify_references(payload: PriceIntelligenceInput):
+    return tuple((r.source_transaction_id,r) for r in payload.references)
+
 def deduplicate_references(references: Sequence[tuple[str,PriceReference]]):
     seen:set[str]=set(); unique=[]
     for reference_id,reference in references:
-        if reference_id not in seen: seen.add(reference_id); unique.append((reference_id,reference))
+        if reference_id not in seen:
+            seen.add(reference_id); unique.append((reference_id,reference))
     return tuple(unique)
+
 def assess_comparability(payload: PriceIntelligenceInput,references: Sequence[tuple[str,PriceReference]]):
     validation_status={v.evidence_id:v.status for v in payload.evidence_validations};out=[]
     for reference_id,reference in references:
-        if reference.article_identity!=payload.purchase_operation.article_id:status:ComparabilityStatus="NO_COMPARABLE";limits=("ARTICLE_IDENTITY_MISMATCH",)
-        elif not reference.evidence_refs:status="PENDING";limits=("MISSING_EVIDENCE_REFERENCE",)
-        elif any(validation_status[e]!="VALID" for e in reference.evidence_refs):status="PENDING";limits=("EVIDENCE_NOT_VALIDATED",)
-        else:status="COMPARABLE";limits=()
+        if reference.article_identity!=payload.purchase_operation.article_id:
+            status:ComparabilityStatus="NO_COMPARABLE";limits=("ARTICLE_IDENTITY_MISMATCH",)
+        elif not reference.evidence_refs:
+            status="PENDING";limits=("MISSING_EVIDENCE_REFERENCE",)
+        elif any(validation_status[e]!="VALID" for e in reference.evidence_refs):
+            status="PENDING";limits=("EVIDENCE_NOT_VALIDATED",)
+        else:
+            status="COMPARABLE";limits=()
         out.append(PriceReferenceAssessment(reference_id=reference_id,comparability=status,limitation_refs=limits))
     return tuple(out)
+
 def _economic_records(payload: PriceIntelligenceInput,reference_id:str)->tuple[EconomicBasisEvidence,...]:
     records=tuple(r for r in payload.economic_basis_evidence if r.reference_id==reference_id);present={r.dimension for r in records}
     return records+tuple(EconomicBasisEvidence(reference_id=reference_id,dimension=d,status="PENDING",justification="ECONOMIC_BASIS_EVIDENCE_MISSING") for d in _EXPECTED_DIMENSIONS if d not in present)
+
 def assess_economic_basis(payload:PriceIntelligenceInput,reference:PriceReference,assessment:PriceReferenceAssessment):
     if assessment.comparability!="COMPARABLE":return assessment
     basis=payload.normalization_basis;records=_economic_records(payload,reference.source_transaction_id);counts={d:sum(r.dimension==d for r in records) for d in _EXPECTED_DIMENSIONS}
-    if any(n>1 for n in counts.values()):records=tuple(r.model_copy(update={"status":"PENDING","justification":"DUPLICATE_ECONOMIC_DIMENSION_RECORDS"}) if counts[r.dimension]>1 else r for r in records)
+    if any(n>1 for n in counts.values()):
+        records=tuple(r.model_copy(update={"status":"PENDING","justification":"DUPLICATE_ECONOMIC_DIMENSION_RECORDS"}) if counts[r.dimension]>1 else r for r in records)
     eb=EconomicBasisAssessment(records=records);limits=assessment.limitation_refs
     if basis is None:limits+=("NORMALIZATION_BASIS_MISSING",)
     unit_ok=basis is not None and reference.unit==basis.target_unit;currency_ok=basis is not None and reference.currency==payload.purchase_operation.currency
@@ -34,13 +52,61 @@ def assess_economic_basis(payload:PriceIntelligenceInput,reference:PriceReferenc
     if not eb.all_resolved:limits+=("ECONOMIC_BASIS_INCOMPLETE",)
     status="NORMALIZED" if basis is not None and eb.all_resolved and unit_ok and currency_ok else "PENDING"
     return assessment.model_copy(update={"economic_basis":eb,"normalization_status":status,"normalized_unit_price":reference.unit_price if status=="NORMALIZED" else None,"limitation_refs":limits})
-def normalize_reference(payload:PriceIntelligenceInput,reference:PriceReference,assessment:PriceReferenceAssessment):return assess_economic_basis(payload,reference,assessment)
+
+def normalize_reference(payload:PriceIntelligenceInput,reference:PriceReference,assessment:PriceReferenceAssessment):
+    return assess_economic_basis(payload,reference,assessment)
+
 def assess_temporality(assessment:PriceReferenceAssessment,*,temporal_rule_reference:str|None=None,eligible:bool|None=None):
     if assessment.normalization_status!="NORMALIZED":return assessment.model_copy(update={"temporal_status":"INDETERMINATE"})
-    if temporal_rule_reference is None or eligible is None:return assessment.model_copy(update={"temporal_status":"INDETERMINATE","temporal_rule_reference":temporal_rule_reference,"limitation_refs":assessment.limitation_refs+("TEMPORAL_RULE_UNAVAILABLE",)})
+    if temporal_rule_reference is None or eligible is None:
+        return assessment.model_copy(update={"temporal_status":"INDETERMINATE","temporal_rule_reference":temporal_rule_reference,"limitation_refs":assessment.limitation_refs+("TEMPORAL_RULE_UNAVAILABLE",)})
     return assessment.model_copy(update={"temporal_status":"ELIGIBLE" if eligible else "INELIGIBLE","temporal_rule_reference":temporal_rule_reference})
+
 def assess_representativeness_for_reference(assessment:PriceReferenceAssessment,observation:RepresentativenessObservation)->PriceReferenceAssessment:
-    status=assess_representativeness(observation)
-    return assessment.model_copy(update={"representativeness":status})
-def select_references(assessments:Sequence[PriceReferenceAssessment])->tuple[str,...]:return tuple(a.reference_id for a in assessments if a.comparability=="COMPARABLE" and a.normalization_status=="NORMALIZED" and a.temporal_status=="ELIGIBLE" and a.representativeness=="REPRESENTATIVE")
-__all__=["assess_comparability","assess_economic_basis","assess_representativeness_for_reference","assess_temporality","deduplicate_references","identify_references","normalize_reference","select_references"]
+    from .representativeness import assess_representativeness
+    return assessment.model_copy(update={"representativeness":assess_representativeness(observation)})
+
+def select_references(assessments:Sequence[PriceReferenceAssessment])->tuple[str,...]:
+    return tuple(a.reference_id for a in assessments if a.comparability=="COMPARABLE" and a.normalization_status=="NORMALIZED" and a.temporal_status=="ELIGIBLE" and a.representativeness=="REPRESENTATIVE")
+
+def run_price_intelligence(payload: PriceIntelligenceInput, context: PriceIntelligenceAssessmentContext) -> PriceIntelligenceResult:
+    identified=identify_references(payload)
+    unique=deduplicate_references(identified)
+    by_id={rid:ref for rid,ref in unique}
+    assessments={a.reference_id:a for a in assess_comparability(payload,unique)}
+    for rid,ref in unique:
+        assessments[rid]=normalize_reference(payload,ref,assessments[rid])
+        temporal=context.temporal.get(rid)
+        if temporal is None:
+            assessments[rid]=assess_temporality(assessments[rid])
+        else:
+            assessments[rid]=assess_temporality(assessments[rid],temporal_rule_reference=temporal[1],eligible=temporal[0]=="ELIGIBLE")
+        observation=context.representativeness.get(rid)
+        if observation is not None:
+            assessments[rid]=assess_representativeness_for_reference(assessments[rid],observation)
+    ordered=tuple(assessments[rid] for rid,_ in unique)
+    selected=select_references(ordered)
+    selected_values=tuple(assessments[rid].normalized_unit_price for rid in selected)
+    values=tuple(v for v in selected_values if v is not None)
+    sufficiency_status=assess_sufficiency(len(selected),context.sufficiency)
+    pr_value,aggregation_method=aggregate_selected_prices(values) if selected else (None,"MEDIAN_UNWEIGHTED")
+    n_comparable=sum(a.comparability=="COMPARABLE" for a in ordered)
+    n_representative=sum(a.representativeness=="REPRESENTATIVE" for a in ordered)
+    limitations=tuple(dict.fromkeys(x for a in ordered for x in a.limitation_refs))
+    return PriceIntelligenceResult(
+        decision_id=payload.decision_context.decision_id,
+        scenario_id=payload.decision_context.scenario_id,
+        data_snapshot_id=payload.decision_context.data_snapshot_id,
+        methodology_version=payload.methodology_version,
+        pr_value=pr_value,
+        currency=payload.purchase_operation.currency if pr_value is not None else None,
+        sufficiency_status=sufficiency_status,
+        pr_status={"SUFFICIENT":"PR_AVAILABLE","LIMITED":"PR_LIMITED","NOT_JUSTIFIABLE":"PR_NOT_JUSTIFIABLE"}[sufficiency_status],
+        pr_limitations=limitations,
+        reference_set=selected,
+        counts=PriceCounts(n_raw=len(identified),n_unique=len(unique),n_comparable=n_comparable,n_representative=n_representative,n_selected=len(selected)),
+        aggregation_method=aggregation_method,
+        trace_references=tuple(dict.fromkeys(x for a in ordered for x in (a.temporal_rule_reference,) if x)),
+    )
+
+__all__=["assess_comparability","assess_economic_basis","assess_representativeness_for_reference","assess_temporality","deduplicate_references","identify_references","normalize_reference","run_price_intelligence","select_references"]
