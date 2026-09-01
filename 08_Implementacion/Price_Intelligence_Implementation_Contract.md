@@ -3,8 +3,8 @@
 ## 1. Identidad
 
 **Documento:** Price Intelligence Implementation Contract  
-**Versión:** 0.2  
-**Estado:** AUDITADO 1 — PENDIENTE DE AUDITORÍA 2  
+**Versión:** 0.3  
+**Estado:** AUDITADO 2 — PENDIENTE DE CIERRE  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad metodológica:** `01_Modelo/Price_Intelligence_Methodological_Matrix.md`  
 **Autoridad arquitectónica:** `03_Arquitectura/Architecture_Blueprint.md`  
@@ -173,18 +173,22 @@ NON_REPRESENTATIVE
 INDETERMINATE
 ```
 
-La clasificación es criterial y explicable. No se implementa un `representativeness_score`.
+La clasificación es criterial y explicable. Una referencia solo puede ser `REPRESENTATIVE` cuando todos los criterios aplicables estén satisfechos y no exista una condición negativa documentada.
 
-No se determina representatividad mediante:
+Criterios observables:
 
-- frecuencia;
-- mínimo/máximo;
-- último precio;
-- proveedor habitual;
-- score;
-- proximidad al PR deseado.
+- `REP-01`: contexto económico ordinario y relevante para la compra evaluada;
+- `REP-02`: condiciones comerciales ordinarias, sin circunstancia excepcional documentada que distorsione materialmente el precio;
+- `REP-03`: ausencia de anomalía transaccional conocida que distorsione materialmente el precio, como devolución, error, liquidación, promoción excepcional, compensación extraordinaria, compra de emergencia u otra incidencia excepcional documentada;
+- `REP-04`: cantidad, unidad y alcance económicamente interpretables, sin circunstancia conocida que distorsione materialmente el precio;
+- `REP-05`: evidencia suficiente para sustentar identidad y criterios de representatividad;
+- `REP-06`: ausencia de contradicción material no resuelta que impida determinar el precio o condiciones efectivos.
 
-`INDETERMINATE` no equivale a `REPRESENTATIVE`.
+`NON_REPRESENTATIVE` requiere al menos una condición negativa material documentada.
+
+`INDETERMINATE` se utiliza cuando la evidencia no permite afirmar representatividad ni no representatividad.
+
+No se determina representatividad mediante frecuencia, precio mínimo, último precio, proveedor habitual, score ni proximidad al PR deseado.
 
 ## 13. Selección
 
@@ -204,7 +208,7 @@ LIMITED
 NOT_JUSTIFIABLE
 ```
 
-La suficiencia no es equivalente a N.
+La suficiencia no es equivalente a N. Requiere conjuntamente referencias seleccionadas comparables, representatividad determinada, normalización válida cuando corresponda, evidencia y trazabilidad suficientes, ausencia de contradicciones materiales no resueltas y contexto temporal aplicable.
 
 Reglas mínimas:
 
@@ -212,9 +216,17 @@ Reglas mínimas:
 N_SELECTED = 0
 → NOT_JUSTIFIABLE
 → PR_VALUE = null
+
+N_SELECTED = 1
+→ como máximo LIMITED
+
+N_SELECTED >= 2
+→ condición necesaria para SUFFICIENT
 ```
 
-`N_SELECTED = 1` no implica automáticamente `SUFFICIENT`. Una única referencia solo puede producir un resultado `LIMITED` cuando exista una base económica defendible y las limitaciones queden explícitas.
+`N_SELECTED >= 2` no garantiza `SUFFICIENT`: deben satisfacerse además las demás condiciones metodológicas.
+
+No se introduce un umbral superior universal.
 
 No se reutilizan parámetros existentes como umbrales universales de PR sin autoridad específica.
 
@@ -337,15 +349,16 @@ Este contrato no define ni implementa:
 6. `CONTRADICTION ≠ OUTLIER`.
 7. Duplicado documental no crea una observación económica nueva.
 8. `N_SELECTED = 0 → NOT_JUSTIFIABLE`.
-9. `N_SELECTED = 1` no implica suficiencia.
-10. No existe normalización implícita.
-11. No existe ponderación implícita en MVP.
-12. No existe selección retrospectiva.
-13. No existe fallback silencioso.
-14. No se modifica C0.
-15. QTG confidence no se convierte en peso de precio.
-16. `NOT_JUSTIFIABLE → PR_VALUE = null`.
+9. `N_SELECTED = 1 → como máximo LIMITED`.
+10. `N_SELECTED >= 2` es necesario, pero no suficiente, para `SUFFICIENT`.
+11. No existe normalización implícita.
+12. No existe ponderación implícita en MVP.
+13. No existe selección retrospectiva.
+14. No existe fallback silencioso.
+15. No se modifica C0.
+16. QTG confidence no se convierte en peso de precio.
+17. `NOT_JUSTIFIABLE → PR_VALUE = null`.
 
 ## 23. Estado
 
-Este documento queda en **AUDITADO 1 — PENDIENTE DE AUDITORÍA 2**. No autoriza todavía código ejecutable ni modificación de tests.
+Este documento queda en **AUDITADO 2 — PENDIENTE DE CIERRE**. No autoriza todavía código ejecutable ni modificación de tests.
