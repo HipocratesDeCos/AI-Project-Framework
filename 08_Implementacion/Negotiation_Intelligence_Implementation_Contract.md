@@ -3,8 +3,8 @@
 ## 1. Identidad
 
 **Documento:** Negotiation Intelligence Implementation Contract  
-**Versión:** 1.1  
-**Estado:** IMPLEMENTADO DOCUMENTALMENTE  
+**Versión:** 1.2  
+**Estado:** CERRADO Y MATERIALIZADO  
 **Baseline de diseño:** EIOS Vertical MVP  
 **Ubicación:** `08_Implementacion/Negotiation_Intelligence_Implementation_Contract.md`
 
@@ -312,9 +312,9 @@ Quedan fuera de este contrato:
 - ejecución;
 - gobierno o activación de Strategy.
 
-## 19. Criterios mínimos de test
+## 19. Criterios mínimos de test — verificación
 
-El contrato deberá comprobar como mínimo:
+Los siguientes criterios quedan establecidos como invariantes verificables de la implementación materializada:
 
 1. identidad y versionado coherentes;
 2. ausencia de mutación de resultados históricos;
@@ -331,8 +331,24 @@ El contrato deberá comprobar como mínimo:
 13. ausencia de duplicación de confianza/calificación epistemológica;
 14. ausencia de identidad paralela de versionado.
 
+La cobertura física correspondiente se encuentra materializada en `tests/test_negotiation_intelligence.py` y en la implementación `eios/core/negotiation_intelligence.py`.
+
 ## 20. Cierre de autoridad
 
 Este contrato implementa la autoridad de `05_Motor/Negotiation_Intelligence.md` sin ampliarla.
 
 Cualquier requisito que introduzca autoridad sobre viabilidad, escenarios, Decision Twin, Ladder, CRC, Strategy o decisión empresarial deberá resolverse mediante la autoridad documental correspondiente y no mediante este contrato.
+
+## 21. Estado de implementación y cierre
+
+**Implementación física:** materializada en `eios/core/negotiation_intelligence.py`.
+
+**Tests físicos:** materializados en `tests/test_negotiation_intelligence.py`, cubriendo las invariantes declaradas en este contrato.
+
+**Estado:** CERRADO Y MATERIALIZADO.
+
+**Naturaleza del cambio:** reconciliación documental del estado de implementación; no se modifican código, tests, SQL, C0 ni autoridades funcionales.
+
+**CI:** la materialización documental queda sujeta a verificación de la CI del commit resultante; no se considera cierre CI confirmado hasta disponer del resultado satisfactorio del workflow correspondiente.
+
+**Método:** DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI.
