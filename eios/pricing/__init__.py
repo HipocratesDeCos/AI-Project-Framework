@@ -3,7 +3,9 @@
 from .models import (
     AggregationMethod,
     ComparabilityStatus,
+    NormalizationBasis,
     NormalizationRecord,
+    NormalizationStatus,
     PRStatus,
     PriceCounts,
     PriceIntelligenceInput,
@@ -11,11 +13,12 @@ from .models import (
     PriceReference,
     PriceReferenceAssessment,
     RepresentativenessStatus,
+    SufficiencyStatus,
 )
 
 __all__ = [
-    "AggregationMethod", "ComparabilityStatus", "NormalizationRecord",
-    "PRStatus", "PriceCounts", "PriceIntelligenceInput",
-    "PriceIntelligenceResult", "PriceReference", "PriceReferenceAssessment",
-    "RepresentativenessStatus",
+    "AggregationMethod", "ComparabilityStatus", "NormalizationBasis",
+    "NormalizationRecord", "NormalizationStatus", "PRStatus", "PriceCounts",
+    "PriceIntelligenceInput", "PriceIntelligenceResult", "PriceReference",
+    "PriceReferenceAssessment", "RepresentativenessStatus", "SufficiencyStatus",
 ]
