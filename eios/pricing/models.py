@@ -27,7 +27,7 @@ class NormalizationBasis(BaseModel):
     target_unit:str=Field(min_length=1,max_length=32); target_tax_basis:str|None=Field(default=None,max_length=64); target_transport_basis:str|None=Field(default=None,max_length=64); target_discount_basis:str|None=Field(default=None,max_length=64); target_surcharge_basis:str|None=Field(default=None,max_length=64); target_commercial_basis:str|None=Field(default=None,max_length=128); basis_reference:str=Field(min_length=1,max_length=256); rule_reference:str=Field(min_length=1,max_length=128); trace_reference:str=Field(min_length=1,max_length=128)
 class EconomicBasisEvidence(BaseModel):
     model_config=ConfigDict(extra="forbid",frozen=True)
-    dimension:EconomicDimension; status:EconomicBasisStatus; evidence_refs:tuple[str,...]=(); rule_reference:str|None=None; trace_reference:str|None=None; justification:str|None=None
+    reference_id:str=Field(min_length=1,max_length=128); dimension:EconomicDimension; status:EconomicBasisStatus; evidence_refs:tuple[str,...]=(); rule_reference:str|None=None; trace_reference:str|None=None; justification:str|None=None
     @model_validator(mode="after")
     def trace_requirements(self)->"EconomicBasisEvidence":
         if self.status in {"RESOLVED","NOT_APPLICABLE"} and (not self.evidence_refs or not self.rule_reference or not self.trace_reference):raise ValueError("RESOLVED/NOT_APPLICABLE requieren evidencia, regla y traza")
@@ -65,6 +65,8 @@ class PriceIntelligenceInput(BaseModel):
         if unknown:raise ValueError("Existen evidence_refs sin EvidenceValidation correspondiente")
         economic_refs={e for item in self.economic_basis_evidence for e in item.evidence_refs};unknown_economic=economic_refs-known
         if unknown_economic:raise ValueError("Existen economic evidence_refs sin EvidenceValidation correspondiente")
+        reference_ids={r.source_transaction_id for r in self.references};unknown_references={e.reference_id for e in self.economic_basis_evidence}-reference_ids
+        if unknown_references:raise ValueError("EconomicBasisEvidence referencia una PriceReference inexistente")
         return self
 class PriceCounts(BaseModel):
     model_config=ConfigDict(extra="forbid",frozen=True)
