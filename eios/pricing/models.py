@@ -68,7 +68,7 @@ class PriceIntelligenceInput(BaseModel):
         return self
 class PriceIntelligenceAssessmentContext(BaseModel):
     model_config=ConfigDict(extra="forbid",frozen=True)
-    temporal:dict[str,tuple[TemporalStatus,str|None]]={};representativeness:dict[str,object]={};sufficiency:object
+    temporal:dict[str,tuple[TemporalStatus,str|None]]=Field(default_factory=dict);representativeness:dict[str,object]=Field(default_factory=dict);sufficiency:object=None
 class PriceCounts(BaseModel):
     model_config=ConfigDict(extra="forbid",frozen=True)
     n_raw:int=Field(ge=0);n_unique:int=Field(ge=0);n_comparable:int=Field(ge=0);n_representative:int=Field(ge=0);n_selected:int=Field(ge=0)
