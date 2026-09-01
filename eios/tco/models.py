@@ -35,8 +35,6 @@ class CostComponent(BaseModel):
     @model_validator(mode="after")
     def validate_component(self) -> "CostComponent":
         if self.applicability == "APPLICABLE":
-            if self.amount is None:
-                raise ValueError("Un componente aplicable requiere amount")
             if self.attribution_ref is None:
                 raise ValueError("Un componente aplicable requiere attribution_ref")
             if self.rule_reference is None:
