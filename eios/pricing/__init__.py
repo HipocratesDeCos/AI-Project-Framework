@@ -1,4 +1,4 @@
-"""EIOS Price Intelligence C1 contracts."""
+"""EIOS Price Intelligence C1 contracts and gates."""
 
 from .models import (
     AggregationMethod, ComparabilityStatus, EconomicBasisAssessment,
@@ -8,6 +8,8 @@ from .models import (
     PriceReferenceAssessment, RepresentativenessStatus, SufficiencyStatus,
     TemporalStatus,
 )
+from .representativeness import RepresentativenessObservation, assess_representativeness
+from .sufficiency import SufficiencyObservation, assess_sufficiency
 
 __all__ = [
     "AggregationMethod", "ComparabilityStatus", "EconomicBasisAssessment",
@@ -16,4 +18,6 @@ __all__ = [
     "PRStatus", "PriceCounts", "PriceIntelligenceInput",
     "PriceIntelligenceResult", "PriceReference", "PriceReferenceAssessment",
     "RepresentativenessStatus", "SufficiencyStatus", "TemporalStatus",
+    "RepresentativenessObservation", "assess_representativeness",
+    "SufficiencyObservation", "assess_sufficiency",
 ]
