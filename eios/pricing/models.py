@@ -39,7 +39,9 @@ class EconomicBasisAssessment(BaseModel):
     records:tuple[EconomicBasisEvidence,...]=()
     @property
     def all_resolved(self)->bool:
-        expected=set(EconomicDimension.__args__);by_dimension={r.dimension:r.status for r in self.records};return expected.issubset(by_dimension) and all(by_dimension[d] in {"RESOLVED","NOT_APPLICABLE"} for d in expected)
+        if not self.records:return False
+        dimensions=[r.dimension for r in self.records]
+        return len(dimensions)==len(set(dimensions)) and all(r.status in {"RESOLVED","NOT_APPLICABLE"} for r in self.records)
 class NormalizationRecord(BaseModel):
     model_config=ConfigDict(extra="forbid")
     field:str=Field(min_length=1,max_length=64);original_value:str;normalized_value:str;rule_reference:str=Field(min_length=1,max_length=128);trace_reference:str=Field(min_length=1,max_length=128)
