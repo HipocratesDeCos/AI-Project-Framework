@@ -1,15 +1,15 @@
 """Deterministic TCO Core calculation."""
 from __future__ import annotations
 
-from decimal import Decimal
 from .models import TCOInput, TCOResult
 
 
 def calculate_tco(payload: TCOInput) -> TCOResult:
     """Calculate acquisition cost plus valid directly attributable costs.
 
-    No FX conversion, financial cost, storage, obsolescence, returns or other
-    GAP-TCO-01 extensions are performed here.
+    Missing applicable amounts remain unresolved. No FX conversion, financial
+    cost, storage, obsolescence, returns or other GAP-TCO-01 extensions are
+    performed here.
     """
     operation = payload.purchase_operation
     base = operation.quantity * operation.unit_price
@@ -21,11 +21,14 @@ def calculate_tco(payload: TCOInput) -> TCOResult:
     for component in payload.attributable_costs:
         if component.applicability == "NOT_APPLICABLE":
             continue
+        if component.amount is None:
+            unresolved.append(component.component)
+            limitations.append(f"MISSING_AMOUNT:{component.component}")
+            continue
         if component.currency != operation.currency:
             unresolved.append(component.component)
             limitations.append(f"CURRENCY_INCOMPATIBLE:{component.component}")
             continue
-        assert component.amount is not None
         total += component.amount
         contributing.append(component.component)
 
