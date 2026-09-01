@@ -39,6 +39,17 @@ class PriceReference(BaseModel):
         return self
 
 
+class NormalizationBasis(BaseModel):
+    """Explicit C1 basis required for transformations absent from C0."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, frozen=True)
+
+    target_unit: str = Field(min_length=1, max_length=32)
+    basis_reference: str = Field(min_length=1, max_length=256)
+    rule_reference: str = Field(min_length=1, max_length=128)
+    trace_reference: str = Field(min_length=1, max_length=128)
+
+
 class NormalizationRecord(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -76,6 +87,7 @@ class PriceIntelligenceInput(BaseModel):
     purchase_operation: PurchaseOperation
     references: tuple[PriceReference, ...] = ()
     evidence_validations: tuple[EvidenceValidation, ...] = ()
+    normalization_basis: NormalizationBasis | None = None
     methodology_version: str = Field(min_length=1, max_length=64)
 
     @model_validator(mode="after")
@@ -151,7 +163,7 @@ class PriceIntelligenceResult(BaseModel):
 
 
 __all__ = [
-    "AggregationMethod", "ComparabilityStatus", "NormalizationRecord", "NormalizationStatus",
+    "AggregationMethod", "ComparabilityStatus", "NormalizationBasis", "NormalizationRecord", "NormalizationStatus",
     "PRStatus", "PriceCounts", "PriceIntelligenceInput", "PriceIntelligenceResult",
     "PriceReference", "PriceReferenceAssessment", "RepresentativenessStatus",
     "SufficiencyStatus",
