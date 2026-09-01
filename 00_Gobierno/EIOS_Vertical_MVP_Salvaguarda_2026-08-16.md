@@ -345,9 +345,9 @@ No es un gemelo digital de toda la empresa ni un segundo motor de decisión.
 
 ## 15. Negotiation Intelligence
 
-Determina la estrategia negociadora a partir de los escenarios viables.
+Determina y justifica **contenido negociador** a partir de información y resultados autorizados.
 
-Analiza:
+Puede analizar:
 
 - primera petición;
 - concesiones;
@@ -363,6 +363,8 @@ Principio:
 
 > **No negociar variables aisladas; negociar intercambios de valor.**
 
+NI no crea, gobierna ni activa Strategy, y no decide, aprueba ni ejecuta.
+
 No entra en MVP:
 
 - negociación autónoma;
@@ -374,7 +376,7 @@ No entra en MVP:
 
 ## 16. Negotiation Ladder
 
-Secuencia:
+Secuencia representacional:
 
 ```text
 OBJETIVO
@@ -390,7 +392,7 @@ FALLBACK
 WALK-AWAY
 ```
 
-Cada escalón corresponde a un escenario evaluado.
+Cada escalón representa contenido negociador previamente determinado y justificado y conserva referencia a su fuente autorizada. Un `Scenario_ID` se utiliza cuando el contenido esté efectivamente vinculado a un escenario formal; no se impone un escenario por cada escalón.
 
 No debe cruzar salvaguardas.
 
