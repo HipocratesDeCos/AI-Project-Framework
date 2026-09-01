@@ -8,7 +8,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from eios.core.models import DecisionContext, PurchaseOperation
+from eios.core.models import DecisionContext, EvidenceValidation, PurchaseOperation
 
 ComparabilityStatus = Literal["COMPARABLE", "NO_COMPARABLE", "PENDING"]
 RepresentativenessStatus = Literal["REPRESENTATIVE", "NON_REPRESENTATIVE", "INDETERMINATE"]
@@ -18,8 +18,6 @@ AggregationMethod = Literal["MEDIAN_UNWEIGHTED"]
 
 
 class PriceReference(BaseModel):
-    """Economic price observation supplied to C1."""
-
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     source_transaction_id: str = Field(min_length=1, max_length=128)
@@ -67,6 +65,7 @@ class PriceIntelligenceInput(BaseModel):
     decision_context: DecisionContext
     purchase_operation: PurchaseOperation
     references: tuple[PriceReference, ...] = ()
+    evidence_validations: tuple[EvidenceValidation, ...] = ()
     methodology_version: str = Field(min_length=1, max_length=64)
 
     @model_validator(mode="after")
@@ -75,6 +74,15 @@ class PriceIntelligenceInput(BaseModel):
             raise ValueError("decision_id no coincide entre contexto y operación")
         if self.decision_context.scenario_id != self.purchase_operation.scenario_id:
             raise ValueError("scenario_id no coincide entre contexto y operación")
+        return self
+
+    @model_validator(mode="after")
+    def evidence_refs_are_known(self) -> "PriceIntelligenceInput":
+        known = {item.evidence_id for item in self.evidence_validations}
+        referenced = {ref for item in self.references for ref in item.evidence_refs}
+        unknown = referenced - known
+        if unknown:
+            raise ValueError("Existen evidence_refs sin EvidenceValidation correspondiente")
         return self
 
 
