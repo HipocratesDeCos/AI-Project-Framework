@@ -6,7 +6,6 @@ rank, select, approve, reject, optimize, or recommend a business decision.
 from __future__ import annotations
 
 from hashlib import sha256
-import json
 from enum import Enum
 from typing import Any, Mapping, Sequence
 
@@ -30,7 +29,7 @@ class O2ScenarioResult(BaseModel):
 
     scenario_id: str = Field(min_length=1, max_length=64)
     status: O2ScenarioStatus
-    values: Mapping[str, Any] = {}
+    values: Mapping[str, Any] = Field(default_factory=dict)
     trace_references: tuple[str, ...] = ()
     unresolved_items: tuple[str, ...] = ()
     failure_reason: str | None = Field(default=None, max_length=512)
@@ -91,16 +90,17 @@ def build_execution_context(context: DecisionContext, scenario_ids: Sequence[str
 def compare_scenarios(results: Sequence[O2ScenarioResult]) -> O2Comparison:
     if len(results) < 2:
         raise ValueError("comparison requires at least two scenarios")
-    ids = tuple(result.scenario_id for result in results)
+    ordered = tuple(sorted(results, key=lambda result: result.scenario_id))
+    ids = tuple(result.scenario_id for result in ordered)
     if len(set(ids)) != len(ids):
         raise ValueError("scenario_id debe ser único")
-    keys = sorted({key for result in results for key in result.values})
+    keys = sorted({key for result in ordered for key in result.values})
     observations: dict[str, dict[str, Any]] = {}
     differences: dict[str, tuple[Any, ...]] = {}
     missing: dict[str, tuple[str, ...]] = {}
     for key in keys:
-        row = {r.scenario_id: r.values[key] for r in results if key in r.values}
-        absent = tuple(r.scenario_id for r in results if key not in r.values)
+        row = {r.scenario_id: r.values[key] for r in ordered if key in r.values}
+        absent = tuple(r.scenario_id for r in ordered if key not in r.values)
         observations[key] = row
         if absent:
             missing[key] = absent
@@ -112,9 +112,9 @@ def compare_scenarios(results: Sequence[O2ScenarioResult]) -> O2Comparison:
         observations=observations,
         differences=differences,
         missing=missing,
-        statuses={r.scenario_id: r.status for r in results},
-        unresolved_items={r.scenario_id: r.unresolved_items for r in results},
-        traceability={r.scenario_id: r.trace_references for r in results},
+        statuses={r.scenario_id: r.status for r in ordered},
+        unresolved_items={r.scenario_id: r.unresolved_items for r in ordered},
+        traceability={r.scenario_id: r.trace_references for r in ordered},
     )
 
 
@@ -123,12 +123,11 @@ def build_support_package(purchase_operation: PurchaseOperation,
                           scenarios: Sequence[O2ScenarioResult]) -> O2SupportPackage:
     if purchase_operation.decision_id != context.decision_id:
         raise ValueError("decision_id incompatible")
-    results = tuple(scenarios)
+    results = tuple(sorted(scenarios, key=lambda result: result.scenario_id))
     if not results:
         raise ValueError("O2 requiere escenarios")
-    if any(result.scenario_id != purchase_operation.scenario_id and
-           result.scenario_id == "" for result in results):
-        raise ValueError("scenario_id inválido")
+    if len({r.scenario_id for r in results}) != len(results):
+        raise ValueError("scenario_id debe ser único")
     execution = build_execution_context(context, [r.scenario_id for r in results])
     comparison = compare_scenarios(results) if len(results) >= 2 else None
     return O2SupportPackage(execution_context=execution, scenarios=results, comparison=comparison)
