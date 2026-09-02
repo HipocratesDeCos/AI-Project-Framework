@@ -1,7 +1,8 @@
 # EIOS — O2 · CONTRATO SCENARIO ENGINE
 
-**Estado:** DISEÑO — NO CERRADO  
+**Estado:** CERRADO — MATERIALIZADO — CI PENDIENTE  
 **Baseline de entrada:** `06e8270545f57c904f99229430a9be4575901015`  
+**HEAD materializado:** `5693404be449dece4ddb0dad8c5ebd19667d2b8b`  
 **Ámbito:** Scenario Engine para hipótesis controladas  
 
 ## 1. Propósito
@@ -61,6 +62,8 @@ Cada cambio debe identificar:
 - `INVALID`: la hipótesis incumple el contrato.
 - `EVALUATED`: reservado para una futura integración explícita; no implica cálculo dentro de O2.
 
+En la creación/versionado actual de O2 solo se producen `DRAFT`, `VALID` e `INVALID`. `EVALUATED` permanece reservado a una futura integración contractual explícita.
+
 ## 7. Determinismo
 
 Para el mismo contexto y el mismo conjunto normalizado de cambios, la representación canónica y su fingerprint deben ser idénticos.
@@ -75,12 +78,14 @@ O2 no altera el contrato cerrado de O1.
 
 ## 9. Criterio de cierre
 
-El diseño solo podrá pasar a implementación cuando la auditoría confirme que:
+El diseño ha sido auditado, depurado, sometido a Auditoría 2 y materializado conforme al alcance definido. La implementación preserva:
 
-- la autoridad permanece en el decisor humano;
-- no existe mutación de datos reales;
-- identidad/versionado son suficientes;
-- la normalización es determinista;
-- la frontera con O1, Twin, CRC y capacidades analíticas es inequívoca.
+- la autoridad en el decisor humano;
+- la no mutación de datos reales;
+- identidad y versionado suficientes;
+- normalización determinista;
+- frontera inequívoca con O1, Twin, CRC y capacidades analíticas.
 
-**Siguiente etapa obligatoria:** AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI.
+La evidencia CI específica del HEAD materializado aún no está disponible; por ello el contrato queda **cerrado y materializado, pero pendiente de validación CI**.
+
+**Secuencia:** DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI.
