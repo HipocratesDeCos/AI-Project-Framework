@@ -1,9 +1,11 @@
 # EIOS — O2 · CIERRE Y MATERIALIZACIÓN
 
-**Estado:** MATERIALIZACIÓN COMPLETADA — CI PENDIENTE  
+**Estado:** MATERIALIZACIÓN COMPLETADA — CI VALIDADO  
 **Baseline de cierre:** `218a5c858d89b2da55bc16fc04771aea8b8930e6`  
 **Última implementación auditada:** `e17a0c72b16e16f7130d09ad287ca4611223fb92`  
 **Últimas pruebas materializadas:** `08c32cf057fcbd3ca653255cb373260c62337365`  
+**HEAD CI-validado:** `5693404be449dece4ddb0dad8c5ebd19667d2b8b`  
+**CI:** Run #331 — `33597204052` — `success`  
 **Contrato:** `O2_Contrato_Scenario_Engine.md`
 
 ## 1. Dictamen de cierre
@@ -45,10 +47,10 @@ No se incorpora `EVALUATED`, scoring, ranking, recomendación, negociación, eje
 
 ## 4. Estado CI
 
-La evidencia GitHub disponible para el HEAD materializado no muestra todavía una ejecución CI asociada. Por tanto, O2 **no se declara aún CI-validado**.
+La ejecución GitHub Actions asociada directamente al HEAD materializado `5693404be449de4ddb0dad8c5ebd19667d2b8b` corresponde al Run #331 (`33597204052`) y finalizó con **SUCCESS**. Por tanto, O2 queda **CI-validado** para el alcance materializado.
 
 ## 5. Secuencia
 
 **DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI**
 
-Cierre y materialización están completados. El único paso abierto es **CI** sobre el HEAD resultante.
+Todos los pasos de la secuencia están completados para el alcance O2.
