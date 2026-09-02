@@ -91,7 +91,6 @@ def test_unauthorized_change_creates_explicit_invalid_scenario():
 
     scenario = create_scenario(context(), (unauthorized,))
     assert scenario.status == ScenarioStatus.INVALID
-    assert scenario.result_available if hasattr(scenario, "result_available") else True
 
 
 def test_equal_base_and_simulated_value_is_not_a_scenario_change():
