@@ -2,8 +2,8 @@
 
 ## Índice Maestro del Framework
 
-**Versión:** 2.8  
-**Estado:** APROBADO — reconciliación post-U1  
+**Versión:** 2.9  
+**Estado:** APROBADO — reconciliación post-U1.1  
 **Función:** Índice maestro de la estructura documental EIOS  
 **Ubicación:** `03_Arquitectura/Framework_Map.md`
 
@@ -25,7 +25,7 @@ No desarrolla conceptos, reglas ni especificaciones.
 
 `00_Gobierno/`
 
-Documentación de gobierno, autoridad, contexto, control, trazabilidad y salvaguarda del proyecto.
+Documentación correspondiente a gobierno, autoridad, contexto, control, trazabilidad y salvaguarda.
 
 ### Documentos actuales
 
@@ -49,8 +49,6 @@ Documentación correspondiente al dominio de modelo funcional y empresarial.
 ### Documentos actuales
 
 - `Especificacion_funcional.md`
-
-Los documentos históricos o sustituidos se conservan en `99_Archivo/`.
 
 ---
 
@@ -139,13 +137,7 @@ Dominio correspondiente a la implementación y persistencia SQL, bajo la autorid
 - `002_Decision_Versioning_Schema.sql`
 - `003_Centro_Parametrizacion_Schema.sql`
 
-Los artefactos de validación SQL de CI se mantienen en `.github/sql/` y forman parte del mecanismo de verificación, no del índice documental de `06_SQL`:
-
-- `.github/sql/validate_c0_schema.sql`
-- `.github/sql/validate_decision_versioning_schema.sql`
-- `.github/sql/validate_parameter_configuration_schema.sql`
-
-`06_LEEME_SQL.md` constituye el contrato documental del dominio SQL y establece su organización y criterios de implementación. La existencia de este documento no atribuye a SQL autoridad funcional, decisional, de versionado ni de reconstrucción semántica.
+Los artefactos de validación SQL de CI se mantienen en `.github/sql/` y forman parte del mecanismo de verificación, no del índice documental de `06_SQL`.
 
 ---
 
@@ -166,6 +158,8 @@ Documentación correspondiente a pruebas y verificación.
 - `O3_Auditoria2_Implementacion_Corregida.md`
 - `Reconciliacion_Decision_Versioning_NI_NL.md`
 - `U1_Cierre_Materializacion.md`
+- `U1_1_Cierre_Materializacion.md`
+- `U1_1_Reconciliacion_PostIntegracion.md`
 
 Estos documentos registran pruebas, auditorías, cierres y reconciliaciones materializadas. No crean una autoridad funcional paralela.
 
@@ -194,11 +188,10 @@ Documentación correspondiente a la materialización técnica controlada del dis
 13. `TCO_Core_CI_Verification.md`
 14. `TCO_Core_Implementation_Contract.md`
 15. `U1_Frontend_Implementation_Contract.md`
-16. `Viability_Frontier_Design_Audit.md`
+16. `U1_1_Visual_Frontend_Implementation_Contract.md`
+17. `Viability_Frontier_Design_Audit.md`
 
 La implementación ejecutable se encuentra materializada adicionalmente en `eios/` y verificada mediante `tests/`.
-
-Los documentos enumerados aquí son contratos, verificaciones o auditorías técnicas de implementación; su inclusión no modifica la autoridad funcional de las fuentes especializadas.
 
 ---
 
@@ -207,8 +200,6 @@ Los documentos enumerados aquí son contratos, verificaciones o auditorías téc
 `99_Archivo/`
 
 Repositorio histórico de documentación sustituida, obsoleta o conservada por trazabilidad.
-
-### Contenido
 
 El contenido histórico se mantiene fuera del Framework operativo y no constituye autoridad sobre el diseño vigente de EIOS.
 
@@ -220,11 +211,11 @@ El nodo de Gobierno constituye actualmente el nivel superior de control document
 
 Su estructura de autoridad se encuentra definida por:
 
-`Matriz_Autoridad_Documental.md`
+`00_Gobierno/Matriz_Autoridad_Documental.md`
 
 La Salvaguarda oficial vigente del EIOS Vertical MVP es:
 
-`EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md`
+`00_Gobierno/EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md`
 
 ---
 
