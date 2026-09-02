@@ -1,8 +1,7 @@
 """O4 controlled scenario generation.
 
-This module generates bounded, deterministic candidate scenario changes.
-It does not evaluate rules or viability and does not create ScenarioVersion
-identity/versioning; O2 remains the authority for scenario representation.
+Generates bounded, deterministic candidate changes only. O2 remains the
+authority for ScenarioVersion identity and versioning; O3 is not invoked.
 """
 
 from __future__ import annotations
@@ -30,13 +29,11 @@ class ScenarioVariable(BaseModel):
     values: tuple[Any, ...]
     max_cardinality: int | None = Field(default=None, ge=0)
 
-    @field_validator("values")
+    @field_validator("variable_id")
     @classmethod
-    def reject_unhashable_values(cls, value: tuple[Any, ...]) -> tuple[Any, ...]:
-        try:
-            len({repr(item) for item in value})
-        except Exception as exc:  # pragma: no cover - defensive boundary
-            raise ValueError("values must be canonicalizable") from exc
+    def non_blank_id(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("variable_id must not be blank")
         return value
 
 
@@ -58,6 +55,13 @@ class GenerationPolicy(BaseModel):
     allow_cartesian: bool = True
     structural_pruning: tuple[Mapping[str, Any], ...] = ()
 
+    @field_validator("policy_version")
+    @classmethod
+    def non_blank_version(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("policy_version must not be blank")
+        return value
+
     @field_validator("mode")
     @classmethod
     def cartesian_only(cls, value: str) -> str:
@@ -77,6 +81,21 @@ class ScenarioGenerationRequest(BaseModel):
     policy: GenerationPolicy
     depth: int = Field(default=0, ge=0)
     authorized: bool = True
+
+    @field_validator("decision_id", "scenario_id")
+    @classmethod
+    def non_blank_identity(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("identity must not be blank")
+        return value
+
+    @field_validator("variables")
+    @classmethod
+    def unique_variable_ids(cls, value: tuple[ScenarioVariable, ...]) -> tuple[ScenarioVariable, ...]:
+        ids = [item.variable_id for item in value]
+        if len(ids) != len(set(ids)):
+            raise ValueError("variable_id values must be unique")
+        return value
 
 
 class ScenarioCandidate(BaseModel):
@@ -182,6 +201,14 @@ def generate_scenarios(request: ScenarioGenerationRequest) -> ScenarioGeneration
             status=GenerationStatus.EMPTY,
         )
 
+    if cardinality > request.limits.max_emitted:
+        return ScenarioGenerationResult(
+            decision_id=request.decision_id,
+            scenario_id=request.scenario_id,
+            status=GenerationStatus.BLOCKED,
+            limitations=("max_emitted exceeded",),
+        )
+
     ordered = sorted(request.variables, key=lambda item: item.variable_id)
     candidates: list[ScenarioCandidate] = []
     seen: set[tuple[tuple[str, Any], ...]] = set()
@@ -201,8 +228,6 @@ def generate_scenarios(request: ScenarioGenerationRequest) -> ScenarioGeneration
                 changes=changes,
             )
         )
-        if len(candidates) >= request.limits.max_emitted:
-            break
 
     return ScenarioGenerationResult(
         decision_id=request.decision_id,
