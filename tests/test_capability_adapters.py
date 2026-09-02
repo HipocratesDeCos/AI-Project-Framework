@@ -29,23 +29,24 @@ def _trace(trace_id: str) -> Trace:
 def _price(status: str) -> PriceIntelligenceResult:
     sufficient = status == "PR_AVAILABLE"
     limited = status == "PR_LIMITED"
+    selected = 2 if sufficient else 1 if limited else 0
     return PriceIntelligenceResult(
         decision_id="D1",
         scenario_id="S1",
         data_snapshot_id="DS1",
         methodology_version="M1",
-        pr_value=Decimal("10.00") if not status == "PR_NOT_JUSTIFIABLE" else None,
-        currency="EUR" if not status == "PR_NOT_JUSTIFIABLE" else None,
+        pr_value=Decimal("10.00") if status != "PR_NOT_JUSTIFIABLE" else None,
+        currency="EUR" if status != "PR_NOT_JUSTIFIABLE" else None,
         sufficiency_status="SUFFICIENT" if sufficient else "LIMITED" if limited else "NOT_JUSTIFIABLE",
         pr_status=status,
         pr_limitations=("LIMIT",) if limited else (),
         reference_set=("R1", "R2") if sufficient else ("R1",) if limited else (),
         counts=PriceCounts(
-            n_raw=2 if sufficient else 1,
-            n_unique=2 if sufficient else 1,
-            n_comparable=2 if sufficient else 1,
-            n_representative=2 if sufficient else 1,
-            n_selected=2 if sufficient else 1,
+            n_raw=2 if sufficient else 1 if limited else 0,
+            n_unique=2 if sufficient else 1 if limited else 0,
+            n_comparable=2 if sufficient else 1 if limited else 0,
+            n_representative=2 if sufficient else 1 if limited else 0,
+            n_selected=selected,
         ),
         aggregation_method="MEDIAN_UNWEIGHTED",
         trace_references=("TRACE-PRICE",),
@@ -76,6 +77,7 @@ def test_price_available_and_limited_are_completed():
     limited = adapt_price(_price("PR_LIMITED"))
     assert limited.status == O1ExecutionStatus.COMPLETED
     assert limited.result_available is True
+    assert limited.unresolved_items == ()
 
 
 def test_price_not_justifiable_is_not_evaluable():
@@ -105,4 +107,13 @@ def test_qtg_no_apto_is_still_completed_execution():
     ))
     assert result.status == O1ExecutionStatus.COMPLETED
     assert result.result_available is True
+    assert result.trace_references == ()
+
+
+def test_qtg_evidence_refs_are_not_relabelled_as_trace_refs():
+    result = adapt_qtg(QualityTrustResult(
+        status="APTO",
+        confidence="ALTA",
+        checks=(QualityCheck(control="C1", satisfied=True, evidence_refs=("E1",)),),
+    ))
     assert result.trace_references == ()
