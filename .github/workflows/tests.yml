@@ -13,11 +13,11 @@ jobs:
         image: mcr.microsoft.com/mssql/server:2022-latest
         env:
           ACCEPT_EULA: Y
-          MSSQL_SA_PASSWORD: "EiosCi_2026#SqlServer!"
+          MSSQL_SA_PASSWORD: "EiosCi_${{ github.run_id }}#SqlServer!"
         ports:
           - 1433:1433
         options: >-
-          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'EiosCi_2026#SqlServer!' -C -Q 'SELECT 1'"
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'EiosCi_${{ github.run_id }}#SqlServer!' -C -Q 'SELECT 1'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 12
@@ -35,7 +35,7 @@ jobs:
         run: python -m pytest -q
       - name: Validate SQL Server C0, Decision Versioning, and Parameter Configuration schemas
         env:
-          MSSQL_SA_PASSWORD: "EiosCi_2026#SqlServer!"
+          MSSQL_SA_PASSWORD: "EiosCi_${{ github.run_id }}#SqlServer!"
         run: |
           set -euo pipefail
           SQL_CONTAINER="$(docker ps -q --filter 'ancestor=mcr.microsoft.com/mssql/server:2022-latest' | head -n 1)"
