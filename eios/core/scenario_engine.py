@@ -43,15 +43,23 @@ class AuthorizedScenarioChange(BaseModel):
 
 
 def _canonical_value(value: Any) -> Any:
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return {"type": type(value).__name__, "value": value}
     if isinstance(value, dict):
-        return {str(key): _canonical_value(value[key]) for key in sorted(value, key=str)}
+        return {
+            "type": "dict",
+            "value": {str(key): _canonical_value(value[key]) for key in sorted(value, key=str)},
+        }
     if isinstance(value, (list, tuple)):
-        return [_canonical_value(item) for item in value]
+        return {"type": type(value).__name__, "value": [_canonical_value(item) for item in value]}
     if isinstance(value, set):
-        return sorted((_canonical_value(item) for item in value), key=lambda item: repr(item))
+        return {
+            "type": "set",
+            "value": sorted((_canonical_value(item) for item in value), key=repr),
+        }
     if hasattr(value, "isoformat"):
-        return value.isoformat()
-    return value
+        return {"type": type(value).__name__, "value": value.isoformat()}
+    return {"type": type(value).__name__, "value": repr(value)}
 
 
 def canonical_scenario_changes(
@@ -72,7 +80,8 @@ def canonical_scenario_changes(
     normalized.sort(
         key=lambda item: (
             item["variable"],
-            json.dumps(item["simulated_value"], ensure_ascii=False, sort_keys=True, default=str),
+            json.dumps(item["base_value"], ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+            json.dumps(item["simulated_value"], ensure_ascii=False, sort_keys=True, separators=(",", ":")),
             item["unit"] or "",
             item["authorization"],
             item["origin"],
@@ -97,7 +106,7 @@ def scenario_fingerprint(
         "changes": canonical_scenario_changes(changes),
     }
     canonical = json.dumps(
-        payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True, default=str
+        payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True
     ).encode("utf-8")
     return hashlib.sha256(canonical).hexdigest()
 
