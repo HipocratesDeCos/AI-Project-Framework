@@ -58,6 +58,39 @@ def test_same_changes_in_different_order_have_same_canonical_form_and_fingerprin
     assert create_scenario(context(), first).scenario_id == create_scenario(context(), second).scenario_id
 
 
+def test_same_variable_with_different_base_values_is_order_independent():
+    first = (
+        AuthorizedScenarioChange(
+            variable="unit_price", base_value=Decimal("5.00"), simulated_value=Decimal("4.50"),
+            unit="EUR", authorization=True, origin="planner"
+        ),
+        AuthorizedScenarioChange(
+            variable="unit_price", base_value=Decimal("6.00"), simulated_value=Decimal("4.50"),
+            unit="EUR", authorization=True, origin="planner"
+        ),
+    )
+    second = tuple(reversed(first))
+
+    assert canonical_scenario_changes(first) == canonical_scenario_changes(second)
+    assert scenario_fingerprint(context(), None, first) == scenario_fingerprint(context(), None, second)
+
+
+def test_canonical_value_preserves_material_scalar_types():
+    integer = AuthorizedScenarioChange(
+        variable="quantity", base_value=1, simulated_value=2,
+        unit="UN", authorization=True, origin="planner"
+    )
+    string = AuthorizedScenarioChange(
+        variable="quantity", base_value="1", simulated_value="2",
+        unit="UN", authorization=True, origin="planner"
+    )
+
+    assert canonical_scenario_changes((integer,)) != canonical_scenario_changes((string,))
+    assert scenario_fingerprint(context(), None, (integer,)) != scenario_fingerprint(
+        context(), None, (string,)
+    )
+
+
 def test_parent_lineage_is_preserved_without_mutating_parent_identifier():
     parent = create_scenario(context(), (change(),))
     child = create_scenario(
