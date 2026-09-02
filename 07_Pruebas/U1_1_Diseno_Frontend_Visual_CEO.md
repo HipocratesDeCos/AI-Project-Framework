@@ -1,78 +1,64 @@
-# EIOS — U1.1 · DISEÑO — FRONTEND VISUAL CEO
+# EIOS — U1.1 · DISEÑO DEPURADO — FRONTEND VISUAL CEO
 
-**Estado:** 🟡 DISEÑO INICIAL
+**Estado:** 🟡 DISEÑO DEPURADO — PENDIENTE AUDITORÍA 2
 **Baseline:** `c059af68ad489f64d5ff1dfa7bf5f5a113588854`
-**Precedente:** U1 Application Boundary MVP
+**Diseño inicial:** `92ba626d64f493fddcf7824c163965e8e23e0bde`
+**Auditoría 1:** `64a254983f26240f3a03d4b4bd7a41ae26ff660c`
 
-## Propósito
+## Frontera
 
-Materializar la experiencia visual mediante la que un CEO introduce una operación, revisa contexto/evidencia, solicita ejecución y comprende el Decision Support Package.
+`CEO → U1.1 Visual Frontend → U1 Application Boundary → O1 → Decision Support Package → U1.1 → CEO`
 
-## Principio arquitectónico
+U1.1 no accede directamente a C0, PRICE, TCO, QTG, O2, O3, O4 ni Decision Twin.
 
-```text
-CEO
- ↓
-U1.1 Visual Frontend
- ↓
-U1 Application Boundary
- ↓
-O1
- ↓
-Decision Support Package
- ↓
-U1.1 Visual Frontend
- ↓
-CEO / DECISIÓN HUMANA
-```
+## Semántica visual
 
-El frontend visual no accede directamente a motores analíticos.
+Los colores, iconos, posición, tamaño y orden nunca expresan por sí mismos una recomendación empresarial. Todo estado crítico incluye texto explícito.
 
-## Pantallas MVP
+`NOT_EVALUABLE`, `FAILED`, `BLOCKED` y `PARTIALLY_COMPLETED` mantienen su semántica técnica literal.
 
-1. Dashboard ejecutivo.
-2. Nueva operación.
-3. Evidencia y calidad.
-4. Contexto de decisión.
-5. Ejecución y estado.
-6. Resultado ejecutivo.
-7. Escenarios.
-8. Comparación Decision Twin.
+## Resultado y decisión
 
-## Reglas visuales obligatorias
+El resultado EIOS se presenta en un bloque separado de cualquier acción humana. No existe botón `COMPRAR`, `APROBAR`, `RECHAZAR`, `NEGOCIAR` ni `ELEGIR MEJOR` conectado a una acción automática.
 
-- Los estados técnicos se muestran literalmente.
-- `NOT_EVALUABLE` nunca se representa como negativo.
-- `FAILED` nunca se representa como decisión.
-- Las limitaciones permanecen visibles.
-- Evidencia y trazabilidad son accesibles desde el resultado.
-- Los escenarios se presentan sin ranking implícito.
-- La decisión humana aparece como una acción separada del resultado EIOS.
-- No existen botones de compra, aprobación o negociación automática.
+La decisión humana puede registrarse como una interacción posterior, pero su semántica y autoridad no forman parte del resultado EIOS.
 
-## Formulario CEO
+## Identidad y contexto
 
-Campos de negocio únicamente. La interfaz no permite editar libremente fingerprints, snapshots, versiones de reglas/parámetros ni identidades técnicas.
+IDs, fingerprints, snapshots y versiones se muestran como contexto de trazabilidad. La UI no permite editarlos libremente.
 
-Validación local = formato y completitud.
-Validación de dominio = contratos EIOS.
+## Escenarios
 
-## Resultado ejecutivo
+Los escenarios se muestran con identidad, estado, resultados, limitaciones y trazabilidad. El orden de presentación no implica preferencia. No se muestra una puntuación agregada ni una etiqueta de “mejor escenario”.
 
-La jerarquía visual será:
+## Evidencia
 
-**Qué sabemos → Qué ha calculado EIOS → Qué falta/qué riesgo existe → Qué escenarios existen → Decisión humana.**
+La UI muestra el estado proporcionado por EIOS. No recalifica evidencia ni sustituye QTG.
 
-No se generará un “score CEO” adicional.
+## Responsive
+
+En viewport reducido se conserva el acceso a estados, limitaciones, evidencia y trazabilidad. No se ocultan mediante colapso irreversible.
 
 ## Accesibilidad
 
-MVP: teclado, foco visible, labels, mensajes de error asociados, contraste suficiente, estados no dependientes solo del color, responsive y lenguaje comprensible.
+Todos los estados deben tener texto; navegación por teclado; foco visible; labels; mensajes asociados a campos; orden lógico de lectura; controles con nombre accesible; contraste suficiente; y ausencia de dependencia exclusiva del color.
+
+## Componentes MVP
+
+- `AppShell`
+- `ExecutiveDashboard`
+- `OperationForm`
+- `EvidencePanel`
+- `DecisionContextPanel`
+- `ExecutionStatus`
+- `ExecutiveResult`
+- `ScenarioList`
+- `TwinComparison`
+
+Los componentes son presentacionales y consumen modelos de boundary. No contienen lógica analítica.
 
 ## Fuera de alcance
 
-Autonomía decisional, ranking, recomendación automática, ejecución de compra, edición de reglas/parámetros maestros, persistencia nueva y autenticación empresarial.
+Framework específico, API pública, persistencia nueva, SSO, ranking, optimización, autonomía decisional y ejecución de compras.
 
-## Criterios de auditoría
-
-La auditoría deberá verificar frontera U1.1→U1, semántica de estados, ausencia de autoridad paralela, trazabilidad, evidencia, accesibilidad y separación estricta entre resultado EIOS y decisión humana.
+**Criterio: listo para AUDITORÍA 2.**
