@@ -3,7 +3,8 @@ from decimal import Decimal
 
 import pytest
 
-from eios.core.capability_adapters import adapt_c0, adapt_price, adapt_qtg, adapt_tco
+from eios.core.capability_adapters import adapt_c0, adapt_price, adapt_qtg, adapt_tco, adapt_twin
+from eios.core.decision_twin import ComparisonObservation, DecisionTwinComparison
 from eios.core.models import Assessment, DecisionContext, Trace
 from eios.core.orchestration import O1ExecutionStatus
 from eios.pricing.models import PriceCounts, PriceIntelligenceResult
@@ -31,25 +32,14 @@ def _price(status: str) -> PriceIntelligenceResult:
     limited = status == "PR_LIMITED"
     selected = 2 if sufficient else 1 if limited else 0
     return PriceIntelligenceResult(
-        decision_id="D1",
-        scenario_id="S1",
-        data_snapshot_id="DS1",
-        methodology_version="M1",
+        decision_id="D1", scenario_id="S1", data_snapshot_id="DS1", methodology_version="M1",
         pr_value=Decimal("10.00") if status != "PR_NOT_JUSTIFIABLE" else None,
         currency="EUR" if status != "PR_NOT_JUSTIFIABLE" else None,
         sufficiency_status="SUFFICIENT" if sufficient else "LIMITED" if limited else "NOT_JUSTIFIABLE",
-        pr_status=status,
-        pr_limitations=("LIMIT",) if limited else (),
+        pr_status=status, pr_limitations=("LIMIT",) if limited else (),
         reference_set=("R1", "R2") if sufficient else ("R1",) if limited else (),
-        counts=PriceCounts(
-            n_raw=2 if sufficient else 1 if limited else 0,
-            n_unique=2 if sufficient else 1 if limited else 0,
-            n_comparable=2 if sufficient else 1 if limited else 0,
-            n_representative=2 if sufficient else 1 if limited else 0,
-            n_selected=selected,
-        ),
-        aggregation_method="MEDIAN_UNWEIGHTED",
-        trace_references=("TRACE-PRICE",),
+        counts=PriceCounts(n_raw=2 if sufficient else 1 if limited else 0, n_unique=2 if sufficient else 1 if limited else 0, n_comparable=2 if sufficient else 1 if limited else 0, n_representative=2 if sufficient else 1 if limited else 0, n_selected=selected),
+        aggregation_method="MEDIAN_UNWEIGHTED", trace_references=("TRACE-PRICE",),
     )
 
 
@@ -87,33 +77,43 @@ def test_price_not_justifiable_is_not_evaluable():
 
 
 def test_tco_incomplete_is_partial_and_preserves_unresolved_components():
-    result = adapt_tco(TCOResult(
-        decision_id="D1",
-        scenario_id="S1",
-        currency="EUR",
-        value=None,
-        unresolved_components=("TRANSPORT",),
-        limitations=("MISSING_AMOUNT:TRANSPORT",),
-    ))
+    result = adapt_tco(TCOResult(decision_id="D1", scenario_id="S1", currency="EUR", value=None, unresolved_components=("TRANSPORT",), limitations=("MISSING_AMOUNT:TRANSPORT",)))
     assert result.status == O1ExecutionStatus.PARTIALLY_COMPLETED
     assert result.unresolved_items == ("TRANSPORT",)
 
 
 def test_qtg_no_apto_is_still_completed_execution():
-    result = adapt_qtg(QualityTrustResult(
-        status="NO_APTO",
-        confidence="BAJA",
-        checks=(QualityCheck(control="C1", satisfied=False, critical=True),),
-    ))
+    result = adapt_qtg(QualityTrustResult(status="NO_APTO", confidence="BAJA", checks=(QualityCheck(control="C1", satisfied=False, critical=True),)))
     assert result.status == O1ExecutionStatus.COMPLETED
     assert result.result_available is True
     assert result.trace_references == ()
 
 
 def test_qtg_evidence_refs_are_not_relabelled_as_trace_refs():
-    result = adapt_qtg(QualityTrustResult(
-        status="APTO",
-        confidence="ALTA",
-        checks=(QualityCheck(control="C1", satisfied=True, evidence_refs=("E1",)),),
-    ))
+    result = adapt_qtg(QualityTrustResult(status="APTO", confidence="ALTA", checks=(QualityCheck(control="C1", satisfied=True, evidence_refs=("E1",)),)))
     assert result.trace_references == ()
+
+
+def _twin(*, missing_attributes=(), trace_refs=("TRACE-TWIN",)):
+    return DecisionTwinComparison(
+        alternatives=("A", "B"),
+        observations=(ComparisonObservation(attribute="price", values=(("A", 10), ("B", 12)), comparable=True, difference=True),),
+        missing_attributes=missing_attributes,
+        trace_refs=trace_refs,
+    )
+
+
+def test_twin_complete_is_completed():
+    result = adapt_twin(_twin())
+    assert result.status == O1ExecutionStatus.COMPLETED
+    assert result.result_available is True
+    assert result.trace_references == ("TRACE-TWIN",)
+    assert result.unresolved_items == ()
+
+
+def test_twin_missing_attributes_are_partial_not_completed():
+    result = adapt_twin(_twin(missing_attributes=("delivery",)))
+    assert result.status == O1ExecutionStatus.PARTIALLY_COMPLETED
+    assert result.result_available is False
+    assert result.unresolved_items == ("delivery",)
+    assert result.trace_references == ("TRACE-TWIN",)
