@@ -1,7 +1,8 @@
 # O1 — Contrato de Orquestación Operacional MVP
 
-**Estado:** 🔒 CERRADO — diseño funcional
-**Baseline:** `7734abbe59eefc6badd754c2c7774c0ee6662f09`
+**Estado:** 🔒 CERRADO — IMPLEMENTADO Y MATERIALIZADO
+**Baseline funcional:** `7734abbe59eefc6badd754c2c7774c0ee6662f09`
+**HEAD de materialización:** `5f009cd75826d0024fcf42f36eacca60fea3c9b4`
 **Tipo:** incremento funcional; no constituye una nueva fase.
 
 ## 1. Propósito
@@ -68,7 +69,7 @@ Invariantes:
 - **O1-03 Evidencia:** insuficiencia de evidencia permanece explícita.
 - **O1-04 Autoridad:** O1 no aprueba, rechaza, compra, ejecuta ni selecciona por cuenta propia.
 - **O1-05 No mutación:** la operación y los resultados de capacidades no se modifican silenciosamente.
-- **O1-06 Trazabilidad:** cada resultado material conserva referencias de traza.
+- **O1-06 Trazabilidad:** los resultados que disponen de referencias de traza compatibles conservan dichas referencias sin modificación; capacidades que no generan `Trace` no reciben trazabilidad inventada.
 - **O1-07 Determinismo:** la identidad material del contexto es reproducible para las mismas entradas/versiones.
 - **O1-08 Degradación explícita:** una capacidad no ejecutable queda registrada como tal.
 - **O1-09 Separación semántica:** estado técnico, assessment, recommendation y human decision son conceptos distintos.
@@ -87,6 +88,8 @@ DecisionSupportPackage
 ```
 
 El paquete puede contener resultados de C0, PRICE, TCO, QTG, Twin y negociación cuando estén disponibles. No inventa resultados ausentes.
+
+`trace_references` contiene únicamente referencias de trazabilidad O1 compatibles proporcionadas por los resultados adaptados. Las referencias de evidencia específicas de una capacidad, como `QTG.evidence_refs`, mantienen su semántica y no se convierten en trazas O1.
 
 ## 7. Regla de cierre
 
