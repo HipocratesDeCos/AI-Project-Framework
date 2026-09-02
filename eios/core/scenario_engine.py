@@ -24,7 +24,7 @@ class ScenarioStatus(str, Enum):
 
 
 class AuthorizedScenarioChange(BaseModel):
-    """One authorized hypothesis change; never applied to production data."""
+    """One hypothesis change; authorization is validated at scenario creation."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -37,8 +37,6 @@ class AuthorizedScenarioChange(BaseModel):
 
     @model_validator(mode="after")
     def validate_change(self) -> "AuthorizedScenarioChange":
-        if not self.authorization:
-            raise ValueError("El cambio de escenario no está autorizado")
         if self.base_value == self.simulated_value:
             raise ValueError("El cambio debe representar una hipótesis distinta del valor base")
         return self
@@ -139,6 +137,8 @@ def create_scenario(
     """Create a scenario version without applying any change to real data."""
     if not changes:
         status = ScenarioStatus.DRAFT
+    elif any(not change.authorization for change in changes):
+        status = ScenarioStatus.INVALID
     elif not validate:
         status = ScenarioStatus.DRAFT
     else:
