@@ -13,22 +13,16 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 EpistemicType = Literal[
-    "FACT",
-    "OBSERVATION",
-    "INFERENCE",
-    "ESTIMATE",
-    "HYPOTHESIS",
-    "RECOMMENDATION",
+    "FACT", "OBSERVATION", "INFERENCE", "ESTIMATE", "HYPOTHESIS", "RECOMMENDATION",
 ]
 
 
 class NIContextReferences(BaseModel):
-    """Reference-only upstream context; NI does not own these authorities."""
+    """Reference-only upstream context; NI does not own those authorities."""
 
     model_config = ConfigDict(extra="forbid", frozen=True, str_strip_whitespace=True)
 
     decision_id: str = Field(min_length=1, max_length=64)
-    decision_version: str = Field(min_length=1, max_length=64)
     scenario_id: str | None = Field(default=None, max_length=64)
     rules_version: str | None = Field(default=None, max_length=64)
     parameters_version: str | None = Field(default=None, max_length=64)
@@ -92,9 +86,6 @@ class NegotiationIntelligenceResult(BaseModel):
 
 
 __all__ = [
-    "EpistemicType",
-    "NIAssertion",
-    "NIContextReferences",
-    "NegotiationContent",
+    "EpistemicType", "NIAssertion", "NIContextReferences", "NegotiationContent",
     "NegotiationIntelligenceResult",
 ]
