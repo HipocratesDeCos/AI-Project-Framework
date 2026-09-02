@@ -24,7 +24,9 @@ Auditoría estática de la implementación materializada frente al contrato O2 y
 
 ## 3. Resultado
 
-**APTO PARA CIERRE DE IMPLEMENTACIÓN Y MATERIALIZACIÓN FINAL, condicionado exclusivamente a CI del HEAD resultante.**
+**APTO PARA CIERRE DE IMPLEMENTACIÓN Y MATERIALIZACIÓN FINAL.**
+
+La condición externa de CI ha sido satisfecha: el HEAD materializado `5693404be449de4ddb0dad8c5ebd19667d2b8b` fue validado por **Run #331 — SUCCESS**. La reconciliación documental posterior de O2 también fue validada por CI.
 
 No se identifica defecto contractual pendiente en la implementación auditada.
 
@@ -32,4 +34,4 @@ No se identifica defecto contractual pendiente en la implementación auditada.
 
 **AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI**
 
-La CI sigue siendo la única evidencia externa pendiente para declarar el bloque O2 completamente validado.
+La secuencia completa de O2 está satisfecha para el alcance definido.
