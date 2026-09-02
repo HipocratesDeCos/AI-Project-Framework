@@ -2,8 +2,8 @@
 
 ## Índice Maestro del Framework
 
-**Versión:** 2.6  
-**Estado:** APROBADO — reconciliación post-8.5 + Quality & Trust  
+**Versión:** 2.7  
+**Estado:** APROBADO — reconciliación post-O3  
 **Función:** Índice maestro de la estructura documental EIOS  
 **Ubicación:** `03_Arquitectura/Framework_Map.md`
 
@@ -159,8 +159,14 @@ Documentación correspondiente a pruebas y verificación.
 
 - `Plan_Pruebas_MVP.md`
 - `Matriz_Trazabilidad_Ejecutable.md`
+- `O1_Cierre_Materializacion.md`
+- `O2_Cierre_Materializacion.md`
+- `O3_Cierre.md`
+- `O3_Cierre_PostMerge.md`
+- `O3_Auditoria2_Implementacion_Corregida.md`
+- `Reconciliacion_Decision_Versioning_NI_NL.md`
 
-`Matriz_Trazabilidad_Ejecutable.md` materializa la estructura de trazabilidad ejecutable entre requisitos verificables, fuentes autorizadas, artefactos físicos, dependencias, estados y condiciones de ejecución. No crea una autoridad funcional ni una taxonomía paralela de pruebas.
+Estos documentos registran pruebas, auditorías, cierres y reconciliaciones materializadas. No crean una autoridad funcional paralela.
 
 ---
 
@@ -172,18 +178,25 @@ Documentación correspondiente a la materialización técnica controlada del dis
 
 ### Contratos actuales
 
-- `Assessment_Individual_Result_Contract.md`
-- `C0_CI_Verification.md`
-- `Centro_Parametrizacion_Implementation_Contract.md`
-- `Decision_Versioning_Implementation_Contract.md`
-- `Decision_Twin_Implementation_Contract.md`
-- `Decision_Twin_Comparison_Contract.md`
-- `CRC_MVP_Implementation_Contract.md`
-- `Negotiation_Intelligence_Implementation_Contract.md`
-- `Negotiation_Ladder_Implementation_Contract.md`
-- `Quality_Trust_Implementation_Contract.md`
+1. `Assessment_Individual_Result_Contract.md`
+2. `C0_CI_Verification.md`
+3. `CRC_MVP_Implementation_Contract.md`
+4. `Centro_Parametrizacion_Implementation_Contract.md`
+5. `Decision_Twin_Comparison_Contract.md`
+6. `Decision_Twin_Implementation_Contract.md`
+7. `Decision_Versioning_Implementation_Contract.md`
+8. `Negotiation_Intelligence_Implementation_Contract.md`
+9. `Negotiation_Ladder_Implementation_Contract.md`
+10. `Price_Intelligence_Implementation_Contract.md`
+11. `Quality_Trust_Implementation_Contract.md`
+12. `Scenario_Evaluation_Implementation_Contract.md`
+13. `TCO_Core_CI_Verification.md`
+14. `TCO_Core_Implementation_Contract.md`
+15. `Viability_Frontier_Design_Audit.md`
 
 La implementación ejecutable se encuentra materializada adicionalmente en `eios/` y verificada mediante `tests/`.
+
+Los documentos enumerados aquí son contratos, verificaciones o auditorías técnicas de implementación; su inclusión no modifica la autoridad funcional de las fuentes especializadas.
 
 ---
 
