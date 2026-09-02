@@ -1,7 +1,7 @@
 # EIOS — Reconciliación Decision Versioning ↔ NI ↔ Ladder
 
 **Fecha:** 2026-09-02  
-**Estado:** 🔒 CERRADO — MATERIALIZADO — PENDIENTE CI
+**Estado:** 🔒 CERRADO — MATERIALIZADO — CI VALIDADO
 
 ## 1. Alcance
 
@@ -56,7 +56,7 @@ Verificaciones: ausencia de `decision_version` en los modelos NI/NL, rechazo exp
 
 ## 6. Materialización
 
-Cambios materializados en la rama de reconciliación:
+Cambios materializados y fusionados en `main` mediante PR #5:
 
 - `eios/core/negotiation_intelligence.py`
 - `tests/test_negotiation_intelligence.py`
@@ -64,10 +64,28 @@ Cambios materializados en la rama de reconciliación:
 - `tests/test_negotiation_ladder.py`
 - contratos de implementación NI/NL.
 
-## 7. Dictamen
+**Merge commit:** `f82bee9a8567dbb22319fac6d72e2cd5d7e0ed7c`
 
-**CERRADO — RECONCILIADO — SIN EXPANSIÓN DE AUTORIDAD.**
+## 7. CI
 
-La discrepancia queda corregida sin crear una nueva versión funcional de decisión.
+**EIOS Tests #360** — run `33608380850`  
+**Job:** `test` — `100177532561`  
+**HEAD:** `f82bee9a8567dbb22319fac6d72e2cd5d7e0ed7c`  
+**Resultado:** **SUCCESS**
+
+Validaciones completadas satisfactoriamente:
+
+- ejecución de tests Python;
+- validación SQL Server de C0;
+- validación SQL Server de Decision Versioning;
+- validación SQL Server de Parameter Configuration.
+
+No se detectaron fallos en los pasos del workflow.
+
+## 8. Dictamen final
+
+**CERRADO — RECONCILIADO — MATERIALIZADO — CI VALIDADO — SIN EXPANSIÓN DE AUTORIDAD.**
+
+La discrepancia queda corregida sin crear una nueva versión funcional de decisión. `Decision Versioning` permanece como autoridad de versionado histórico definida; NI y NL utilizan únicamente las identidades autorizadas y no introducen `decision_version` como identidad paralela.
 
 **Método:** DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI.
