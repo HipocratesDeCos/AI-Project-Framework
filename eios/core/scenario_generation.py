@@ -1,10 +1,7 @@
-"""O4 controlled, finite and deterministic scenario generation.
-
-O4 emits candidate changes only. It does not create O2 identities, evaluate
-scenarios, rank alternatives, recommend actions, or execute operations.
-"""
+"""O4 controlled, finite and deterministic scenario generation."""
 from __future__ import annotations
 
+import itertools
 import json
 from enum import Enum
 from math import prod
@@ -31,8 +28,6 @@ class GenerationStatus(str, Enum):
 
 
 class GenerationVariable(BaseModel):
-    """Finite, explicitly authorized scenario variable."""
-
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     variable_id: str = Field(min_length=1, max_length=128)
@@ -45,32 +40,25 @@ class GenerationVariable(BaseModel):
     def validate_definition(self) -> "GenerationVariable":
         if self.value_type not in {"string", "integer", "number", "boolean"}:
             raise ValueError("value_type no autorizado")
-        for value in self.domain:
-            if not _matches_type(value, self.value_type):
-                raise ValueError("valor de dominio incompatible con value_type")
+        if not _matches_type(self.base_value, self.value_type):
+            raise ValueError("base_value incompatible con value_type")
+        if any(not _matches_type(value, self.value_type) for value in self.domain):
+            raise ValueError("valor de dominio incompatible con value_type")
         return self
 
 
 class GenerationPolicy(BaseModel):
-    """Versioned deterministic MVP policy."""
-
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     policy_version: str = Field(min_length=1, max_length=64)
     max_variables: int = Field(default=MAX_VARIABLES, ge=0, le=MAX_VARIABLES)
-    max_cardinality_per_variable: int = Field(
-        default=MAX_CARDINALITY_PER_VARIABLE, ge=0, le=MAX_CARDINALITY_PER_VARIABLE
-    )
+    max_cardinality_per_variable: int = Field(default=MAX_CARDINALITY_PER_VARIABLE, ge=0, le=MAX_CARDINALITY_PER_VARIABLE)
     max_total_cardinality: int = Field(default=MAX_TOTAL_CARDINALITY, ge=0, le=MAX_TOTAL_CARDINALITY)
     max_depth: int = Field(default=MAX_DEPTH, ge=0, le=MAX_DEPTH)
-    max_emitted_candidates: int = Field(
-        default=MAX_EMITTED_CANDIDATES, ge=0, le=MAX_EMITTED_CANDIDATES
-    )
+    max_emitted_candidates: int = Field(default=MAX_EMITTED_CANDIDATES, ge=0, le=MAX_EMITTED_CANDIDATES)
 
 
 class CandidateScenario(BaseModel):
-    """O4 output; O2 remains responsible for scenario identity/versioning."""
-
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     parent_scenario_id: str | None = Field(default=None, max_length=64)
@@ -79,8 +67,6 @@ class CandidateScenario(BaseModel):
 
 
 class GenerationResult(BaseModel):
-    """Immutable technical result of one O4 generation attempt."""
-
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     status: GenerationStatus
@@ -105,7 +91,7 @@ def _matches_type(value: Any, value_type: str) -> bool:
     if value_type == "integer":
         return type(value) is int
     if value_type == "number":
-        return type(value) in {int, float} and not isinstance(value, bool)
+        return type(value) in {int, float}
     return type(value) is str
 
 
@@ -117,7 +103,7 @@ def _canonical_variables(variables: tuple[GenerationVariable, ...]) -> tuple[Gen
     return tuple(sorted(variables, key=lambda item: item.variable_id))
 
 
-def _valid_structure(variables: tuple[GenerationVariable, ...], policy: GenerationPolicy) -> str | None:
+def _structural_error(variables: tuple[GenerationVariable, ...], policy: GenerationPolicy) -> str | None:
     if len({item.variable_id for item in variables}) != len(variables):
         return "variable_id duplicado"
     if len(variables) > policy.max_variables:
@@ -142,70 +128,62 @@ def generate_scenarios(
     parent_scenario_id: str | None = None,
     depth: int = 0,
 ) -> GenerationResult:
-    """Generate a finite Cartesian set of candidate changes without invoking O2/O3."""
-    del context  # Context is validated by the caller and remains authority; O4 does not clone identity.
-
+    """Emit finite candidates only; O2 identity/versioning remains external."""
+    if context is None:
+        return GenerationResult(status=GenerationStatus.FAILED, policy_version=policy.policy_version, reason="DecisionContext ausente")
     try:
         if depth < 0:
             return GenerationResult(status=GenerationStatus.FAILED, policy_version=policy.policy_version, reason="depth inválida")
         if depth > policy.max_depth:
             return GenerationResult(status=GenerationStatus.BLOCKED, policy_version=policy.policy_version, reason="max_depth excedido")
 
-        canonical_variables = _canonical_variables(variables)
-        structural_error = _valid_structure(canonical_variables, policy)
-        if structural_error:
-            return GenerationResult(status=GenerationStatus.BLOCKED, policy_version=policy.policy_version, reason=structural_error)
+        variables = _canonical_variables(variables)
+        error = _structural_error(variables, policy)
+        if error:
+            return GenerationResult(status=GenerationStatus.BLOCKED, policy_version=policy.policy_version, reason=error)
 
-        domains = _effective_domains(canonical_variables)
-        if any(len(domain) == 0 for domain in domains):
+        domains = _effective_domains(variables)
+        if any(not domain for domain in domains):
             return GenerationResult(status=GenerationStatus.EMPTY, policy_version=policy.policy_version)
 
         cardinality = prod(len(domain) for domain in domains) if domains else 1
         if cardinality > policy.max_total_cardinality:
             return GenerationResult(status=GenerationStatus.BLOCKED, policy_version=policy.policy_version, reason="max_total_cardinality excedido")
-        if depth >= policy.max_depth and canonical_variables:
+        if variables and depth >= policy.max_depth:
             return GenerationResult(status=GenerationStatus.BLOCKED, policy_version=policy.policy_version, reason="max_depth impediría la derivación")
         if cardinality > policy.max_emitted_candidates:
             return GenerationResult(status=GenerationStatus.BLOCKED, policy_version=policy.policy_version, reason="max_emitted_candidates excedido")
 
-        import itertools
-        combinations = itertools.product(*domains) if domains else [()]
         candidates: list[CandidateScenario] = []
         seen: set[tuple[tuple[str, str], ...]] = set()
+        combinations = itertools.product(*domains) if domains else [()]
         for values in combinations:
-            changes = []
-            for variable, simulated_value in zip(canonical_variables, values):
-                if _canonical(variable.base_value) == _canonical(simulated_value):
-                    continue
-                changes.append(
-                    AuthorizedScenarioChange(
-                        variable=variable.variable_id,
-                        base_value=variable.base_value,
-                        simulated_value=simulated_value,
-                        unit=None,
-                        authorization=True,
-                        origin="O4",
-                    )
+            changes = [
+                AuthorizedScenarioChange(
+                    variable=variable.variable_id,
+                    base_value=variable.base_value,
+                    simulated_value=value,
+                    unit=None,
+                    authorization=True,
+                    origin="O4",
                 )
+                for variable, value in zip(variables, values)
+                if _canonical(variable.base_value) != _canonical(value)
+            ]
+            if variables and not changes:
+                continue
             canonical_changes = tuple(sorted(changes, key=lambda item: (item.variable, _canonical(item.simulated_value))))
             key = tuple((item.variable, _canonical(item.simulated_value)) for item in canonical_changes)
             if key in seen:
                 continue
             seen.add(key)
-            candidates.append(CandidateScenario(parent_scenario_id=parent_scenario_id, depth=depth + 1 if canonical_variables else depth, changes=canonical_changes))
+            candidates.append(CandidateScenario(parent_scenario_id=parent_scenario_id, depth=depth + 1 if variables else depth, changes=canonical_changes))
 
         if not candidates:
             return GenerationResult(status=GenerationStatus.EMPTY, policy_version=policy.policy_version)
         return GenerationResult(status=GenerationStatus.GENERATED, policy_version=policy.policy_version, candidates=tuple(candidates))
     except (TypeError, ValueError, OverflowError) as exc:
-        return GenerationResult(status=GenerationStatus.NOT_EVALUABLE, policy_version=policy.policy_version, reason=f"cardinalidad/espacio no determinable: {exc}")
+        return GenerationResult(status=GenerationStatus.NOT_EVALUABLE, policy_version=policy.policy_version, reason=f"espacio no determinable: {exc}")
 
 
-__all__ = [
-    "CandidateScenario",
-    "GenerationPolicy",
-    "GenerationResult",
-    "GenerationStatus",
-    "GenerationVariable",
-    "generate_scenarios",
-]
+__all__ = ["CandidateScenario", "GenerationPolicy", "GenerationResult", "GenerationStatus", "GenerationVariable", "generate_scenarios"]
