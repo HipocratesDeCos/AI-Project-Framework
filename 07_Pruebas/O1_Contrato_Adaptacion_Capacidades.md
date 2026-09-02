@@ -2,12 +2,13 @@
 
 ## Estado
 
-**IMPLEMENTADO Y MATERIALIZADO — validación CI pendiente sobre este commit**
+**IMPLEMENTADO Y MATERIALIZADO — CI VALIDADO**
 
 ## Baseline de materialización
 
 Implementación: `eios/core/capability_adapters.py`
 Pruebas: `tests/test_capability_adapters.py`
+Validación CI: Run #346 — `33601115801` — SUCCESS sobre HEAD `1e05bc54c398d5336b65d7795501e6c2e117270b`.
 
 ## Propósito
 
@@ -48,4 +49,4 @@ El contrato se considera materializable cuando cada adaptación definida tenga u
 
 ## Cierre documental
 
-La implementación y sus pruebas ya están materializadas. Este documento queda pendiente únicamente de validación CI sobre el commit documental resultante; no introduce cambios funcionales ni amplía el perímetro O1.
+La implementación, las pruebas y la validación CI están materializadas. Este contrato queda cerrado sin cambios funcionales ni ampliación del perímetro O1.
