@@ -12,13 +12,7 @@ from eios.core.scenario_generation import (
 
 
 def limits(**overrides):
-    values = dict(
-        max_variables=4,
-        max_cardinality_per_variable=4,
-        max_total_combinations=16,
-        max_depth=2,
-        max_emitted=16,
-    )
+    values = dict(max_variables=4, max_cardinality_per_variable=4, max_total_combinations=16, max_depth=2, max_emitted=16)
     values.update(overrides)
     return GenerationLimits(**values)
 
@@ -28,13 +22,7 @@ def policy():
 
 
 def request(variables=(), **overrides):
-    values = dict(
-        decision_id="D1",
-        scenario_id="S1",
-        variables=tuple(variables),
-        limits=limits(),
-        policy=policy(),
-    )
+    values = dict(decision_id="D1", scenario_id="S1", variables=tuple(variables), limits=limits(), policy=policy())
     values.update(overrides)
     return ScenarioGenerationRequest(**values)
 
@@ -52,34 +40,33 @@ def test_empty_domain_is_empty():
 
 
 def test_cartesian_cardinality():
-    result = generate_scenarios(
-        request([
-            ScenarioVariable(variable_id="x", value_type="int", values=(1, 2)),
-            ScenarioVariable(variable_id="y", value_type="int", values=(10, 20)),
-        ])
-    )
+    result = generate_scenarios(request([
+        ScenarioVariable(variable_id="x", value_type="int", values=(1, 2)),
+        ScenarioVariable(variable_id="y", value_type="int", values=(10, 20)),
+    ]))
     assert result.status is GenerationStatus.GENERATED
     assert len(result.candidates) == 4
 
 
 def test_total_limit_blocks_before_expansion():
-    result = generate_scenarios(
-        request(
-            [
-                ScenarioVariable(variable_id="x", value_type="int", values=(1, 2)),
-                ScenarioVariable(variable_id="y", value_type="int", values=(10, 20)),
-            ],
-            limits=limits(max_total_combinations=3),
-        )
-    )
+    result = generate_scenarios(request([
+        ScenarioVariable(variable_id="x", value_type="int", values=(1, 2)),
+        ScenarioVariable(variable_id="y", value_type="int", values=(10, 20)),
+    ], limits=limits(max_total_combinations=3)))
+    assert result.status is GenerationStatus.BLOCKED
+    assert result.candidates == ()
+
+
+def test_emitted_limit_blocks_before_partial_output():
+    result = generate_scenarios(request([
+        ScenarioVariable(variable_id="x", value_type="int", values=(1, 2)),
+    ], limits=limits(max_emitted=1)))
     assert result.status is GenerationStatus.BLOCKED
     assert result.candidates == ()
 
 
 def test_variable_limit_blocks():
-    result = generate_scenarios(
-        request([ScenarioVariable(variable_id="x", value_type="int", values=(1,))], limits=limits(max_variables=0))
-    )
+    result = generate_scenarios(request([ScenarioVariable(variable_id="x", value_type="int", values=(1,))], limits=limits(max_variables=0)))
     assert result.status is GenerationStatus.BLOCKED
 
 
@@ -89,19 +76,28 @@ def test_depth_limit_blocks():
 
 
 def test_order_of_variables_does_not_change_output():
-    a = generate_scenarios(
-        request([
-            ScenarioVariable(variable_id="b", value_type="int", values=(2, 3)),
-            ScenarioVariable(variable_id="a", value_type="int", values=(1,)),
-        ])
-    )
-    b = generate_scenarios(
-        request([
-            ScenarioVariable(variable_id="a", value_type="int", values=(1,)),
-            ScenarioVariable(variable_id="b", value_type="int", values=(2, 3)),
-        ])
-    )
+    a = generate_scenarios(request([
+        ScenarioVariable(variable_id="b", value_type="int", values=(2, 3)),
+        ScenarioVariable(variable_id="a", value_type="int", values=(1,)),
+    ]))
+    b = generate_scenarios(request([
+        ScenarioVariable(variable_id="a", value_type="int", values=(1,)),
+        ScenarioVariable(variable_id="b", value_type="int", values=(2, 3)),
+    ]))
     assert a.candidates == b.candidates
+
+
+def test_duplicate_variable_ids_rejected():
+    with pytest.raises(ValidationError):
+        request([
+            ScenarioVariable(variable_id="x", value_type="int", values=(1,)),
+            ScenarioVariable(variable_id="x", value_type="int", values=(2,)),
+        ])
+
+
+def test_blank_identity_rejected():
+    with pytest.raises(ValidationError):
+        request(scenario_id=" ")
 
 
 def test_unauthorized_space_is_blocked():
