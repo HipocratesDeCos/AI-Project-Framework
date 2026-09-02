@@ -349,10 +349,12 @@ Cualquier requisito que introduzca autoridad sobre viabilidad, escenarios, Decis
 
 **Tests físicos:** materializados en `tests/test_negotiation_intelligence.py`, cubriendo las invariantes declaradas en este contrato.
 
-**Estado:** CERRADO — RECONCILIADO Y MATERIALIZADO.
+**Estado:** CERRADO — RECONCILIADO Y MATERIALIZADO — CI VALIDADO.
 
 **Naturaleza del cambio:** reconciliación de frontera documental/técnica; no se modifican C0, DecisionContext, Decision Versioning SQL, O2 ni autoridades funcionales.
 
-**CI:** la materialización de la reconciliación queda sujeta a verificación de la CI del commit resultante; no se considera cierre CI confirmado hasta disponer del resultado satisfactorio del workflow correspondiente.
+**CI de materialización:** EIOS Tests #360 (`33608380850`), job `100177532561`, sobre el merge commit `f82bee9a8567dbb22319fac6d72e2cd5d7e0ed7c`, **SUCCESS**. La documentación de cierre de reconciliación queda igualmente materializada en `07_Pruebas/Reconciliacion_Decision_Versioning_NI_NL.md`.
+
+**Nota:** este commit es exclusivamente documental; no introduce cambios funcionales en NI, NL, C0, Decision Versioning u O2.
 
 **Método:** DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI.
