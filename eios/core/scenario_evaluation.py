@@ -46,8 +46,13 @@ class ScenarioEvaluationResult(BaseModel):
             raise ValueError("FAILED requiere failure_reason")
         if self.status != ScenarioEvaluationStatus.FAILED and self.failure_reason is not None:
             raise ValueError("failure_reason solo es válido para FAILED")
-        if self.status == ScenarioEvaluationStatus.COMPLETED and self.limitations:
-            raise ValueError("COMPLETED no puede conservar limitaciones pendientes")
+        if self.status == ScenarioEvaluationStatus.COMPLETED:
+            if not self.assessments:
+                raise ValueError("COMPLETED requiere resultados Assessment")
+            if self.viability_result is None:
+                raise ValueError("COMPLETED requiere resultado de Viability Frontier")
+            if self.limitations:
+                raise ValueError("COMPLETED no puede conservar limitaciones pendientes")
         return self
 
 
