@@ -28,9 +28,10 @@ El adaptador **no ejecuta capacidades, no recalcula resultados y no interpreta r
 3. `PR_NOT_JUSTIFIABLE` nunca se transforma en `FAILED`.
 4. TCO incompleto conserva sus `unresolved_components`.
 5. QTG `NO_APTO` conserva su semántica de calidad y no se clasifica como fallo técnico.
-6. Las trazas se propagan sin modificación.
-7. Los adaptadores no crean `decision_id`, `scenario_id`, versiones ni snapshots: los toma el `O1ExecutionContext`.
-8. Ningún adaptador produce una decisión, recomendación, ranking, aprobación o rechazo empresarial.
+6. Las trazas se propagan sin modificación cuando el resultado de origen dispone de trazas O1 compatibles.
+7. QTG no dispone de `Trace` propio en `QualityTrustResult`: sus `evidence_refs` son referencias de evidencia del control y **no se relabelizan como `trace_references` O1**.
+8. Los adaptadores no crean `decision_id`, `scenario_id`, versiones ni snapshots: los toma el `O1ExecutionContext`.
+9. Ningún adaptador produce una decisión, recomendación, ranking, aprobación o rechazo empresarial.
 
 ## Perímetro
 
