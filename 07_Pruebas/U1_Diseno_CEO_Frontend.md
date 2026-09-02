@@ -1,16 +1,19 @@
 # EIOS — U1 · CEO FRONTEND / INTERACCIÓN OPERATIVA
 
-**Estado:** 🟡 DISEÑO — NO IMPLEMENTADO
+**Estado:** 🟡 DISEÑO DEPURADO — NO IMPLEMENTADO
 **Baseline:** `ad7961935cc19ca4ab0a19dbef0ac9d4721c8374`
-**Rama:** `design/u1-ceo-frontend`
+**Diseño inicial:** `be893119793b2a78b6baac92da42333ecf66f1b8`
+**Auditoría 1:** `bdced7a6b22fc63702d7fa37939e302d1e1e39a4`
 
 ## 1. Propósito
 
 Definir la capa de interacción mediante la cual un CEO o usuario autorizado introduce información, revisa su calidad y contexto, solicita una operación EIOS y recibe resultados de soporte a la decisión.
 
-U1 es una **capa de presentación y aplicación**, no una nueva autoridad analítica.
+U1 es una capa de presentación y aplicación, no una nueva autoridad analítica.
 
-## 2. Arquitectura
+## 2. Frontera contractual U1 → O1
+
+U1 no construye ni modifica directamente identidades técnicas canónicas. Recopila datos de negocio autorizados y los entrega a una Application Boundary que prepara la invocación contractual de O1.
 
 ```text
 CEO / USUARIO AUTORIZADO
@@ -30,203 +33,95 @@ CEO / USUARIO AUTORIZADO
  CEO / DECISIÓN HUMANA
 ```
 
-El frontend no accederá directamente a motores internos para tomar decisiones.
+La Application Boundary traduce la entrada de UI al contrato autorizado. No introduce `decision_version` ni una segunda identidad/versionado de decisión.
 
-## 3. Flujo principal
+## 3. Datos de entrada
 
-1. Crear nueva operación.
-2. Introducir datos de compra.
-3. Revisar datos obligatorios y formatos.
-4. Adjuntar/referenciar evidencia autorizada.
-5. Revisar contexto, versiones y snapshot.
-6. Ejecutar la operación mediante la frontera de aplicación.
-7. Mostrar estado de ejecución.
-8. Mostrar resultados y limitaciones.
-9. Mostrar escenarios y comparaciones cuando existan.
-10. Presentar el paquete de soporte a decisión.
-11. Mantener explícita la decisión final humana.
+La pantalla de nueva operación se limita a campos autorizados de `PurchaseOperation` y referencias de evidencia admitidas por los contratos existentes.
 
-## 4. Pantallas MVP
-
-### U1.1 Inicio / Dashboard
-
-Debe mostrar operaciones recientes, estado de ejecución y accesos a nueva operación.
-
-### U1.2 Nueva operación
-
-Formulario estructurado para los datos autorizados de `PurchaseOperation`.
-
-No se crearán campos que representen autoridad inexistente.
-
-### U1.3 Evidencia
-
-Carga/referencia y estado de validación de evidencia.
-
-La UI debe distinguir claramente ausencia de evidencia, evidencia inválida y evidencia suficiente.
-
-### U1.4 Contexto
-
-Presentación de `decision_id`, `scenario_id`, `rules_version`, `parameters_version` y `data_snapshot_id` cuando correspondan.
-
-No se añadirá `decision_version` como sustituto no autorizado.
-
-### U1.5 Ejecución
-
-Estado técnico visible: READY, RUNNING, COMPLETED, BLOCKED, PARTIALLY_COMPLETED, NOT_EVALUABLE, FAILED.
-
-Nunca presentar un estado técnico como decisión empresarial.
-
-### U1.6 Resultado ejecutivo
-
-Vista orientada al CEO con:
-
-- resultado de soporte;
-- principales evidencias;
-- advertencias;
-- limitaciones;
-- costes relevantes;
-- escenarios disponibles;
-- trazabilidad accesible.
-
-### U1.7 Escenarios
-
-Presentación de escenarios autorizados y sus resultados derivados.
-
-No seleccionar automáticamente el mejor escenario.
-
-### U1.8 Comparación
-
-Comparación descriptiva de alternativas/escenarios cuando exista un `Decision Twin` válido.
-
-No debe existir botón o comportamiento equivalente a selección automática de alternativa.
-
-## 5. Principios UX
-
-La interfaz debe priorizar:
-
-- claridad ejecutiva;
-- baja carga cognitiva;
-- trazabilidad bajo demanda;
-- separación entre dato introducido y resultado calculado;
-- separación entre resultado técnico y decisión empresarial;
-- visibilidad de incertidumbre;
-- estados explícitos;
-- prevención de acciones irreversibles.
-
-La estética no puede ocultar limitaciones ni convertir una ausencia de resultado en un valor negativo.
-
-## 6. Autoridad
-
-U1 no puede:
-
-- modificar reglas;
-- modificar parámetros autorizados;
-- alterar evidencia histórica;
-- cambiar resultados de motores;
-- crear ranking empresarial;
-- aprobar/rechazar compras automáticamente;
-- negociar automáticamente;
-- convertir una recomendación técnica en decisión;
-- crear una segunda identidad o versionado de decisión.
-
-El usuario conserva la decisión empresarial final.
-
-## 7. Entrada de datos
-
-Los formularios deben validar estructura y formato antes de enviar datos a la frontera de aplicación.
-
-La validación de UI no sustituye C0 ni QTG.
-
-Debe distinguirse:
+La UI puede comprobar formato, obligatoriedad y coherencia superficial. C0/QTG mantienen la autoridad sobre validación de dominio y calidad.
 
 ```text
-ERROR DE FORMULARIO
-        ≠
-ERROR DE VALIDACIÓN DE DOMINIO
-        ≠
-NOT_EVALUABLE
-        ≠
-FAILED
+UI validation ≠ C0 domain validation ≠ QTG quality gate
 ```
 
-## 8. Presentación de resultados
+## 4. Contexto y versionado
 
-El resultado debe conservar:
+`decision_id`, `scenario_id`, `rules_version`, `parameters_version` y `data_snapshot_id` se tratan como contexto controlado por la aplicación.
 
-- identidad;
-- contexto/versiones;
-- estado;
-- evidencia y trazabilidad compatibles;
-- limitaciones;
-- resultados derivados.
+La UI puede mostrar estos valores y seleccionar referencias autorizadas, pero no editarlos libremente. No se introduce `decision_version`.
 
-La UI no debe recalcular resultados para presentarlos.
+## 5. Máquina de estados visible
 
-## 9. Escenarios y O4
+Se muestran literalmente READY, RUNNING, COMPLETED, BLOCKED, PARTIALLY_COMPLETED, NOT_EVALUABLE y FAILED.
 
-U1 podrá presentar parámetros autorizados para generar escenarios cuando O4 esté integrado contractualmente.
+- `NOT_EVALUABLE` no se presenta como resultado negativo.
+- `FAILED` se presenta como fallo técnico, no como decisión empresarial.
+- `BLOCKED` indica que la ejecución no puede continuar bajo las condiciones actuales.
+- `PARTIALLY_COMPLETED` conserva explícitamente lo que falta.
+- ausencia de resultado no equivale a `NO COMPRAR`.
 
-La UI no debe construir combinaciones por su cuenta ni duplicar la lógica de O4.
+## 6. Evidencia
 
-Flujo futuro:
+U1 puede capturar o referenciar evidencia y mostrar su estado. No convierte por sí misma una evidencia en evidencia válida ni sustituye QTG.
 
-```text
-U1 → Application Boundary → O4 → O2 → O3
-```
+La vista distingue como mínimo `AUSENTE`, `NO VÁLIDA`, `SUFICIENTE/VALIDADA` y `CON ADVERTENCIAS`.
+
+## 7. Resultado ejecutivo
+
+La presentación separa visual y semánticamente:
+
+1. Datos introducidos.
+2. Resultados derivados.
+3. Evidencia/trazabilidad.
+4. Limitaciones/advertencias.
+5. Decisión humana.
+
+U1 no recalcula TCO, PRICE, QTG, Assessment, Viability ni otros resultados para dibujar la pantalla.
+
+## 8. Escenarios
+
+U1 presenta escenarios ya autorizados y sus resultados. No calcula Cartesian products, no puntúa escenarios y no selecciona el mejor.
+
+Cuando O4 esté integrado contractualmente: `U1 → Application Boundary → O4 → O2 → O3`.
+
+La selección de un escenario para visualizarlo no constituye ranking empresarial.
+
+## 9. Decision Twin
+
+La comparación es descriptiva: diferencias, resultados, condiciones, consecuencias, riesgos y trazabilidad cuando estén disponibles.
+
+No existe una acción de UI que convierta la comparación en selección automática.
 
 ## 10. Seguridad de interacción
 
-Toda acción que pueda modificar una operación debe mostrar claramente su alcance antes de confirmarse.
+Toda acción que modifique una operación requiere confirmación explícita y muestra previamente su alcance.
 
-Las acciones de decisión empresarial no deben confundirse con acciones técnicas como guardar, recalcular o ejecutar.
+Guardar, ejecutar, recalcular y decidir son acciones semánticamente diferenciadas. Las acciones de decisión empresarial quedan fuera de la autoridad de U1.
 
-## 11. Responsive / dispositivos
+## 11. Accesibilidad y presentación
 
-El MVP deberá funcionar correctamente en escritorio y tablet. La vista móvil podrá ser una adaptación posterior, sin alterar la semántica contractual.
+Mínimos MVP: navegación por teclado, etiquetas explícitas, errores asociados al campo, contraste suficiente, estados no dependientes solo del color, tamaños legibles, lenguaje ejecutivo claro y responsive escritorio/tablet.
 
-## 12. Accesibilidad
+La estética nunca oculta incertidumbre, limitaciones ni ausencia de resultado.
 
-Mínimos de diseño:
+## 12. Pantallas MVP
 
-- navegación por teclado;
-- etiquetas explícitas;
-- estados no dependientes exclusivamente del color;
-- mensajes de error asociados al campo;
-- contraste suficiente;
-- tamaños legibles;
-- lenguaje ejecutivo claro.
+1. Dashboard.
+2. Nueva operación.
+3. Evidencia.
+4. Contexto.
+5. Ejecución.
+6. Resultado ejecutivo.
+7. Escenarios.
+8. Comparación.
 
 ## 13. Fuera de alcance
 
-U1 MVP no incluye:
+No incluye autonomía decisional, optimización, ranking automático, ejecución de compras, negociación automática, administración de reglas, edición de parámetros maestros, nueva persistencia, API pública ni SSO empresarial no especificado.
 
-- autonomía decisional;
-- optimización;
-- ranking automático;
-- ejecución de compras;
-- negociación automática;
-- modificación directa de motores;
-- administración de reglas desde el frontend;
-- edición de parámetros maestros;
-- API pública;
-- persistencia nueva;
-- autenticación/SSO empresarial no especificada.
+## 14. Criterios para AUDITORÍA 2
 
-## 14. Criterios para AUDITORÍA
-
-Antes de materializar U1 deben auditarse:
-
-1. frontera U1 → O1;
-2. correspondencia de campos con `PurchaseOperation`;
-3. autoridad de DecisionContext;
-4. estados O1;
-5. evidencia/QTG;
-6. presentación de TCO/PRICE;
-7. escenarios O2/O3/O4;
-8. Decision Twin;
-9. ausencia de decisiones automáticas;
-10. accesibilidad y estados de error;
-11. trazabilidad visible;
-12. ausencia de autoridad paralela.
+Debe verificarse la frontera U1 → Application Boundary → O1, correspondencia con `PurchaseOperation`, preservación de `DecisionContext`, estados O1, evidencia/QTG, TCO/PRICE, O2/O3/O4, Decision Twin, ausencia de decisión automática, accesibilidad, trazabilidad y ausencia de autoridad paralela.
 
 **No se autoriza implementación por este documento.**
