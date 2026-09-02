@@ -102,3 +102,33 @@ def test_completed_package_cannot_hide_unresolved_items():
 
     package = build_support_package(purchase(), context(), (result,))
     assert package.execution_status == O1ExecutionStatus.COMPLETED
+
+
+def test_composition_preserves_capability_boundaries():
+    c0 = CapabilityExecution(
+        capability="C0",
+        status=O1ExecutionStatus.COMPLETED,
+        result_available=True,
+        trace_references=("trace-c0",),
+    )
+    price = CapabilityExecution(
+        capability="PRICE",
+        status=O1ExecutionStatus.COMPLETED,
+        result_available=True,
+        trace_references=("trace-price",),
+    )
+    tco = CapabilityExecution(
+        capability="TCO",
+        status=O1ExecutionStatus.PARTIALLY_COMPLETED,
+        result_available=False,
+        unresolved_items=("TRANSPORT",),
+    )
+
+    package = build_support_package(purchase(), context(), (c0, price, tco))
+
+    assert package.execution_status == O1ExecutionStatus.PARTIALLY_COMPLETED
+    assert package.capability_results == (c0, price, tco)
+    assert package.trace_references == ("trace-c0", "trace-price")
+    assert package.unresolved_items == ("TRANSPORT",)
+    assert package.execution_context.rules_version == "R-1"
+    assert package.version_context == ("R-1", "P-1", "DS-1")
