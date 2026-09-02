@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from .c0 import Assessment, Trace
 from .orchestration import CapabilityExecution, O1ExecutionStatus
-from .models import AssessmentStatus
 from eios.pricing.models import PriceIntelligenceResult
 from eios.tco.models import TCOResult
 from eios.quality.gate import QualityTrustResult
@@ -55,7 +54,6 @@ def adapt_price(result: PriceIntelligenceResult) -> CapabilityExecution:
         status=O1ExecutionStatus.COMPLETED,
         result_available=True,
         trace_references=result.trace_references,
-        unresolved_items=result.pr_limitations if result.pr_status == "PR_LIMITED" else (),
     )
 
 
@@ -65,7 +63,6 @@ def adapt_tco(result: TCOResult) -> CapabilityExecution:
             capability="TCO",
             status=O1ExecutionStatus.COMPLETED,
             result_available=True,
-            unresolved_items=(),
         )
     return CapabilityExecution(
         capability="TCO",
@@ -80,9 +77,6 @@ def adapt_qtg(result: QualityTrustResult) -> CapabilityExecution:
         capability="QTG",
         status=O1ExecutionStatus.COMPLETED,
         result_available=True,
-        trace_references=tuple(
-            ref for check in result.checks for ref in check.evidence_refs
-        ),
     )
 
 
