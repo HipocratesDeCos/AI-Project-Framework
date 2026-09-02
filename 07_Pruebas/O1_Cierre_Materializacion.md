@@ -2,11 +2,12 @@
 
 ## Estado
 
-**O1 — Orquestación Operacional → 🔒 CERRADO**
+**O1 — Orquestación Operacional → 🔒 CERRADO — RECONCILIADO Y CI VALIDADO**
 
 Fecha: 2026-09-02  
 Branch: `main`  
-Baseline de cierre: `96d79b3417dfa286da994ecb37a5a156acc04cf3`
+Baseline de cierre original: `96d79b3417dfa286da994ecb37a5a156acc04cf3`  
+HEAD de reconciliación: `af5c15f151119327d010eac0f27f9da69fe04544`
 
 ## Alcance cerrado
 
@@ -21,26 +22,28 @@ La orquestación conserva identidad y contexto de decisión (`execution_id`, `de
 - Diseño funcional O1: completado.
 - Auditoría: completada.
 - Depuración: completada.
-- Auditoría 2: completada, sin defecto objetivo adicional que justifique ampliar o alterar el contrato.
+- Auditoría 2: completada; la corrección posterior de Decision Twin fue aplicada como defecto objetivo de composición y validada.
 - Cierre: aprobado sobre el alcance definido.
 - Materialización: contrato, implementación, adaptadores y pruebas presentes en `main`.
 - CI: **SUCCESS**.
 
-## Correcciones materializadas antes del cierre
+## Correcciones y reconciliaciones materializadas
 
 1. Fixture PRICE corregido para respetar la invariante `reference_set == n_selected`, incluyendo `PR_NOT_JUSTIFIABLE` con selección cero.
 2. `PR_LIMITED` se conserva como ejecución `COMPLETED` con resultado disponible y sin convertir su limitación de dominio en `unresolved_items` de ejecución.
 3. Las referencias de evidencia de QTG no se relabelan como referencias de trazabilidad.
+4. Decision Twin con `missing_attributes` se adapta como `PARTIALLY_COMPLETED`, `result_available=False`, conservando trazas compatibles y exponiendo los faltantes como `unresolved_items`.
+5. Negotiation Intelligence y Negotiation Ladder quedan explícitamente cubiertos por el contrato de adaptación y conservan sus `traceability_references` sin reinterpretación.
 
 ## Evidencia CI
 
 Workflow: **EIOS Tests**  
-Run: `33596508232`  
-Job: `test` (`100140925467`)  
-HEAD: `96d79b3417dfa286da994ecb37a5a156acc04cf3`  
+Run: `33602351750`  
+Job: `test` (`100158667899`)  
+HEAD: `af5c15f151119327d010eac0f27f9da69fe04544`  
 Resultado: **SUCCESS**
 
-El run ejecutó las pruebas Python y la validación de los esquemas SQL Server de C0, Decision Versioning y Parameter Configuration.
+El run ejecutó las pruebas Python y la validación de los esquemas SQL Server de C0, Decision Versioning y Parameter Configuration, con todos los pasos completados correctamente.
 
 ## Límites del cierre
 
@@ -51,4 +54,4 @@ El run ejecutó las pruebas Python y la validación de los esquemas SQL Server d
 
 ## Decisión
 
-**O1 queda materializado y cerrado sobre este alcance.** El siguiente trabajo deberá tratarse como nueva capacidad o como defecto objetivo, siguiendo nuevamente el ciclo de gobernanza establecido.
+**O1 queda reconciliado, materializado, validado por CI y cerrado sobre este alcance.** El siguiente trabajo deberá tratarse como nueva capacidad o como defecto objetivo, siguiendo nuevamente el ciclo de gobernanza establecido.
