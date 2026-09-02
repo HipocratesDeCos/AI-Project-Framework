@@ -2,8 +2,8 @@
 
 ## Índice Maestro del Framework
 
-**Versión:** 2.7  
-**Estado:** APROBADO — reconciliación post-O3  
+**Versión:** 2.8  
+**Estado:** APROBADO — reconciliación post-U1  
 **Función:** Índice maestro de la estructura documental EIOS  
 **Ubicación:** `03_Arquitectura/Framework_Map.md`
 
@@ -165,6 +165,7 @@ Documentación correspondiente a pruebas y verificación.
 - `O3_Cierre_PostMerge.md`
 - `O3_Auditoria2_Implementacion_Corregida.md`
 - `Reconciliacion_Decision_Versioning_NI_NL.md`
+- `U1_Cierre_Materializacion.md`
 
 Estos documentos registran pruebas, auditorías, cierres y reconciliaciones materializadas. No crean una autoridad funcional paralela.
 
@@ -192,7 +193,8 @@ Documentación correspondiente a la materialización técnica controlada del dis
 12. `Scenario_Evaluation_Implementation_Contract.md`
 13. `TCO_Core_CI_Verification.md`
 14. `TCO_Core_Implementation_Contract.md`
-15. `Viability_Frontier_Design_Audit.md`
+15. `U1_Frontend_Implementation_Contract.md`
+16. `Viability_Frontier_Design_Audit.md`
 
 La implementación ejecutable se encuentra materializada adicionalmente en `eios/` y verificada mediante `tests/`.
 
