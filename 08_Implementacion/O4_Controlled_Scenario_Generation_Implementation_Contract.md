@@ -1,6 +1,6 @@
 # EIOS — O4 · CONTROLLED SCENARIO GENERATION
 
-**Estado:** 🟡 DISEÑO DEL CONTRATO DE IMPLEMENTACIÓN — PENDIENTE DE AUDITORÍA
+**Estado:** 🔒 CONTRATO DEPURADO — PENDIENTE DE AUDITORÍA 2
 **Base funcional:** `O4_Diseno_Controlled_Scenario_Generation.md`
 **Scope:** materialización técnica del MVP de generación controlada de escenarios.
 
@@ -18,25 +18,27 @@ Este contrato no amplía la autoridad de O4 ni crea persistencia, API, SQL, opti
 - `max_depth = 3`
 - `max_emitted_candidates = 1000`
 
-Los límites son duros y deben comprobarse en la precedencia indicada por el diseño O4 antes de materializar candidatos.
+Son límites duros. La cardinalidad conocida que exceda `max_total_cardinality` bloquea antes de expandir; `max_emitted_candidates` no permite truncamiento silencioso de una expansión conocida como excesiva.
 
 ## 3. Tipos de variables
 
 La implementación acepta únicamente variables declaradas con:
 
-- `variable_id: str` no vacío;
+- `variable_id: str` no vacío y único;
 - `value_type: str` limitado a `string`, `integer`, `number`, `boolean`;
-- `domain: finite ordered sequence` no vacía para generación normal;
+- `domain: finite sequence` explícita;
 - `discretization: optional metadata`, sin generación implícita;
 - `structural_exclusions: optional deterministic constraints`.
+
+Los valores del dominio deben ser coherentes con `value_type`. No se permite coerción silenciosa. Un espacio malformado no se trata como dominio vacío.
 
 No se derivan variables desde parámetros EIOS.
 
 ## 4. Entrada de generación
 
-La operación de generación recibirá un contexto autorizado, un espacio de variables canónico, una versión identificable de la política, un escenario padre opcional y límites efectivos.
+La operación de generación recibirá un contexto autorizado, un espacio de variables canónico, una versión identificable y no vacía de la política, un escenario padre opcional y límites efectivos.
 
-La entrada deberá ser validada sin mutar objetos recibidos.
+La entrada deberá validarse sin mutar objetos recibidos.
 
 El contexto autorizado conserva las identidades existentes de EIOS. O4 no crea IDs, fingerprints, snapshots ni traces paralelos.
 
@@ -66,7 +68,8 @@ Precedencia obligatoria:
 Un primer incumplimiento produce `BLOCKED`; no se permite expansión parcial.
 
 Con cero variables, cardinalidad = 1.
-Un dominio vacío produce `EMPTY` cuando el espacio es estructuralmente válido.
+Un dominio vacío en un espacio estructuralmente válido produce `EMPTY`.
+Una entrada malformada produce `FAILED` con causa técnica; cuando la cardinalidad no puede determinarse de forma segura, produce `NOT_EVALUABLE`.
 
 ## 7. Estados
 
@@ -82,11 +85,11 @@ No se transforman estos estados en estados empresariales.
 
 ## 8. Canonicalización y deduplicación
 
-La deduplicación se realizará antes de la emisión final usando representación canónica estable de:
+La representación canónica ordenará variables por `variable_id` y cambios por su clave canónica antes de deduplicar. La deduplicación se realizará antes de la emisión final usando:
 
 `DecisionContext + parent_scenario_id + ordered canonical changes`
 
-El orden de entrada no podrá generar duplicados semánticos.
+El orden incidental de entrada no podrá crear duplicados semánticos.
 
 La identidad/versionado contractual definitivo del escenario será responsabilidad de O2.
 
@@ -100,14 +103,15 @@ Queda prohibida cualquier poda basada en rentabilidad, utilidad, preferencia, vi
 
 `depth=0` representa el escenario padre/base.
 Cada derivación incrementa profundidad en una unidad.
-Una derivación que exceda `max_depth` queda bloqueada antes de emitirse.
+Una derivación que exceda `max_depth` queda bloqueada antes de construirse o emitirse.
 
 ## 11. Seguridad y determinismo
 
-- Ninguna expansión puede iniciarse si la cardinalidad conocida supera el límite.
+- Ninguna expansión puede iniciarse si la cardinalidad conocida supera un límite duro.
 - Si la cardinalidad no puede determinarse con seguridad, resultado `NOT_EVALUABLE`.
 - La salida debe ser reproducible con la misma entrada canónica y política versionada.
 - No se admite fallback ilimitado.
+- La política debe estar versionada antes de ejecutar la generación; O4 no inventa una versión por defecto.
 
 ## 12. Integración
 
@@ -142,17 +146,19 @@ La materialización solo podrá cerrarse si existen pruebas deterministas que cu
 5. límite por variable;
 6. límite de cardinalidad total;
 7. límite de profundidad;
-8. deduplicación canónica;
+8. deduplicación canónica independiente del orden de entrada;
 9. poda estructural;
 10. `NOT_EVALUABLE` ante cardinalidad no determinable;
 11. `FAILED` con causa;
 12. inmutabilidad de entradas;
 13. ausencia de ranking/selección/optimización;
 14. delegación de identidad/versionado a O2;
-15. reproducibilidad.
+15. política versionada obligatoria;
+16. coherencia estricta de tipos;
+17. reproducibilidad.
 
 ## 15. Autoridad
 
 Este contrato no sustituye el diseño funcional O4 ni modifica la autoridad de O2, O3, Viability Frontier, Decision Twin, Negotiation, CRC o del humano.
 
-**Estado de entrada:** contrato preparado para AUDITORÍA 1.
+**Estado:** contrato depurado y preparado para AUDITORÍA 2.
