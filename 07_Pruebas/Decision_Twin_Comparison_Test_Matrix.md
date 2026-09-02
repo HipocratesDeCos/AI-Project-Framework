@@ -103,4 +103,4 @@ El contrato solo pasa a implementación cuando:
 
 Una prueba que detecte selección implícita deberá considerarse FALLIDA y no podrá resolverse relajando la aserción para acomodar el comportamiento.
 
-**Estado:** AUDITADA — PREPARADA PARA IMPLEMENTACIÓN EJECUTABLE.
+**Estado:** MATRIZ IMPLEMENTADA Y MATERIALIZADA — validación CI completada en el alcance actual; pendiente únicamente de la nueva ejecución CI del commit de reconciliación documental.
