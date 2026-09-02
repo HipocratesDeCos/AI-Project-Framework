@@ -78,14 +78,15 @@ def test_missing_context_is_failed_with_cause():
     assert result.reason
 
 
-def test_runtime_space_error_is_not_evaluable():
-    class ExplodingPolicy(GenerationPolicy):
-        @property
-        def max_total_cardinality(self):
-            raise TypeError("cardinalidad indeterminable")
+def test_runtime_space_error_is_not_evaluable(monkeypatch):
+    import eios.core.scenario_generation as generation
 
-    policy = ExplodingPolicy(policy_version="O4-1")
-    result = generate_scenarios(context(), (), policy)
+    def exploding_prod(_values):
+        raise TypeError("cardinalidad indeterminable")
+
+    monkeypatch.setattr(generation, "prod", exploding_prod)
+    variable = GenerationVariable(variable_id="a", value_type="integer", base_value=0, domain=(1,))
+    result = generate_scenarios(context(), (variable,), GenerationPolicy(policy_version="O4-1"))
     assert result.status is GenerationStatus.NOT_EVALUABLE
     assert result.reason
 
