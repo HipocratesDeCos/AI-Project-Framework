@@ -14,16 +14,8 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 StepType = Literal[
-    "OBJECTIVE",
-    "OPENING_REQUEST",
-    "MOVE",
-    "CONCESSION",
-    "COUNTERPART_CONSIDERATION",
-    "CONDITION",
-    "ALTERNATIVE",
-    "FALLBACK",
-    "LIMIT",
-    "WALK_AWAY",
+    "OBJECTIVE", "OPENING_REQUEST", "MOVE", "CONCESSION", "COUNTERPART_CONSIDERATION",
+    "CONDITION", "ALTERNATIVE", "FALLBACK", "LIMIT", "WALK_AWAY",
 ]
 
 
@@ -34,7 +26,6 @@ class LadderContextReferences(BaseModel):
 
     negotiation_result_id: str = Field(min_length=1, max_length=128)
     decision_id: str = Field(min_length=1, max_length=64)
-    decision_version: str = Field(min_length=1, max_length=64)
     scenario_id: str | None = Field(default=None, max_length=64)
     source_references: tuple[str, ...] = ()
 
@@ -117,10 +108,6 @@ class NegotiationLadderResult(BaseModel):
 
 
 __all__ = [
-    "LadderContextReferences",
-    "LadderRoute",
-    "LadderStep",
-    "LadderTransition",
-    "NegotiationLadderResult",
-    "StepType",
+    "LadderContextReferences", "LadderRoute", "LadderStep", "LadderTransition",
+    "NegotiationLadderResult", "StepType",
 ]
