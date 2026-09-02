@@ -3,8 +3,8 @@
 ## 1. Identidad
 
 **Documento:** Negotiation Intelligence Implementation Contract  
-**Versión:** 1.2  
-**Estado:** CERRADO Y MATERIALIZADO  
+**Versión:** 1.3  
+**Estado:** CERRADO — RECONCILIADO Y MATERIALIZADO  
 **Baseline de diseño:** EIOS Vertical MVP  
 **Ubicación:** `08_Implementacion/Negotiation_Intelligence_Implementation_Contract.md`
 
@@ -52,18 +52,19 @@ Cada referencia debe conservar su identidad y versión de origen cuando ésta ex
 
 NI no duplica como autoridad los artefactos referenciados.
 
-## 5. Identidad y versionado
+## 5. Identidad y versionado — reconciliación
 
 El resultado NI debe estar vinculado al contexto decisional correspondiente y reutilizar las identidades autorizadas existentes.
 
 ```text
 Decision_ID
-Decision_Version / estado decisional
 Scenario_ID, cuando aplique
 Rules_Version, cuando aplique
 Parameters_Version, cuando aplique
 Data_Snapshot_ID, cuando aplique
 ```
+
+**`decision_version` no pertenece al contrato NI.** Decision Versioning no define una versión funcional con ese campo. Su registro físico utiliza `decision_state_record_id` como identificador técnico histórico y conserva referencias de C0.
 
 NI no crea un sistema paralelo de `Decision Versioning`, `Scenario Versioning`, `Trace` o `input_fingerprint`.
 
@@ -296,6 +297,7 @@ La justificación utiliza `NIAssertion` como unidad única de contenido epistemo
 20. Una recomendación no equivale a una decisión empresarial.
 21. La calificación epistemológica y la confianza de una afirmación no se duplican en estructuras paralelas del resultado.
 22. NI no crea un sistema paralelo de versionado mediante una identidad ambigua distinta de `negotiation_result_id` y las referencias upstream.
+23. `decision_version` no forma parte del modelo NI ni puede introducirse como identidad paralela.
 
 ## 18. Exclusiones
 
@@ -310,7 +312,8 @@ Quedan fuera de este contrato:
 - aprobación;
 - decisión empresarial;
 - ejecución;
-- gobierno o activación de Strategy.
+- gobierno o activación de Strategy;
+- creación de una versión funcional de decisión no definida por la autoridad de Decision Versioning.
 
 ## 19. Criterios mínimos de test — verificación
 
@@ -329,7 +332,8 @@ Los siguientes criterios quedan establecidos como invariantes verificables de la
 11. ausencia de segundo fingerprint/Trace;
 12. determinismo para entradas y versiones idénticas;
 13. ausencia de duplicación de confianza/calificación epistemológica;
-14. ausencia de identidad paralela de versionado.
+14. ausencia de identidad paralela de versionado;
+15. rechazo de `decision_version` como campo no autorizado.
 
 La cobertura física correspondiente se encuentra materializada en `tests/test_negotiation_intelligence.py` y en la implementación `eios/core/negotiation_intelligence.py`.
 
@@ -345,10 +349,10 @@ Cualquier requisito que introduzca autoridad sobre viabilidad, escenarios, Decis
 
 **Tests físicos:** materializados en `tests/test_negotiation_intelligence.py`, cubriendo las invariantes declaradas en este contrato.
 
-**Estado:** CERRADO Y MATERIALIZADO.
+**Estado:** CERRADO — RECONCILIADO Y MATERIALIZADO.
 
-**Naturaleza del cambio:** reconciliación documental del estado de implementación; no se modifican código, tests, SQL, C0 ni autoridades funcionales.
+**Naturaleza del cambio:** reconciliación de frontera documental/técnica; no se modifican C0, DecisionContext, Decision Versioning SQL, O2 ni autoridades funcionales.
 
-**CI:** la materialización documental queda sujeta a verificación de la CI del commit resultante; no se considera cierre CI confirmado hasta disponer del resultado satisfactorio del workflow correspondiente.
+**CI:** la materialización de la reconciliación queda sujeta a verificación de la CI del commit resultante; no se considera cierre CI confirmado hasta disponer del resultado satisfactorio del workflow correspondiente.
 
 **Método:** DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI.
