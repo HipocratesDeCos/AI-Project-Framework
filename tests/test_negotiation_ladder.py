@@ -2,20 +2,13 @@ import pytest
 from pydantic import ValidationError
 
 from eios.core.negotiation_ladder import (
-    LadderContextReferences,
-    LadderRoute,
-    LadderStep,
-    LadderTransition,
-    NegotiationLadderResult,
+    LadderContextReferences, LadderRoute, LadderStep, LadderTransition, NegotiationLadderResult,
 )
 
 
 def context(**overrides):
     values = {
-        "negotiation_result_id": "NI1",
-        "decision_id": "D1",
-        "decision_version": "DV1",
-        "scenario_id": "S1",
+        "negotiation_result_id": "NI1", "decision_id": "D1", "scenario_id": "S1",
         "source_references": ("NI_CONTENT_1",),
     }
     values.update(overrides)
@@ -23,30 +16,14 @@ def context(**overrides):
 
 
 def step(step_id="S1", position=1, step_type="OPENING_REQUEST", source="NI_CONTENT_1"):
-    return LadderStep(
-        step_id=step_id,
-        step_type=step_type,
-        source_content_reference=source,
-        position=position,
-    )
+    return LadderStep(step_id=step_id, step_type=step_type, source_content_reference=source, position=position)
 
 
 def result(**overrides):
     values = {
-        "ladder_id": "L1",
-        "context_references": context(),
-        "steps": (
-            step(),
-            step("S2", 2, "CONCESSION", "NI_CONTENT_2"),
-        ),
-        "transitions": (
-            LadderTransition(
-                transition_id="T1",
-                from_step_id="S1",
-                to_step_id="S2",
-                trigger_reference="COND1",
-            ),
-        ),
+        "ladder_id": "L1", "context_references": context(),
+        "steps": (step(), step("S2", 2, "CONCESSION", "NI_CONTENT_2")),
+        "transitions": (LadderTransition(transition_id="T1", from_step_id="S1", to_step_id="S2", trigger_reference="COND1"),),
         "routes": (LadderRoute(route_id="R1", step_references=("S1", "S2")),),
         "traceability_references": ("TRACE1",),
     }
@@ -54,11 +31,17 @@ def result(**overrides):
     return NegotiationLadderResult(**values)
 
 
-def test_result_requires_identity_and_upstream_context():
+def test_result_requires_authorized_identity_and_upstream_context():
     value = result()
     assert value.ladder_id == "L1"
     assert value.context_references.negotiation_result_id == "NI1"
-    assert value.context_references.decision_version == "DV1"
+    assert value.context_references.decision_id == "D1"
+    assert not hasattr(value.context_references, "decision_version")
+
+
+def test_undefined_decision_version_is_rejected_instead_of_becoming_parallel_identity():
+    with pytest.raises(ValidationError):
+        LadderContextReferences.model_validate({**context().model_dump(), "decision_version": "DV1"})
 
 
 def test_each_step_requires_source_content_reference():
@@ -78,15 +61,7 @@ def test_positions_are_unique():
 
 def test_transitions_must_reference_existing_steps():
     with pytest.raises(ValidationError, match="step inexistente"):
-        result(
-            transitions=(
-                LadderTransition(
-                    transition_id="T1",
-                    from_step_id="S1",
-                    to_step_id="MISSING",
-                ),
-            )
-        )
+        result(transitions=(LadderTransition(transition_id="T1", from_step_id="S1", to_step_id="MISSING"),))
 
 
 def test_routes_must_reference_existing_steps():
@@ -113,20 +88,10 @@ def test_structural_fields_are_not_substantive_strategy():
     assert not hasattr(value, "preferred_route")
 
 
-@pytest.mark.parametrize(
-    "forbidden",
-    [
-        "objective_value",
-        "concession_value",
-        "limit_value",
-        "strategic_score",
-        "business_decision",
-        "approved",
-        "executed",
-        "scenario_definition",
-        "viability_decision",
-    ],
-)
+@pytest.mark.parametrize("forbidden", [
+    "objective_value", "concession_value", "limit_value", "strategic_score",
+    "business_decision", "approved", "executed", "scenario_definition", "viability_decision",
+])
 def test_forbidden_authority_fields_are_rejected(forbidden):
     with pytest.raises(ValidationError):
         NegotiationLadderResult.model_validate({**result().model_dump(), forbidden: "x"})
