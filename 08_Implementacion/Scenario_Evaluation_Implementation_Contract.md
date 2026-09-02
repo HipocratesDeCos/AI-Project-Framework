@@ -1,10 +1,11 @@
 # EIOS — O3 · SCENARIO EVALUATION IMPLEMENTATION CONTRACT
 
-**Estado:** IMPLEMENTACIÓN CONTRACTUAL — MATERIALIZACIÓN EN RAMA DE TRABAJO
+**Estado:** CERRADO — MATERIALIZADO — CI VALIDADO
 **Diseño:** `79e28522c09b4c0a7b2ce40ce16641b4a4478b6d`
 **Depuración:** `70784bfee4e29ed42b4ebbcadcc5c6cfa719f2f8`
-**Auditoría 2:** `60c63b3c6d538bd26b2f207f339b4a43eca3cc08`
-**Cierre:** `2fddfebfab4dbeee3ff55df7e7ece6cde05e3d9e`
+**Auditoría 2 corregida:** `b8e34a47e6ab48d37d4fcfd2247170c3bc157a62`
+**Cierre:** `62b921be38a37bb56d09d9deaf293064654d060f`
+**Materialización / merge:** `1c323c1855577b4200f76ecb0d36db1e0fe2c1c4`
 
 ## 1. Propósito
 
@@ -12,13 +13,13 @@ Definir la frontera técnica mínima para evaluar un `ScenarioVersion` válido s
 
 ## 2. Modelo de implementación
 
-La primera materialización será un evaluador puro que reciba funciones/autoridades analíticas ya existentes y produzca un resultado derivado.
+La materialización es un evaluador puro que recibe resultados analíticos ya existentes y produce un resultado derivado.
 
-No se crea un segundo motor de reglas ni de viabilidad.
+O3 no ejecuta ni duplica un segundo motor de reglas o de viabilidad; consume los resultados proporcionados por las autoridades analíticas existentes.
 
 ## 3. Entrada
 
-El evaluador recibirá:
+El evaluador recibe:
 
 - `ScenarioVersion` válido;
 - contexto de decisión asociado;
@@ -29,7 +30,7 @@ El evaluador recibirá:
 
 ## 4. Salida
 
-`ScenarioEvaluationResult` deberá conservar:
+`ScenarioEvaluationResult` conserva:
 
 - `scenario_id`;
 - `decision_id`;
@@ -80,11 +81,11 @@ Se reutiliza el `DecisionContext` del escenario. No se introduce `decision_versi
 
 ## 10. Integración O2
 
-O3 consume `ScenarioVersion` y no altera su contrato. La marca `ScenarioStatus.EVALUATED` solo podrá utilizarse mediante una integración futura explícitamente aprobada; esta primera implementación no mutará el objeto escenario.
+O3 consume `ScenarioVersion` y no altera su contrato. La marca `ScenarioStatus.EVALUATED` solo podrá utilizarse mediante una integración futura explícitamente aprobada; esta implementación no muta el objeto escenario.
 
 ## 11. Criterio de pruebas
 
-Las pruebas deberán cubrir al menos:
+Las pruebas cubren:
 
 1. escenario válido;
 2. escenario no válido rechazado;
@@ -96,8 +97,23 @@ Las pruebas deberán cubrir al menos:
 8. no mutación;
 9. separación de Assessment y Viability;
 10. ausencia de autoridad decisional;
-11. determinismo de la representación resultante.
+11. determinismo de la representación resultante;
+12. rechazo de `COMPLETED` sin Assessment;
+13. rechazo de `COMPLETED` sin Viability;
+14. rechazo de `COMPLETED` con limitaciones pendientes.
 
 ## 12. Fuera de alcance
 
 No se implementan aquí generación automática, optimización, scoring, ranking, selección, recomendación, negociación, persistencia SQL ni API.
+
+## 13. Estado de cierre
+
+**DICTAMEN:** CERRADO — MATERIALIZADO — CI VALIDADO.
+
+**CI de rama:** Run #365 — SUCCESS.
+
+**Merge:** PR #6 → `main`, commit `1c323c1855577b4200f76ecb0d36db1e0fe2c1c4`.
+
+**CI post-merge `main`:** Run #366 — SUCCESS.
+
+La implementación contractual queda cerrada para el alcance O3 vigente. Cualquier ampliación sobre ejecución analítica, activación de `EVALUATED`, generación de escenarios, optimización o persistencia requiere un nuevo alcance explícito.
