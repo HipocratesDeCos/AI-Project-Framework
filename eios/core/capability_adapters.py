@@ -29,7 +29,7 @@ def adapt_c0(assessments: tuple[Assessment, ...], traces: tuple[Trace, ...]) -> 
 def adapt_price(result: PriceIntelligenceResult) -> CapabilityExecution:
     if result.pr_status == "PR_NOT_JUSTIFIABLE":
         return CapabilityExecution(capability="PRICE", status=O1ExecutionStatus.NOT_EVALUABLE, result_available=False, trace_references=result.trace_references, unresolved_items=("PRICE_NOT_JUSTIFIABLE",))
-    return CapabilityExecution(capability="PRICE", status=O1ExecutionStatus.COMPLETED, result_available=True, trace_references=result.trace_references, unresolved_items=result.pr_limitations if result.pr_status == "PR_LIMITED" else ())
+    return CapabilityExecution(capability="PRICE", status=O1ExecutionStatus.COMPLETED, result_available=True, trace_references=result.trace_references)
 
 
 def adapt_tco(result: TCOResult) -> CapabilityExecution:
@@ -39,7 +39,7 @@ def adapt_tco(result: TCOResult) -> CapabilityExecution:
 
 
 def adapt_qtg(result: QualityTrustResult) -> CapabilityExecution:
-    return CapabilityExecution(capability="QTG", status=O1ExecutionStatus.COMPLETED, result_available=True, trace_references=tuple(ref for check in result.checks for ref in check.evidence_refs))
+    return CapabilityExecution(capability="QTG", status=O1ExecutionStatus.COMPLETED, result_available=True)
 
 
 def adapt_twin(result: DecisionTwinComparison) -> CapabilityExecution:
