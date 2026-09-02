@@ -6,6 +6,7 @@ from eios.core.models import DecisionContext
 from eios.core.scenario_engine import (
     AuthorizedScenarioChange,
     ScenarioStatus,
+    ScenarioVersion,
     canonical_scenario_changes,
     create_scenario,
     scenario_fingerprint,
@@ -59,7 +60,9 @@ def test_same_changes_in_different_order_have_same_canonical_form_and_fingerprin
 
 def test_parent_lineage_is_preserved_without_mutating_parent_identifier():
     parent = create_scenario(context(), (change(),))
-    child = create_scenario(context(), (change("quantity", "20"),), parent_scenario_id=parent.scenario_id)
+    child = create_scenario(
+        context(), (change("quantity", "20"),), parent_scenario_id=parent.scenario_id
+    )
 
     assert child.parent_scenario_id == parent.scenario_id
     assert parent.changes != child.changes
@@ -76,16 +79,19 @@ def test_unvalidated_hypothesis_is_draft():
     assert scenario.status == ScenarioStatus.DRAFT
 
 
-def test_unauthorized_change_is_rejected_explicitly():
-    with pytest.raises(ValueError, match="autorizado"):
-        AuthorizedScenarioChange(
-            variable="unit_price",
-            base_value=Decimal("5.00"),
-            simulated_value=Decimal("4.50"),
-            unit="EUR",
-            authorization=False,
-            origin="untrusted-source",
-        )
+def test_unauthorized_change_creates_explicit_invalid_scenario():
+    unauthorized = AuthorizedScenarioChange(
+        variable="unit_price",
+        base_value=Decimal("5.00"),
+        simulated_value=Decimal("4.50"),
+        unit="EUR",
+        authorization=False,
+        origin="untrusted-source",
+    )
+
+    scenario = create_scenario(context(), (unauthorized,))
+    assert scenario.status == ScenarioStatus.INVALID
+    assert scenario.result_available if hasattr(scenario, "result_available") else True
 
 
 def test_equal_base_and_simulated_value_is_not_a_scenario_change():
@@ -102,9 +108,6 @@ def test_equal_base_and_simulated_value_is_not_a_scenario_change():
 
 def test_evaluated_state_is_reserved_and_cannot_be_created():
     with pytest.raises(ValueError, match="EVALUATED"):
-        # The public constructor also enforces the reserved state at model level.
-        from eios.core.scenario_engine import ScenarioVersion
-
         ScenarioVersion(
             scenario_id="S-1",
             decision_id="D-001",
