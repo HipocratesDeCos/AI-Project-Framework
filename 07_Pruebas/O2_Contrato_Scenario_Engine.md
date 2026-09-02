@@ -1,8 +1,9 @@
 # EIOS — O2 · CONTRATO SCENARIO ENGINE
 
-**Estado:** CERRADO — MATERIALIZADO — CI PENDIENTE  
+**Estado:** CERRADO — MATERIALIZADO — CI VALIDADO  
 **Baseline de entrada:** `06e8270545f57c904f99229430a9be4575901015`  
 **HEAD materializado:** `5693404be449dece4ddb0dad8c5ebd19667d2b8b`  
+**CI:** Run #331 — `33597204052` — `success`  
 **Ámbito:** Scenario Engine para hipótesis controladas  
 
 ## 1. Propósito
@@ -86,6 +87,6 @@ El diseño ha sido auditado, depurado, sometido a Auditoría 2 y materializado c
 - normalización determinista;
 - frontera inequívoca con O1, Twin, CRC y capacidades analíticas.
 
-La evidencia CI específica del HEAD materializado aún no está disponible; por ello el contrato queda **cerrado y materializado, pero pendiente de validación CI**.
+La ejecución CI del HEAD materializado fue completada con resultado **SUCCESS** en el Run #331. O2 queda, por tanto, **cerrado, materializado y CI-validado** para el alcance definido.
 
 **Secuencia:** DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI.
