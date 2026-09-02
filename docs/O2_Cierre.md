@@ -2,7 +2,7 @@
 
 **O2 — Coordinated Decision Support / Scenario Orchestration → 🔒 CERRADO**
 
-El diseño ha completado DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2.
+DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR completados.
 
 ## Perímetro cerrado
 
@@ -23,4 +23,4 @@ O2 coordina escenarios y consolida información estructurada para soporte a la d
 
 Quedan fuera score, ranking, optimización, selección, recomendación, aprobación y rechazo automáticos.
 
-La materialización funcional deberá respetar literalmente este perímetro.
+La materialización funcional respeta este perímetro y queda condicionada al CI antes de integración en `main`.
