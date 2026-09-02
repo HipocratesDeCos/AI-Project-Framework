@@ -43,7 +43,10 @@ def adapt_qtg(result: QualityTrustResult) -> CapabilityExecution:
 
 
 def adapt_twin(result: DecisionTwinComparison) -> CapabilityExecution:
-    return CapabilityExecution(capability="DECISION_TWIN", status=O1ExecutionStatus.COMPLETED, result_available=True, trace_references=result.trace_refs, unresolved_items=tuple(result.missing_attributes))
+    missing = tuple(result.missing_attributes)
+    if missing:
+        return CapabilityExecution(capability="DECISION_TWIN", status=O1ExecutionStatus.PARTIALLY_COMPLETED, result_available=False, trace_references=result.trace_refs, unresolved_items=missing)
+    return CapabilityExecution(capability="DECISION_TWIN", status=O1ExecutionStatus.COMPLETED, result_available=True, trace_references=result.trace_refs)
 
 
 def adapt_ni(result: NegotiationIntelligenceResult) -> CapabilityExecution:
