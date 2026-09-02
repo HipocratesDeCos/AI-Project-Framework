@@ -145,4 +145,4 @@ Todos los casos funcionales, prohibiciones e invariantes deberán poder converti
 
 Una prueba que detecte una selección implícita deberá considerarse FALLIDA conforme al `Plan_Pruebas_MVP.md` y no podrá resolverse cambiando el test para acomodar el comportamiento.
 
-**Estado:** ESPECIFICACIÓN DE TESTS — pendiente de implementación ejecutable.
+**Estado:** ESPECIFICACIÓN IMPLEMENTADA Y MATERIALIZADA — validación CI completada en el HEAD `10e87954f744cecb6b6cb81dc49d47335d2b732c`.
