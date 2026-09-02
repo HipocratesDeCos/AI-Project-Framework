@@ -2,13 +2,13 @@
 
 ## Estado
 
-**IMPLEMENTADO Y MATERIALIZADO — CI VALIDADO**
+**IMPLEMENTADO Y MATERIALIZADO — CORRECCIÓN RECONCILIADA — CI VALIDADO**
 
 ## Baseline de materialización
 
 Implementación: `eios/core/capability_adapters.py`
 Pruebas: `tests/test_capability_adapters.py`
-Validación CI: Run #346 — `33601115801` — SUCCESS sobre HEAD `1e05bc54c398d5336b65d7795501e6c2e117270b`.
+Validación CI previa: Run #350 — `33601677990` — SUCCESS sobre HEAD `a68420ed1699bb11697e1cf3a22f6f5c9dc213b0`.
 
 ## Propósito
 
@@ -27,6 +27,8 @@ El adaptador **no ejecuta capacidades, no recalcula resultados y no interpreta r
 | TCO | `TCOResult` | `COMPLETED` si `complete`; `PARTIALLY_COMPLETED` si quedan componentes no resueltos |
 | QTG | `QualityTrustResult` | `COMPLETED`; `NO_APTO` y advertencias son resultado de calidad, no fallo de ejecución |
 | Decision Twin | `DecisionTwinComparison` | `COMPLETED` si no hay atributos faltantes; `PARTIALLY_COMPLETED` si existen `missing_attributes` |
+| Negotiation Intelligence | `NegotiationIntelligenceResult` | `COMPLETED`; conserva sus `traceability_references` |
+| Negotiation Ladder | `NegotiationLadderResult` | `COMPLETED`; conserva sus `traceability_references` |
 
 ## Reglas
 
@@ -40,6 +42,7 @@ El adaptador **no ejecuta capacidades, no recalcula resultados y no interpreta r
 8. Los adaptadores no crean `decision_id`, `scenario_id`, versiones ni snapshots: los toma el `O1ExecutionContext`.
 9. Ningún adaptador produce una decisión, recomendación, ranking, aprobación o rechazo empresarial.
 10. Decision Twin con `missing_attributes` no se declara `COMPLETED`: conserva las trazas compatibles y expone los atributos faltantes como `unresolved_items`, con estado `PARTIALLY_COMPLETED` y `result_available=False`.
+11. Negotiation Intelligence y Negotiation Ladder se adaptan como resultados ya producidos; sus `traceability_references` se conservan sin reinterpretación.
 
 ## Perímetro
 
@@ -47,8 +50,8 @@ Este contrato cubre exclusivamente la adaptación de resultados existentes hacia
 
 ## Criterio de cierre
 
-El contrato se considera materializable cuando cada adaptación definida tenga una función determinista y pruebas de conservación semántica, especialmente para `NOT_EVALUABLE`, resultados negativos de negocio, resultados parciales, `NO_APTO` y resultados de Decision Twin con información faltante.
+El contrato se considera materializable cuando cada adaptación definida tenga una función determinista y pruebas de conservación semántica, especialmente para `NOT_EVALUABLE`, resultados negativos de negocio, resultados parciales, `NO_APTO`, resultados de Decision Twin con información faltante y trazabilidad de NI/NL.
 
 ## Cierre documental
 
-La implementación, las pruebas y la validación CI previas están materializadas. Esta corrección amplía únicamente la conservación semántica ya prevista para Decision Twin: no cambia autoridad ni amplía el perímetro O1.
+La implementación, las pruebas y la validación CI están materializadas. La corrección de Decision Twin y la explicitación normativa de NI/NL conservan el perímetro O1 y no introducen autoridad nueva.
