@@ -26,6 +26,7 @@ El adaptador **no ejecuta capacidades, no recalcula resultados y no interpreta r
 | PRICE | `PriceIntelligenceResult` | `COMPLETED` para `PR_AVAILABLE`/`PR_LIMITED`; `NOT_EVALUABLE` para `PR_NOT_JUSTIFIABLE` |
 | TCO | `TCOResult` | `COMPLETED` si `complete`; `PARTIALLY_COMPLETED` si quedan componentes no resueltos |
 | QTG | `QualityTrustResult` | `COMPLETED`; `NO_APTO` y advertencias son resultado de calidad, no fallo de ejecución |
+| Decision Twin | `DecisionTwinComparison` | `COMPLETED` si no hay atributos faltantes; `PARTIALLY_COMPLETED` si existen `missing_attributes` |
 
 ## Reglas
 
@@ -38,6 +39,7 @@ El adaptador **no ejecuta capacidades, no recalcula resultados y no interpreta r
 7. QTG no dispone de `Trace` propio en `QualityTrustResult`: sus `evidence_refs` son referencias de evidencia del control y **no se relabelizan como `trace_references` O1**.
 8. Los adaptadores no crean `decision_id`, `scenario_id`, versiones ni snapshots: los toma el `O1ExecutionContext`.
 9. Ningún adaptador produce una decisión, recomendación, ranking, aprobación o rechazo empresarial.
+10. Decision Twin con `missing_attributes` no se declara `COMPLETED`: conserva las trazas compatibles y expone los atributos faltantes como `unresolved_items`, con estado `PARTIALLY_COMPLETED` y `result_available=False`.
 
 ## Perímetro
 
@@ -45,8 +47,8 @@ Este contrato cubre exclusivamente la adaptación de resultados existentes hacia
 
 ## Criterio de cierre
 
-El contrato se considera materializable cuando cada adaptación definida tenga una función determinista y pruebas de conservación semántica, especialmente para `NOT_EVALUABLE`, resultados negativos de negocio, resultados parciales y `NO_APTO`.
+El contrato se considera materializable cuando cada adaptación definida tenga una función determinista y pruebas de conservación semántica, especialmente para `NOT_EVALUABLE`, resultados negativos de negocio, resultados parciales, `NO_APTO` y resultados de Decision Twin con información faltante.
 
 ## Cierre documental
 
-La implementación, las pruebas y la validación CI están materializadas. Este contrato queda cerrado sin cambios funcionales ni ampliación del perímetro O1.
+La implementación, las pruebas y la validación CI previas están materializadas. Esta corrección amplía únicamente la conservación semántica ya prevista para Decision Twin: no cambia autoridad ni amplía el perímetro O1.
