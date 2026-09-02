@@ -1,247 +1,231 @@
 # EIOS — O4 · CONTROLLED SCENARIO GENERATION & EXPLORATION
 
-**Estado:** 🟡 DISEÑO — NO IMPLEMENTADO
+**Estado:** 🟡 DISEÑO DEPURADO — NO IMPLEMENTADO
 **Baseline:** `ad7961935cc19ca4ab0a19dbef0ac9d4721c8374`
-**Rama de diseño:** `design/o4-controlled-scenario-generation`
-
----
+**Rama:** `design/o4-controlled-scenario-generation`
 
 ## 1. Propósito
 
-Definir una capacidad futura de generación y exploración controlada de escenarios que amplíe O2 sin modificar su autoridad ni convertir el Scenario Engine en un motor de optimización o decisión.
+Definir una capacidad futura de generación y exploración controlada de escenarios que amplíe O2 sin modificar su autoridad ni convertirse en motor de optimización o decisión.
 
-O4 deberá producir únicamente candidatos de escenario sujetos a un espacio de hipótesis explícitamente autorizado. La evaluación de esos candidatos permanecerá separada y podrá utilizar O3 cuando exista una integración contractual posterior.
+O4 produce únicamente candidatos de escenario dentro de un espacio de hipótesis explícitamente autorizado. La evaluación permanece separada y podrá utilizar O3 mediante una integración contractual posterior.
 
----
-
-## 2. Posición funcional
+## 2. Modelo contractual mínimo
 
 ```text
-ESPACIO DE HIPÓTESIS AUTORIZADO
-            ↓
-           O4
- generación / exploración acotada
-            ↓
-    ScenarioVersion (O2)
-            ↓
-      evaluación (O3)
-            ↓
- resultados derivados
+AuthorizedScenarioSpace + GenerationPolicy + DecisionContext
+                         ↓
+                         O4
+                         ↓
+                 CandidateScenario
+                         ↓
+                         O2
+                         ↓
+                  ScenarioVersion
+                         ↓
+                         O3
 ```
 
-O4 no sustituye O2 ni O3.
+O4 no crea una segunda identidad ni un segundo versionado de escenario.
 
----
+## 3. Variables autorizadas
 
-## 3. Entrada autorizada
+Cada variable debe declarar externamente:
 
-O4 solo podrá recibir:
+- identificador estable;
+- tipo de valor;
+- dominio finito permitido;
+- cardinalidad;
+- discretización, si aplica;
+- límites específicos, si existen.
 
-- escenario base o contexto de escenario autorizado;
-- variables de escenario explícitamente declaradas;
-- dominios o valores permitidos para cada variable;
-- límites combinatorios explícitos;
-- política de generación aprobada;
-- identidad y contexto de decisión compatibles con las autoridades existentes.
+Una variable no declarada no puede ser generada.
 
-La ausencia de una variable en el espacio autorizado implica que O4 no puede generarla por inferencia.
+Un parámetro EIOS nunca se convierte implícitamente en variable de escenario.
 
----
+## 4. Cardinalidad
 
-## 4. Espacio de escenarios
+Sea `D_i` el dominio finito de cada una de `n` variables.
 
-El espacio de búsqueda debe estar definido externamente al algoritmo mediante una especificación explícita por variable.
+Para producto cartesiano:
 
-Cada variable deberá distinguir, como mínimo:
+`|S| = Π |D_i|`
+
+Con cero variables, el espacio contiene un único escenario base candidato: `|S| = 1`.
+
+Un dominio vacío produce `|S| = 0` y no genera candidatos.
+
+La cardinalidad se calcula **antes** de materializar candidatos.
+
+## 5. Límites y precedencia
+
+Los límites son restricciones duras y se comprueban antes de expandir el espacio.
+
+Precedencia:
 
 ```text
-identidad de variable
-       ↓
-tipo de valor
-       ↓
-dominio permitido
-       ↓
-regla de discretización, si procede
-       ↓
-límite de cardinalidad
+1. validez estructural del espacio
+2. límite de variables
+3. cardinalidad por variable
+4. cardinalidad total del espacio
+5. profundidad de derivación
+6. máximo de candidatos emitidos
 ```
 
-O4 no podrá interpretar un parámetro EIOS como variable de escenario sin autorización expresa.
+El primer límite incumplido determina el bloqueo. No se inicia una expansión parcial que pueda producir resultados ambiguos.
 
----
+Los valores numéricos definitivos permanecen pendientes de aprobación contractual.
 
-## 5. Generación
+## 6. Estados técnicos de generación
 
-La generación inicial deberá ser **determinista**.
+O4 deberá distinguir, como mínimo:
 
-Misma entrada + misma política + mismo contexto ⇒ mismo conjunto ordenado de candidatos.
+- `GENERATED`: candidatos emitidos satisfactoriamente;
+- `EMPTY`: espacio válido pero sin candidatos;
+- `BLOCKED`: generación impedida por una restricción o límite;
+- `NOT_EVALUABLE`: no existe información suficiente para determinar el espacio de forma válida;
+- `FAILED`: fallo técnico explícito con causa obligatoria.
 
-Las operaciones permitidas podrán incluir inicialmente:
+Estos estados son técnicos y no constituyen estados de viabilidad ni resultados empresariales.
 
-- enumeración de valores autorizados;
-- producto cartesiano explícitamente acotado;
-- combinaciones explícitamente autorizadas;
-- exploración de escenarios derivados de un escenario padre.
+## 7. Generación MVP
 
-No se autoriza generación probabilística, heurística adaptativa ni optimización en este diseño inicial.
+Se autoriza conceptualmente únicamente:
 
----
+- enumeración determinista de valores;
+- producto cartesiano finito y explícitamente permitido;
+- derivación controlada desde un escenario padre.
 
-## 6. Límites combinatorios
+Las combinaciones no cartesianas quedan fuera del MVP hasta disponer de semántica contractual específica.
 
-Toda generación deberá estar sometida a límites explícitos antes de producir candidatos.
+No se autoriza generación probabilística, adaptativa o heurística.
 
-Como mínimo:
+## 8. Deduplicación
 
-- número máximo de variables;
-- cardinalidad máxima por variable;
-- número máximo de combinaciones;
-- profundidad máxima de derivación;
-- número máximo de escenarios emitidos.
+La identidad candidata se determinará por la representación canónica de:
 
-Si el espacio solicitado excede un límite, la operación deberá resultar **BLOCKED / NOT_EVALUABLE**, nunca ejecutar una expansión ilimitada.
+`DecisionContext + parent_scenario_id + ordered canonical changes`
 
-Los valores concretos de dichos límites quedan pendientes de calibración y aprobación contractual.
+La deduplicación ocurre antes de la emisión final.
 
----
+El orden de entrada de variables o cambios no puede crear candidatos distintos cuando su representación canónica sea equivalente.
 
-## 7. Deduplicación y determinismo
+O4 delegará la identidad/versionado contractual definitivo a O2.
 
-Los candidatos deberán canonicalizarse antes de su emisión.
+## 9. Poda
 
-Dos escenarios con idéntica identidad de contexto y conjunto de cambios canónicos no podrán aparecer como candidatos distintos.
+El MVP solo permite poda **estructural**, definida por la propia política de generación antes de iniciar la exploración.
 
-El orden de entrada no deberá alterar la identidad determinista del escenario.
+Ejemplos válidos: dominio excluido explícitamente, incompatibilidad estructural declarada, límite de profundidad.
 
-La deduplicación no podrá alterar la semántica de los cambios autorizados.
+No son poda válida:
 
----
-
-## 8. Poda
-
-La poda solo podrá utilizar condiciones declaradas previamente por la política de generación.
-
-O4 no podrá inventar criterios de poda basados en:
-
-- preferencias empresariales;
-- ranking;
+- rentabilidad;
 - utilidad;
-- rentabilidad no autorizada;
-- predicciones;
-- decisión humana implícita.
+- preferencia;
+- ranking;
+- predicción;
+- resultado de viabilidad usado como criterio implícito de selección.
 
-Una condición de poda deberá ser trazable y determinista.
+La poda deberá ser determinista y trazable.
 
----
+## 10. Trazabilidad
 
-## 9. Relación con O2
-
-O4 genera representaciones candidatas; O2 continúa siendo la autoridad contractual para la representación y versionado del escenario.
-
-```text
-O4 genera candidato
-        ↓
-O2 valida / representa ScenarioVersion
-```
-
-O4 no debe crear una segunda identidad de escenario ni un segundo mecanismo de versionado.
-
----
-
-## 10. Relación con O3
-
-O4 no evaluará reglas ni viabilidad.
-
-La secuencia futura, si se autoriza integración, será:
+Una ejecución de generación deberá poder reproducirse a partir de:
 
 ```text
-O4 → O2 → O3
+execution context autorizado
++ espacio canónico de variables
++ generation policy version
++ límites efectivos
++ escenario padre
 ```
 
-O3 continuará consumiendo resultados ya producidos y no recibirá autoridad adicional por la existencia de O4.
+La trazabilidad utilizará las identidades/contextos ya existentes. O4 no crea `Decision_ID`, `Trace_ID`, `input_fingerprint` o `data_snapshot_id` paralelos.
 
----
+La política de generación debe tener versión identificable antes de materializarse.
 
-## 11. Invariantes iniciales
+## 11. Seguridad de expansión
+
+Nunca se permite expandir un espacio cuyo tamaño conocido supere un límite contractual.
+
+Si el tamaño no puede determinarse de forma segura antes de la expansión, el resultado será `NOT_EVALUABLE`.
+
+No existe fallback silencioso a una búsqueda ilimitada.
+
+## 12. Relaciones de autoridad
+
+```text
+O4 → genera candidatos
+O2 → representa/versiona escenarios
+O3 → consume resultados de evaluación
+Viability Frontier → determina viabilidad
+Decision Twin → representa/compara alternativas
+CRC → resuelve conflictos posteriores
+HUMANO → decisión empresarial
+```
+
+O4 no modifica reglas, parámetros, evidencia, RDM, operación real ni decisiones.
+
+## 13. Invariantes
 
 ```text
 OPERACIÓN REAL ≠ ESCENARIO
 PARÁMETRO ≠ VARIABLE DE ESCENARIO
+CANDIDATO ≠ ALTERNATIVA
+ALTERNATIVA ≠ DECISIÓN
 O4 ≠ O2
 O4 ≠ O3
 O4 ≠ VIABILITY FRONTIER
 O4 ≠ DECISION TWIN
 O4 ≠ NEGOTIATION
 O4 ≠ CRC
-O4 ≠ OPTIMIZATION ENGINE
-CANDIDATO ≠ ALTERNATIVA
-ALTERNATIVA ≠ DECISIÓN
+O4 ≠ OPTIMIZATION
 NOT_EVALUABLE ≠ NOT_VIABLE
 ```
 
 Además:
 
-1. no mutación del escenario padre;
-2. no mutación de la operación real;
-3. no modificación de reglas;
-4. no modificación de parámetros;
-5. no creación de dependencias;
-6. no invención de evidencia;
+1. escenario padre inmutable;
+2. operación real inmutable;
+3. reglas inmutables;
+4. parámetros inmutables;
+5. RDM inmutable;
+6. evidencia no inventada;
 7. determinismo;
-8. límites finitos obligatorios;
-9. trazabilidad de la política utilizada;
-10. ausencia de selección empresarial.
+8. límites finitos;
+9. trazabilidad reproducible;
+10. sin selección empresarial.
 
----
+## 14. Fuera de alcance
 
-## 12. Fuera de alcance
+Quedan fuera del O4 MVP:
 
-Este diseño no autoriza:
-
-- optimización matemática;
-- ranking de escenarios;
+- optimización;
+- ranking;
 - selección automática;
 - recomendación;
 - negociación automática;
-- decisión empresarial;
 - aprendizaje adaptativo;
 - búsqueda ilimitada;
-- API;
-- persistencia;
 - SQL;
+- persistencia;
+- API;
 - nuevo modelo de datos.
 
----
+## 15. Criterios de entrada a implementación
 
-## 13. Criterios para avanzar
+Antes de implementar deben quedar aprobados:
 
-Antes de cualquier implementación deberán completarse, como mínimo:
-
-1. definición formal de tipos de variables;
-2. política de dominios y discretización;
-3. límites contractuales definitivos;
-4. semántica exacta de BLOCKED / NOT_EVALUABLE;
+1. tipos y dominios de variables;
+2. valores definitivos de límites;
+3. política de generación;
+4. contrato de estados;
 5. contrato de deduplicación;
-6. contrato de poda;
-7. trazabilidad de generación;
-8. auditoría de autoridad O4 ↔ O2 ↔ O3;
-9. pruebas deterministas de frontera;
-10. decisión explícita sobre si O4 incluye o excluye combinaciones multidimensionales en MVP.
+6. poda estructural;
+7. trazabilidad y versión de política;
+8. pruebas deterministas de cardinalidad y límites;
+9. integración contractual O4 → O2 → O3, si se decide incluirla;
+10. AUDITORÍA 2 sin hallazgos bloqueantes.
 
-Solo después podrá iniciarse la secuencia:
-
-**AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI**.
-
----
-
-## 14. Estado
-
-Este documento constituye exclusivamente el **inicio formal del diseño O4**.
-
-No modifica `main`.
-
-No modifica contratos cerrados.
-
-No modifica `models.py`.
-
-No introduce código ejecutable.
+**No se autoriza implementación por este documento.**
