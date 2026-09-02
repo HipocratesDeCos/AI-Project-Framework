@@ -65,6 +65,39 @@ def test_depth_limit_blocks_derivation():
     assert result.status is GenerationStatus.BLOCKED
 
 
+def test_negative_depth_is_failed_with_cause():
+    variable = GenerationVariable(variable_id="a", value_type="integer", base_value=0, domain=(1,))
+    result = generate_scenarios(context(), (variable,), GenerationPolicy(policy_version="O4-1"), depth=-1)
+    assert result.status is GenerationStatus.FAILED
+    assert result.reason
+
+
+def test_missing_context_is_failed_with_cause():
+    result = generate_scenarios(None, (), GenerationPolicy(policy_version="O4-1"))
+    assert result.status is GenerationStatus.FAILED
+    assert result.reason
+
+
+def test_runtime_space_error_is_not_evaluable():
+    class ExplodingPolicy(GenerationPolicy):
+        @property
+        def max_total_cardinality(self):
+            raise TypeError("cardinalidad indeterminable")
+
+    policy = ExplodingPolicy(policy_version="O4-1")
+    result = generate_scenarios(context(), (), policy)
+    assert result.status is GenerationStatus.NOT_EVALUABLE
+    assert result.reason
+
+
+def test_generated_candidates_preserve_parent_and_increment_depth():
+    variable = GenerationVariable(variable_id="a", value_type="integer", base_value=0, domain=(1,))
+    result = generate_scenarios(context(), (variable,), GenerationPolicy(policy_version="O4-1"), parent_scenario_id="S0", depth=1)
+    assert result.status is GenerationStatus.GENERATED
+    assert result.candidates[0].parent_scenario_id == "S0"
+    assert result.candidates[0].depth == 2
+
+
 def test_canonical_variable_order_is_independent_of_input_order():
     a = GenerationVariable(variable_id="a", value_type="integer", base_value=0, domain=(1,))
     b = GenerationVariable(variable_id="b", value_type="integer", base_value=0, domain=(2,))
