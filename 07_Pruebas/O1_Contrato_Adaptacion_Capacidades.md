@@ -2,7 +2,12 @@
 
 ## Estado
 
-**DISEÑADO — pendiente de materialización técnica**
+**IMPLEMENTADO Y MATERIALIZADO — validación CI pendiente sobre este commit**
+
+## Baseline de materialización
+
+Implementación: `eios/core/capability_adapters.py`
+Pruebas: `tests/test_capability_adapters.py`
 
 ## Propósito
 
@@ -40,3 +45,7 @@ Este contrato cubre exclusivamente la adaptación de resultados existentes hacia
 ## Criterio de cierre
 
 El contrato se considera materializable cuando cada adaptación definida tenga una función determinista y pruebas de conservación semántica, especialmente para `NOT_EVALUABLE`, resultados negativos de negocio, resultados parciales y `NO_APTO`.
+
+## Cierre documental
+
+La implementación y sus pruebas ya están materializadas. Este documento queda pendiente únicamente de validación CI sobre el commit documental resultante; no introduce cambios funcionales ni amplía el perímetro O1.
