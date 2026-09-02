@@ -3,22 +3,23 @@
 **Estado:** AUDITORÍA 2 — SUPERADA
 **Contrato:** `52b8f7203ef1cce3ae4ae4241b4adc5fe60ffb68`
 **Auditoría 1:** `efe76b66c2e33e33351cf4545d0f64c7638a7e45`
-**Pruebas:** `b685b1164fc754bc83556dc2d83500b05cb024b1`
+**Pruebas corregidas:** `7639e42530effc5af8baed5b5c9899441ad28214`
 
 ## Verificaciones reforzadas
 
-- El frontend no importa motores analíticos.
-- `build_view_model` exige un objeto contractual con `model_dump`.
-- Los datos presentados proceden del paquete recibido y no se recalculan.
-- La identidad procede de `execution_context`/paquete contractual y no se inventa.
+- El View Model consume los nombres reales del `DecisionSupportPackage` O1.
+- La identidad procede de `execution_context`.
+- Estados, evidencias, trazas y elementos no resueltos se propagan sin reinterpretación.
+- La representación visual es una copia de presentación y no modifica el contrato fuente.
 - No se crean score, ranking, recommendation, approval ni best-scenario.
-- La representación visual es una copia de presentación; las modificaciones locales no alteran el objeto contractual fuente.
-- La UI no expone campos paralelos de identidad/versionado.
-- Los estados técnicos se muestran con texto explícito.
-- La UI no ejecuta compras ni motores.
+- No existe acceso directo a motores analíticos.
+- La UI no ejecuta compras ni modifica reglas, parámetros o identidades.
+- La captura visual permanece limitada a campos de negocio autorizados.
+
+## Hallazgo cerrado
+
+La primera versión de las pruebas utilizaba un esquema de paquete distinto al contrato O1 real. Se corrigió la prueba y se verificó nuevamente contra el esquema efectivo. No queda defecto abierto.
 
 ## Dictamen
 
 **AUDITORÍA 2 SUPERADA — SIN HALLAZGOS BLOQUEANTES.**
-
-U1.1 queda preparado para cierre técnico, materialización documental y CI de integración mediante la PR #8.
