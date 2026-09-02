@@ -116,3 +116,20 @@ def test_completed_cannot_hide_limitations():
             status=ScenarioEvaluationStatus.COMPLETED,
             limitations=("pending",),
         )
+
+
+def test_completed_requires_assessment_and_viability():
+    with pytest.raises(ValidationError, match="Assessment"):
+        evaluate_scenario(
+            valid_scenario(),
+            context(),
+            status=ScenarioEvaluationStatus.COMPLETED,
+            viability_result="VIABLE",
+        )
+    with pytest.raises(ValidationError, match="Viability Frontier"):
+        evaluate_scenario(
+            valid_scenario(),
+            context(),
+            status=ScenarioEvaluationStatus.COMPLETED,
+            assessments=("A1",),
+        )
