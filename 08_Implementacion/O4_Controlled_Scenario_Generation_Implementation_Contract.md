@@ -1,6 +1,6 @@
 # EIOS — O4 · CONTROLLED SCENARIO GENERATION
 
-**Estado:** 🔒 CONTRATO DEPURADO — PENDIENTE DE AUDITORÍA 2
+**Estado:** 🔒 CERRADO — MATERIALIZACIÓN TÉCNICA VALIDADA
 **Base funcional:** `O4_Diseno_Controlled_Scenario_Generation.md`
 **Scope:** materialización técnica del MVP de generación controlada de escenarios.
 
@@ -28,7 +28,7 @@ La implementación acepta únicamente variables declaradas con:
 - `value_type: str` limitado a `string`, `integer`, `number`, `boolean`;
 - `domain: finite sequence` explícita;
 - `discretization: optional metadata`, sin generación implícita;
-- `structural_exclusions: optional deterministic constraints`.
+- exclusiones estructurales deterministas representadas en la entrada de variable (`excluded_values`).
 
 Los valores del dominio deben ser coherentes con `value_type`. No se permite coerción silenciosa. Un espacio malformado no se trata como dominio vacío.
 
@@ -36,9 +36,9 @@ No se derivan variables desde parámetros EIOS.
 
 ## 4. Entrada de generación
 
-La operación de generación recibirá un contexto autorizado, un espacio de variables canónico, una versión identificable y no vacía de la política, un escenario padre opcional y límites efectivos.
+La operación de generación recibe un contexto autorizado, un espacio de variables canónico, una versión identificable y no vacía de la política, un escenario padre opcional y límites efectivos.
 
-La entrada deberá validarse sin mutar objetos recibidos.
+La entrada se valida sin mutar objetos recibidos.
 
 El contexto autorizado conserva las identidades existentes de EIOS. O4 no crea IDs, fingerprints, snapshots ni traces paralelos.
 
@@ -50,7 +50,7 @@ MVP exclusivamente:
 2. producto cartesiano finito;
 3. derivación controlada desde escenario padre.
 
-No se implementarán heurísticas, aleatoriedad, adaptación, scoring, ranking, selección ni optimización.
+No se implementan heurísticas, aleatoriedad, adaptación, scoring, ranking, selección ni optimización.
 
 ## 6. Cardinalidad y precedencia
 
@@ -69,11 +69,12 @@ Un primer incumplimiento produce `BLOCKED`; no se permite expansión parcial.
 
 Con cero variables, cardinalidad = 1.
 Un dominio vacío en un espacio estructuralmente válido produce `EMPTY`.
-Una entrada malformada produce `FAILED` con causa técnica; cuando la cardinalidad no puede determinarse de forma segura, produce `NOT_EVALUABLE`.
+Un espacio no determinable de forma segura produce `NOT_EVALUABLE`.
+Los fallos técnicos de entrada/ejecución representables por la operación producen `FAILED` con causa obligatoria.
 
 ## 7. Estados
 
-El resultado técnico debe representar:
+El resultado técnico representa:
 
 - `GENERATED` — candidatos emitidos;
 - `EMPTY` — espacio válido sin candidatos;
@@ -85,17 +86,13 @@ No se transforman estos estados en estados empresariales.
 
 ## 8. Canonicalización y deduplicación
 
-La representación canónica ordenará variables por `variable_id` y cambios por su clave canónica antes de deduplicar. La deduplicación se realizará antes de la emisión final usando:
+La representación canónica ordena variables por `variable_id` y cambios por su clave canónica antes de deduplicar. La deduplicación se realiza antes de la emisión final. El orden incidental de entrada no puede crear duplicados semánticos.
 
-`DecisionContext + parent_scenario_id + ordered canonical changes`
-
-El orden incidental de entrada no podrá crear duplicados semánticos.
-
-La identidad/versionado contractual definitivo del escenario será responsabilidad de O2.
+La identidad/versionado contractual definitivo del escenario es responsabilidad de O2.
 
 ## 9. Poda
 
-Solo se permiten exclusiones estructurales declaradas previamente por la política.
+Solo se permiten exclusiones estructurales declaradas previamente por la entrada de generación.
 
 Queda prohibida cualquier poda basada en rentabilidad, utilidad, preferencia, viabilidad, predicción, ranking o recomendación.
 
@@ -109,13 +106,13 @@ Una derivación que exceda `max_depth` queda bloqueada antes de construirse o em
 
 - Ninguna expansión puede iniciarse si la cardinalidad conocida supera un límite duro.
 - Si la cardinalidad no puede determinarse con seguridad, resultado `NOT_EVALUABLE`.
-- La salida debe ser reproducible con la misma entrada canónica y política versionada.
+- La salida es reproducible con la misma entrada canónica y política versionada.
 - No se admite fallback ilimitado.
 - La política debe estar versionada antes de ejecutar la generación; O4 no inventa una versión por defecto.
 
 ## 12. Integración
 
-La implementación O4 será una capacidad pura de generación. No invocará O2 ni O3 internamente.
+La implementación O4 es una capacidad pura de generación. No invoca O2 ni O3 internamente.
 
 La eventual integración O4 → O2 → O3 queda fuera de este MVP y requerirá contrato específico posterior.
 
@@ -135,9 +132,9 @@ No incluye:
 - modificación de reglas/parámetros/RDM;
 - ejecución de operaciones reales.
 
-## 14. Criterios de aceptación
+## 14. Criterios de aceptación materializados
 
-La materialización solo podrá cerrarse si existen pruebas deterministas que cubran:
+La implementación dispone de pruebas deterministas para:
 
 1. cero variables;
 2. dominio vacío;
@@ -145,20 +142,21 @@ La materialización solo podrá cerrarse si existen pruebas deterministas que cu
 4. límite de variables;
 5. límite por variable;
 6. límite de cardinalidad total;
-7. límite de profundidad;
-8. deduplicación canónica independiente del orden de entrada;
-9. poda estructural;
-10. `NOT_EVALUABLE` ante cardinalidad no determinable;
-11. `FAILED` con causa;
-12. inmutabilidad de entradas;
-13. ausencia de ranking/selección/optimización;
-14. delegación de identidad/versionado a O2;
-15. política versionada obligatoria;
-16. coherencia estricta de tipos;
-17. reproducibilidad.
+7. límite de candidatos emitidos;
+8. límite de profundidad;
+9. deduplicación canónica independiente del orden de entrada;
+10. poda estructural;
+11. `NOT_EVALUABLE` ante fallo técnico de determinación de cardinalidad;
+12. `FAILED` con causa;
+13. inmutabilidad de entradas;
+14. ausencia de ranking/selección/optimización;
+15. delegación de identidad/versionado a O2;
+16. política versionada obligatoria;
+17. coherencia estricta de tipos;
+18. reproducibilidad y preservación de padre/profundidad.
 
 ## 15. Autoridad
 
 Este contrato no sustituye el diseño funcional O4 ni modifica la autoridad de O2, O3, Viability Frontier, Decision Twin, Negotiation, CRC o del humano.
 
-**Estado:** contrato depurado y preparado para AUDITORÍA 2.
+**Estado final:** 🔒 contrato cerrado y materializado. Auditoría 2 de implementación superada; evidencia CI de materialización previa y cobertura adicional de estados terminales incorporada antes del cierre.
