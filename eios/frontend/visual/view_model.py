@@ -13,28 +13,25 @@ def _dump(value: Any) -> Mapping[str, Any]:
 
 
 def build_view_model(support_package: Any) -> Mapping[str, Any]:
-    """Create a presentation-only copy of an existing support package.
-
-    No calculations, decisions, rankings or engine calls are performed.
-    """
+    """Create a presentation-only copy of an existing O1 support package."""
     data = dict(_dump(support_package))
+    context = dict(data.get("execution_context", {}))
     return {
-        "execution": data.get("execution", {}),
-        "result": data.get("result", data.get("assessment", {})),
-        "evidence": data.get("evidence", []),
-        "trace": data.get("trace", data.get("trace_references", [])),
-        "scenarios": data.get("scenarios", []),
-        "limitations": data.get("limitations", []),
+        "execution_status": data.get("execution_status"),
+        "capability_results": data.get("capability_results", []),
+        "evidence_status": data.get("evidence_status", []),
+        "trace_references": data.get("trace_references", []),
+        "unresolved_items": data.get("unresolved_items", []),
         "identity": {
-            key: data.get(key)
+            key: context[key]
             for key in (
+                "execution_id",
                 "decision_id",
                 "scenario_id",
-                "execution_id",
                 "rules_version",
                 "parameters_version",
                 "data_snapshot_id",
             )
-            if key in data
+            if key in context
         },
     }
