@@ -3,86 +3,64 @@
 ## 1. Identidad
 
 **Documento:** Negotiation Intelligence Implementation Contract  
-**Versión:** 1.2  
-**Estado:** CERRADO Y MATERIALIZADO  
-**Baseline de diseño:** EIOS Vertical MVP  
-**Ubicación:** `08_Implementacion/Negotiation_Intelligence_Implementation_Contract.md`
+**Versión:** 1.3  
+**Estado:** CERRADO — RECONCILIADO Y MATERIALIZADO  
+**Baseline:** EIOS Vertical MVP
 
 ## 2. Propósito
 
-Este contrato materializa exclusivamente el subconjunto de `Negotiation Intelligence` suficientemente definido para implementación en el Vertical MVP.
-
-No constituye una nueva autoridad funcional ni amplía la autoridad de `05_Motor/Negotiation_Intelligence.md`.
-
-NI determina y justifica contenido negociador. No decide, aprueba, ejecuta ni activa Strategy.
+Este contrato materializa el subconjunto definido de `Negotiation Intelligence` sin ampliar su autoridad funcional. NI determina y justifica contenido negociador; no decide, aprueba, ejecuta ni activa Strategy.
 
 ## 3. Frontera funcional
 
 ```text
-Autoridades upstream
-  ├─ Viability Frontier
-  ├─ Scenario Engine
-  ├─ Decision Twin
-  ├─ Rules / Parameters
-  └─ Evidence / Trace
-          ↓
-Negotiation Intelligence
-          ↓
-contenido negociador determinado y justificado
-          ↓
-Negotiation Ladder / capas posteriores
+Viability Frontier / Scenario Engine / Decision Twin / Rules / Evidence
+                              ↓
+                    Negotiation Intelligence
+                              ↓
+                 contenido negociador justificado
+                              ↓
+                    Negotiation Ladder
 ```
 
-NI consume resultados y referencias autorizadas. No sustituye ni recalcula las autoridades upstream.
+NI consume referencias upstream y no las sustituye ni recalcula.
 
-## 4. Entrada lógica mínima
+## 4. Contexto autorizado
 
-```text
-decision_context
-scenario_references
-viability_references
-decision_twin_references
-negotiable_variables
-constraints_and_limits_references
-evidence_references
-prior_negotiation_context
-```
+La entrada lógica utiliza `decision_context` y referencias a escenarios, viabilidad, Decision Twin, variables negociables, límites, evidencia y contexto previo de negociación.
 
-Cada referencia debe conservar su identidad y versión de origen cuando ésta exista.
+Cada referencia conserva la identidad y las versiones autorizadas de su origen cuando existan.
 
-NI no duplica como autoridad los artefactos referenciados.
+## 5. Identidad y versionado — reconciliación
 
-## 5. Identidad y versionado
-
-El resultado NI debe estar vinculado al contexto decisional correspondiente y reutilizar las identidades autorizadas existentes.
+NI reutiliza únicamente las identidades autorizadas existentes:
 
 ```text
 Decision_ID
-Decision_Version / estado decisional
 Scenario_ID, cuando aplique
 Rules_Version, cuando aplique
 Parameters_Version, cuando aplique
 Data_Snapshot_ID, cuando aplique
 ```
 
-NI no crea un sistema paralelo de `Decision Versioning`, `Scenario Versioning`, `Trace` o `input_fingerprint`.
+**`decision_version` no pertenece al contrato NI.** Decision Versioning no define una versión funcional con ese campo. Su registro físico utiliza `decision_state_record_id` como identificador técnico histórico y conserva referencias de C0.
 
-`negotiation_result_id` identifica exclusivamente el artefacto NI. No sustituye ni duplica las identidades de las autoridades upstream.
+NI no crea un sistema paralelo de Decision Versioning, Scenario Versioning, Trace o `input_fingerprint`.
 
-La versión del resultado NI queda determinada por su propia identidad de artefacto y por las identidades/versiones de contexto que referencia; no se crea una segunda autoridad de versionado mediante un campo semánticamente ambiguo.
+`negotiation_result_id` identifica exclusivamente el artefacto NI y no sustituye ninguna identidad upstream.
 
-Un nuevo contexto materialmente diferente genera un nuevo resultado NI; no se sobrescribe retrospectivamente un resultado histórico.
+Un nuevo contexto materialmente diferente genera un nuevo resultado NI; los resultados históricos no se sobrescriben.
 
 ## 6. Contenido negociador
 
-La salida principal es contenido negociador determinado y justificado. Puede incluir, cuando proceda:
+La salida puede contener:
 
 ```text
 objective
 opening_request
 moves
 concessions
-counterparts / counterpart_requirements
+counterpart_requirements
 tradeoffs
 packages
 alternatives
@@ -91,162 +69,25 @@ conditions
 convenience_analysis
 ```
 
-Estos elementos representan contenido sustantivo. No constituyen una Ladder.
+Estos elementos son contenido sustantivo y no representan una Ladder.
 
-## 7. Epistemología
+## 7. Epistemología y trazabilidad
 
-Toda conclusión material debe conservar su naturaleza cuando resulte relevante:
+Las afirmaciones pueden ser `FACT`, `OBSERVATION`, `INFERENCE`, `ESTIMATE`, `HYPOTHESIS` o `RECOMMENDATION`. La confianza, cuando exista, pertenece a la `NIAssertion` correspondiente. No existe un `confidence_score` global.
 
-```text
-FACT
-OBSERVATION
-INFERENCE
-ESTIMATE
-HYPOTHESIS
-RECOMMENDATION
-```
+NI conserva referencias a las fuentes y no redefine Evidence, Rules, Parameters, C0, Trace, Scenario Engine o Decision Twin.
 
-La confianza/incertidumbre se conserva como atributo de la afirmación, fundamento o conclusión correspondiente cuando aplique.
+## 8. Fronteras upstream
 
-No se utiliza un `confidence_score` global como sustituto de la naturaleza epistemológica.
+NI puede consumir resultados de Viability Frontier y Decision Twin y formular hipótesis negociadoras, pero no determina viabilidad, modifica límites, crea escenarios formales ni recalcula el Twin.
 
-## 8. Justificación y evidencia
+## 9. Negotiation Ladder
 
-El contenido negociador material debe poder rastrearse hasta sus fundamentos.
+Negotiation Intelligence determina el contenido; Negotiation Ladder lo estructura, representa y ordena. NI no crea `ladder_step`, `sequence_order`, transiciones, rutas ni niveles estructurales de Ladder.
 
-```text
-Evidence / Data
-      ↓
-Rules / Parameters
-      ↓
-Scenario / Result
-      ↓
-Decision Twin / Consequence
-      ↓
-NI reasoning
-      ↓
-Negotiation content
-```
+## 10. CRC y decisión
 
-NI conserva referencias a las fuentes; no redefine Evidence, Rules, Parameters, Scenario Engine, Decision Twin, C0 o Trace.
-
-La calificación epistemológica y su confianza, cuando existan, pertenecen a una única `NIAssertion` asociada al fundamento o conclusión correspondiente. No deben duplicarse en estructuras paralelas del resultado.
-
-Una inferencia no se convierte en hecho por estar respaldada por una referencia.
-
-## 9. Viability Frontier
-
-NI puede consumir resultados y límites de `Viability Frontier` para analizar conveniencia negociadora.
-
-No puede:
-
-- determinar viabilidad;
-- crear una frontera;
-- modificar una frontera;
-- ampliar o reducir límites de viabilidad.
-
-```text
-Viability Frontier
-        ↓
-resultado / límite autorizado
-        ↓
-NI
-        ↓
-interpretación negociadora
-```
-
-## 10. Scenario Engine
-
-NI puede producir hipótesis, alternativas o necesidades de evaluación.
-
-No crea ni versiona escenarios formales.
-
-Cuando una hipótesis requiera evaluación formal:
-
-```text
-NI
- ↓
-hipótesis negociadora
- ↓
-Scenario Engine
- ↓
-Scenario_ID
- ↓
-evaluación
- ↓
-resultado
- ↓
-NI
-```
-
-`Scenario_ID` conserva la identidad del Scenario Engine y no se redefine dentro de NI.
-
-## 11. Decision Twin
-
-NI consume resultados y consecuencias del Decision Twin.
-
-No reproduce, recalcula, modifica ni sustituye el Twin.
-
-```text
-Decision Twin
-      ↓
-resultado / consecuencia
-      ↓
-NI
-      ↓
-interpretación negociadora
-```
-
-## 12. Negotiation Ladder
-
-La frontera es inmutable:
-
-> Negotiation Intelligence determina el contenido negociador; Negotiation Ladder estructura, representa y ordena secuencialmente ese contenido.
-
-Por tanto, este contrato no concede a NI autoridad para crear o gobernar:
-
-```text
-ladder_step
-sequence_order
-transitions
-routes
-structural ladder levels
-```
-
-NI puede determinar sustantivamente movimientos, concesiones, contraprestaciones, condiciones y fallback; Ladder los estructura posteriormente.
-
-## 13. Límites y restricciones
-
-NI puede utilizar límites y restricciones procedentes de fuentes autorizadas y determinar sus implicaciones negociadoras.
-
-No puede:
-
-- crear límites;
-- determinar límites;
-- modificar límites;
-- ampliar límites;
-- reducir límites;
-- sustituir su autoridad de origen.
-
-Un `walk-away` generado o representado por capas posteriores debe conservar el límite autorizado que lo fundamenta.
-
-## 14. CRC y resolución
-
-NI produce contenido y razonamiento negociador.
-
-No resuelve conflictos entre autoridades ni sustituye `CRC` o la capa de resolución correspondiente.
-
-```text
-NI
- ↓
-contenido / recomendación
- ↓
-resolución posterior
- ↓
-autoridad decisional
-```
-
-## 15. Strategy y decisión empresarial
+NI no resuelve conflictos de autoridad y no sustituye CRC. Tampoco aprueba, decide o ejecuta.
 
 ```text
 Negotiation content ≠ Strategy
@@ -254,11 +95,7 @@ Recommendation ≠ Business Decision
 Business Decision ≠ Execution
 ```
 
-El contrato no contiene estados ni acciones que impliquen aprobación empresarial, ejecución, activación de Strategy o decisión humana.
-
-## 16. Salida
-
-La salida mínima de implementación es:
+## 11. Salida
 
 ```text
 negotiation_result_id
@@ -268,87 +105,36 @@ justification
 traceability_references
 ```
 
-La justificación utiliza `NIAssertion` como unidad única de contenido epistemológico cuando proceda, incluyendo `epistemic_type`, `confidence` y `source_references` en esa misma unidad.
+## 12. Invariantes
 
-`negotiation_result_id` identifica el artefacto NI y no sustituye `Decision_ID`, `Scenario_ID` ni ninguna identidad de autoridad upstream.
+1. Las referencias upstream conservan su autoridad de origen.
+2. NI no crea ni modifica límites.
+3. NI no determina viabilidad.
+4. NI no crea escenarios formales.
+5. NI no recalcula Decision Twin.
+6. NI no redefine Decision Versioning.
+7. NI no redefine C0, Trace ni `input_fingerprint`.
+8. NI no estructura Ladder.
+9. NI no resuelve conflictos de autoridad.
+10. NI no gobierna Strategy.
+11. NI no aprueba, decide ni ejecuta.
+12. Las categorías epistemológicas permanecen diferenciadas.
+13. Un resultado nuevo no sobrescribe uno histórico.
+14. Una hipótesis negociadora no equivale a un escenario formal.
+15. NI no introduce `decision_version` como identidad paralela.
+16. NI no crea un segundo fingerprint o Trace.
 
-## 17. Invariantes físicos
+## 13. Criterios de test
 
-1. NI solo determina contenido negociador dentro de sus autoridades.
-2. Todo contenido material debe ser justificable.
-3. Las referencias upstream conservan su autoridad de origen.
-4. NI no crea límites.
-5. NI no modifica límites.
-6. NI no determina viabilidad.
-7. NI no crea escenarios formales.
-8. NI no recalcula Decision Twin.
-9. NI no redefine Decision Versioning.
-10. NI no redefine C0, Trace ni `input_fingerprint`.
-11. NI no estructura Ladder.
-12. NI no resuelve conflictos de autoridad.
-13. NI no gobierna Strategy.
-14. NI no aprueba.
-15. NI no decide.
-16. NI no ejecuta.
-17. Hecho, observación, inferencia, estimación e hipótesis permanecen diferenciados.
-18. Un nuevo resultado no sobrescribe un resultado histórico.
-19. Una hipótesis negociadora no equivale a un escenario formal.
-20. Una recomendación no equivale a una decisión empresarial.
-21. La calificación epistemológica y la confianza de una afirmación no se duplican en estructuras paralelas del resultado.
-22. NI no crea un sistema paralelo de versionado mediante una identidad ambigua distinta de `negotiation_result_id` y las referencias upstream.
+La implementación verifica identidad autorizada, rechazo de `decision_version`, conservación de contexto upstream, separación NI/Ladder, trazabilidad, inmutabilidad y ausencia de autoridades paralelas.
 
-## 18. Exclusiones
+Cobertura materializada en `tests/test_negotiation_intelligence.py` y `eios/core/negotiation_intelligence.py`.
 
-Quedan fuera de este contrato:
+## 14. Estado
 
-- generación/evaluación formal de escenarios;
-- determinación de viabilidad;
-- creación/modificación de reglas o parámetros;
-- modificación de límites;
-- representación estructural de Ladder;
-- resolución de conflictos de autoridad;
-- aprobación;
-- decisión empresarial;
-- ejecución;
-- gobierno o activación de Strategy.
-
-## 19. Criterios mínimos de test — verificación
-
-Los siguientes criterios quedan establecidos como invariantes verificables de la implementación materializada:
-
-1. identidad y versionado coherentes;
-2. ausencia de mutación de resultados históricos;
-3. conservación de referencias upstream;
-4. rechazo de creación/modificación de límites;
-5. rechazo de escenarios formales creados por NI;
-6. rechazo de recalculación/modificación de Decision Twin;
-7. separación NI/Ladder;
-8. separación recomendación/decisión;
-9. separación epistemológica;
-10. trazabilidad completa del contenido material;
-11. ausencia de segundo fingerprint/Trace;
-12. determinismo para entradas y versiones idénticas;
-13. ausencia de duplicación de confianza/calificación epistemológica;
-14. ausencia de identidad paralela de versionado.
-
-La cobertura física correspondiente se encuentra materializada en `tests/test_negotiation_intelligence.py` y en la implementación `eios/core/negotiation_intelligence.py`.
-
-## 20. Cierre de autoridad
-
-Este contrato implementa la autoridad de `05_Motor/Negotiation_Intelligence.md` sin ampliarla.
-
-Cualquier requisito que introduzca autoridad sobre viabilidad, escenarios, Decision Twin, Ladder, CRC, Strategy o decisión empresarial deberá resolverse mediante la autoridad documental correspondiente y no mediante este contrato.
-
-## 21. Estado de implementación y cierre
-
-**Implementación física:** materializada en `eios/core/negotiation_intelligence.py`.
-
-**Tests físicos:** materializados en `tests/test_negotiation_intelligence.py`, cubriendo las invariantes declaradas en este contrato.
-
-**Estado:** CERRADO Y MATERIALIZADO.
-
-**Naturaleza del cambio:** reconciliación documental del estado de implementación; no se modifican código, tests, SQL, C0 ni autoridades funcionales.
-
-**CI:** la materialización documental queda sujeta a verificación de la CI del commit resultante; no se considera cierre CI confirmado hasta disponer del resultado satisfactorio del workflow correspondiente.
-
+**Estado:** CERRADO — RECONCILIADO Y MATERIALIZADO.  
+**Tipo de cambio:** corrección de frontera documental/técnica; sin nueva autoridad funcional.  
+**C0:** NO ALTERADO.  
+**Decision Versioning:** NO ALTERADO.  
+**O2:** NO ALTERADO.  
 **Método:** DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI.
