@@ -1,87 +1,108 @@
 # EIOS — DISEÑO E2E EXECUTION BOUNDARY
 
-**Versión:** 0.1
-**Estado:** DISEÑO INICIAL — PENDIENTE DE AUDITORÍA
+**Versión:** 0.2
+**Estado:** DISEÑO DEPURADO — PENDIENTE DE AUDITORÍA 2
 **Baseline:** `40b4646df76426117779fe6aaa318e734ea49f41`
 
 ## 1. Propósito
 
-Resolver exclusivamente la discontinuidad identificada entre la entrada autorizada por U1/U1.1 y la entrega de resultados ya materializados a O1.
+Resolver exclusivamente la discontinuidad entre la entrada autorizada por U1/U1.1 y la entrega a O1 de resultados producidos por capacidades ya autorizadas.
 
-La capacidad propuesta constituye una frontera de ejecución controlada. No sustituye O1, O2, O3 ni ninguna capacidad analítica existente.
+La frontera es una capa de coordinación de ejecución; no sustituye O1, O2, O3 ni ninguna capacidad analítica.
 
-## 2. Flujo objetivo
+## 2. Flujo
 
 ```text
-CEO
- ↓
-U1.1 Visual
- ↓
-U1 Application Boundary
- ↓
-Execution Boundary
- ↓
-capacidades previamente autorizadas
- ↓
-O1 Decision Support Package
- ↓
-U1.1 Visual
+CEO → U1.1 → U1 → Execution Boundary → capacidades autorizadas → O1 → U1.1
 ```
 
-## 3. Principios
+## 3. Catálogo y autoridad
 
-1. La entrada debe ser un `PurchaseOperation` y un `DecisionContext` canónicos.
-2. La frontera no crea identidad paralela ni versionado paralelo.
-3. Debe preservar `decision_id`, `scenario_id`, `rules_version`, `parameters_version` y `data_snapshot_id`.
-4. No puede aprobar, rechazar, comprar, negociar ni seleccionar automáticamente.
-5. No puede introducir ranking, scoring u optimización.
-6. No puede alterar reglas, parámetros, evidencia ni datos de entrada.
-7. Debe distinguir ejecución técnica de resultado empresarial.
-8. Los resultados parciales, bloqueados, no evaluables y fallidos deben permanecer explícitos.
-9. O1 continúa siendo el sobre operacional y de trazabilidad.
-10. La interfaz visual solo presenta el resultado; no interpreta ni recalcula.
+El boundary no define una nueva autoridad de negocio. Solo podrá invocar capacidades cuyo contrato ya esté cerrado y que se declaren explícitamente como `invocable` para este boundary.
 
-## 4. Alcance candidato
+El catálogo de invocación será una configuración contractual, no una inferencia dinámica. Una capacidad no declarada no se invoca.
 
-La frontera podrá recibir una solicitud de ejecución autorizada y delegar en capacidades existentes cuyos contratos ya estén cerrados.
+O1 no se considera una capacidad analítica invocable: recibe resultados y compone el paquete operacional.
 
-Debe devolver resultados de ejecución suficientemente estructurados para que O1 construya el `DecisionSupportPackage` sin reinterpretarlos.
+O2 y O3 mantienen sus contratos actuales. La integración O4→O2→O3 queda fuera salvo contrato específico posterior.
 
-No se autoriza todavía una lista fija de capacidades E2E. Debe determinarse durante la auditoría si existe una secuencia contractual necesaria y segura.
+## 4. Entrada y contexto
 
-## 5. Exclusiones
+Entrada mínima:
 
-Quedan fuera de este diseño:
+- `PurchaseOperation` canónico;
+- `DecisionContext` canónico;
+- catálogo/política de ejecución autorizada;
+- contexto de ejecución controlado.
+
+Se preservan sin modificación `decision_id`, `scenario_id`, `rules_version`, `parameters_version` y `data_snapshot_id`.
+
+No se crea `decision_version`, `decision_fingerprint` ni otro identificador paralelo.
+
+## 5. Plan de ejecución
+
+La ejecución será **declarativa y determinista**: el plan autorizado define las capacidades y sus dependencias. El boundary no descubre dependencias por heurística ni genera un orden dinámico basado en resultados de negocio.
+
+Antes de ejecutar debe validarse el plan completo. Si una precondición estructural conocida impide una ejecución segura, no se inicia parcialmente el plan.
+
+El boundary no calcula resultados de las capacidades; las invoca conforme a sus contratos y transporta sus resultados.
+
+## 6. Estados
+
+La frontera debe distinguir:
+
+- `READY`: plan válido, aún no iniciado;
+- `RUNNING`: ejecución en curso;
+- `COMPLETED`: todas las capacidades requeridas por el plan han producido resultados contractualmente completos;
+- `PARTIALLY_COMPLETED`: existe resultado válido parcial o una capacidad no evaluable/bloqueada;
+- `NOT_EVALUABLE`: no puede determinarse de forma segura el resultado técnico requerido;
+- `BLOCKED`: una precondición o límite contractual impide iniciar/continuar;
+- `FAILED`: fallo técnico explícito con causa.
+
+Estos estados describen **ejecución técnica**, nunca una conclusión de compra.
+
+## 7. Errores
+
+Un `FAILED`, `BLOCKED` o `NOT_EVALUABLE` no puede transformarse en `NO COMPRAR`, `COMPRAR`, `NEGOCIAR` ni otra conclusión empresarial.
+
+`failure_reason` solo describe el fallo técnico. Las limitaciones deben conservarse hasta O1/U1.1.
+
+## 8. Trazabilidad
+
+La ejecución debe reutilizar la identidad contextual canónica y conservar las referencias de trazabilidad producidas por las capacidades.
+
+El identificador de ejecución del boundary, si resulta necesario técnicamente, será un identificador operacional subordinado a la identidad O1 y no una nueva identidad de decisión.
+
+La materialización deberá demostrar reproducibilidad con la misma entrada, plan y versiones.
+
+## 9. Salida
+
+La salida es un conjunto ordenado de resultados de capacidades compatible con `CapabilityExecution`/O1. El boundary no los interpreta para producir una recomendación.
+
+O1 seguirá siendo responsable del `DecisionSupportPackage` y de su composición de estado. U1.1 solo presenta el paquete recibido.
+
+## 10. Exclusiones
+
+Fuera de alcance:
 
 - API pública;
-- persistencia;
-- SQL;
+- persistencia/SQL;
 - SSO/permisos de infraestructura;
 - ejecución real de compras;
 - automatización de negociación;
-- ranking de escenarios;
+- ranking/scoring/optimización;
 - selección automática;
+- recomendación automática;
 - nuevo sistema de identidad/versionado;
-- integración O4→O2→O3 salvo que una auditoría posterior demuestre que constituye una dependencia necesaria y sea objeto de contrato propio.
+- modificación de reglas, parámetros o RDM;
+- integración implícita O4→O2→O3.
 
-## 6. Preguntas de auditoría obligatorias
+## 11. Criterio de división
 
-Antes de cerrar el diseño debe verificarse:
+Si la auditoría demuestra que una capacidad requiere un contrato de integración propio, esa integración se separará en un scope posterior. El boundary no absorberá contratos no cerrados para completar artificialmente el E2E.
 
-- qué capacidades pueden ser invocadas realmente y bajo qué contrato;
-- qué precondiciones necesita cada una;
-- cómo se propagan identidad, versiones y snapshot;
-- cómo se agregan estados sin convertir un resultado técnico en decisión empresarial;
-- qué ocurre ante fallo, bloqueo o resultado parcial;
-- si existe dependencia funcional de O2/O3;
-- si el boundary debe ser secuencial, declarativo o mediante otro mecanismo controlado;
-- cómo se garantiza determinismo y trazabilidad;
-- si el alcance constituye realmente un único scope o debe dividirse.
-
-## 7. Regla de autorización
+## 12. Autorización
 
 Este documento **NO autoriza implementación**.
 
-La implementación solo podrá comenzar después de:
-
-**DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR**.
+La autorización requiere Auditoría 2 superada y cierre formal del diseño.
