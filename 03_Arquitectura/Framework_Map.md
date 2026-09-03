@@ -2,8 +2,8 @@
 
 ## Índice Maestro del Framework
 
-**Versión:** 3.1  
-**Estado:** APROBADO — reconciliación post-E2E Execution Boundary  
+**Versión:** 3.2  
+**Estado:** APROBADO — reconciliación post-Viability Frontier  
 **Función:** Índice maestro de la estructura documental EIOS  
 **Ubicación:** `03_Arquitectura/Framework_Map.md`
 
@@ -45,6 +45,7 @@ Documentación correspondiente a gobierno, autoridad, contexto, control, trazabi
 ### Documentos actuales
 
 - `Especificacion_funcional.md`
+- `Stock_Demand_Methodological_Matrix.md`
 
 ## 02 — PARÁMETROS
 
@@ -140,6 +141,13 @@ Documentación correspondiente a gobierno, autoridad, contexto, control, trazabi
 - `E2E_Cierre_Execution_Boundary.md`
 - `E2E_Cierre_Implementacion_Execution_Boundary.md`
 - `E2E_Reconciliacion_PostIntegracion.md`
+- `VF_Auditoria1_Contrato_Tecnico.md`
+- `VF_Auditoria2_Contrato_Tecnico.md`
+- `VF_Cierre_Contrato_Tecnico.md`
+- `VF_Auditoria1_Implementacion.md`
+- `VF_Auditoria2_Implementacion.md`
+- `VF_Cierre_Implementacion.md`
+- `VF_Reconciliacion_PostIntegracion.md`
 
 Estos documentos registran pruebas, auditorías, cierres y reconciliaciones materializadas. No crean una autoridad funcional paralela.
 
@@ -168,6 +176,7 @@ Estos documentos registran pruebas, auditorías, cierres y reconciliaciones mate
 17. `U1_1_Visual_Frontend_Implementation_Contract.md`
 18. `Viability_Frontier_Design_Audit.md`
 19. `E2E_Execution_Boundary_Implementation_Contract.md`
+20. `Viability_Frontier_Implementation_Contract.md`
 
 La implementación ejecutable se encuentra materializada adicionalmente en `eios/` y verificada mediante `tests/`.
 
