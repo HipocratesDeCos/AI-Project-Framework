@@ -1,8 +1,8 @@
 # EIOS — VIABILITY FRONTIER · IMPLEMENTATION CONTRACT
 
-**Versión:** 0.2
-**Estado:** CONTRATO DEPURADO — PENDIENTE DE AUDITORÍA 2
-**Baseline:** d82cf899ccc0a133e9a6d9a7be3084ca3f5dbc40
+**Versión:** 0.2  
+**Estado:** CERRADO — CONTRATO TÉCNICO VALIDADO Y MATERIALIZADO  
+**Baseline:** d82cf899ccc0a133e9a6d9a7be3084ca3f5dbc40  
 **Autoridad documental:** `05_Motor/Viability_Frontier.md` v2.1
 
 ## 1. Propósito y autoridad
@@ -104,6 +104,6 @@ Fuera de alcance: nuevas reglas, parámetros, umbrales, fórmulas, score, pesos,
 
 ## 13. Estado
 
-**CONTRATO DEPURADO — LISTO PARA AUDITORÍA 2.**
+**CERRADO — CONTRATO TÉCNICO VALIDADO Y MATERIALIZADO.**
 
-No se autoriza implementación de código hasta superar Audit 2.
+Auditoría 2 de implementación superada y cierre técnico documentado. No se autoriza por este contrato ninguna ampliación funcional ni integración E2E adicional.
