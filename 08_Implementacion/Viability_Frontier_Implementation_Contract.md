@@ -1,114 +1,109 @@
 # EIOS — VIABILITY FRONTIER · IMPLEMENTATION CONTRACT
 
-**Versión:** 0.1
-**Estado:** CONTRATO TÉCNICO — PENDIENTE DE AUDITORÍA 2
+**Versión:** 0.2
+**Estado:** CONTRATO DEPURADO — PENDIENTE DE AUDITORÍA 2
 **Baseline:** d82cf899ccc0a133e9a6d9a7be3084ca3f5dbc40
+**Autoridad documental:** `05_Motor/Viability_Frontier.md` v2.1
 
-## 1. Propósito
+## 1. Propósito y autoridad
 
-Materializar técnicamente el contrato documental cerrado de `05_Motor/Viability_Frontier.md` sin ampliar su autoridad.
+Materializar técnicamente el contrato documental cerrado sin ampliar su autoridad. El componente no determina por sí mismo qué reglas son aplicables ni qué consecuencias normativas existen.
 
-## 2. Responsabilidad
+## 2. Entrada canónica
 
-El componente recibirá `Assessment` ya producidos y determinará únicamente el estado base de viabilidad cuando las consecuencias de frontera estén explícitamente autorizadas.
+La entrada técnica estará compuesta por:
 
-Estados permitidos:
-
-- `VIABLE`
-- `VIABLE_CON_CONDICIONES`
-- `NOT_VIABLE`
-- `NOT_EVALUABLE`
-
-No genera recomendaciones de compra.
-
-## 3. Entradas
-
-La implementación deberá recibir, como mínimo:
-
-- contexto de operación autorizado;
-- colección inmutable de `Assessment`;
-- consecuencia de frontera explícitamente autorizada para cada resultado aplicable;
+- `decision_id` y `scenario_id` del contexto autorizado;
+- versiones/reglas/parámetros y `data_snapshot_id` cuando formen parte del contexto disponible;
+- colección inmutable de `Assessment` ya producidos;
+- una consecuencia de frontera explícitamente autorizada asociada a cada Assessment aplicable;
 - referencias de trazabilidad.
 
-No descubrirá reglas aplicables ni fabricará consecuencias.
+La consecuencia autorizada deberá declarar exactamente una función de frontera: `H`, `K`, `U` o `S`, además de su estado de evaluación necesario para aplicar la precedencia. Un Assessment sin consecuencia autorizada es descriptivo y no puede crear frontera por inferencia.
 
-## 4. Determinación
+La implementación no derivará `H/K/U/S` desde severidad, criticality, GAP, R0–R3, cantidad de Assessment ni historial.
 
-Aplicará exclusivamente esta precedencia:
+## 3. Identidad y aislamiento
 
-1. restricción dura autorizada, incumplida y suficientemente evaluada → `NOT_VIABLE`;
-2. ausencia de restricción dura incumplida + insuficiencia material → `NOT_EVALUABLE`;
-3. condición autorizada incumplida y solucionable → `VIABLE_CON_CONDICIONES`;
-4. en ausencia de las anteriores → `VIABLE`.
+El resultado conservará `decision_id` y `scenario_id`, junto con el contexto de versión/snapshot que haya sido recibido. Assessment pertenecientes a otro contexto no podrán mezclarse silenciosamente; una incompatibilidad de identidad/contexto produce error técnico de entrada.
 
-No habrá voto, suma, promedio, score, peso ni compensación.
+El escenario actual no hereda restricciones del escenario precedente por historial.
 
-## 5. No inferencia
+## 4. Estados y determinación
 
-La implementación rechazará cualquier intento de derivar una restricción o consecuencia únicamente desde:
+Estados permitidos: `VIABLE`, `VIABLE_CON_CONDICIONES`, `NOT_VIABLE`, `NOT_EVALUABLE`.
 
-- severidad;
-- criticality;
-- cantidad de Assessment desfavorables;
-- GAP;
-- códigos R0–R3;
-- historial de escenarios.
+Precedencia única:
 
-## 6. Conflictos
+1. `H` autorizada + incumplida + suficientemente evaluada → `NOT_VIABLE`.
+2. Sin `H` incumplida + `U` material → `NOT_EVALUABLE`.
+3. Sin `H`/`U` + `K` incumplida + solucionable → `VIABLE_CON_CONDICIONES`.
+4. En otro caso → `VIABLE`.
 
-Si la información recibida requiere una política de resolución no autorizada, el resultado será `NOT_EVALUABLE` con limitación técnica/documental explícita; nunca se inventará precedencia.
+La implementación no aplicará precedencias adicionales.
 
-La resolución normativa posterior corresponde a CRC.
+## 5. Suficiencia y conflictos
 
-## 7. Monotonicidad y no compensación
+`NOT_VIABLE` solo se emite con consecuencia `H` explícita, aplicable, incumplida y suficientemente evaluada.
 
-La implementación deberá garantizar que señales informativas o resultados redundantes no modifiquen el estado por conteo y que resultados favorables no neutralicen una restricción dura autorizada incumplida.
+Si existe conflicto entre consecuencias que requiera una política no autorizada por la documentación vigente, no se inventará una precedencia. El resultado será `NOT_EVALUABLE` y conservará una limitación identificable como conflicto no resuelto.
 
-## 8. Trazabilidad
+Esto no convierte una insuficiencia ordinaria en una conclusión empresarial negativa y no sustituye la autoridad de CRC.
 
-El resultado conservará referencias a los Assessment y reglas que sustentan la clasificación. No almacenará una segunda evidencia ni alterará los Assessment recibidos.
+## 6. Orden y determinismo
 
-## 9. Inmutabilidad y determinismo
+La colección de Assessment y las referencias se canonicalizarán mediante claves estables derivadas de sus identificadores autorizados. El orden de entrada no podrá cambiar el resultado.
 
-La función será pura respecto a sus entradas: sin mutación, persistencia, llamadas de red, ejecución de reglas, acceso a motores externos o estado global.
+No se deducirá causalidad automática entre Assessment redundantes. Los duplicados semánticos no intensifican el resultado por conteo.
 
-La misma entrada canónica deberá producir el mismo resultado.
+## 7. Inmutabilidad y trazabilidad
 
-## 10. Exclusiones
+La función no mutará Assessment, contexto ni referencias. El resultado mantendrá trazabilidad hacia los Assessment y reglas que sustentan la clasificación.
 
-Fuera de alcance:
+No se crea un repositorio alternativo de evidencia.
 
-- creación/evaluación de reglas;
-- cálculo de evidencia;
-- creación de escenarios;
-- scoring/optimización/ranking;
-- negociación;
-- recomendación empresarial;
-- decisión de compra;
-- sustitución de CRC;
-- persistencia/SQL/API;
-- inferencia de parámetros o umbrales.
+## 8. Monotonicidad y no compensación
 
-## 11. Criterios de aceptación
+Las señales `S` no modifican por sí mismas el resultado. Resultados favorables no compensan una `H` incumplida. Resultados desfavorables múltiples no crean una nueva restricción.
 
-La futura implementación deberá demostrar al menos:
+La revelación de una `H` previamente no evaluada puede cambiar el resultado porque activa una restricción normativa preexistente; no constituye inferencia nueva.
 
-1. viable cuando no existen restricciones/condiciones activadas;
-2. no viable ante una restricción dura autorizada incumplida;
-3. no evaluable ante insuficiencia material sin hard constraint incumplida;
-4. viable con condiciones ante condición autorizada incumplida y solucionable;
-5. severidad sin consecuencia explícita no crea frontera;
-6. múltiples resultados desfavorables no crean score ni bloqueo por conteo;
-7. resultados favorables no compensan hard constraint;
-8. Assessment no son mutados;
-9. conflictos no autorizados no generan precedencia inventada;
-10. trazabilidad preservada;
-11. determinismo;
-12. ausencia de acceso a motores/reglas externos;
-13. ausencia de recomendación empresarial;
-14. separación de CRC;
-15. escenario anterior no altera automáticamente el actual.
+## 9. Errores técnicos
 
-## 12. Estado
+Entrada mal formada, consecuencia inexistente o inválida, identidad incompatible o referencias internamente inconsistentes producirán un error técnico explícito y determinista; no se transformarán silenciosamente en `NOT_VIABLE` ni en recomendación empresarial.
 
-**AUTORIZADO PARA AUDITORÍA 1 DEL CONTRATO; NO AUTORIZADO TODAVÍA PARA IMPLEMENTACIÓN DE CÓDIGO.**
+## 10. Integración
+
+VF consume resultados ya producidos. No ejecuta reglas, Evidence, Scenario Engine, O1, CRC ni negociación. Tampoco llama internamente a otros motores.
+
+Su resultado queda disponible para las capas posteriores conforme a sus contratos. La integración E2E entre VF y otras capacidades requiere su propio contrato si introduce comportamiento adicional.
+
+## 11. Exclusiones
+
+Fuera de alcance: nuevas reglas, parámetros, umbrales, fórmulas, score, pesos, compensación, ranking, optimización, selección, recomendación, negociación, decisión de compra, persistencia, SQL, API y cualquier autoridad paralela a CRC.
+
+## 12. Criterios de aceptación
+
+1. Determinismo e independencia del orden de entrada.
+2. Identidad/contexto preservados y mezclas rechazadas.
+3. `H` válida produce `NOT_VIABLE`.
+4. `U` material sin `H` incumplida produce `NOT_EVALUABLE`.
+5. `K` incumplida y solucionable sin `H/U` produce `VIABLE_CON_CONDICIONES`.
+6. Ausencia de consecuencias autorizadas no crea frontera.
+7. Severidad/criticality/GAP/R0–R3 no crean `H`.
+8. Redundancia no intensifica por conteo.
+9. `S` no modifica el resultado.
+10. Favorables no compensan `H`.
+11. Conflicto no autorizado queda `NOT_EVALUABLE` con causa.
+12. Entradas inválidas producen error técnico explícito.
+13. Assessment y contexto permanecen inmutables.
+14. Trazabilidad preservada.
+15. No acceso interno a motores ni ejecución de reglas.
+16. No recomendación/decisión empresarial.
+17. Escenarios no heredan restricciones por historial.
+
+## 13. Estado
+
+**CONTRATO DEPURADO — LISTO PARA AUDITORÍA 2.**
+
+No se autoriza implementación de código hasta superar Audit 2.
