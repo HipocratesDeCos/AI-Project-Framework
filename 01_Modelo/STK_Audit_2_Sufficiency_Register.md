@@ -1,6 +1,6 @@
 # EIOS — STK AUDIT 2 · SUFFICIENCY REGISTER
 
-**Versión:** 0.1  
+**Versión:** 0.2  
 **Estado:** AUDITAR 2 — EVALUACIÓN DE SUFICIENCIA  
 **Rama:** `design/stk-quantitative-authority`  
 **Baseline de `main`:** `1a4b5fadc5a89102ae71c88041e97763a2388fe1`  
@@ -88,7 +88,27 @@ No se identifica una política autorizada que permita seleccionar automáticamen
 
 - `STK-G10`
 
-## 6. Gate de AUDITAR 2
+## 6. Actualización de trazabilidad — M01
+
+El `STK_Decision_GAP_Register.md` v0.2 materializa ahora la entrada formal de decisión para `STK-M01`.
+
+La ficha M01 exige determinar, mediante autoridad trazable:
+
+- magnitud canónica;
+- unidad;
+- período;
+- tratamiento de ausencia;
+- transformación/agregación autorizada;
+- fuente de autoridad;
+- vigencia o condición de aplicación cuando corresponda.
+
+La ficha establece expresamente que no puede inferirse `consumption` desde ventas, demanda, promedios convencionales ni desde `STK-006` como si este constituyera por sí solo una fórmula definitiva.
+
+**Resultado de AUDIT 2 M01:** la entrada de decisión queda formalmente registrada, pero la evidencia disponible sigue siendo insuficiente para cerrar M01.
+
+La materialización de esta ficha **no cambia** la clasificación del gap ni autoriza implementación.
+
+## 7. Gate de AUDITAR 2
 
 **AUDITAR 2 — SUPERADO COMO AUDITORÍA DE SUFICIENCIA Y LÍMITES DE AUTORIDAD.**
 
@@ -96,18 +116,23 @@ No se identifica una política autorizada que permita seleccionar automáticamen
 
 No existe base documental suficiente para declarar STK metodológicamente cerrado ni para autorizar implementación cuantitativa.
 
-## 7. Decisión operativa
+## 8. Decisión operativa
 
-El siguiente paso autorizado es solicitar/registrar las decisiones necesarias para los gaps bloqueantes. No procede:
+El siguiente paso autorizado es solicitar/registrar las decisiones necesarias para los gaps bloqueantes. Para M01, la transición válida es:
+
+`Autoridad M01 → Evidencia trazable → AUDITAR 2 M01 → Cierre M01 → M02`
+
+No procede:
 
 - implementar fórmulas;
 - modificar parámetros como política definitiva;
 - crear nuevas reglas;
 - resolver contradicciones por heurística;
 - crear contrato técnico STK cuantitativo;
-- abrir una PR de implementación.
+- abrir una PR de implementación;
+- avanzar a M02 por ausencia de resolución de M01.
 
-## 8. Estado
+## 9. Estado
 
 **STK permanece NO APTO PARA IMPLEMENTACIÓN CUANTITATIVA.**
 
