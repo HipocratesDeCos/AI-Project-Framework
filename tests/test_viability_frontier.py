@@ -9,8 +9,31 @@ from eios.core.viability_frontier import (
 )
 
 
-def a(aid, cls, *, evaluated=True, satisfied=None, solvable=None, rule="R", trace="T"):
-    return FrontierAssessment(aid, "D1", "S1", cls, evaluated, satisfied, solvable, rule, trace)
+def a(
+    aid,
+    cls,
+    *,
+    evaluated=True,
+    satisfied=None,
+    solvable=None,
+    rule="R",
+    trace="T",
+    materially_insufficient=False,
+    authority_conflict=False,
+):
+    return FrontierAssessment(
+        aid,
+        "D1",
+        "S1",
+        cls,
+        evaluated,
+        satisfied,
+        solvable,
+        rule,
+        trace,
+        materially_insufficient,
+        authority_conflict,
+    )
 
 
 def test_viable_and_order_independent():
@@ -26,9 +49,15 @@ def test_hard_constraint_is_not_compensated():
     assert r.status is ViabilityStatus.NOT_VIABLE
 
 
-def test_material_insufficiency_is_not_negative():
-    r = evaluate_viability("D1", "S1", [a("u", FrontierClass.U)])
+def test_material_insufficiency_requires_explicit_material_signal():
+    with pytest.raises(FrontierInputError):
+        evaluate_viability("D1", "S1", [a("u", FrontierClass.U)])
+
+    r = evaluate_viability(
+        "D1", "S1", [a("u", FrontierClass.U, materially_insufficient=True)]
+    )
     assert r.status is ViabilityStatus.NOT_EVALUABLE
+    assert r.limitation == "MATERIAL_INSUFFICIENCY"
 
 
 def test_condition_is_conditional():
@@ -36,9 +65,63 @@ def test_condition_is_conditional():
     assert r.status is ViabilityStatus.VIABLE_CON_CONDICIONES
 
 
-def test_unresolved_k_does_not_create_condition():
-    r = evaluate_viability("D1", "S1", [a("k", FrontierClass.K, evaluated=False, satisfied=None, solvable=None)])
+def test_unresolved_k_can_preserve_material_insufficiency():
+    r = evaluate_viability(
+        "D1",
+        "S1",
+        [a("k", FrontierClass.K, evaluated=False, materially_insufficient=True)],
+    )
+    assert r.status is ViabilityStatus.NOT_EVALUABLE
+    assert r.limitation == "MATERIAL_UNEVALUATED_FRONTIER_CONSEQUENCE"
+
+
+def test_unresolved_k_without_material_signal_does_not_create_condition():
+    r = evaluate_viability(
+        "D1",
+        "S1",
+        [a("k", FrontierClass.K, evaluated=False)],
+    )
     assert r.status is ViabilityStatus.VIABLE
+
+
+def test_unresolved_h_does_not_create_not_viable():
+    r = evaluate_viability(
+        "D1",
+        "S1",
+        [a("h", FrontierClass.H, evaluated=False)],
+    )
+    assert r.status is ViabilityStatus.VIABLE
+
+
+def test_unresolved_h_with_material_signal_is_not_evaluable():
+    r = evaluate_viability(
+        "D1",
+        "S1",
+        [a("h", FrontierClass.H, evaluated=False, materially_insufficient=True)],
+    )
+    assert r.status is ViabilityStatus.NOT_EVALUABLE
+
+
+def test_unresolved_authority_conflict_is_structured():
+    r = evaluate_viability(
+        "D1", "S1", [a("c", FrontierClass.S, authority_conflict=True)]
+    )
+    assert r.status is ViabilityStatus.NOT_EVALUABLE
+    assert r.limitation == "UNRESOLVED_AUTHORITY_CONFLICT"
+
+
+def test_versions_and_snapshot_are_preserved():
+    r = evaluate_viability(
+        "D1",
+        "S1",
+        [a("s", FrontierClass.S)],
+        rules_version="R-2",
+        parameters_version="P-3",
+        data_snapshot_id="DS-4",
+    )
+    assert r.rules_version == "R-2"
+    assert r.parameters_version == "P-3"
+    assert r.data_snapshot_id == "DS-4"
 
 
 def test_severity_or_rule_code_cannot_create_frontier_without_authorized_class():
@@ -68,3 +151,8 @@ def test_inputs_are_not_mutated():
 def test_invalid_h_input_rejected():
     with pytest.raises(FrontierInputError):
         evaluate_viability("D1", "S1", [a("h", FrontierClass.H, satisfied=None)])
+
+
+def test_invalid_k_input_rejected_when_evaluated():
+    with pytest.raises(FrontierInputError):
+        evaluate_viability("D1", "S1", [a("k", FrontierClass.K, satisfied=None, solvable=True)])
