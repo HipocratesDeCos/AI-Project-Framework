@@ -2,8 +2,8 @@
 
 ## Índice Maestro del Framework
 
-**Versión:** 2.9  
-**Estado:** APROBADO — reconciliación post-U1.1  
+**Versión:** 3.0  
+**Estado:** APROBADO — reconciliación post-O4  
 **Función:** Índice maestro de la estructura documental EIOS  
 **Ubicación:** `03_Arquitectura/Framework_Map.md`
 
@@ -38,25 +38,17 @@ Documentación correspondiente a gobierno, autoridad, contexto, control, trazabi
 - `Especificacion_Evidencia_Trazabilidad_F3.md`
 - `Registro_Evidencias_Trazabilidad_F3.md`
 
----
-
 ## 01 — MODELO
 
 `01_Modelo/`
-
-Documentación correspondiente al dominio de modelo funcional y empresarial.
 
 ### Documentos actuales
 
 - `Especificacion_funcional.md`
 
----
-
 ## 02 — PARÁMETROS
 
 `02_Parametros/`
-
-Documentación correspondiente al catálogo, gobierno, decisiones y relaciones de parametrización.
 
 ### Documentos actuales
 
@@ -65,13 +57,9 @@ Documentación correspondiente al catálogo, gobierno, decisiones y relaciones d
 - `Decision_Log_Parametros_MVP.md`
 - `Matriz_Parametros_Reglas_MVP.md`
 
----
-
 ## 03 — ARQUITECTURA
 
 `03_Arquitectura/`
-
-Documentación correspondiente a la organización arquitectónica y mapa del Framework.
 
 ### Documentos actuales
 
@@ -81,13 +69,9 @@ Documentación correspondiente a la organización arquitectónica y mapa del Fra
 - `Framework_Map.md`
 - `Master_Project_Map.md`
 
----
-
 ## 04 — REGLAS
 
 `04_Reglas/`
-
-Documentación correspondiente al sistema de reglas, evidencia, dependencias y resolución de conflictos.
 
 ### Documentos actuales
 
@@ -99,13 +83,9 @@ Documentación correspondiente al sistema de reglas, evidencia, dependencias y r
 - `Reglas_MVP.md`
 - `Rule_Dependency_Matrix.md`
 
----
-
 ## 05 — MOTOR
 
 `05_Motor/`
-
-Documentación correspondiente al motor y comportamiento decisional.
 
 ### Documentos actuales
 
@@ -117,13 +97,9 @@ Documentación correspondiente al motor y comportamiento decisional.
 - `Negotiation_Intelligence.md`
 - `Negotiation_Ladder.md`
 
----
-
 ## 06 — SQL
 
 `06_SQL/`
-
-Dominio correspondiente a la implementación y persistencia SQL, bajo la autoridad documental específica definida para este dominio.
 
 ### Documentos actuales
 
@@ -137,15 +113,9 @@ Dominio correspondiente a la implementación y persistencia SQL, bajo la autorid
 - `002_Decision_Versioning_Schema.sql`
 - `003_Centro_Parametrizacion_Schema.sql`
 
-Los artefactos de validación SQL de CI se mantienen en `.github/sql/` y forman parte del mecanismo de verificación, no del índice documental de `06_SQL`.
-
----
-
 ## 07 — PRUEBAS
 
 `07_Pruebas/`
-
-Documentación correspondiente a pruebas y verificación.
 
 ### Documentos actuales
 
@@ -156,6 +126,8 @@ Documentación correspondiente a pruebas y verificación.
 - `O3_Cierre.md`
 - `O3_Cierre_PostMerge.md`
 - `O3_Auditoria2_Implementacion_Corregida.md`
+- `O4_Cierre_Materializacion.md`
+- `O4_Auditoria2_Implementacion.md`
 - `Reconciliacion_Decision_Versioning_NI_NL.md`
 - `U1_Cierre_Materializacion.md`
 - `U1_1_Cierre_Materializacion.md`
@@ -163,13 +135,9 @@ Documentación correspondiente a pruebas y verificación.
 
 Estos documentos registran pruebas, auditorías, cierres y reconciliaciones materializadas. No crean una autoridad funcional paralela.
 
----
-
 ## 08 — IMPLEMENTACIÓN
 
 `08_Implementacion/`
-
-Documentación correspondiente a la materialización técnica controlada del diseño y sus contratos de implementación.
 
 ### Contratos actuales
 
@@ -182,18 +150,17 @@ Documentación correspondiente a la materialización técnica controlada del dis
 7. `Decision_Versioning_Implementation_Contract.md`
 8. `Negotiation_Intelligence_Implementation_Contract.md`
 9. `Negotiation_Ladder_Implementation_Contract.md`
-10. `Price_Intelligence_Implementation_Contract.md`
-11. `Quality_Trust_Implementation_Contract.md`
-12. `Scenario_Evaluation_Implementation_Contract.md`
-13. `TCO_Core_CI_Verification.md`
-14. `TCO_Core_Implementation_Contract.md`
-15. `U1_Frontend_Implementation_Contract.md`
-16. `U1_1_Visual_Frontend_Implementation_Contract.md`
-17. `Viability_Frontier_Design_Audit.md`
+10. `O4_Controlled_Scenario_Generation_Implementation_Contract.md`
+11. `Price_Intelligence_Implementation_Contract.md`
+12. `Quality_Trust_Implementation_Contract.md`
+13. `Scenario_Evaluation_Implementation_Contract.md`
+14. `TCO_Core_CI_Verification.md`
+15. `TCO_Core_Implementation_Contract.md`
+16. `U1_Frontend_Implementation_Contract.md`
+17. `U1_1_Visual_Frontend_Implementation_Contract.md`
+18. `Viability_Frontier_Design_Audit.md`
 
 La implementación ejecutable se encuentra materializada adicionalmente en `eios/` y verificada mediante `tests/`.
-
----
 
 ## 99 — ARCHIVO
 
