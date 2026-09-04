@@ -47,21 +47,10 @@ No se autoriza convertir automáticamente:
 
 La depuración reduce el espacio de interpretación, pero **no resuelve todavía la autoridad cuantitativa**. Los diez puntos siguen requiriendo decisión documental/empresarial competente.
 
-## 6. Gate siguiente
+## 6. Resultado respecto de AUDITAR 2
 
-Antes de AUDITORÍA 2 del diseño deben existir fuentes autorizadas suficientes para determinar, como mínimo:
+La depuración documental quedó sometida a AUDITAR 2 para verificar si las fuentes disponibles eran suficientes para cerrar los diez puntos. El resultado de AUDITAR 2 fue que ningún gap cuantitativo quedó completamente cerrado; M05 y M09 quedaron únicamente en estado parcial y M01–M10 permanecen pendientes de la autoridad correspondiente.
 
-1. definición operacional de consumo;
-2. definición operacional de demanda/proyección;
-3. fórmula de cobertura;
-4. tratamiento del stock de seguridad;
-5. proyección temporal y recepción;
-6. tratamiento de pedidos y tránsito sin doble conteo;
-7. exceso y tolerancia;
-8. evidencia de pedidos confirmados;
-9. inputs críticos y estados de insuficiencia;
-10. tratamiento de contradicciones.
+Por tanto, si las fuentes no permiten cerrar alguno de estos puntos, el resultado correcto es mantenerlo `PENDING`, no completar la metodología por inferencia.
 
-Si las fuentes no permiten cerrar alguno de estos puntos, el resultado correcto será mantenerlo `PENDING`, no completar la metodología por inferencia.
-
-**Conclusión:** STK queda documentalmente depurado, pero continúa bloqueado para implementación cuantitativa.
+**Conclusión:** STK queda documentalmente depurado y auditado en segunda instancia, pero continúa bloqueado para implementación cuantitativa.
