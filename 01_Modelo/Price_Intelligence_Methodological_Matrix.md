@@ -4,7 +4,7 @@
 **Versión:** 1.1  
 **Estado:** CERRADA — METODOLOGÍA  
 **Naturaleza:** autoridad metodológica de PR  
-**Implementación:** pendiente de fase posterior
+**Implementación:** MATERIALIZADA EN C1 — `08_Implementacion/Price_Intelligence_Implementation_Contract.md` v1.3
 
 ## 1. Propósito
 
@@ -259,4 +259,4 @@ Esta matriz no define PO, PMR, PPV, TCO, negociación, decisión empresarial, ej
 
 ## 21. Estado de cierre
 
-La metodología conceptual de Price Intelligence queda cerrada con esta revisión. La implementación y los tests quedan deliberadamente fuera de este cierre.
+La metodología conceptual de Price Intelligence queda cerrada con esta revisión. La implementación C1 queda materializada y auditada mediante los registros de `07_Pruebas`. El presente cambio únicamente reconcilia el estado documental y no modifica la metodología normativa.
