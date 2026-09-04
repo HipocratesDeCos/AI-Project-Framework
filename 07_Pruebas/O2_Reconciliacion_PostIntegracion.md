@@ -1,18 +1,37 @@
 # EIOS — Reconciliación Postintegración O2
 
-**Estado:** PENDIENTE DE INTEGRACIÓN
+**Estado:** SUPERADA — INTEGRADO EN MAIN
 
-Este registro queda preparado para completarse únicamente después del merge efectivo en `main`.
+## Integración
 
-## Condición de cierre
+- Baseline previo: `6313a12331cdd583fe0056e9cdb77d78c2a74bdb`
+- PR: `#25`
+- Head validado por CI: `90fd9f7aaf25e76d80cc7afb0a0cfadaa42f110c`
+- CI: **SUCCESS — EIOS Tests #440**
+- Merge SHA real: `0b3d3c47983349c0d8e693dd428277bc982e9277`
 
-La integración requerirá:
+## Verificación postintegración
 
-1. PR aprobado/mergeado sobre la rama reconstruida desde `main`.
-2. CI satisfactorio del PR.
-3. Verificación de que O2 no introduce autoridad decisional ni modifica las capacidades cerradas.
-4. Registro del merge SHA real.
+La reconstrucción O2 queda integrada sobre el `main` vigente mediante PR #25. El PR #24 histórico no se reutilizó ni se integró.
 
-Hasta entonces, O2 se considera materializado en rama de integración y no integrado en `main`.
+Se confirma el alcance materializado:
 
-Cualquier cambio funcional posterior deberá abrir un nuevo alcance y seguir el ciclo completo obligatorio.
+- coordinación descriptiva de resultados de escenarios;
+- identidad determinista de ejecución;
+- preservación de `decision_id`, versiones y `data_snapshot_id`;
+- aislamiento y unicidad de escenarios;
+- preservación explícita de estados técnicos, ausencias y elementos no resueltos;
+- trazabilidad por escenario;
+- comparación descriptiva sin ranking ni preferencia;
+- ausencia de ranking, scoring, selección, recomendación, aprobación, rechazo u optimización;
+- ausencia de mutación silenciosa de `PurchaseOperation`.
+
+No se modifica ninguna capacidad previamente cerrada.
+
+## Dictamen
+
+**O2 — IMPLEMENTACIÓN INTEGRADA, RECONCILIADA Y CERRADA.**
+
+Cualquier cambio funcional posterior sobre O2 requiere un nuevo alcance y el ciclo completo obligatorio:
+
+**DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI**.
