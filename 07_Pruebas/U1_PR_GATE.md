@@ -1,1 +1,0 @@
-CI SUCCESS required before merge.
