@@ -1,6 +1,6 @@
 # EIOS — Higiene de compatibilidad del runtime v0.1
 
-**Estado:** CERRADO — MATERIALIZADO — VALIDACIÓN LOCAL SUPERADA
+**Estado:** CERRADO — MATERIALIZADO — INTEGRADO EN `main` — CI VALIDADO
 **Baseline:** `1686f0fe5b9a2f9947777214bacb9c7a00d2f5b6`
 **Ámbito:** pruebas C0/O2 y artefactos locales del runtime Python
 
@@ -47,4 +47,12 @@ La materialización conserva exactamente el comportamiento anterior y corrige ú
 
 ## 7. CI
 
-La validación local reproduce el job Python de `.github/workflows/tests.yml`. GitHub Actions sobre el SHA que materialice esta unidad es el gate externo final y no se declara por inferencia antes de publicar el cambio.
+La validación local reproduce el job Python de `.github/workflows/tests.yml`.
+
+- Materialización: `ac25749e410f37786fdc46d0d757675463172091`.
+- Pull request: #38.
+- CI del head materializado: run `34517960658` — SUCCESS.
+- Integración en `main`: `da5352565d0547c65f5807f299e64a1b9adaf80f`.
+- CI post-merge: run `34518234149` — SUCCESS.
+
+La unidad queda validada por CI sobre el commit materializado y sobre el merge efectivo en `main`.
