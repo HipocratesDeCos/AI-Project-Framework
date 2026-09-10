@@ -1,6 +1,6 @@
 # EIOS — STK-M02 · Cierre de autoridad metodológica de stock mínimo v0.1
 
-**Estado:** CERRADO — MATERIALIZADO — VALIDACIÓN LOCAL SUPERADA
+**Estado:** CERRADO — MATERIALIZADO — INTEGRADO EN `main` — CI VALIDADO
 **Baseline:** `6d417e6f40505609c5d086deb5a3e6913b2a91a3`
 **Ámbito:** definición y relaciones de `stock_minimum`; sin fórmula ni implementación cuantitativa
 
@@ -46,4 +46,13 @@ La materialización actualiza la matriz STK, añade `STK_M02_Minimum_Stock_Autho
 
 ## 7. CI
 
-La validación local reproduce el job Python vigente. GitHub Actions sobre el SHA materializado y sobre su eventual integración constituye el gate externo final.
+La unidad quedó validada mediante la siguiente cadena de evidencia:
+
+- materialización: `9aa855423874df9a80b68efdaa8fb31f8125a021`;
+- pull request de integración: `#44`;
+- CI sobre la cabeza del pull request: ejecución `34523727971`, `SUCCESS`;
+- integración en `main`: `9bf92bbad063019b60f4389d1212fc97ad6171a2`;
+- CI posterior a la integración: ejecución `34523901616`, `SUCCESS`;
+- reconciliación local posterior: `289 passed`, con advertencias Pydantic y UserWarning promovidas a error.
+
+La cadena DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI queda completa para `STK-M02`.
