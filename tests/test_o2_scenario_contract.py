@@ -24,7 +24,7 @@ def test_invalid_empty_scenario_rejected():
 def test_failed_scenario_does_not_become_business_negative():
     failed = O2ScenarioResult(scenario_id="A", status=O2ScenarioStatus.FAILED, failure_reason="technical failure")
     assert failed.status == O2ScenarioStatus.FAILED
-    assert "outcome" not in failed.model_fields
+    assert "outcome" not in type(failed).model_fields
 
 
 def test_comparison_retains_incomplete_scenario_without_fabricating_value():

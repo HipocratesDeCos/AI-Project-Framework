@@ -1,3 +1,8 @@
 
 # EIOS-Project / Obsidian local configuration
 EIOS-Project/.obsidian/
+# Python local build and test artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
