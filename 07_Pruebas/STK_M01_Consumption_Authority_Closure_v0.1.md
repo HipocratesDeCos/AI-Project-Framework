@@ -1,6 +1,6 @@
 # EIOS — STK-M01 · Cierre de autoridad metodológica de consumo v0.1
 
-**Estado:** CERRADO — MATERIALIZADO — VALIDACIÓN LOCAL SUPERADA
+**Estado:** CERRADO — MATERIALIZADO — INTEGRADO EN `main` — CI VALIDADO
 **Baseline:** `c03f3e4c5a19a106736caf3cc077e01f55195e75`
 **Ámbito:** definición metodológica de `consumption`; sin implementación cuantitativa STK
 
@@ -51,4 +51,12 @@ La materialización actualiza la matriz metodológica, añade la fuente especial
 
 ## 7. CI
 
-La validación local reproduce el job Python vigente. GitHub Actions sobre el SHA materializado y sobre su eventual integración constituye el gate externo final.
+La validación local reproduce el job Python vigente.
+
+- Materialización: `850166d5ae12fc25d905e29d54d3af31d79252c3`.
+- Pull request: #42.
+- CI del head materializado: run `34521971064` — SUCCESS.
+- Integración en `main`: `31cdb61242425c1aeaaadb65fd3cf13d922d26cd`.
+- CI post-merge: run `34522503879` — SUCCESS.
+
+STK-M01 queda validado por CI sobre el commit materializado y sobre el merge efectivo en `main`.
