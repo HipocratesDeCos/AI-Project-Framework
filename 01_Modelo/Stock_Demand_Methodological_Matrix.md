@@ -1,9 +1,9 @@
 # EIOS — STOCK & DEMAND METHODOLOGICAL MATRIX
 
-**Versión:** 0.1  
-**Estado:** DISEÑO — PENDIENTE DE AUTORIDAD CUANTITATIVA  
+**Versión:** 0.2
+**Estado:** DISEÑO PARCIAL — STK-M01 CERRADO; STK-M02…M10 PENDIENTES
 **Baseline:** EIOS Vertical MVP  
-**Fecha:** 01/09/2026
+**Fecha:** 10/09/2026
 
 ---
 
@@ -107,7 +107,7 @@ Antes de implementar STK deben quedar definidas, con unidad y fecha de referenci
 2. `stock_committed` — stock comprometido cuya semántica debe ser confirmada.
 3. `pending_orders` — pedidos pendientes relevantes.
 4. `in_transit` — compras en tránsito relevantes.
-5. `consumption` — consumo histórico utilizado por la metodología.
+5. `consumption` — cantidad real consumida del artículo por la organización o unidad operativa correspondiente, agregada por periodo mensual en la unidad base normalizada del artículo; autoridad cerrada en `STK_M01_Consumption_Authority.md`.
 6. `demand` — demanda utilizada para proyección.
 7. `lead_time` — plazo de entrega aplicable.
 8. `expected_receipt_date` — fecha prevista de recepción.
@@ -120,9 +120,13 @@ La lista anterior define variables de entrada necesarias para el diseño; no def
 
 ## 8. Puntos metodológicos que deben resolverse antes del código
 
-### STK-M01 — Consumo
+### STK-M01 — Consumo — CERRADO
 
-Debe determinarse si `consumption` corresponde a consumo real, ventas, demanda o una transformación documentada de estas fuentes.
+`consumption` representa exclusivamente la cantidad real consumida de un artículo por la organización o unidad operativa correspondiente. Se mide en la unidad base normalizada del artículo y se agrega mediante suma de los consumos registrados dentro de cada periodo mensual correspondiente.
+
+Ventas y demanda prevista permanecen como magnitudes distintas. Un periodo sin datos es `UNKNOWN`, nunca cero salvo evidencia explícita de consumo cero. Una conversión no demostrada a la unidad base también impide producir un valor cuantitativo y conserva `UNKNOWN`.
+
+La política entra en vigor con la puesta en producción de EIOS y se aplica retrospectivamente a los datos históricos incorporados, preservando fuente, periodo, unidad y transformación. Autoridad completa: `01_Modelo/STK_M01_Consumption_Authority.md`.
 
 ### STK-M02 — Stock mínimo
 
@@ -164,7 +168,7 @@ Debe definirse el tratamiento de datos de stock/demanda temporalmente incompatib
 
 ## 9. Regla de no invención
 
-Hasta que `STK-M01…STK-M10` estén resueltos documentalmente:
+Hasta que `STK-M02…STK-M10` estén resueltos documentalmente:
 
 - no se implementan fórmulas cuantitativas de STK;
 - no se asignan consumidores definitivos a `P-STK-*` o `PYE-*` por inferencia nominal;
@@ -195,6 +199,6 @@ STK podrá pasar a contrato técnico cuando exista evidencia suficiente para det
 
 ## 11. Estado
 
-**STK Methodological Matrix v0.1**  
-**Estado:** DISEÑO — PENDIENTE DE AUTORIDAD CUANTITATIVA  
+**STK Methodological Matrix v0.2**
+**Estado:** DISEÑO PARCIAL — STK-M01 CERRADO; STK-M02…M10 PENDIENTES
 **No constituye contrato de implementación.**
