@@ -662,9 +662,7 @@ Las decisiones deberán respetar:
 - auditabilidad;
 - control de regresiones.
 
-La autoridad sobre Assurance corresponde a:
-
-`00_Gobierno/EIOS_Assurance_Framework.md`
+Assurance permanece como principio transversal. No existe actualmente un documento independiente con ese nombre; la autoridad aplicable se determina mediante la Salvaguarda, la Matriz de Autoridad Documental y la fuente especializada vigente de cada control.
 
 El marco congelado del EIOS Vertical MVP corresponde a:
 
@@ -748,8 +746,7 @@ Documentos fundamentales de referencia:
 ├── Project_Context.md
 ├── Project_Governance.md
 ├── Matriz_Autoridad_Documental.md
-├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
-└── EIOS_Assurance_Framework.md
+└── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
 ```
 
 ---

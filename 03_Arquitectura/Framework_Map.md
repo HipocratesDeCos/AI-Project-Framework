@@ -64,7 +64,6 @@ Documentación correspondiente a gobierno, autoridad, contexto, control, trazabi
 
 ### Documentos actuales
 
-- `03_LEEME_Como_se_organiza_EIOS.md`
 - `Architecture_Blueprint.md`
 - `DSS_Functional_Architecture.md`
 - `Framework_Map.md`
