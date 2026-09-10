@@ -1,6 +1,6 @@
 # EIOS — Reconciliación de integridad de referencias documentales v0.1
 
-**Estado:** CERRADO — MATERIALIZADO — VALIDACIÓN LOCAL SUPERADA
+**Estado:** CERRADO — MATERIALIZADO — INTEGRADO EN `main` — CI VALIDADO
 **Baseline:** `b56d3acc8caa8fbe82adbacb8d296d230691d293`
 **Ámbito:** navegación documental activa y prueba de no regresión
 
@@ -53,4 +53,12 @@ La materialización se limita a tres correcciones de navegación, una aclaració
 
 ## 7. CI
 
-La validación local reproduce el job Python del workflow vigente. GitHub Actions sobre el SHA materializado y su integración constituye el gate externo final.
+La validación local reproduce el job Python del workflow vigente.
+
+- Materialización: `f8be2a3be9f1f3ec0b149aa3728236c7fb77ada4`.
+- Pull request: #40.
+- CI del head materializado: run `34519581298` — SUCCESS.
+- Integración en `main`: `a6d5fee403d8f929ab776736c5c863c006d0d0d1`.
+- CI post-merge: run `34519733041` — SUCCESS.
+
+La unidad queda validada por CI sobre el commit materializado y sobre el merge efectivo en `main`.
