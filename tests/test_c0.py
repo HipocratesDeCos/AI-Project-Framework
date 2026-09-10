@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 
 import pytest
 
@@ -84,7 +85,7 @@ def test_trace_contains_complete_reproducibility_context():
 
 
 def test_trace_identity_changes_when_material_input_changes():
-    changed = make_input().model_copy(update={"unit_price": 99.99})
+    changed = make_input().model_copy(update={"unit_price": Decimal("99.99")})
     _, trace_a = evaluate([demonstrated_evidence()])
     _, trace_b = evaluate([demonstrated_evidence()], changed)
     assert trace_a[0].input_fingerprint != trace_b[0].input_fingerprint
