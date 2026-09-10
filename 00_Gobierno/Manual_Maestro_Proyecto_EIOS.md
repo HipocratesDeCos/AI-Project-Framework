@@ -56,8 +56,7 @@ La estructura de gobierno de EIOS se apoya principalmente en:
 ├── Project_Governance.md
 ├── Matriz_Autoridad_Documental.md
 ├── Manual_Maestro_Proyecto_EIOS.md
-├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
-└── EIOS_Assurance_Framework.md
+└── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
 ```
 
 ### Project Charter
@@ -84,9 +83,9 @@ Orienta y conecta la documentación del proyecto.
 
 Define las restricciones y decisiones congeladas aplicables al Vertical MVP.
 
-### Assurance Framework
+### Assurance transversal
 
-Define el marco transversal de assurance.
+Assurance permanece como principio transversal de EIOS. No existe actualmente un documento independiente de Assurance; sus controles aplicables se determinan mediante la Salvaguarda, la Matriz de Autoridad y los contratos especializados vigentes de cada dominio.
 
 ---
 
