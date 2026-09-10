@@ -1,7 +1,7 @@
 # EIOS — STOCK & DEMAND METHODOLOGICAL MATRIX
 
-**Versión:** 0.2
-**Estado:** DISEÑO PARCIAL — STK-M01 CERRADO; STK-M02…M10 PENDIENTES
+**Versión:** 0.3
+**Estado:** DISEÑO PARCIAL — STK-M01…M02 CERRADOS; STK-M03…M10 PENDIENTES
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 10/09/2026
 
@@ -128,9 +128,15 @@ Ventas y demanda prevista permanecen como magnitudes distintas. Un periodo sin d
 
 La política entra en vigor con la puesta en producción de EIOS y se aplica retrospectivamente a los datos históricos incorporados, preservando fuente, periodo, unidad y transformación. Autoridad completa: `01_Modelo/STK_M01_Consumption_Authority.md`.
 
-### STK-M02 — Stock mínimo
+### STK-M02 — Stock mínimo — CERRADO
 
-Debe determinarse cómo `STK-001` se relaciona con stock de seguridad, cobertura y demanda.
+`stock_minimum` representa la cantidad mínima de existencias que debe mantenerse disponible para proteger la continuidad operativa de un artículo antes de que la reposición resulte necesaria. Se expresa en la unidad base normalizada del artículo.
+
+Su valor vigente debe proceder de una política o cálculo explícito, trazable y autorizado basado en demanda esperada, `lead_time`, su variabilidad y el nivel de protección requerido. Esta decisión no autoriza una fórmula concreta ni un valor por defecto.
+
+`Safety_stock` puede formar parte de `stock_minimum` como reserva frente a incertidumbre, pero no es equivalente. La cobertura expresa, combinando `stock_minimum` y demanda esperada, los días o periodos protegidos antes de alcanzar el umbral. La demanda justifica y dimensiona el umbral, pero no modifica automáticamente su valor vigente sin recálculo o autorización de la política correspondiente.
+
+La ausencia del valor o de evidencia de procedencia produce `UNKNOWN / NOT_EVIDENCED`, nunca cero ni una estimación implícita, y no puede fundamentar una decisión automática de reposición. Autoridad completa: `01_Modelo/STK_M02_Minimum_Stock_Authority.md`.
 
 ### STK-M03 — Stock de seguridad
 
@@ -168,7 +174,7 @@ Debe definirse el tratamiento de datos de stock/demanda temporalmente incompatib
 
 ## 9. Regla de no invención
 
-Hasta que `STK-M02…STK-M10` estén resueltos documentalmente:
+Hasta que `STK-M03…STK-M10` estén resueltos documentalmente:
 
 - no se implementan fórmulas cuantitativas de STK;
 - no se asignan consumidores definitivos a `P-STK-*` o `PYE-*` por inferencia nominal;
@@ -199,6 +205,6 @@ STK podrá pasar a contrato técnico cuando exista evidencia suficiente para det
 
 ## 11. Estado
 
-**STK Methodological Matrix v0.2**
-**Estado:** DISEÑO PARCIAL — STK-M01 CERRADO; STK-M02…M10 PENDIENTES
+**STK Methodological Matrix v0.3**
+**Estado:** DISEÑO PARCIAL — STK-M01…M02 CERRADOS; STK-M03…M10 PENDIENTES
 **No constituye contrato de implementación.**
