@@ -30,8 +30,8 @@ def test_approved_stock_availability_semantics_are_materialized():
 
 def test_approved_demand_policy_keeps_sales_separate_and_window_complete():
     text = AUTHORITY.read_text(encoding="utf-8")
-    assert "previsión externa/autorizada" in text
-    assert "base histórica derivada de `consumption`" in text
+    assert "Previsión externa/autorizada" in text
+    assert "Base histórica derivada de `consumption`" in text
     assert "`historical_daily_demand = total_evidenced_consumption / evidenced_days_in_window`" in text
     assert "no se reduce silenciosamente la ventana" in text
     assert "Las ventas históricas no se convierten automáticamente" in text
@@ -65,7 +65,7 @@ def test_catalog_initial_values_remain_pending_not_normative_defaults():
         "| STK-003 | Cobertura mínima | 30 | días | Compras | Pendiente de validación |",
         "| STK-004 | Cobertura máxima | 90 | días | Exceso de stock | Pendiente de validación |",
         "| STK-005 | Tolerancia de exceso | 10 | % | Alerta | Pendiente de validación |",
-        "| STK-006 | Periodo para calcular consumo | 12 | meses | Demanda | Pendiente de validación |",
+        "| STK-006 | Periodo para calcular consumo | 12 | meses | Proyección | Pendiente de validación |",
         "| PYE-001 | Horizonte de proyección | 90 | días | Pendiente de validación |",
         "| PYE-006 | Umbral de riesgo de rotura | 15 | días | Pendiente de validación |",
     ):
