@@ -116,12 +116,12 @@ def _horizon(days=3) -> ProjectionHorizon:
     )
 
 
-def _reference(state="KNOWN") -> StockReferenceValue:
+def _reference(state="KNOWN", value="80") -> StockReferenceValue:
     return StockReferenceValue(
         identity=_identity(),
         reference_kind="CURRENT_AVAILABLE",
         reference_date=EVAL,
-        value=Decimal("80") if state == "KNOWN" else None,
+        value=Decimal(value) if state == "KNOWN" else None,
         unit="unit",
         state=state,
         source_ref="REF-SRC",
@@ -129,15 +129,32 @@ def _reference(state="KNOWN") -> StockReferenceValue:
 
 
 def _excess(state="EXCESS") -> ExcessResult:
-    ref = _reference("KNOWN" if state in {"EXCESS", "NO_EXCESS", "WITHIN_TOLERANCE"} else state)
-    if state in {"EXCESS", "NO_EXCESS", "WITHIN_TOLERANCE"}:
+    if state == "EXCESS":
+        ref = _reference("KNOWN", "80")
         values = dict(
             stock_maximum=Decimal("50"),
             excess_tolerance_quantity=Decimal("5"),
             excess_threshold=Decimal("55"),
-            excess_quantity=Decimal("25") if state == "EXCESS" else Decimal("0"),
+            excess_quantity=Decimal("25"),
+        )
+    elif state == "NO_EXCESS":
+        ref = _reference("KNOWN", "40")
+        values = dict(
+            stock_maximum=Decimal("50"),
+            excess_tolerance_quantity=Decimal("5"),
+            excess_threshold=Decimal("55"),
+            excess_quantity=Decimal("0"),
+        )
+    elif state == "WITHIN_TOLERANCE":
+        ref = _reference("KNOWN", "53")
+        values = dict(
+            stock_maximum=Decimal("50"),
+            excess_tolerance_quantity=Decimal("5"),
+            excess_threshold=Decimal("55"),
+            excess_quantity=Decimal("0"),
         )
     else:
+        ref = _reference(state)
         values = {}
     return ExcessResult(
         identity=_identity(),
