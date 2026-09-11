@@ -303,7 +303,8 @@ def test_fin_r0_dominates_stock_rules_in_multidomain_runtime() -> None:
     )
 
     assert vertical.crc_result.consolidated_result == "NO COMPRAR"
-    assert "R-FIN-001" in vertical.crc_result.relevant_factors
+    assert vertical.crc_result.dominant_reason.startswith("R-FIN-001 demostrada")
+    assert set(vertical.crc_result.conflicts) == {"R-STK-003:R2", "R-STK-004:R1"}
     assert tuple(item.rule_id for item in vertical.assessments) == (
         "R-FIN-001",
         "R-STK-003",
