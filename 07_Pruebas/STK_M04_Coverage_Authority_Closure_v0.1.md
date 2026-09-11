@@ -1,6 +1,6 @@
 # EIOS — STK-M04 · Cierre de autoridad metodológica de cobertura v0.1
 
-**Estado:** CERRADO — MATERIALIZADO — VALIDACIÓN LOCAL SUPERADA
+**Estado:** CERRADO — MATERIALIZADO — INTEGRADO EN `main` — CI VALIDADO
 **Baseline:** `287121fc940c98ec8d35d3a223608bef63e22bdf`
 **Ámbito:** fórmula, unidad, evidencia, estados y gobierno de `coverage`; sin motor cuantitativo
 
@@ -43,4 +43,13 @@ Se actualiza la matriz STK y se añaden autoridad M04 y pruebas de no regresión
 
 ## 7. CI
 
-La CI externa permanece pendiente hasta la publicación del SHA materializado.
+La unidad quedó validada mediante la siguiente cadena de evidencia:
+
+- materialización: `a24d33a64eb1558c1f2bc5dc70847ab3ca7d70df`;
+- pull request de integración: `#48`;
+- CI sobre la cabeza del pull request: ejecución `34566574122`, `SUCCESS`;
+- integración en `main`: `f8b261ab9778b70475b6e079b90ae1410d217153`;
+- CI posterior a la integración: ejecución `34566687426`, `SUCCESS`;
+- reconciliación local posterior: `298 passed`, con advertencias Pydantic y UserWarning promovidas a error.
+
+La cadena DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI queda completa para `STK-M04`.
