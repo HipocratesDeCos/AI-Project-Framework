@@ -1,6 +1,6 @@
 # EIOS — STK-M08 · Cierre de autoridad metodológica de absorción de exceso v0.1
 
-**Estado:** CERRADO — MATERIALIZADO — VALIDACIÓN LOCAL SUPERADA
+**Estado:** CERRADO — MATERIALIZADO — INTEGRADO EN `main` — CI VALIDADO
 **Baseline:** `de29dc7dd920a198a529e63ad244df62da2ae41a`
 **Ámbito:** pedido confirmado, absorción, estados, evidencia y autoridad; sin motor cuantitativo
 
@@ -46,4 +46,13 @@ Se actualiza la matriz y se añaden autoridad M08 y pruebas. No se modifican reg
 
 ## 7. CI
 
-La CI externa permanece pendiente hasta la publicación del SHA materializado.
+La unidad quedó validada mediante la siguiente cadena de evidencia:
+
+- materialización: `f987a8dc664a71ba50be85943c3bfbb096af5f89`;
+- pull request de integración: `#56`;
+- CI sobre la cabeza del pull request: ejecución `34569289217`, `SUCCESS`;
+- integración en `main`: `63801d017701e9556997a7d09b225a3fc2b2be2b`;
+- CI posterior a la integración: ejecución `34569490490`, `SUCCESS`;
+- reconciliación local posterior: `320 passed`, con advertencias Pydantic y UserWarning promovidas a error.
+
+La cadena DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI queda completa para `STK-M08`.
