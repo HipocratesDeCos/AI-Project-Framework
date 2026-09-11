@@ -86,6 +86,8 @@ class PurchasePaymentTermEvidence(FrozenModel):
         elif self.state == "CONFLICTING_DATA":
             if self.offered_payment_term_days is not None:
                 raise ValueError("CONFLICTING_DATA no puede publicar un plazo único")
+            if len(self.evidence_refs) < 2:
+                raise ValueError("CONFLICTING_DATA requiere al menos dos evidence_refs")
             if not self.issue_refs:
                 raise ValueError("CONFLICTING_DATA requiere issue_refs")
         elif self.state == "NOT_DETERMINABLE":
@@ -129,8 +131,11 @@ class PaymentTermResult(FrozenModel):
             raise ValueError("PaymentTermResult KNOWN requiere plazo")
         if self.state != "KNOWN" and self.offered_payment_term_days is not None:
             raise ValueError("Solo KNOWN puede publicar offered_payment_term_days")
-        if self.state == "CONFLICTING_DATA" and not self.issue_refs:
-            raise ValueError("PaymentTermResult CONFLICTING_DATA requiere issue_refs")
+        if self.state == "CONFLICTING_DATA":
+            if len(self.evidence_refs) < 2:
+                raise ValueError("PaymentTermResult CONFLICTING_DATA requiere al menos dos evidence_refs")
+            if not self.issue_refs:
+                raise ValueError("PaymentTermResult CONFLICTING_DATA requiere issue_refs")
         if self.state == "NOT_DETERMINABLE" and not (self.issue_refs or self.limitations):
             raise ValueError("PaymentTermResult NOT_DETERMINABLE requiere contexto explícito")
         return self
