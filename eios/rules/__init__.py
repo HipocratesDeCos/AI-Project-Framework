@@ -8,6 +8,15 @@ from .delivery import (
     evaluate_r_ent_001,
 )
 from .delivery_runtime import REnt001VerticalResult, run_r_ent_001_vertical
+from .execution import (
+    DeliveryRuleInputs,
+    FinanceCapacityRuleInputs,
+    FinanceSafetyMarginRuleInputs,
+    HistorySufficiencyRuleInputs,
+    StockAbsorptionRuleInputs,
+    StockExcessRuleInputs,
+    run_decision_rules,
+)
 from .finance import (
     FINANCE_BASIC_EVIDENCE_SOURCE_TYPE,
     PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE,
@@ -49,7 +58,11 @@ __all__ = [
     "BASELINE_EVIDENCE_SOURCE_TYPE",
     "ConsolidatedBaseResult",
     "DELIVERY_EVIDENCE_SOURCE_TYPE",
+    "DeliveryRuleInputs",
     "FINANCE_BASIC_EVIDENCE_SOURCE_TYPE",
+    "FinanceCapacityRuleInputs",
+    "FinanceSafetyMarginRuleInputs",
+    "HistorySufficiencyRuleInputs",
     "PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE",
     "PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE",
     "P_FIN_002",
@@ -67,6 +80,8 @@ __all__ = [
     "RuleVerticalResult",
     "STOCK_CONFIRMED_DEMAND_EVIDENCE_SOURCE_TYPE",
     "STOCK_EXCESS_EVIDENCE_SOURCE_TYPE",
+    "StockAbsorptionRuleInputs",
+    "StockExcessRuleInputs",
     "authorized_rule",
     "authorized_rule_metadata",
     "bind_authorized_assessment",
@@ -82,5 +97,6 @@ __all__ = [
     "run_assessment_set_vertical",
     "run_assessment_vertical",
     "run_authorized_assessments_vertical",
+    "run_decision_rules",
     "run_r_ent_001_vertical",
 ]
