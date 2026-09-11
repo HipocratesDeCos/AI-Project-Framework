@@ -4,10 +4,10 @@ import pytest
 
 import eios.mvp as mvp
 from eios.core.execution_boundary import BoundaryStatus
-from eios.core.models import DecisionContext, PurchaseOperation
-from eios.core.orchestration import CapabilityExecution, O1ExecutionStatus
+from eios.core.models import Assessment, DecisionContext, PurchaseOperation
 from eios.quality.gate import QualityTrustResult
-from eios.rules.orchestrator import StockExcessRuleInputs
+from eios.rules import RulesEngineInput, implemented_rule_ids, run_rules_engine
+from eios.rules.orchestrator import DecisionRuleExecutionResult, StockExcessRuleInputs
 from eios.tco.models import TCOResult
 
 
@@ -46,8 +46,33 @@ def _tco() -> TCOResult:
     )
 
 
+def _rules_result() -> DecisionRuleExecutionResult:
+    assessment = Assessment(
+        rule_id="R-STK-003",
+        status="EVALUABLE",
+        outcome="TRUE",
+        evidence_ids=["EV-STK"],
+        reason="Exceso demostrado.",
+    )
+    engine_result = run_rules_engine(
+        RulesEngineInput(
+            purchase=_purchase(),
+            context=_context(),
+            assessments=(assessment,),
+            base_result="COMPRAR",
+        )
+    )
+    return DecisionRuleExecutionResult(
+        executed_rule_ids=("R-STK-003",),
+        omitted_rule_ids=tuple(
+            rule_id for rule_id in implemented_rule_ids() if rule_id != "R-STK-003"
+        ),
+        rules_engine_result=engine_result,
+    )
+
+
 def test_vertical_service_runs_non_rule_capabilities_directly():
-    outcome = mvp.run_vertical_mvp_support(
+    result = mvp.run_vertical_mvp_support(
         purchase=_purchase(),
         context=_context(),
         policy_version="MVP-E2E-1",
@@ -56,31 +81,26 @@ def test_vertical_service_runs_non_rule_capabilities_directly():
         tco_result=_tco(),
     )
 
-    assert outcome.status == BoundaryStatus.COMPLETED
-    assert tuple(item.capability for item in outcome.capability_results) == (
+    assert result.status == BoundaryStatus.COMPLETED
+    assert result.rules is None
+    assert result.crc_result is None
+    assert tuple(item.capability for item in result.capability_results) == (
         "QTG",
         "TCO",
     )
 
 
-def test_vertical_service_adds_c0_when_domain_rule_bundle_is_present(monkeypatch):
-    def fake_builder(**kwargs):
+def test_vertical_service_exposes_rules_crc_and_e2e_in_same_result(monkeypatch):
+    fake_rules = _rules_result()
+
+    def fake_run_domain_rules(**kwargs):
         assert kwargs["base_result"] == "COMPRAR"
         assert kwargs["stock_excess"] is not None
+        return fake_rules
 
-        def invoke(*_):
-            return CapabilityExecution(
-                capability="C0",
-                status=O1ExecutionStatus.COMPLETED,
-                result_available=True,
-                trace_references=("trace-c0",),
-            )
-
-        return invoke
-
-    monkeypatch.setattr(mvp, "build_domain_rules_c0_invoker", fake_builder)
+    monkeypatch.setattr(mvp, "run_domain_rules", fake_run_domain_rules)
     marker = object()
-    outcome = mvp.run_vertical_mvp_support(
+    result = mvp.run_vertical_mvp_support(
         purchase=_purchase(),
         context=_context(),
         policy_version="MVP-E2E-1",
@@ -90,12 +110,16 @@ def test_vertical_service_adds_c0_when_domain_rule_bundle_is_present(monkeypatch
         tco_result=_tco(),
     )
 
-    assert outcome.status == BoundaryStatus.COMPLETED
-    assert tuple(item.capability for item in outcome.capability_results) == (
+    assert result.status == BoundaryStatus.COMPLETED
+    assert tuple(item.capability for item in result.capability_results) == (
         "QTG",
         "TCO",
         "C0",
     )
+    assert result.executed_rule_ids == ("R-STK-003",)
+    assert "R-FIN-001" in result.omitted_rule_ids
+    assert result.crc_result is not None
+    assert result.crc_result.consolidated_result == "NEGOCIAR"
 
 
 def test_vertical_service_requires_at_least_one_supplied_capability():
