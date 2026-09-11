@@ -1,7 +1,7 @@
 # EIOS — STOCK & DEMAND METHODOLOGICAL MATRIX
 
-**Versión:** 0.10
-**Estado:** DISEÑO PARCIAL — STK-M01…M09 CERRADOS; STK-M10 PENDIENTE
+**Versión:** 1.0
+**Estado:** METODOLOGÍA STK-M01…M10 CERRADA — AUDITORÍA DE ENTRADA A CONTRATO PENDIENTE
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 11/09/2026
 
@@ -194,15 +194,19 @@ Estados mínimos: `UNKNOWN`, `NOT_EVIDENCED`, `NOT_APPLICABLE` y `CONFLICTING_DA
 
 La incertidumbre se propaga a las conclusiones dependientes de M01–M08; se registran dato, fuente esperada, fecha, causa y módulos afectados, y toda reevaluación conserva versiones. M09 no inventa criticidades pendientes ni autoriza decisiones. Autoridad completa: `01_Modelo/STK_M09_Missing_Data_Authority.md`.
 
-### STK-M10 — Contradicciones
+### STK-M10 — Contradicciones — CERRADO
 
-Debe definirse el tratamiento de datos de stock/demanda temporalmente incompatibles o contradictorios, sin resolverlos mediante heurística no autorizada.
+STK-M10 identifica datos o evidencias suficientemente identificados que representan el mismo artículo, variable, ámbito y momento comparable, pero no pueden ser simultáneamente ciertos. Una diferencia no es contradicción hasta comprobar unidad, normalización, tiempo, ámbito, versión y contexto.
+
+Toda contradicción conserva fuentes y valores, usa `CONFLICTING_DATA / UNRESOLVED_CONTRADICTION`, se propaga a conclusiones dependientes y no se resuelve por recencia, magnitud, promedio, score ni otra heurística. Solo una política de autoridad previamente autorizada permite resolverla trazablemente.
+
+`contradiction ≠ missing_data`. M10 gobierna datos STK; los conflictos entre resultados permanecen en CRC y las contradicciones documentales en la Matriz de Autoridad Documental. Autoridad completa: `01_Modelo/STK_M10_Contradictions_Authority.md`.
 
 ---
 
 ## 9. Regla de no invención
 
-Hasta que `STK-M10` esté resuelto documentalmente:
+Hasta que se complete la auditoría separada de entrada a contrato técnico e implementación:
 
 - no se implementan fórmulas cuantitativas de STK;
 - no se asignan consumidores definitivos a `P-STK-*` o `PYE-*` por inferencia nominal;
@@ -233,6 +237,6 @@ STK podrá pasar a contrato técnico cuando exista evidencia suficiente para det
 
 ## 11. Estado
 
-**STK Methodological Matrix v0.10**
-**Estado:** DISEÑO PARCIAL — STK-M01…M09 CERRADOS; STK-M10 PENDIENTE
+**STK Methodological Matrix v1.0**
+**Estado:** METODOLOGÍA STK-M01…M10 CERRADA — AUDITORÍA DE ENTRADA A CONTRATO PENDIENTE
 **No constituye contrato de implementación.**
