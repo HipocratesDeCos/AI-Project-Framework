@@ -298,7 +298,11 @@ def test_no_depletion_within_horizon_maps_to_false_without_extrapolation() -> No
 def test_not_evidenced_ent_maps_to_not_evaluable() -> None:
     analysis_input, analysis = _analysis_pair(delivery=_delivery(state="NOT_EVIDENCED"))
     assert analysis.state == "NOT_EVIDENCED"
-    assessment = _evaluate(analysis_input, analysis)
+    assessment = _evaluate(
+        analysis_input,
+        analysis,
+        delivery_evidence=_delivery_evidence(demonstration_ref="trace:delivery"),
+    )
     assert assessment.status == "NOT_EVALUABLE"
     assert assessment.outcome is None
 
@@ -502,7 +506,7 @@ def test_assessment_contract_does_not_gain_decisional_fields() -> None:
     analysis_input, analysis = _analysis_pair()
     assessment = _evaluate(analysis_input, analysis)
     forbidden = {"effect", "severity", "recommendation", "decision", "priority", "crc_result"}
-    assert forbidden.isdisjoint(assessment.model_fields)
+    assert forbidden.isdisjoint(type(assessment).model_fields)
 
 
 def test_bridge_does_not_invoke_ent_analyzer(monkeypatch) -> None:
