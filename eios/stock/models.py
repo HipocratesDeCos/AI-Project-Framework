@@ -577,6 +577,8 @@ class ProjectionMovement(StatefulModel):
         expected_direction: MovementDirection = "INFLOW" if self.source_kind in {"PENDING_ORDER", "IN_TRANSIT", "PROPOSED_PURCHASE"} else "OUTFLOW"
         if self.direction != expected_direction:
             raise ValueError("source_kind y direction incompatibles")
+        if self.state == "NOT_APPLICABLE" and not _has_evidence(self.source_ref, self.trace_refs):
+            raise ValueError("ProjectionMovement NOT_APPLICABLE requiere exclusión demostrada")
         if self.state == "KNOWN":
             if self.quantity is None or self.unit is None or self.effective_date is None:
                 raise ValueError("Movimiento KNOWN requiere cantidad, unidad y fecha")
@@ -787,9 +789,29 @@ class ExcessResult(StatefulModel):
         if determined:
             if any(v is None for v in values):
                 raise ValueError("Excess determinado requiere todas las cantidades")
+            if self.stock_reference.state != "KNOWN" or self.stock_reference.value is None:
+                raise ValueError("Excess determinado requiere stock_reference KNOWN")
             for name, value in zip(("maximum", "tolerance", "threshold", "excess"), values):
                 assert value is not None
                 _non_negative(value, name)
+            assert self.stock_maximum is not None
+            assert self.excess_tolerance_quantity is not None
+            assert self.excess_threshold is not None
+            assert self.excess_quantity is not None
+            if self.excess_threshold != self.stock_maximum + self.excess_tolerance_quantity:
+                raise ValueError("excess_threshold debe ser maximum + tolerance")
+            expected_excess = max(Decimal("0"), self.stock_reference.value - self.excess_threshold)
+            if self.excess_quantity != expected_excess:
+                raise ValueError("excess_quantity no coincide con la fórmula autorizada")
+            expected_state: ExcessState = (
+                "NO_EXCESS"
+                if self.stock_reference.value <= self.stock_maximum
+                else "WITHIN_TOLERANCE"
+                if self.stock_reference.value <= self.excess_threshold
+                else "EXCESS"
+            )
+            if self.state != expected_state:
+                raise ValueError("ExcessState no coincide con maximum/tolerance/reference")
         elif any(v is not None for v in values):
             raise ValueError("Excess incierto no publica cantidades determinadas")
         return self
