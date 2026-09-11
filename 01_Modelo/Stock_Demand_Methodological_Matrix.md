@@ -1,7 +1,7 @@
 # EIOS — STOCK & DEMAND METHODOLOGICAL MATRIX
 
-**Versión:** 1.0
-**Estado:** METODOLOGÍA STK-M01…M10 CERRADA — AUDITORÍA DE ENTRADA A CONTRATO PENDIENTE
+**Versión:** 1.1
+**Estado:** METODOLOGÍA STK-M01…M10 CERRADA — ENTRADA A CONTRATO TÉCNICO AUTORIZADA
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 11/09/2026
 
@@ -11,7 +11,7 @@
 
 Esta matriz formaliza el perímetro metodológico de Stock & Demand Intelligence sin introducir fórmulas o criterios cuantitativos no demostrados por la documentación vigente.
 
-Su finalidad es preparar la posterior implementación técnica de STK mediante la secuencia:
+Su finalidad es preparar la implementación técnica de STK mediante la secuencia:
 
 `metodología → regla → parámetro → contrato → implementación → tests`
 
@@ -21,15 +21,19 @@ La matriz no crea reglas, parámetros, excepciones ni valores empresariales nuev
 
 ## 2. Autoridad utilizada
 
-Fuentes actualmente demostradas:
+Fuentes demostradas:
 
 - `01_Modelo/Especificacion_funcional.md` — alcance funcional de stock y demanda.
+- `01_Modelo/STK_M01_Consumption_Authority.md` … `STK_M10_Contradictions_Authority.md` — metodología M01…M10.
+- `01_Modelo/STK_Contract_Entry_Authority.md` — estado canónico de stock y política de demanda aprobados.
 - `04_Reglas/Matriz_Reglas_MVP.md` v2.1 — reglas `R-STK-001…004`, reglas de rotación y `R-ENT-001`.
+- `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md` v1.0 — cruce STK/PYE ↔ reglas.
 - `02_Parametros/Catalogo_Parametros_MVP_v0.3.md` — parámetros `STK-001…006` y `PYE-001…006`.
-- `02_Parametros/Matriz_Parametros_Reglas_MVP.md` — estado de los parámetros y relaciones parámetro-regla.
-- `04_Reglas/Rule_Dependency_Matrix.md` v1.3 — gobierno de dependencias.
+- `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.9 — vista especializada de relaciones parámetro-regla.
+- `04_Reglas/Rule_Dependency_Matrix.md` v1.4 — dependencias canónicas.
+- `07_Pruebas/STK_Contract_Entry_Audit_v0.1.md` y v0.2 — gates de entrada.
 
-Ninguna de estas fuentes autoriza por sí sola una fórmula cuantitativa completa para STK.
+Los valores iniciales del catálogo continúan sin constituir autoridad cuantitativa definitiva.
 
 ---
 
@@ -37,12 +41,13 @@ Ninguna de estas fuentes autoriza por sí sola una fórmula cuantitativa complet
 
 EIOS puede considerar, cuando exista información suficiente:
 
-- stock actual;
-- stock comprometido;
+- stock físico (`stock_on_hand`);
+- stock comprometido (`stock_committed`);
+- stock disponible (`stock_available`);
 - pedidos pendientes;
 - compras en tránsito;
-- consumo/demanda histórica;
-- demanda prevista;
+- consumo real;
+- demanda autorizada;
 - plazo de entrega;
 - fecha prevista de recepción;
 - cantidad propuesta.
@@ -60,10 +65,10 @@ El análisis puede identificar:
 
 | Rule_ID | Regla | Condición documental | Resultado | Estado metodológico |
 |---|---|---|---|---|
-| `R-STK-001` | Riesgo de rotura | La proyección indica agotamiento antes de nueva recepción | COMPRAR / COMPRAR CONDICIONADO | Fórmula de proyección pendiente |
-| `R-STK-002` | Compra innecesaria por stock suficiente | Cobertura supera ampliamente nivel configurado sin necesidad justificada | NO COMPRAR / NEGOCIAR CANTIDAD | Definición cuantitativa de cobertura pendiente |
-| `R-STK-003` | Exceso de stock | Stock posterior a compra supera máximo configurado | NEGOCIAR / NO COMPRAR | Fórmula y horizonte temporal pendientes |
-| `R-STK-004` | Excepción por pedido confirmado | Pedido confirmado absorbe total/parcialmente el exceso | COMPRAR / COMPRAR CONDICIONADO | Mecánica de absorción pendiente |
+| `R-STK-001` | Riesgo de rotura | La proyección indica agotamiento antes de nueva recepción | COMPRAR / COMPRAR CONDICIONADO | Proyección M05 y temporalidad M06 cerradas |
+| `R-STK-002` | Compra innecesaria por stock suficiente | Cobertura supera ampliamente nivel configurado sin necesidad justificada | NO COMPRAR / NEGOCIAR CANTIDAD | Cobertura M04 cerrada; `P-STK-004` consumidor directo confirmado |
+| `R-STK-003` | Exceso de stock | Stock posterior a compra supera máximo configurado | NEGOCIAR / NO COMPRAR | Exceso M07 cerrado; `P-STK-004/005` derivados confirmados |
+| `R-STK-004` | Excepción por pedido confirmado | Pedido confirmado absorbe total/parcialmente el exceso | COMPRAR / COMPRAR CONDICIONADO | Absorción M08 cerrada; sin parámetro directo demostrado |
 
 ---
 
@@ -73,12 +78,12 @@ El catálogo vigente define:
 
 | ID | Definición vigente | Estado |
 |---|---|---|
-| `STK-001` | Stock mínimo | Pendiente de datos |
-| `STK-002` | Stock de seguridad | 15 % del consumo; pendiente de validación |
-| `STK-003` | Cobertura mínima | 30 días; pendiente de validación |
-| `STK-004` | Cobertura máxima | 90 días; pendiente de validación |
-| `STK-005` | Tolerancia de exceso | 10 %; pendiente de validación |
-| `STK-006` | Periodo para calcular consumo | 12 meses; pendiente de validación |
+| `STK-001` | Stock mínimo | Valor pendiente de datos/validación; función M02 cerrada |
+| `STK-002` | Stock de seguridad | 15 % inicial pendiente de validación; función M03 cerrada |
+| `STK-003` | Cobertura mínima | 30 días iniciales pendientes de validación; función M04 cerrada |
+| `STK-004` | Cobertura máxima | 90 días iniciales pendientes de validación; relación con `R-STK-002/003` cerrada |
+| `STK-005` | Tolerancia de exceso | 10 % inicial pendiente de validación; relación derivada con `R-STK-003` cerrada |
+| `STK-006` | Periodo para calcular consumo | 12 meses iniciales pendientes de validación; gobierna ventana histórica autorizada |
 
 Estos valores son valores iniciales de trabajo, no autoridad cuantitativa definitiva.
 
@@ -86,39 +91,48 @@ Estos valores son valores iniciales de trabajo, no autoridad cuantitativa defini
 
 ## 6. Parámetros de proyección relacionados
 
-| ID | Definición vigente | Estado |
+| ID | Definición vigente | Estado de cruce |
 |---|---|---|
-| `PYE-001` | Horizonte de proyección | Pendiente de validación |
-| `PYE-002` | Considerar pedidos pendientes | Pendiente de validación |
-| `PYE-003` | Considerar compras en tránsito | Pendiente de validación |
-| `PYE-004` | Considerar plazo de entrega | Pendiente de validación |
-| `PYE-005` | Considerar ventas históricas | Pendiente de validación |
-| `PYE-006` | Umbral de riesgo de rotura | Pendiente de validación |
+| `PYE-001` | Horizonte de proyección | Función metodológica M05; sin consumidor directo de regla demostrado |
+| `PYE-002` | Considerar pedidos pendientes | Control metodológico M05/M06; `Sí` no implica inclusión incondicional |
+| `PYE-003` | Considerar compras en tránsito | Control metodológico M05/M06; `Sí` no implica inclusión incondicional |
+| `PYE-004` | Considerar plazo de entrega | Control metodológico temporal; sin consumidor directo demostrado |
+| `PYE-005` | Considerar ventas históricas | No operativo como transformación ventas → demanda sin política posterior específica |
+| `PYE-006` | Umbral de riesgo de rotura | Sin consumidor directo demostrado en `R-STK-001` vigente |
 
-La existencia de estos parámetros no demuestra todavía qué regla los consume ni qué transformación aplica.
+El cruce individual `P-STK/P-PYE ↔ R-STK` queda cerrado por `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md`. La ausencia de consumidor directo demostrado no elimina la función metodológica autorizada del parámetro.
 
 ---
 
 ## 7. Variables canónicas requeridas
 
-Antes de implementar STK deben quedar definidas, con unidad y fecha de referencia inequívocas:
+Las variables canónicas quedan determinadas de la siguiente forma:
 
-1. `stock_on_hand` — stock físico disponible en la fecha de evaluación.
-2. `stock_committed` — stock comprometido cuya semántica debe ser confirmada.
-3. `pending_orders` — pedidos pendientes relevantes.
-4. `in_transit` — compras en tránsito relevantes.
-5. `consumption` — cantidad real consumida del artículo por la organización o unidad operativa correspondiente, agregada por periodo mensual en la unidad base normalizada del artículo; autoridad cerrada en `STK_M01_Consumption_Authority.md`.
-6. `demand` — demanda utilizada para proyección.
-7. `lead_time` — plazo de entrega aplicable.
-8. `expected_receipt_date` — fecha prevista de recepción.
-9. `proposed_quantity` — cantidad de la propuesta.
-10. `evaluation_date` — fecha canónica de evaluación.
+1. `stock_on_hand` — cantidad física evidenciada existente en inventario en `evaluation_date`, en unidad base normalizada. No incluye tránsito, pedidos pendientes ni recepciones futuras.
+2. `stock_committed` — parte evidenciada de `stock_on_hand` reservada o asignada a obligaciones existentes y no libre para nuevas necesidades.
+3. `stock_available` — `max(0, stock_on_hand - stock_committed)`. Si el comprometido excede al físico, se conserva además `availability_deficit = stock_committed - stock_on_hand`.
+4. `pending_orders` — cantidades formalmente compradas en estado `PENDING_ORDER` conforme a M06.
+5. `in_transit` — cantidades formalmente compradas en estado `IN_TRANSIT` conforme a M06.
+6. `consumption` — cantidad real consumida, agregada mensualmente en unidad base normalizada conforme a M01.
+7. `demand` — magnitud seleccionada por política explícita y versionada: previsión externa/autorizada o base histórica derivada de `consumption` real.
+8. `lead_time` — plazo de entrega aplicable y evidenciado cuando se utilice temporalmente.
+9. `expected_receipt_date` — fecha prevista de recepción evidenciada; no equivale a recepción confirmada.
+10. `proposed_quantity` — cantidad de la propuesta de compra en unidad compatible.
+11. `evaluation_date` — fecha empresarial canónica de referencia; el contrato técnico deberá mapear `as_of_date` a esta identidad sin crear una segunda fecha ambigua.
 
-La lista anterior define variables de entrada necesarias para el diseño; no define todavía sus fórmulas de agregación.
+### Política histórica de demanda
+
+Cuando se seleccione base histórica:
+
+`historical_daily_demand = total_evidenced_consumption / evidenced_days_in_window`
+
+La ventana debe estar completa y evidenciada. Un periodo requerido ausente produce `UNKNOWN / NOT_EVIDENCED`; no se reduce silenciosamente la ventana.
+
+Las ventas históricas no sustituyen consumo o demanda por defecto.
 
 ---
 
-## 8. Puntos metodológicos que deben resolverse antes del código
+## 8. Puntos metodológicos cerrados
 
 ### STK-M01 — Consumo — CERRADO
 
@@ -152,7 +166,7 @@ No se valida el 15 % del catálogo ni fórmula, base única, horizonte, estadís
 
 La unidad estándar es días, salvo parametrización autorizada. Cero confirmado del denominador produce `UNBOUNDED / NOT_APPLICABLE`; ausencia o evidencia insuficiente produce `UNKNOWN / NOT_EVIDENCED`, nunca cero. Fuentes distintas no se mezclan sin regla documentada.
 
-Los umbrales son parámetros versionados y autorizados; los 30/90 días del catálogo siguen pendientes. La composición del stock disponible y la ventana de promedio no se infieren. Autoridad completa: `01_Modelo/STK_M04_Coverage_Authority.md`.
+Los umbrales son parámetros versionados y autorizados; los 30/90 días del catálogo siguen pendientes. La composición del stock disponible queda cerrada por `STK_Contract_Entry_Authority.md`. Autoridad completa: `01_Modelo/STK_M04_Coverage_Authority.md`.
 
 ### STK-M05 — Proyección — CERRADO
 
@@ -160,7 +174,7 @@ Los umbrales son parámetros versionados y autorizados; los 30/90 días del cat�
 
 Solo participan entradas cuya existencia, cantidad y fecha estén evidenciadas. `lead_time` puede fechar una reposición evidenciada, pero nunca convierte una compra no confirmada en entrada. Las salidas proceden de demanda, consumo, reservas u otras necesidades reconocidas por fuente autorizada.
 
-Los elementos sin datos o evidencia son `UNKNOWN / NOT_EVIDENCED`, nunca cero ni omisión silenciosa. La salida es evidencia proyectiva, no decisión de compra o reposición. `PYE-001…006` siguen pendientes. Autoridad completa: `01_Modelo/STK_M05_Projection_Authority.md`.
+Los elementos sin datos o evidencia son `UNKNOWN / NOT_EVIDENCED`, nunca cero ni omisión silenciosa. La salida es evidencia proyectiva, no decisión de compra o reposición. Los valores iniciales `PYE-001…006` siguen pendientes de validación, aunque su función metodológica queda clasificada. Autoridad completa: `01_Modelo/STK_M05_Projection_Authority.md`.
 
 ### STK-M06 — Pedidos pendientes y tránsito — CERRADO
 
@@ -206,37 +220,41 @@ Toda contradicción conserva fuentes y valores, usa `CONFLICTING_DATA / UNRESOLV
 
 ## 9. Regla de no invención
 
-Hasta que se complete la auditoría separada de entrada a contrato técnico e implementación:
+La entrada a contrato técnico no autoriza a ampliar alcance. Durante contrato e implementación:
 
-- no se implementan fórmulas cuantitativas de STK;
-- no se asignan consumidores definitivos a `P-STK-*` o `PYE-*` por inferencia nominal;
-- no se crean parámetros adicionales;
-- no se crean reglas adicionales;
-- no se convierten valores iniciales del catálogo en política empresarial definitiva.
+- no se asignan consumidores adicionales a `P-STK-*` o `P-PYE-*` por inferencia nominal;
+- no se crean parámetros o reglas adicionales sin autoridad;
+- no se convierten valores iniciales del catálogo en política empresarial definitiva;
+- no se transforma ventas históricas en demanda sin política específica posterior;
+- no se sustituyen datos ausentes por defaults;
+- no se amplía C0 silenciosamente;
+- no se convierte una evaluación STK en decisión final.
 
 ---
 
-## 10. Criterio de entrada a implementación
+## 10. Criterio de entrada a contrato técnico
 
-STK podrá pasar a contrato técnico cuando exista evidencia suficiente para determinar, como mínimo:
+| Gate | Estado |
+|---|---|
+| Entradas canónicas | PASS |
+| Unidad de cada magnitud | PASS |
+| Fecha de referencia | PASS — mapping `as_of_date ↔ evaluation_date` reservado al contrato |
+| Fórmula/política de consumo y demanda | PASS |
+| Fórmula de cobertura | PASS |
+| Regla de proyección | PASS |
+| Recepción futura | PASS |
+| Ausencia | PASS |
+| Contradicción | PASS |
+| Relación demostrada regla ↔ parámetro | PASS |
 
-- entradas canónicas;
-- unidad de cada magnitud;
-- fecha de referencia;
-- fórmula de consumo/demanda;
-- fórmula de cobertura;
-- regla de proyección;
-- tratamiento de recepción futura;
-- tratamiento de ausencia;
-- tratamiento de contradicción;
-- relación demostrada regla ↔ parámetro.
+**Estado actual:** APTO PARA DISEÑO DE CONTRATO TÉCNICO STK.
 
-**Estado actual:** NO APTO PARA IMPLEMENTACIÓN CUANTITATIVA.
+La aptitud autoriza el contrato técnico, no la implementación directa. El contrato deberá superar su propia secuencia `DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR` antes de materializar código.
 
 ---
 
 ## 11. Estado
 
-**STK Methodological Matrix v1.0**
-**Estado:** METODOLOGÍA STK-M01…M10 CERRADA — AUDITORÍA DE ENTRADA A CONTRATO PENDIENTE
-**No constituye contrato de implementación.**
+**STK Methodological Matrix v1.1**  
+**Estado:** METODOLOGÍA CERRADA — GATE DE ENTRADA A CONTRATO TÉCNICO SUPERADO  
+**No constituye por sí misma implementación ejecutable.**
