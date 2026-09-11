@@ -86,6 +86,26 @@ def test_adapter_preserves_absence_and_unresolved_items():
     assert adapted.unresolved_items == ("missing-evidence",)
 
 
+def test_adapter_deep_copies_mutable_analytical_payloads():
+    result = ScenarioEvaluationResult(
+        scenario_id="ALT-A",
+        decision_id="D-O2-O3",
+        rules_version="R1",
+        parameters_version="P1",
+        data_snapshot_id="S1",
+        status=ScenarioEvaluationStatus.COMPLETED,
+        assessments=({"rule": "original"},),
+        viability_result={"state": "original"},
+    )
+
+    adapted = adapt_o3_result_for_o2(result, _context())
+    adapted.values["assessments"][0]["rule"] = "changed"
+    adapted.values["viability_result"]["state"] = "changed"
+
+    assert result.assessments[0]["rule"] == "original"
+    assert result.viability_result["state"] == "original"
+
+
 def test_not_started_fails_closed_instead_of_becoming_ready():
     result = ScenarioEvaluationResult(
         scenario_id="ALT-A",
@@ -100,9 +120,11 @@ def test_not_started_fails_closed_instead_of_becoming_ready():
         adapt_o3_result_for_o2(result, _context())
 
 
-def test_context_versions_and_snapshot_must_match_o3_result():
+def test_context_identity_versions_and_snapshot_must_match_o3_result():
     result = _completed("ALT-A")
 
+    with pytest.raises(ValueError, match="decision_id"):
+        adapt_o3_result_for_o2(result, _context(decision_id="OTHER"))
     with pytest.raises(ValueError, match="rules_version"):
         adapt_o3_result_for_o2(result, _context(rules_version="R2"))
     with pytest.raises(ValueError, match="parameters_version"):
