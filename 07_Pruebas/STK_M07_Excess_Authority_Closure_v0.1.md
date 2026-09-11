@@ -1,6 +1,6 @@
 # EIOS — STK-M07 · Cierre de autoridad metodológica de exceso v0.1
 
-**Estado:** CERRADO — MATERIALIZADO — VALIDACIÓN LOCAL SUPERADA
+**Estado:** CERRADO — MATERIALIZADO — INTEGRADO EN `main` — CI VALIDADO
 **Baseline:** `6fe3c61642667fca9f89dde084e6e428a4e6dc74`
 **Ámbito:** umbral, tolerancia, estados, cantidad de exceso, evidencia y autoridad; sin motor cuantitativo
 
@@ -45,4 +45,13 @@ Se actualiza la matriz y se añaden autoridad M07 y pruebas. No se modifican cat
 
 ## 7. CI
 
-La CI externa permanece pendiente hasta la publicación del SHA materializado.
+La unidad quedó validada mediante la siguiente cadena de evidencia:
+
+- materialización: `e048311f40e5e75f3425bb5ef79bdb7032767edd`;
+- pull request de integración: `#54`;
+- CI sobre la cabeza del pull request: ejecución `34568395249`, `SUCCESS`;
+- integración en `main`: `de29dc7dd920a198a529e63ad244df62da2ae41a`;
+- CI posterior a la integración: ejecución `34568618418`, `SUCCESS`;
+- reconciliación local posterior: `314 passed`, con advertencias Pydantic y UserWarning promovidas a error.
+
+La cadena DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI queda completa para `STK-M07`.
