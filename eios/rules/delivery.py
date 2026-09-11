@@ -1,4 +1,4 @@
-"""Rules-layer bridge from ENT factual analysis to C0 Assessment for R-ENT-001."""
+"""Rules bridges from closed delivery/stockout facts into ENT and STK rules."""
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -9,6 +9,7 @@ from eios.delivery.models import DeliveryStockoutAnalysisInput, DeliveryStockout
 
 
 R_ENT_001 = "R-ENT-001"
+R_STK_001 = "R-STK-001"
 BASELINE_EVIDENCE_SOURCE_TYPE = "BaselineStockoutQualification"
 DELIVERY_EVIDENCE_SOURCE_TYPE = "PurchaseSpecificDeliveryTimingEvidence"
 _CONCLUSIVE_STATES = {
@@ -28,17 +29,18 @@ def _validate_identity(
     rule: Rule,
     analysis_input: DeliveryStockoutAnalysisInput,
     analysis: DeliveryStockoutAnalysisResult,
+    expected_rule_id: str,
 ) -> None:
     if purchase.decision_id != context.decision_id:
         raise ValueError("PurchaseOperation y DecisionContext tienen decision_id distintos")
     if purchase.scenario_id != context.scenario_id:
         raise ValueError("PurchaseOperation y DecisionContext tienen scenario_id distintos")
-    if rule.rule_id != R_ENT_001:
-        raise ValueError("El bridge solo evalúa R-ENT-001")
+    if rule.rule_id != expected_rule_id:
+        raise ValueError(f"El bridge solo evalúa {expected_rule_id}")
     if rule.version != context.rules_version:
         raise ValueError("Rule.version incompatible con DecisionContext.rules_version")
     if not rule.requires_evidence:
-        raise ValueError("R-ENT-001 requiere evidencia según sus dependencias canónicas")
+        raise ValueError(f"{expected_rule_id} requiere evidencia según sus dependencias factuales")
 
     if analysis_input.decision_id != purchase.decision_id:
         raise ValueError("ENT input pertenece a otra decisión")
@@ -171,6 +173,75 @@ def _validate_evidence_binding(
             raise ValueError("delivery_evidence.demonstration_ref no pertenece a la provenance delivery")
 
 
+def _evaluate_temporal_condition(
+    *,
+    rule_id: str,
+    analysis: DeliveryStockoutAnalysisResult,
+    baseline_evidence: Evidence,
+    delivery_evidence: Evidence,
+    positive_reason: str,
+    negative_reason: str,
+    horizon_reason: str,
+) -> Assessment:
+    evidence_ids = [baseline_evidence.evidence_id, delivery_evidence.evidence_id]
+
+    uncertain_reasons = {
+        "NOT_EVIDENCED": f"{rule_id} no evaluable: evidencia factual de rotura/entrega insuficientemente demostrada.",
+        "CONFLICTING_DATA": f"{rule_id} no evaluable: evidencia factual de rotura/entrega contradictoria.",
+        "NOT_DETERMINABLE": f"{rule_id} no evaluable: relación temporal entre agotamiento y entrega no determinable.",
+    }
+    if analysis.state in uncertain_reasons:
+        return Assessment(
+            rule_id=rule_id,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason=uncertain_reasons[analysis.state],
+        )
+
+    both_valid = (
+        validate_evidence(baseline_evidence).status == "VALID"
+        and validate_evidence(delivery_evidence).status == "VALID"
+    )
+    if not both_valid:
+        return Assessment(
+            rule_id=rule_id,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason=f"{rule_id} no evaluable: una o más dependencias C0 no están demostradas.",
+        )
+
+    if analysis.state == "LATE_DELIVERY_DEMONSTRATED":
+        return Assessment(
+            rule_id=rule_id,
+            status="EVALUABLE",
+            outcome="TRUE",
+            evidence_ids=evidence_ids,
+            reason=positive_reason,
+        )
+    if analysis.state == "NOT_LATE_DEMONSTRATED":
+        reason = negative_reason
+        if "SAME_DAY_ORDER_NOT_DEMONSTRATED" in analysis.limitation_codes:
+            reason = f"{rule_id} no demostrada: entrega y agotamiento en la misma fecha; orden intradía no demostrado."
+        return Assessment(
+            rule_id=rule_id,
+            status="EVALUABLE",
+            outcome="FALSE",
+            evidence_ids=evidence_ids,
+            reason=reason,
+        )
+    if analysis.state == "NOT_LATE_WITHIN_EVIDENCED_HORIZON":
+        return Assessment(
+            rule_id=rule_id,
+            status="EVALUABLE",
+            outcome="FALSE",
+            evidence_ids=evidence_ids,
+            reason=horizon_reason,
+        )
+    raise ValueError(f"Estado ENT no soportado para {rule_id}: {analysis.state}")
+
+
 def evaluate_r_ent_001(
     purchase: PurchaseOperation,
     context: DecisionContext,
@@ -180,92 +251,50 @@ def evaluate_r_ent_001(
     baseline_evidence: Evidence,
     delivery_evidence: Evidence,
 ) -> Assessment:
-    """Map a closed ENT factual result into the individual Assessment of R-ENT-001."""
-    _validate_identity(purchase, context, rule, analysis_input, analysis)
+    """Map the closed delivery-stockout fact into R-ENT-001 (negotiation)."""
+    _validate_identity(purchase, context, rule, analysis_input, analysis, R_ENT_001)
     _validate_conclusive_state(analysis_input, analysis)
     _validate_evidence_binding(analysis_input, baseline_evidence, delivery_evidence)
+    return _evaluate_temporal_condition(
+        rule_id=R_ENT_001,
+        analysis=analysis,
+        baseline_evidence=baseline_evidence,
+        delivery_evidence=delivery_evidence,
+        positive_reason="R-ENT-001 demostrada: entrega posterior al agotamiento estimado.",
+        negative_reason="R-ENT-001 no demostrada: entrega no posterior al agotamiento estimado.",
+        horizon_reason="R-ENT-001 no demostrada dentro del horizonte STK evidenciado.",
+    )
 
-    baseline_validation = validate_evidence(baseline_evidence)
-    delivery_validation = validate_evidence(delivery_evidence)
-    evidence_ids = [baseline_evidence.evidence_id, delivery_evidence.evidence_id]
 
-    if analysis.state == "NOT_EVIDENCED":
-        return Assessment(
-            rule_id=R_ENT_001,
-            status="NOT_EVALUABLE",
-            outcome=None,
-            evidence_ids=evidence_ids,
-            reason="R-ENT-001 no evaluable: evidencia factual ENT insuficientemente demostrada.",
-        )
-
-    if analysis.state == "CONFLICTING_DATA":
-        return Assessment(
-            rule_id=R_ENT_001,
-            status="NOT_EVALUABLE",
-            outcome=None,
-            evidence_ids=evidence_ids,
-            reason="R-ENT-001 no evaluable: evidencia factual ENT contradictoria.",
-        )
-
-    if analysis.state == "NOT_DETERMINABLE":
-        return Assessment(
-            rule_id=R_ENT_001,
-            status="NOT_EVALUABLE",
-            outcome=None,
-            evidence_ids=evidence_ids,
-            reason="R-ENT-001 no evaluable: relación temporal ENT no determinable.",
-        )
-
-    both_valid = baseline_validation.status == "VALID" and delivery_validation.status == "VALID"
-    if not both_valid:
-        return Assessment(
-            rule_id=R_ENT_001,
-            status="NOT_EVALUABLE",
-            outcome=None,
-            evidence_ids=evidence_ids,
-            reason="R-ENT-001 no evaluable: una o más dependencias C0 no están demostradas.",
-        )
-
-    if analysis.state == "LATE_DELIVERY_DEMONSTRATED":
-        return Assessment(
-            rule_id=R_ENT_001,
-            status="EVALUABLE",
-            outcome="TRUE",
-            evidence_ids=evidence_ids,
-            reason="R-ENT-001 demostrada: entrega posterior al agotamiento estimado.",
-        )
-
-    if analysis.state == "NOT_LATE_DEMONSTRATED":
-        if "SAME_DAY_ORDER_NOT_DEMONSTRATED" in analysis.limitation_codes:
-            reason = (
-                "R-ENT-001 no demostrada: entrega y agotamiento en la misma fecha; "
-                "orden intradía no demostrado."
-            )
-        else:
-            reason = "R-ENT-001 no demostrada: entrega no posterior al agotamiento estimado."
-        return Assessment(
-            rule_id=R_ENT_001,
-            status="EVALUABLE",
-            outcome="FALSE",
-            evidence_ids=evidence_ids,
-            reason=reason,
-        )
-
-    if analysis.state == "NOT_LATE_WITHIN_EVIDENCED_HORIZON":
-        return Assessment(
-            rule_id=R_ENT_001,
-            status="EVALUABLE",
-            outcome="FALSE",
-            evidence_ids=evidence_ids,
-            reason="R-ENT-001 no demostrada dentro del horizonte STK evidenciado.",
-        )
-
-    raise ValueError(f"Estado ENT no soportado para R-ENT-001: {analysis.state}")
+def evaluate_r_stk_001(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    analysis_input: DeliveryStockoutAnalysisInput,
+    analysis: DeliveryStockoutAnalysisResult,
+    baseline_evidence: Evidence,
+    delivery_evidence: Evidence,
+) -> Assessment:
+    """Map the same closed fact into R-STK-001 (stockout-risk condition)."""
+    _validate_identity(purchase, context, rule, analysis_input, analysis, R_STK_001)
+    _validate_conclusive_state(analysis_input, analysis)
+    _validate_evidence_binding(analysis_input, baseline_evidence, delivery_evidence)
+    return _evaluate_temporal_condition(
+        rule_id=R_STK_001,
+        analysis=analysis,
+        baseline_evidence=baseline_evidence,
+        delivery_evidence=delivery_evidence,
+        positive_reason="R-STK-001 demostrada: la proyección agota stock antes de la llegada de la compra.",
+        negative_reason="R-STK-001 no demostrada: la compra llega antes o en la fecha de agotamiento.",
+        horizon_reason="R-STK-001 no demostrada dentro del horizonte STK evidenciado.",
+    )
 
 
 __all__ = [
     "BASELINE_EVIDENCE_SOURCE_TYPE",
     "DELIVERY_EVIDENCE_SOURCE_TYPE",
     "R_ENT_001",
+    "R_STK_001",
     "evaluate_r_ent_001",
+    "evaluate_r_stk_001",
 ]

@@ -55,6 +55,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
         "R-FIN-001",
         "R-FIN-003",
         "R-HIS-002",
+        "R-STK-001",
         "R-STK-003",
         "R-STK-004",
     )
@@ -64,6 +65,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
     ("rule_id", "effect", "severity"),
     (
         ("R-ENT-001", "R2", "ALTA"),
+        ("R-STK-001", "R1", "ALTA"),
         ("R-STK-003", "R2", "ALTA"),
         ("R-STK-004", "R1", "ALTA"),
         ("R-FIN-001", "R0", "CRÍTICA"),

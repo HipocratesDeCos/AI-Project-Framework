@@ -12,6 +12,7 @@ ALL_RULES = (
     "R-FIN-001",
     "R-FIN-003",
     "R-HIS-002",
+    "R-STK-001",
     "R-STK-003",
     "R-STK-004",
 )
@@ -81,6 +82,7 @@ def _all_bundles():
 def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     calls: list[str] = []
     _patch_rule(monkeypatch, "evaluate_r_ent_001", "R-ENT-001", "TRUE", calls)
+    _patch_rule(monkeypatch, "evaluate_r_stk_001", "R-STK-001", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_stk_003", "R-STK-003", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_stk_004", "R-STK-004", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_fin_001", "R-FIN-001", "FALSE", calls)
@@ -96,6 +98,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
 
     assert calls == [
         "R-ENT-001",
+        "R-STK-001",
         "R-STK-003",
         "R-STK-004",
         "R-FIN-001",
@@ -106,8 +109,26 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     assert result.omitted_rule_ids == ()
     assert tuple(item.rule_id for item in result.assessments) == ALL_RULES
     assert result.crc_result.consolidated_result == "COMPRAR CONDICIONADO"
-    assert len(result.traces) == 6
+    assert len(result.traces) == 7
     assert result.c0_capability.result_available is True
+
+
+def test_delivery_bundle_exposes_stockout_condition_as_r1_and_ent_as_r2(monkeypatch):
+    calls: list[str] = []
+    _patch_rule(monkeypatch, "evaluate_r_ent_001", "R-ENT-001", "TRUE", calls)
+    _patch_rule(monkeypatch, "evaluate_r_stk_001", "R-STK-001", "TRUE", calls)
+    marker = object()
+
+    result = orchestrator.run_domain_rules(
+        purchase=_purchase(),
+        context=_context(),
+        base_result="COMPRAR",
+        delivery=orchestrator.DeliveryRuleInputs(marker, marker, marker, marker),
+    )
+
+    assert calls == ["R-ENT-001", "R-STK-001"]
+    assert result.executed_rule_ids == ("R-ENT-001", "R-STK-001")
+    assert result.crc_result.consolidated_result == "COMPRAR CONDICIONADO"
 
 
 def test_orchestrator_partial_execution_reports_coverage(monkeypatch):

@@ -5,7 +5,9 @@ from .delivery import (
     BASELINE_EVIDENCE_SOURCE_TYPE,
     DELIVERY_EVIDENCE_SOURCE_TYPE,
     R_ENT_001,
+    R_STK_001,
     evaluate_r_ent_001,
+    evaluate_r_stk_001,
 )
 from .delivery_runtime import REnt001VerticalResult, run_r_ent_001_vertical
 from .engine import RulesEngineInput, RulesEngineResult, run_rules_engine
@@ -82,6 +84,7 @@ __all__ = [
     "R_FIN_001",
     "R_FIN_003",
     "R_HIS_002",
+    "R_STK_001",
     "R_STK_003",
     "R_STK_004",
     "REnt001VerticalResult",
@@ -104,6 +107,7 @@ __all__ = [
     "evaluate_r_fin_001",
     "evaluate_r_fin_003",
     "evaluate_r_his_002",
+    "evaluate_r_stk_001",
     "evaluate_r_stk_003",
     "evaluate_r_stk_004",
     "finance_basic_result_ref",

@@ -19,7 +19,7 @@ from eios.pricing import PriceIntelligenceInput, PriceIntelligenceResult
 from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
 
 from .catalog import authorized_rule, implemented_rule_ids
-from .delivery import R_ENT_001, evaluate_r_ent_001
+from .delivery import R_ENT_001, R_STK_001, evaluate_r_ent_001, evaluate_r_stk_001
 from .engine import RulesEngineInput, RulesEngineResult, run_rules_engine
 from .finance import R_FIN_001, R_FIN_003, evaluate_r_fin_001, evaluate_r_fin_003
 from .pricing import R_HIS_002, evaluate_r_his_002
@@ -123,11 +123,21 @@ def run_domain_rules(
     assessments_by_rule = {}
 
     if delivery is not None:
-        rule = authorized_rule(R_ENT_001, context.rules_version)
+        ent_rule = authorized_rule(R_ENT_001, context.rules_version)
         assessments_by_rule[R_ENT_001] = evaluate_r_ent_001(
             purchase,
             context,
-            rule,
+            ent_rule,
+            delivery.analysis_input,
+            delivery.analysis,
+            delivery.baseline_evidence,
+            delivery.delivery_evidence,
+        )
+        stockout_rule = authorized_rule(R_STK_001, context.rules_version)
+        assessments_by_rule[R_STK_001] = evaluate_r_stk_001(
+            purchase,
+            context,
+            stockout_rule,
             delivery.analysis_input,
             delivery.analysis,
             delivery.baseline_evidence,
