@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from eios.delivery import (
     BaselineStockoutQualification,
     DeliveryStockoutAnalysisInput,
+    DeliveryStockoutAnalysisResult,
     PurchaseSpecificDeliveryTimingEvidence,
     analyze_delivery_stockout,
 )
@@ -436,6 +437,64 @@ def test_projection_issue_record_ref_is_preserved_without_serializing_issue() ->
     result = analyze_delivery_stockout(_payload(baseline=baseline))
     assert "issue-record:missing-1" in result.issue_refs
     assert "missing-1" not in result.issue_refs
+
+
+def test_direct_depletion_metric_provenance_is_preserved() -> None:
+    issue = DataIssueRef(
+        issue_id="depletion-missing",
+        issue_type="MISSING_DATA",
+        issue_record_ref="issue-record:depletion-direct",
+    )
+    projection = StockProjectionResult(
+        identity=_identity(),
+        horizon=_horizon(),
+        minimum_projected_stock=ProjectedDecimalMetric(value=Decimal("1"), state="KNOWN"),
+        depletion_date=ProjectedDateMetric(
+            state="UNKNOWN",
+            issue_refs=(issue,),
+            trace_refs=("trace:depletion-direct",),
+        ),
+        state="UNKNOWN",
+    )
+    result = analyze_delivery_stockout(_payload(baseline=_baseline(projection=projection)))
+    assert result.state == "NOT_DETERMINABLE"
+    assert "issue-record:depletion-direct" in result.issue_refs
+    assert "trace:depletion-direct" in result.trace_refs
+
+
+def test_direct_horizon_provenance_is_preserved() -> None:
+    issue = DataIssueRef(
+        issue_id="horizon-missing",
+        issue_type="MISSING_DATA",
+        issue_record_ref="issue-record:horizon-direct",
+    )
+    unknown_horizon = _horizon(state="UNKNOWN")
+    horizon = ProjectionHorizon(
+        parameter=unknown_horizon.parameter,
+        state="UNKNOWN",
+        issue_refs=(issue,),
+        trace_refs=("trace:horizon-direct",),
+    )
+    projection = StockProjectionResult(
+        identity=_identity(),
+        horizon=horizon,
+        minimum_projected_stock=ProjectedDecimalMetric(value=Decimal("1"), state="KNOWN"),
+        depletion_date=ProjectedDateMetric(state="NOT_APPLICABLE"),
+        state="UNKNOWN",
+    )
+    result = analyze_delivery_stockout(_payload(baseline=_baseline(projection=projection)))
+    assert result.state == "NOT_DETERMINABLE"
+    assert "issue-record:horizon-direct" in result.issue_refs
+    assert "trace:horizon-direct" in result.trace_refs
+
+
+def test_same_day_limitation_rejected_for_incompatible_result_state() -> None:
+    same_day = EVALUATION_DATE + timedelta(days=10)
+    valid = analyze_delivery_stockout(_payload(delivery=_delivery(expected_delivery_date=same_day)))
+    data = valid.model_dump()
+    data["state"] = "NOT_DETERMINABLE"
+    with pytest.raises(ValidationError):
+        DeliveryStockoutAnalysisResult(**data)
 
 
 def test_upstream_limitations_are_preserved_separately() -> None:
