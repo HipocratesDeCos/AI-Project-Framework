@@ -121,19 +121,81 @@ def test_demonstrated_flow_after_horizon_is_excluded_without_gap():
     assert result.projection.financial_capacity_forecast == Decimal("1000")
 
 
-def test_not_evidenced_flow_with_demonstrated_date_after_horizon_does_not_contaminate():
+def test_not_evidenced_flow_with_evidenced_date_after_horizon_does_not_contaminate():
     unresolved_outside = CashFlow(
         flow_id="F-OUT",
         flow_type="PAYMENT",
         amount=None,
         currency=None,
         due_date=date(2026, 10, 15),
+        due_date_evidenced=True,
         source_ref=None,
         evidence_state="NOT_EVIDENCED",
     )
     result = calculate_finance_basic(payload(cash_flows=(unresolved_outside,)))
     assert result.projection.status == "DETERMINED"
     assert result.projection.financial_capacity_forecast == Decimal("1000")
+
+
+def test_not_evidenced_flow_with_unevidenced_date_after_horizon_remains_incomplete():
+    unresolved = CashFlow(
+        flow_id="F-OUT-UNPROVEN",
+        flow_type="PAYMENT",
+        amount=None,
+        currency=None,
+        due_date=date(2026, 10, 15),
+        due_date_evidenced=False,
+        source_ref=None,
+        evidence_state="NOT_EVIDENCED",
+    )
+    result = calculate_finance_basic(payload(cash_flows=(unresolved,)))
+    assert result.projection.status == "NOT_EVIDENCED"
+    assert result.projection.unresolved_flow_ids == ("F-OUT-UNPROVEN",)
+
+
+def test_conflicting_flow_with_evidenced_date_after_horizon_does_not_contaminate():
+    conflicting_outside = CashFlow(
+        flow_id="F-CON-OUT",
+        flow_type="PAYMENT",
+        amount=None,
+        currency=None,
+        due_date=date(2026, 10, 15),
+        due_date_evidenced=True,
+        source_ref=None,
+        evidence_state="CONFLICTING_DATA",
+    )
+    result = calculate_finance_basic(payload(cash_flows=(conflicting_outside,)))
+    assert result.projection.status == "DETERMINED"
+    assert "OUT_OF_HORIZON_CONFLICT:F-CON-OUT" in result.projection.limitations
+
+
+def test_conflicting_flow_with_unevidenced_date_after_horizon_stays_conflicting():
+    conflicting = CashFlow(
+        flow_id="F-CON-UNPROVEN",
+        flow_type="PAYMENT",
+        amount=None,
+        currency=None,
+        due_date=date(2026, 10, 15),
+        due_date_evidenced=False,
+        source_ref=None,
+        evidence_state="CONFLICTING_DATA",
+    )
+    result = calculate_finance_basic(payload(cash_flows=(conflicting,)))
+    assert result.projection.status == "CONFLICTING_DATA"
+
+
+def test_due_date_evidenced_requires_due_date():
+    with pytest.raises(ValidationError):
+        CashFlow(
+            flow_id="F-NODATE",
+            flow_type="PAYMENT",
+            amount=None,
+            currency=None,
+            due_date=None,
+            due_date_evidenced=True,
+            source_ref=None,
+            evidence_state="NOT_EVIDENCED",
+        )
 
 
 def test_not_evidenced_flow_with_unknown_date_makes_projection_incomplete():
@@ -208,6 +270,11 @@ def test_demonstrated_flow_requires_currency_amount_date_and_source():
             source_ref="SRC",
             evidence_state="DEMONSTRATED",
         )
+
+
+def test_horizon_must_be_representable_from_snapshot_date():
+    with pytest.raises(ValidationError):
+        payload(horizon_days=10**12)
 
 
 def test_working_capital_is_calculated_from_supplied_accounting_totals():
