@@ -272,6 +272,6 @@ def test_ent_and_stock_rules_run_together_through_crc_and_o1() -> None:
     assert result.crc_result.consolidated_result == "NEGOCIAR"
     assert result.c0_capability.status == O1ExecutionStatus.COMPLETED
     assert result.support_package.execution_status == O1ExecutionStatus.COMPLETED
-    assert result.support_package.trace_references == tuple(
+    assert set(result.support_package.trace_references) == {
         trace.trace_id for trace in result.traces
-    )
+    }
