@@ -1,6 +1,6 @@
 # EIOS — STK-M05 · Cierre de autoridad metodológica de proyección v0.1
 
-**Estado:** CERRADO — MATERIALIZADO — VALIDACIÓN LOCAL SUPERADA
+**Estado:** CERRADO — MATERIALIZADO — INTEGRADO EN `main` — CI VALIDADO
 **Baseline:** `f8b261ab9778b70475b6e079b90ae1410d217153`
 **Ámbito:** relación proyectiva, evidencia, temporalidad, ausencia y autoridad; sin motor cuantitativo
 
@@ -44,4 +44,13 @@ Se actualiza la matriz STK y se añaden autoridad M05 y pruebas de no regresión
 
 ## 7. CI
 
-La CI externa permanece pendiente hasta la publicación del SHA materializado.
+La unidad quedó validada mediante la siguiente cadena de evidencia:
+
+- materialización: `31bdd98161e0c724539ce8df4728c415ad4a752d`;
+- pull request de integración: `#50`;
+- CI sobre la cabeza del pull request: ejecución `34567143653`, `SUCCESS`;
+- integración en `main`: `97a0bee524f912dc503799ad795eafb071f64a8c`;
+- CI posterior a la integración: ejecución `34567299222`, `SUCCESS`;
+- reconciliación local posterior: `303 passed`, con advertencias Pydantic y UserWarning promovidas a error.
+
+La cadena DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI queda completa para `STK-M05`.
