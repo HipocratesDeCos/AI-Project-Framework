@@ -11,6 +11,11 @@ from eios.delivery.models import DeliveryStockoutAnalysisInput, DeliveryStockout
 R_ENT_001 = "R-ENT-001"
 BASELINE_EVIDENCE_SOURCE_TYPE = "BaselineStockoutQualification"
 DELIVERY_EVIDENCE_SOURCE_TYPE = "PurchaseSpecificDeliveryTimingEvidence"
+_CONCLUSIVE_STATES = {
+    "LATE_DELIVERY_DEMONSTRATED",
+    "NOT_LATE_DEMONSTRATED",
+    "NOT_LATE_WITHIN_EVIDENCED_HORIZON",
+}
 
 
 def _non_null_refs(*groups: Iterable[str | None]) -> set[str]:
@@ -42,6 +47,25 @@ def _validate_identity(
     if analysis_input.delivery.supplier_id != purchase.supplier_id:
         raise ValueError("ENT input pertenece a otro proveedor")
 
+    baseline = analysis_input.baseline
+    delivery = analysis_input.delivery
+    if baseline.decision_id != analysis_input.decision_id:
+        raise ValueError("Baseline pertenece a otra decisión")
+    if baseline.article_id != analysis_input.article_id:
+        raise ValueError("Baseline pertenece a otro artículo")
+    if baseline.evaluation_date != analysis_input.evaluation_date:
+        raise ValueError("Baseline usa otra evaluation_date")
+    if baseline.evaluated_purchase_ref != analysis_input.evaluated_purchase_ref:
+        raise ValueError("Baseline usa otro evaluated_purchase_ref")
+    if delivery.decision_id != analysis_input.decision_id:
+        raise ValueError("Delivery evidence pertenece a otra decisión")
+    if delivery.article_id != analysis_input.article_id:
+        raise ValueError("Delivery evidence pertenece a otro artículo")
+    if delivery.evaluation_date != analysis_input.evaluation_date:
+        raise ValueError("Delivery evidence usa otra evaluation_date")
+    if delivery.evaluated_purchase_ref != analysis_input.evaluated_purchase_ref:
+        raise ValueError("Delivery evidence usa otro evaluated_purchase_ref")
+
     if analysis.decision_id != purchase.decision_id:
         raise ValueError("ENT result pertenece a otra decisión")
     if analysis.article_id != purchase.article_id:
@@ -57,12 +81,12 @@ def _validate_identity(
         raise ValueError("ENT result/input evaluation_date incompatibles")
     if analysis.evaluated_purchase_ref != analysis_input.evaluated_purchase_ref:
         raise ValueError("ENT result/input evaluated_purchase_ref incompatibles")
-    if analysis.supplier_id != analysis_input.delivery.supplier_id:
+    if analysis.supplier_id != delivery.supplier_id:
         raise ValueError("ENT result/input supplier_id incompatibles")
-    if analysis.baseline_projection_ref != analysis_input.baseline.baseline_projection_ref:
+    if analysis.baseline_projection_ref != baseline.baseline_projection_ref:
         raise ValueError("ENT result/input baseline_projection_ref incompatibles")
 
-    projection_identity = analysis_input.baseline.projection.identity
+    projection_identity = baseline.projection.identity
     if projection_identity.decision_id != context.decision_id:
         raise ValueError("Proyección STK pertenece a otra decisión")
     if projection_identity.rules_version != context.rules_version:
@@ -72,12 +96,37 @@ def _validate_identity(
     if projection_identity.data_snapshot_id != context.data_snapshot_id:
         raise ValueError("Proyección STK usa otro data_snapshot_id")
 
-    if analysis.expected_delivery_date != analysis_input.delivery.expected_delivery_date:
+    if analysis.expected_delivery_date != delivery.expected_delivery_date:
         raise ValueError("ENT result/input expected_delivery_date incompatibles")
-    if analysis.depletion_date != analysis_input.baseline.projection.depletion_date.value:
+    if analysis.depletion_date != baseline.projection.depletion_date.value:
         raise ValueError("ENT result/input depletion_date incompatibles")
-    if analysis.horizon_end != analysis_input.baseline.projection.horizon.horizon_end:
+    if analysis.horizon_end != baseline.projection.horizon.horizon_end:
         raise ValueError("ENT result/input horizon_end incompatibles")
+
+
+def _validate_conclusive_state(
+    analysis_input: DeliveryStockoutAnalysisInput,
+    analysis: DeliveryStockoutAnalysisResult,
+) -> None:
+    if analysis.state not in _CONCLUSIVE_STATES:
+        return
+
+    baseline = analysis_input.baseline
+    delivery = analysis_input.delivery
+    if baseline.state != "KNOWN":
+        raise ValueError("Resultado ENT concluyente requiere baseline KNOWN")
+    if delivery.state != "KNOWN":
+        raise ValueError("Resultado ENT concluyente requiere delivery KNOWN")
+
+    depletion_state = baseline.projection.depletion_date.state
+    if analysis.state in {"LATE_DELIVERY_DEMONSTRATED", "NOT_LATE_DEMONSTRATED"}:
+        if depletion_state != "KNOWN":
+            raise ValueError("Resultado late/not-late requiere depletion KNOWN")
+    elif analysis.state == "NOT_LATE_WITHIN_EVIDENCED_HORIZON":
+        if depletion_state != "NOT_APPLICABLE":
+            raise ValueError("Resultado within-horizon requiere depletion NOT_APPLICABLE")
+        if baseline.projection.horizon.state != "KNOWN":
+            raise ValueError("Resultado within-horizon requiere horizon KNOWN")
 
 
 def _validate_evidence_binding(
@@ -133,6 +182,7 @@ def evaluate_r_ent_001(
 ) -> Assessment:
     """Map a closed ENT factual result into the individual Assessment of R-ENT-001."""
     _validate_identity(purchase, context, rule, analysis_input, analysis)
+    _validate_conclusive_state(analysis_input, analysis)
     _validate_evidence_binding(analysis_input, baseline_evidence, delivery_evidence)
 
     baseline_validation = validate_evidence(baseline_evidence)
