@@ -9,6 +9,7 @@ from .delivery import (
 )
 from .delivery_runtime import REnt001VerticalResult, run_r_ent_001_vertical
 from .execution import (
+    DecisionRuleExecutionResult,
     DeliveryRuleInputs,
     FinanceCapacityRuleInputs,
     FinanceSafetyMarginRuleInputs,
@@ -58,6 +59,7 @@ __all__ = [
     "BASELINE_EVIDENCE_SOURCE_TYPE",
     "ConsolidatedBaseResult",
     "DELIVERY_EVIDENCE_SOURCE_TYPE",
+    "DecisionRuleExecutionResult",
     "DeliveryRuleInputs",
     "FINANCE_BASIC_EVIDENCE_SOURCE_TYPE",
     "FinanceCapacityRuleInputs",
