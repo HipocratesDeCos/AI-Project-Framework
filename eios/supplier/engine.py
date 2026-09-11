@@ -26,11 +26,19 @@ def _dedupe_strings(values: list[str]) -> tuple[str, ...]:
 
 
 def _dedupe_issues(values: list[SupplierDataIssueRef]) -> tuple[SupplierDataIssueRef, ...]:
-    seen: set[str] = set()
+    """Deduplicate only exactly equal issues, preserving first appearance."""
+    seen: set[tuple[object, ...]] = set()
     result: list[SupplierDataIssueRef] = []
     for item in values:
-        if item.issue_id not in seen:
-            seen.add(item.issue_id)
+        key = (
+            item.issue_id,
+            item.issue_type,
+            item.issue_record_ref,
+            item.evidence_refs,
+            item.trace_refs,
+        )
+        if key not in seen:
+            seen.add(key)
             result.append(item)
     return tuple(result)
 
@@ -98,61 +106,58 @@ def _comparison(
     limitations: list[str] = []
     difference: Decimal | None = None
 
-    # Contract precedence step 1: current candidacy.
-    if candidate_resolution.state != "EVIDENCED_CANDIDATE":
-        limitations.append("CANDIDATE_NOT_EVIDENCED_CURRENTLY")
-        issues.extend(candidate_resolution.issue_refs)
+    def build(
+        state: str,
+        *,
+        difference_decimal: Decimal | None = None,
+        issue_refs: tuple[SupplierDataIssueRef, ...] = (),
+        limitations_out: tuple[str, ...] = (),
+        preserve_authority: bool = True,
+    ) -> StructuralComparisonResult:
         return StructuralComparisonResult(
             comparison_id=request.comparison_id,
             current_observation_id=current.observation_id,
             candidate_observation_id=candidate.observation_id,
-            dimension=current.dimension,
-            state="UNKNOWN",
-            comparison_authority_ref=request.comparison_authority_ref,
+            current_dimension=current.dimension,
+            candidate_dimension=candidate.dimension,
+            state=state,
+            difference_decimal=difference_decimal,
+            comparison_authority_ref=(
+                request.comparison_authority_ref if preserve_authority else None
+            ),
+            issue_refs=issue_refs,
+            limitations=limitations_out,
+        )
+
+    # Contract precedence step 1: current candidacy.
+    if candidate_resolution.state != "EVIDENCED_CANDIDATE":
+        limitations.append("CANDIDATE_NOT_EVIDENCED_CURRENTLY")
+        issues.extend(candidate_resolution.issue_refs)
+        return build(
+            "UNKNOWN",
             issue_refs=_dedupe_issues(issues),
-            limitations=tuple(limitations),
+            limitations_out=tuple(limitations),
         )
 
     # Step 2: observation evidence states.
     if current.state == "NOT_EVIDENCED" or candidate.state == "NOT_EVIDENCED":
         limitations.append("OBSERVATION_NOT_EVIDENCED")
-        return StructuralComparisonResult(
-            comparison_id=request.comparison_id,
-            current_observation_id=current.observation_id,
-            candidate_observation_id=candidate.observation_id,
-            dimension=current.dimension,
-            state="UNKNOWN",
-            comparison_authority_ref=request.comparison_authority_ref,
-            limitations=tuple(limitations),
-        )
+        return build("UNKNOWN", limitations_out=tuple(limitations))
 
     if current.state == "CONFLICTING_DATA" or candidate.state == "CONFLICTING_DATA":
         limitations.append("OBSERVATION_CONFLICTING_DATA")
         issues.extend(current.issue_refs)
         issues.extend(candidate.issue_refs)
-        return StructuralComparisonResult(
-            comparison_id=request.comparison_id,
-            current_observation_id=current.observation_id,
-            candidate_observation_id=candidate.observation_id,
-            dimension=current.dimension,
-            state="NOT_STRUCTURALLY_COMPARABLE",
-            comparison_authority_ref=request.comparison_authority_ref,
+        return build(
+            "NOT_STRUCTURALLY_COMPARABLE",
             issue_refs=_dedupe_issues(issues),
-            limitations=tuple(limitations),
+            limitations_out=tuple(limitations),
         )
 
     # Step 3: current validity.
     if not _is_currently_valid(current, evaluation_date) or not _is_currently_valid(candidate, evaluation_date):
         limitations.append("OBSERVATION_OUTSIDE_VALIDITY")
-        return StructuralComparisonResult(
-            comparison_id=request.comparison_id,
-            current_observation_id=current.observation_id,
-            candidate_observation_id=candidate.observation_id,
-            dimension=current.dimension,
-            state="NOT_STRUCTURALLY_COMPARABLE",
-            comparison_authority_ref=request.comparison_authority_ref,
-            limitations=tuple(limitations),
-        )
+        return build("NOT_STRUCTURALLY_COMPARABLE", limitations_out=tuple(limitations))
 
     # Step 4: basic structural compatibility. No unit conversion is performed.
     mismatches: list[str] = []
@@ -168,26 +173,15 @@ def _comparison(
         mismatches.append("UNIT_INCOMPATIBLE")
 
     if mismatches:
-        return StructuralComparisonResult(
-            comparison_id=request.comparison_id,
-            current_observation_id=current.observation_id,
-            candidate_observation_id=candidate.observation_id,
-            dimension=current.dimension,
-            state="NOT_STRUCTURALLY_COMPARABLE",
-            comparison_authority_ref=request.comparison_authority_ref,
-            limitations=tuple(mismatches),
-        )
+        return build("NOT_STRUCTURALLY_COMPARABLE", limitations_out=tuple(mismatches))
 
     # Step 5: PRICE comparability stays under PRICE authority.
     if current.dimension == "PRICE_REFERENCE" and request.comparison_authority_ref is None:
         limitations.append("PRICE_COMPARABILITY_AUTHORITY_REQUIRED")
-        return StructuralComparisonResult(
-            comparison_id=request.comparison_id,
-            current_observation_id=current.observation_id,
-            candidate_observation_id=candidate.observation_id,
-            dimension=current.dimension,
-            state="UNKNOWN",
-            limitations=tuple(limitations),
+        return build(
+            "UNKNOWN",
+            limitations_out=tuple(limitations),
+            preserve_authority=False,
         )
 
     # Steps 6-7: structurally comparable; optional descriptive Decimal delta.
@@ -196,15 +190,10 @@ def _comparison(
         assert candidate.value_decimal is not None
         difference = candidate.value_decimal - current.value_decimal
 
-    return StructuralComparisonResult(
-        comparison_id=request.comparison_id,
-        current_observation_id=current.observation_id,
-        candidate_observation_id=candidate.observation_id,
-        dimension=current.dimension,
-        state="STRUCTURALLY_COMPARABLE",
+    return build(
+        "STRUCTURALLY_COMPARABLE",
         difference_decimal=difference,
-        comparison_authority_ref=request.comparison_authority_ref,
-        limitations=(),
+        limitations_out=(),
     )
 
 
@@ -276,6 +265,7 @@ def evaluate_supplier_evidence(payload: SupplierEvidenceInput) -> SupplierEviden
     return SupplierEvidenceResult(
         identity=identity,
         current_supplier_id=operation.supplier_id,
+        candidates=payload.candidates,
         candidate_resolutions=resolutions,
         observations=payload.observations,
         historical_facts=payload.historical_facts,
