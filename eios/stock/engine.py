@@ -73,11 +73,7 @@ def _merge_issues(*groups: Iterable[DataIssueRef]) -> tuple[DataIssueRef, ...]:
 
 
 def _uncertainty_state(states: Iterable[str]) -> str:
-    """Return the most specific M09/M10 uncertainty, ignoring KNOWN/NA.
-
-    NOT_APPLICABLE is intentionally handled by each operation because some
-    result contracts expose it while others do not.
-    """
+    """Return the most specific M09/M10 uncertainty, ignoring KNOWN/NA."""
     uncertain = [state for state in states if state in _UNCERTAINTY_ORDER]
     if not uncertain:
         return "KNOWN"
@@ -85,7 +81,6 @@ def _uncertainty_state(states: Iterable[str]) -> str:
 
 
 def _required_stock_state(states: Iterable[str]) -> str:
-    """State for a required StockDataState dependency set."""
     material = tuple(states)
     uncertain = _uncertainty_state(material)
     if uncertain != "KNOWN":
@@ -532,6 +527,7 @@ def _validate_movements(payload: StockProjectionInput) -> None:
     }
     opening_commitments = {component.commitment_id for component in payload.opening.committed_components}
     seen_supply: set[str] = set()
+
     for movement in payload.movements.items:
         if movement.movement_id in seen_ids:
             raise ValueError("movement_id duplicado")
@@ -540,9 +536,24 @@ def _validate_movements(payload: StockProjectionInput) -> None:
             raise ValueError("Movimiento de otro scope/article")
         if movement.unit is not None and movement.unit != context.base_unit:
             raise ValueError("Movimiento con unidad incompatible")
-        if movement.state != "KNOWN" or movement.effective_date is None:
+        if movement.state != "KNOWN":
             continue
-        if not (context.evaluation_date < movement.effective_date <= horizon.horizon_end):
+
+        # J1: the logistics identity belongs to the physical quantity, not to
+        # its contribution window. Validate M06 exclusivity before time gating.
+        if movement.source_kind in {"PENDING_ORDER", "IN_TRANSIT"}:
+            assert movement.supply_identity is not None
+            if movement.supply_identity in seen_supply:
+                raise ValueError("supply_identity duplicada o pending/transit simultáneo")
+            seen_supply.add(movement.supply_identity)
+
+        # J2: proposed purchases are scenario facts and must never leak across
+        # the scenario boundary, even when temporally non-contributing.
+        if movement.source_kind == "PROPOSED_PURCHASE":
+            if movement.scenario_id != context.decision_context.scenario_id:
+                raise ValueError("PROPOSED_PURCHASE pertenece a otro scenario_id")
+
+        if movement.effective_date is None or not (context.evaluation_date < movement.effective_date <= horizon.horizon_end):
             continue
         if movement.source_kind == "CONFIRMED_DEMAND":
             assert movement.demand_segment_id is not None
@@ -552,11 +563,6 @@ def _validate_movements(payload: StockProjectionInput) -> None:
         if movement.source_kind in {"RESERVATION", "OTHER_AUTHORIZED_NEED"} and movement.commitment_id:
             if movement.commitment_id in opening_commitments:
                 continue
-        if movement.source_kind in {"PENDING_ORDER", "IN_TRANSIT"}:
-            assert movement.supply_identity is not None
-            if movement.supply_identity in seen_supply:
-                raise ValueError("supply_identity duplicada o pending/transit simultáneo")
-            seen_supply.add(movement.supply_identity)
 
 
 def _composition_to_mutable(items: Sequence[IncorporatedDemandQuantity]) -> OrderedDict[str, dict[str, object]]:
@@ -1068,6 +1074,8 @@ def calculate_confirmed_demand_absorption(
     incorporated = {item.confirmed_demand_id: item.quantity for item in excess.incorporated_confirmed_demand}
     allocated: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
     for entry in ledger.entries:
+        if entry.unit != excess.stock_reference.unit:
+            raise ValueError("Ledger entry con unidad incompatible con exceso/pending")
         allocated[entry.confirmed_demand_id] += entry.allocated_quantity
 
     remaining: dict[str, Decimal] = {}
