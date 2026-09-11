@@ -1,7 +1,7 @@
 """Physical Finance Basic contracts for the EIOS procurement MVP."""
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from typing import Literal
 
@@ -76,6 +76,7 @@ class CashFlow(BaseModel):
     amount: Decimal | None = Field(default=None, ge=0)
     currency: str | None = Field(default=None, min_length=3, max_length=3)
     due_date: date | None = None
+    due_date_evidenced: bool = False
     source_ref: str | None = Field(default=None, min_length=1, max_length=256)
     evidence_state: FinancialEvidenceState
 
@@ -83,7 +84,10 @@ class CashFlow(BaseModel):
     _finite_amount = field_validator("amount")(_require_finite)
 
     @model_validator(mode="after")
-    def validate_demonstrated_flow(self) -> "CashFlow":
+    def validate_evidence_semantics(self) -> "CashFlow":
+        if self.due_date_evidenced and self.due_date is None:
+            raise ValueError("due_date_evidenced=True requiere due_date")
+
         if self.evidence_state == "DEMONSTRATED":
             missing = [
                 name
@@ -150,6 +154,11 @@ class FinanceBasicInput(BaseModel):
         flow_ids = [flow.flow_id for flow in self.cash_flows]
         if len(flow_ids) != len(set(flow_ids)):
             raise ValueError("flow_id duplicado en FinanceBasicInput")
+
+        try:
+            self.snapshot.as_of_date + timedelta(days=self.horizon_days)
+        except OverflowError as exc:
+            raise ValueError("horizon_days no es representable desde as_of_date") from exc
         return self
 
 
