@@ -1,7 +1,7 @@
 """Physical Supplier Evidence Core contracts for EIOS Capa 5.
 
 This module implements the closed Supplier Evidence Core methodology v0.3 and
-technical contract v0.3.2. It owns factual supplier evidence only; supplier
+technical contract v0.3.3. It owns factual supplier evidence only; supplier
 scoring, ranking, R-PROV rules, CRC and final purchase authority remain outside
 this package.
 """
@@ -307,7 +307,8 @@ class StructuralComparisonResult(FrozenModel):
     comparison_id: str = Field(min_length=1, max_length=128)
     current_observation_id: str = Field(min_length=1, max_length=128)
     candidate_observation_id: str = Field(min_length=1, max_length=128)
-    dimension: SupplierDimension
+    current_dimension: SupplierDimension
+    candidate_dimension: SupplierDimension
     state: StructuralComparabilityState
     difference_decimal: Decimal | None = None
     comparison_authority_ref: str | None = None
@@ -323,6 +324,8 @@ class StructuralComparisonResult(FrozenModel):
     def validate_difference_state(self) -> "StructuralComparisonResult":
         if self.difference_decimal is not None and self.state != "STRUCTURALLY_COMPARABLE":
             raise ValueError("Solo una comparación estructural compatible puede publicar difference_decimal")
+        if self.state == "STRUCTURALLY_COMPARABLE" and self.current_dimension != self.candidate_dimension:
+            raise ValueError("STRUCTURALLY_COMPARABLE requiere dimensiones iguales")
         return self
 
 
@@ -429,6 +432,7 @@ class SupplierEvidenceInput(FrozenModel):
 class SupplierEvidenceResult(FrozenModel):
     identity: SupplierResultIdentity
     current_supplier_id: str = Field(min_length=1, max_length=128)
+    candidates: tuple[SupplierCandidateEvidence, ...] = ()
     candidate_resolutions: tuple[CandidateResolution, ...] = ()
     observations: tuple[SupplierObservation, ...] = ()
     historical_facts: tuple[SupplierHistoricalFact, ...] = ()
@@ -438,6 +442,14 @@ class SupplierEvidenceResult(FrozenModel):
     unresolved_items: tuple[SupplierItemRef, ...] = ()
     conflicting_items: tuple[SupplierItemRef, ...] = ()
     limitations: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_candidate_alignment(self) -> "SupplierEvidenceResult":
+        if tuple(item.candidate_id for item in self.candidates) != tuple(
+            item.candidate_id for item in self.candidate_resolutions
+        ):
+            raise ValueError("candidates y candidate_resolutions deben permanecer alineados")
+        return self
 
 
 __all__ = [
