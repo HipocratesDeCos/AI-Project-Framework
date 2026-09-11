@@ -42,4 +42,5 @@ def test_m02_closure_does_not_authorize_formula_or_automatic_replenishment():
     assert "no constituye por sí mismo una orden de reposición" in authority
     assert "una fórmula concreta de `stock_minimum`" in authority
     assert "`STK-M03…M10` permanecen pendientes" in authority
-    assert "**Estado actual:** NO APTO PARA IMPLEMENTACIÓN CUANTITATIVA." in matrix
+    assert "**Estado actual:** APTO PARA DISEÑO DE CONTRATO TÉCNICO STK." in matrix
+    assert "**No constituye por sí misma implementación ejecutable.**" in matrix
