@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 
 from .models import (
@@ -70,8 +70,12 @@ def _calculate_projection(payload: FinanceBasicInput) -> ProjectionResult:
             continue
 
         if flow.evidence_state == "NOT_EVIDENCED":
-            if due_date is not None and due_date > horizon_end:
-                # Demonstrated temporal exclusion is sufficient for this horizon.
+            if (
+                flow.due_date_evidenced
+                and due_date is not None
+                and due_date > horizon_end
+            ):
+                # A separately evidenced due date proves exclusion from this horizon.
                 continue
             statuses.append("NOT_EVIDENCED")
             unresolved.append(flow.flow_id)
@@ -79,7 +83,11 @@ def _calculate_projection(payload: FinanceBasicInput) -> ProjectionResult:
             continue
 
         # CONFLICTING_DATA
-        if due_date is not None and due_date > horizon_end:
+        if (
+            flow.due_date_evidenced
+            and due_date is not None
+            and due_date > horizon_end
+        ):
             limitations.append(f"OUT_OF_HORIZON_CONFLICT:{flow.flow_id}")
             continue
         statuses.append("CONFLICTING_DATA")
@@ -103,7 +111,7 @@ def _calculate_projection(payload: FinanceBasicInput) -> ProjectionResult:
     # status DETERMINED implies opening treasury is available.
     assert opening is not None
 
-    daily: dict[object, dict[str, Decimal]] = defaultdict(
+    daily: dict[date, dict[str, Decimal]] = defaultdict(
         lambda: {"collections": Decimal("0"), "payments": Decimal("0")}
     )
     for flow in participants:
