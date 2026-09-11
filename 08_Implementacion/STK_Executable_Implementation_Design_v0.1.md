@@ -1,6 +1,6 @@
-# EIOS — STK Executable Implementation Design v0.1
+# EIOS — STK Executable Implementation Design v0.2
 
-**Estado:** DISEÑADO — PENDIENTE DE AUDITORÍA  
+**Estado:** DEPURADO A1…A8 — PENDIENTE DE AUDIT 2  
 **Baseline:** `main @ c2945b56f41ac7cac3df15c2ce0d16950387e0b3`  
 **Contrato cerrado:** `08_Implementacion/STK_Implementation_Contract.md` v0.17  
 **Cierre contractual:** `08_Implementacion/STK_Implementation_Contract_Closure_v0.17.md`  
@@ -12,7 +12,7 @@
 
 Diseñar la implementación ejecutable mínima de Stock & Demand Intelligence sin ampliar el contrato v0.17.
 
-Esta fase traduce tipos, invariantes y cálculos autorizados a una arquitectura Python/Pydantic verificable. No redefine metodología, reglas, parámetros, decisiones ni defaults.
+Esta fase traduce tipos, invariantes y cálculos autorizados a Python/Pydantic. No redefine metodología, reglas, parámetros, decisiones ni defaults.
 
 ---
 
@@ -28,72 +28,46 @@ tests/
 └── test_stock_engine.py
 ```
 
-No se modifica `eios/core`. `eios.stock` puede importar `DecisionContext`; la dependencia inversa queda prohibida.
+No se modifica `eios/core`. `eios.stock` puede importar `DecisionContext`; la dependencia inversa está prohibida.
 
 ---
 
-## 3. Estrategia de modelos
+## 3. Estrategia Pydantic y frontera error/incertidumbre
 
-`models.py` materializará modelos Pydantic v2 con:
+Los hechos/resultados se implementan con Pydantic v2, `extra="forbid"`, `str_strip_whitespace=True` y `frozen=True` cuando proceda.
 
-```python
-ConfigDict(extra="forbid", str_strip_whitespace=True, frozen=True)
-```
+Tipos controlados mediante `Literal`. Todos los `Decimal` cuantitativos se validan como finitos.
 
-cuando el objeto represente un hecho/resultado inmutable.
+**Separación obligatoria:**
 
-Tipos controlados mediante `Literal` para estados, métodos, tipos de movimiento, ramas M07 y estados M08.
+- forma/identidad/tipo dimensional/invariante imposible → `ValidationError` o `ValueError`;
+- ausencia, no evidencia o contradicción empresarial representable → objeto válido con estado no determinado;
+- el engine **no captura** un error estructural para convertirlo en `UNKNOWN`.
 
-Todos los `Decimal` cuantitativos se validan como finitos. La negatividad solo se admite en saldos proyectados, nunca en cantidades físicas, umbrales, demanda o asignaciones.
+Cada familia con `state` implementa `state ↔ payload`:
+
+- `KNOWN` exige payload material completo;
+- estado no determinado permite nulos donde precisamente falta evidencia;
+- un valor cuantitativo determinado no se publica bajo un estado no determinado;
+- `CONFLICTING_DATA` exige incidencia de contradicción.
+
+La negatividad solo se admite en `projected_stock`, nunca en cantidades físicas, demanda, umbrales o asignaciones.
 
 ---
 
 ## 4. Modelos mínimos
 
-Se implementarán, como mínimo:
+Se materializan los modelos del contrato v0.17, incluyendo:
 
-- `DataIssueRef`
-- `StockScope`
-- `DemandMethodSelection`
-- `StockComputationContext`
-- `StockResultIdentity`
-- `NormalizedQuantity`
-- `ConfiguredParameterValue`
-- `AuthorizedQuantityThreshold`
-- `AuthorizedStockPolicyQuantity`
-- `CollectionEnvelope`
-- `ProjectionHorizon`
-- `StockCommitmentComponent`
-- `IncorporatedDemandQuantity`
-- `StockAvailabilityInput/Result`
-- `ConsumptionPeriod`
-- `RequiredPeriodSpec`
-- `HistoricalDemandPolicy`
-- `AuthorizedForecastRate`
-- `DemandRateResult`
-- `ProjectionMovement`
-- `DemandProjectionSchedule`
-- `ProjectionPoint`
-- `ProjectedDecimalMetric`
-- `ProjectedDateMetric`
-- `StockProjectionInput/Result`
-- `StockReferenceValue`
-- `StockMaximumBasis`
-- `ExcessToleranceBasis`
-- `ExcessResult`
-- `ConfirmedDemandRecord`
-- `AllocationLedgerEntry/Snapshot`
-- `DemandAllocation`
-- `AllocationScope`
-- `ConfirmedDemandAbsorptionResult`
+`DataIssueRef`, `StockScope`, `DemandMethodSelection`, `StockComputationContext`, `StockResultIdentity`, `NormalizedQuantity`, `ConfiguredParameterValue`, `AuthorizedQuantityThreshold`, `AuthorizedStockPolicyQuantity`, `CollectionEnvelope`, `ProjectionHorizon`, `StockCommitmentComponent`, `IncorporatedDemandQuantity`, `StockAvailabilityInput/Result`, `ConsumptionPeriod`, `RequiredPeriodSpec`, `HistoricalDemandPolicy`, `AuthorizedForecastRate`, `DemandRateResult`, `ProjectionMovement`, `DemandProjectionSchedule`, `ProjectionPoint`, `ProjectedDecimalMetric`, `ProjectedDateMetric`, `StockProjectionInput/Result`, `StockReferenceValue`, `StockMaximumBasis`, `ExcessToleranceBasis`, `ExcessResult`, `ConfirmedDemandRecord`, `AllocationLedgerEntry/Snapshot`, `DemandAllocation`, `AllocationScope`, `ConfirmedDemandAbsorptionResult`.
 
 No se crean clases de decisión final, Rules o CRC.
 
 ---
 
-## 5. Funciones puras de engine
+## 5. Funciones puras
 
-`engine.py` expondrá funciones puras y deterministas:
+`engine.py` expondrá funciones puras:
 
 ```text
 build_identity(context)
@@ -109,172 +83,209 @@ calculate_excess(stock_reference, maximum_basis, tolerance_basis)
 calculate_confirmed_demand_absorption(excess, orders, ledger, allocation_scope, allocation_plan)
 ```
 
-Ninguna función accede a reloj, red, base de datos o estado global.
+Más helpers privados deterministas para propagación de estado, deduplicación de incidencias/trazas, composición confirmada, validación logística y reconciliación M08.
+
+Sin reloj, red, DB, UUID aleatorio ni estado global.
 
 ---
 
-## 6. Propagación de estado
+## 6. Propagación determinista A1
 
-Regla base:
+Helper privado conceptual:
 
-- entradas estructuralmente inválidas → `ValidationError`/`ValueError`;
-- ausencia/no evidencia/contradicción empresarial válida → resultado tipado no determinado;
-- nunca se convierte ausencia en cero;
-- `CONFLICTING_DATA` exige `DataIssueRef(CONTRADICTION)`;
-- colecciones no `KNOWN` no se agregan silenciosamente.
+```text
+propagate_state(required_dependencies)
+```
 
-Los resultados conservarán las incidencias/trazas de las dependencias que impidan el cálculo.
+Para dependencias materiales obligatorias:
+
+1. si alguna es `CONFLICTING_DATA` → resultado `CONFLICTING_DATA`;
+2. en otro caso, si alguna es `NOT_EVIDENCED` → `NOT_EVIDENCED`;
+3. en otro caso, si alguna es `UNKNOWN` → `UNKNOWN`;
+4. `NOT_APPLICABLE` solo excluye el elemento cuya no aplicabilidad está demostrada; no cancela incertidumbre de otra dependencia obligatoria.
+
+Esta precedencia es técnica para preservar información de M09/M10, no prioridad empresarial.
+
+`issue_refs` y `trace_refs` se fusionan sin duplicados, preservando orden de primera aparición.
 
 ---
 
 ## 7. M01 / demanda histórica
 
-`calculate_historical_demand` verificará:
-
-- selección `HISTORICAL_CONSUMPTION` autorizada;
-- `forecast_version is None`;
-- política `KNOWN` con parámetro físico `STK-006`;
-- colección `KNOWN`;
-- correspondencia exacta de periodos requeridos;
-- mismo scope/artículo/unidad/metodología;
-- días evidenciados completos.
-
-Cálculo:
+`calculate_historical_demand` exige selección `KNOWN/HISTORICAL_CONSUMPTION`, `forecast_version is None`, política `KNOWN`, parámetro físico `STK-006`, colección `KNOWN`, correspondencia uno-a-uno de periodos, scope/artículo/unidad/metodología comunes y días completos.
 
 ```text
-sum(consumption.quantity) / sum(consumption.evidenced_days)
+historical_daily_demand = sum(quantity) / sum(evidenced_days)
 ```
 
-No se rellenan periodos ni se usa catálogo como fallback.
+No rellena periodos ni usa defaults.
 
 ---
 
-## 8. M04 cobertura
+## 8. Forecast y M04
 
-Solo usa `StockAvailabilityResult` actual y `DemandRateResult` aplicable a `evaluation_date`.
+`use_authorized_forecast` exige selección `KNOWN/AUTHORIZED_FORECAST`, versión exacta, intervalo cerrado aplicable y trazabilidad.
 
-- demanda > 0 → cobertura finita;
-- demanda = 0 `KNOWN` → `UNBOUNDED`;
-- dependencia no determinada → estado propagado.
+`calculate_coverage` solo usa disponibilidad actual y demanda aplicable en `evaluation_date`:
 
-No se implementa cobertura proyectada.
+- demanda >0 → `FINITE`;
+- demanda 0 `KNOWN` → `UNBOUNDED`;
+- dependencia no determinada → estado correspondiente.
+
+No cobertura proyectada.
 
 ---
 
-## 9. M05/M06 proyección
+## 9. M05 — horizon y schedule A3
 
-`build_projection_horizon` exige configuración efectiva `PYE-001` y construye:
+`build_projection_horizon` consume configuración efectiva `PYE-001`, entero positivo no booleano, normalizado a días:
 
 ```text
 horizon_end = evaluation_date + horizon_days
 ```
 
-La proyección:
+Para `calculate_stock_projection`:
 
-- empieza en `stock_available`;
-- acepta solo movimientos estrictamente posteriores a evaluación y dentro del horizonte;
-- agrupa por día sin orden intradía;
-- preserva saldo negativo;
-- identifica incertidumbre desde la primera fecha aplicable;
-- preserva composición de demanda confirmada por punto;
-- evita doble uso de commitment/segment/supply identity.
-
-Cuando exista demanda seleccionada que deba intervenir en M05, un resultado completo exige `DemandProjectionSchedule` `KNOWN`, externo/autorizado, que identifique exactamente los movimientos `AUTHORIZED_DEMAND` y su reconciliación. El engine no genera dichos movimientos desde una tasa.
+- si existen movimientos `AUTHORIZED_DEMAND`, `DemandProjectionSchedule` `KNOWN` es obligatorio;
+- `schedule.demand_movement_ids` coincide **exactamente** con IDs de movimientos `AUTHORIZED_DEMAND` que participan;
+- schedule y demanda comparten selección/contexto/horizonte;
+- `transformation_ref` y `reconciliation_ref` deben estar presentes;
+- una tasa nunca genera movimientos automáticamente;
+- `CONFIRMED_DEMAND`, `RESERVATION` y `OTHER_AUTHORIZED_NEED` no pueden utilizarse para satisfacer el conjunto de IDs del schedule;
+- si la política de evaluación declara demanda seleccionada como parte de la proyección pero no existe schedule autorizado, el resultado completo no es `KNOWN`.
 
 ---
 
-## 10. M07 exceso
+## 10. M05/M06 — movimientos y exclusividad logística A4
 
-Ramas explícitas:
+Movimiento contribuyente: estrictamente futuro, dentro del horizonte, cantidad/identidad/normalización/traza válidas.
+
+El engine crea índices de unicidad:
+
+- `movement_id` global único;
+- `demand_segment_id` confirmado único;
+- `commitment_id` de opening no se reutiliza como salida nueva;
+- para M06, `supply_identity`/parcialidad logística identifica la cantidad real, no el `movement_id`.
+
+Se rechaza como error estructural:
+
+- misma identidad logística contribuyente dos veces;
+- misma parcialidad como `PENDING_ORDER` e `IN_TRANSIT`;
+- duplicación de una parcialidad bajo dos movement IDs.
+
+Si no existe identidad suficiente para demostrar independencia, no se suma silenciosamente.
+
+---
+
+## 11. Proyección diaria y composición A5/A8
+
+Opening = `stock_available`.
+
+Por día:
 
 ```text
-StockMaximumBasis:
-  DIRECT_QUANTITY | COVERAGE_MAXIMUM
-
-ExcessToleranceBasis:
-  QUANTITY | RATE
+closing = previous_closing + sum(inflows) - sum(outflows)
 ```
 
-La implementación validará exclusividad de ramas y vigencia para `stock_reference.reference_date`.
+Sin orden intradía; saldo negativo preservado.
 
-Cálculos autorizados:
+**Composición confirmada exacta:**
+
+1. opening se deriva de componentes committed comerciales;
+2. cada movimiento `CONFIRMED_DEMAND` contabilizado añade exactamente su `quantity` al pedido y su `demand_segment_id`;
+3. mismo segmento no puede repetirse;
+4. orden de colección determinista por primera aparición en opening y después por orden estable de fecha + movement_id;
+5. cada `ProjectionPoint` conserva solo composición hasta su fecha;
+6. `StockReferenceValue` y `ExcessResult` copian la composición exacta; no recalculan.
+
+**Métricas bajo incertidumbre:**
+
+- `minimum_projected_stock` es `KNOWN` solo si todo el horizonte requerido está determinado;
+- no se publica mínimo parcial como mínimo final;
+- `depletion_date` solo `KNOWN` si ninguna incertidumbre anterior puede adelantarla;
+- opening cero `KNOWN` → `evaluation_date`;
+- horizonte entero `KNOWN` sin agotamiento → `NOT_APPLICABLE`;
+- incertidumbre previa → métrica no determinada.
+
+---
+
+## 12. M07 — normalización cerrada A6
+
+Ramas exclusivas:
 
 ```text
-stock_maximum = coverage_days * daily_demand  # rama cobertura
+StockMaximumBasis: DIRECT_QUANTITY | COVERAGE_MAXIMUM
+ExcessToleranceBasis: QUANTITY | RATE
+```
+
+`STK-004` solo se consume cuando llega ya normalizado a días mediante configuración efectiva/trazable. El engine no interpreta unidades libres por nombre.
+
+`STK-005` como RATE solo se consume cuando la entrada ya demuestra una **proporción adimensional normalizada** mediante unidad/`normalization_ref`. El engine **no divide entre 100** por heurística.
+
+Cálculos:
+
+```text
+stock_maximum = coverage_maximum_days * daily_demand
 excess_tolerance_quantity = stock_maximum * normalized_rate
 excess_threshold = stock_maximum + excess_tolerance_quantity
 excess_quantity = max(0, stock_reference - excess_threshold)
 ```
 
-No se aceptan 90 días/10 % como defaults.
+Sin defaults 90/10.
 
 ---
 
-## 11. M08 absorción
+## 13. M08 — reconciliación por pedido A7
 
-La implementación:
+Antes de agregar, se construye por `confirmed_demand_id`:
 
-- requiere exceso determinado;
-- diferencia `NO_EXISTE / NO_APLICABLE / APLICABLE_Y_VALIDADA / NO_VERIFICABLE`;
-- descuenta cantidad ya incorporada en opening/M05;
-- descuenta ledger activo previo;
-- rechaza sobreconsumo de pending;
-- no elige prioridad entre pedidos;
-- exige plan cuando absorción > 0;
-- verifica `sum(plan) == absorbed_excess`;
-- preserva todas las entries activas previas y añade exactamente las del plan;
-- no genera IDs aleatorios.
+```text
+pending
+incorporated_before_M08
+already_allocated
+remaining_allocatable = pending - incorporated - allocated
+```
 
----
+Invariantes:
 
-## 12. Pruebas mínimas de implementación
+- IDs de pedidos de entrada únicos;
+- mismo scope/article/unit/date aplicable;
+- ledger `KNOWN` compatible;
+- `incorporated + allocated <= pending` por pedido;
+- ledger no conocido impide absorción determinada;
+- plan solo contiene IDs aplicables presentes;
+- suma del plan por pedido <= remaining individual;
+- si absorción >0, suma global plan = absorción;
+- IDs de nuevas entries aportados por el plan y sin colisión;
+- `resulting_ledger` preserva cada entry activa previa una vez e inalterada y añade exactamente una por allocation.
 
-La primera batería cubrirá como mínimo:
-
-1. identidad C0 + scope;
-2. ausencia ≠ cero y conflicto con evidencia;
-3. disponibilidad y déficit;
-4. committed composition y duplicados;
-5. histórico completo/incompleto y cero evidenciado;
-6. forecast compatible/incompatible;
-7. cobertura finita/unbounded/unknown;
-8. `PYE-001` y rechazo de bool/default;
-9. movimientos fuera de horizonte/mismo día;
-10. supply identity pending↔transit;
-11. reconciliación opening↔M05;
-12. schedule demanda obligatorio cuando aplica;
-13. proyección diaria, saldo negativo, depletion/minimum;
-14. M07 ramas, vigencia, exceso y tolerancia;
-15. M08 ledger ausente vs vacío, plan, colisiones, sobreconsumo y determinismo;
-16. no modificación C0;
-17. no decisión automática/no defaults.
+No existe prioridad implícita.
 
 ---
 
-## 13. Límites explícitos
+## 14. Pruebas obligatorias
 
-No implementar en v0.1:
+Además de la matriz contractual, incluir explícitamente:
 
-- SQL STK;
-- API STK;
-- persistencia ledger;
-- forecasting interno;
-- ventas→demanda;
-- calendarización interna de tasa;
-- cobertura proyectada;
-- EOQ;
-- fórmula M02/M03;
-- reglas `R-STK-*`;
-- CRC;
-- acciones de compra;
-- cambios C0.
+- precedencia `CONFLICTING > NOT_EVIDENCED > UNKNOWN`;
+- modelos UNKNOWN construibles sin datos ficticios y KNOWN incompleto rechazado;
+- schedule exacto: faltante, extra, duplicado e incompatible;
+- supply identity duplicada y pending↔transit;
+- composición exacta por punto y orden determinista;
+- `STK-005=10` sin normalización rechazada/no consumida como 10 %;
+- M08 reconciliación por pedido y preservación exacta de ledger;
+- mínimo/depletion frente a incertidumbre anterior/posterior.
 
 ---
 
-## 14. Criterio para pasar a materialización
+## 15. Límites
 
-Solo podrá escribirse `eios/stock` cuando este diseño complete:
+Fuera: SQL/API/persistencia ledger, forecasting, ventas→demanda, tasa→calendario interna, cobertura proyectada, EOQ, fórmula M02/M03, Rules, CRC, acciones automáticas, cambios C0.
 
-`AUDITAR → DEPURAR → AUDITAR 2 → CERRAR`.
+---
 
-**Estado actual:** DISEÑADO — NO MATERIALIZAR CÓDIGO TODAVÍA.
+## 16. Estado
+
+**Diseño v0.2 DEPURADO A1…A8.**
+
+No materializar código hasta superar **AUDITAR 2 → CERRAR**.
