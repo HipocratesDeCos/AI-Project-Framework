@@ -46,4 +46,5 @@ def test_m04_does_not_validate_catalog_thresholds_or_automate_decision():
     assert "| STK-004 | Cobertura máxima | 90 | días | Exceso de stock | Pendiente de validación |" in catalog
     assert "no constituye por sí misma una decisión automática" in authority
     assert "`STK-M05…M10` permanecen pendientes" in authority
-    assert "**Estado actual:** NO APTO PARA IMPLEMENTACIÓN CUANTITATIVA." in matrix
+    assert "**Estado actual:** APTO PARA DISEÑO DE CONTRATO TÉCNICO STK." in matrix
+    assert "**No constituye por sí misma implementación ejecutable.**" in matrix
