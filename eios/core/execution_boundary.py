@@ -75,9 +75,12 @@ class ExecutionOutcome(BaseModel):
                 raise ValueError("COMPLETED no puede contener unresolved_items")
             if any(
                 result.status != O1ExecutionStatus.COMPLETED
+                or not result.result_available
                 for result in self.capability_results
             ):
-                raise ValueError("COMPLETED requiere capacidades COMPLETED")
+                raise ValueError(
+                    "COMPLETED requiere capacidades COMPLETED con resultado disponible"
+                )
 
         if self.status == BoundaryStatus.BLOCKED and not self.unresolved_items:
             raise ValueError("BLOCKED requiere unresolved_items")
@@ -140,6 +143,13 @@ def execute_plan(
                 raise ExecutionBoundaryError(
                     f"capacidad {name} devolvió identidad {result.capability}"
                 )
+            if (
+                result.status == O1ExecutionStatus.COMPLETED
+                and not result.result_available
+            ):
+                raise ExecutionBoundaryError(
+                    f"capacidad {name} declaró COMPLETED sin resultado disponible"
+                )
             results.append(result)
         except Exception as exc:
             reason = str(exc).strip() or exc.__class__.__name__
@@ -162,6 +172,8 @@ def execute_plan(
         failure_reason = f"{failed.capability}: {failed.failure_reason}"[:512]
     elif any(
         result.status in {
+            O1ExecutionStatus.READY,
+            O1ExecutionStatus.RUNNING,
             O1ExecutionStatus.BLOCKED,
             O1ExecutionStatus.NOT_EVALUABLE,
             O1ExecutionStatus.PARTIALLY_COMPLETED,
