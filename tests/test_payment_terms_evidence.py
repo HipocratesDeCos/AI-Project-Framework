@@ -127,6 +127,20 @@ def test_not_evidenced_cannot_publish_declared_value_as_known() -> None:
         )
 
 
+def test_conflicting_data_requires_two_evidence_refs() -> None:
+    with pytest.raises(ValueError, match="dos evidence_refs"):
+        PurchasePaymentTermEvidence(
+            decision_id="D-PAY",
+            scenario_id="S-PAY",
+            article_id="ART-PAY",
+            supplier_id="SUP-PAY",
+            evaluated_purchase_ref="purchase:D-PAY:S-PAY",
+            state="CONFLICTING_DATA",
+            evidence_refs=("EV-PAY-60",),
+            issue_refs=("ISSUE-PAY-CONFLICT",),
+        )
+
+
 def test_conflicting_data_requires_issue_reference() -> None:
     with pytest.raises(ValueError, match="issue_refs"):
         PurchasePaymentTermEvidence(
@@ -136,6 +150,7 @@ def test_conflicting_data_requires_issue_reference() -> None:
             supplier_id="SUP-PAY",
             evaluated_purchase_ref="purchase:D-PAY:S-PAY",
             state="CONFLICTING_DATA",
+            evidence_refs=("EV-PAY-60", "EV-PAY-90"),
         )
 
 
