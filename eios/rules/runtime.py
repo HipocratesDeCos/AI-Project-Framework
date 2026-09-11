@@ -4,8 +4,9 @@ The runtime composes closed contracts without calculating business conditions:
 Assessment(s) -> reproducible Trace(s) -> C0 capability adapter -> CRC -> O1
 support package.
 
-Rule-specific modules remain responsible for producing valid Assessments and
-for supplying authorized RuleMetadata.
+Rule-specific modules remain responsible for producing valid Assessments. For
+implemented rules, catalog-backed helpers resolve the canonical C0 Rule and
+normative metadata so callers do not duplicate authority literals.
 """
 from __future__ import annotations
 
@@ -37,6 +38,26 @@ class RuleAssessmentBinding:
     rule: Rule
     assessment: Assessment
     metadata: RuleMetadata
+
+
+def bind_authorized_assessment(
+    rule: Rule,
+    assessment: Assessment,
+) -> RuleAssessmentBinding:
+    """Bind an implemented rule/Assessment using catalogued normative metadata.
+
+    Unknown rules fail closed. The catalog does not evaluate the rule and does
+    not modify either object.
+    """
+    if assessment.rule_id != rule.rule_id:
+        raise ValueError("Assessment.rule_id debe coincidir con Rule.rule_id")
+    from .catalog import authorized_rule_metadata
+
+    return RuleAssessmentBinding(
+        rule=rule,
+        assessment=assessment,
+        metadata=authorized_rule_metadata(rule.rule_id, rule.version),
+    )
 
 
 class RuleSetVerticalResult(BaseModel):
@@ -146,6 +167,36 @@ def run_assessment_set_vertical(
     )
 
 
+def run_authorized_assessments_vertical(
+    *,
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    assessments: Sequence[Assessment],
+    base_result: ConsolidatedBaseResult,
+) -> RuleSetVerticalResult:
+    """Run implemented Assessments without caller-supplied Rule/metadata objects.
+
+    Each Assessment.rule_id must be present in the implemented rule catalog.
+    Canonical Rule and RuleMetadata objects are resolved against the current
+    DecisionContext.rules_version. Unknown rules fail closed.
+    """
+    from .catalog import authorized_rule
+
+    bindings = tuple(
+        bind_authorized_assessment(
+            authorized_rule(assessment.rule_id, context.rules_version),
+            assessment,
+        )
+        for assessment in assessments
+    )
+    return run_assessment_set_vertical(
+        purchase=purchase,
+        context=context,
+        bindings=bindings,
+        base_result=base_result,
+    )
+
+
 def run_assessment_vertical(
     *,
     purchase: PurchaseOperation,
@@ -183,6 +234,8 @@ __all__ = [
     "RuleAssessmentBinding",
     "RuleSetVerticalResult",
     "RuleVerticalResult",
+    "bind_authorized_assessment",
     "run_assessment_set_vertical",
     "run_assessment_vertical",
+    "run_authorized_assessments_vertical",
 ]
