@@ -41,4 +41,5 @@ def test_m01_closure_does_not_authorize_stk_implementation():
     assert "STK-M01 — Consumo — CERRADO" in matrix
     assert "STK-M02…STK-M10" in authority
     assert "implementar el motor cuantitativo STK" in authority
-    assert "**Estado actual:** NO APTO PARA IMPLEMENTACIÓN CUANTITATIVA." in matrix
+    assert "**Estado actual:** APTO PARA DISEÑO DE CONTRATO TÉCNICO STK." in matrix
+    assert "**No constituye por sí misma implementación ejecutable.**" in matrix
