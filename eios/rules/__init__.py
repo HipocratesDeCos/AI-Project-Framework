@@ -15,7 +15,14 @@ from .runtime import (
     run_assessment_set_vertical,
     run_assessment_vertical,
 )
-from .stock import R_STK_003, STOCK_EXCESS_EVIDENCE_SOURCE_TYPE, evaluate_r_stk_003
+from .stock import (
+    R_STK_003,
+    R_STK_004,
+    STOCK_CONFIRMED_DEMAND_EVIDENCE_SOURCE_TYPE,
+    STOCK_EXCESS_EVIDENCE_SOURCE_TYPE,
+    evaluate_r_stk_003,
+    evaluate_r_stk_004,
+)
 
 __all__ = [
     "BASELINE_EVIDENCE_SOURCE_TYPE",
@@ -23,13 +30,16 @@ __all__ = [
     "DELIVERY_EVIDENCE_SOURCE_TYPE",
     "R_ENT_001",
     "R_STK_003",
+    "R_STK_004",
     "REnt001VerticalResult",
     "RuleAssessmentBinding",
     "RuleSetVerticalResult",
     "RuleVerticalResult",
+    "STOCK_CONFIRMED_DEMAND_EVIDENCE_SOURCE_TYPE",
     "STOCK_EXCESS_EVIDENCE_SOURCE_TYPE",
     "evaluate_r_ent_001",
     "evaluate_r_stk_003",
+    "evaluate_r_stk_004",
     "run_assessment_set_vertical",
     "run_assessment_vertical",
     "run_r_ent_001_vertical",
