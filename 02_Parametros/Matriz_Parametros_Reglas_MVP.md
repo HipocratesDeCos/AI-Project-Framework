@@ -2,10 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.8
-**Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO
+**Versión:** 0.9
+**Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO / STK
 **Baseline:** EIOS Vertical MVP
-**Fecha:** 22/08/2026
+**Fecha:** 11/09/2026
 
 ---
 
@@ -47,6 +47,10 @@ Cuando no exista evidencia documental suficiente para afirmar que un parámetro 
 
 **PENDIENTE DE CRUCE CON REGLAS**
 
+Cuando el cruce haya sido analizado y se demuestre que el parámetro pertenece a metodología o configuración, pero no a una condición directa de regla, se marcará como:
+
+**SIN CONSUMIDOR DIRECTO DEMOSTRADO**
+
 No se inventarán relaciones parámetro-regla.
 
 ---
@@ -87,8 +91,18 @@ La numeración funcional se conserva; el prefijo identifica el tipo de entidad.
 | **P-PRE-004** | Precios | **R-PRE-001** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
 | **P-PRE-005** | Precios | **R-PRE-002** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
 | **P-PRE-006** | Precios | **R-HIS-002** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO — HIST-HIS-02** |
-| P-STK-001 a P-STK-006 | Stock | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
-| P-PYE-001 a P-PYE-006 | Proyección | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
+| **P-STK-001** | Stock | **Sin consumidor directo de regla STK demostrado; gobierna `stock_minimum` M02** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / SIN CONSUMIDOR DIRECTO** |
+| **P-STK-002** | Stock | **Sin consumidor directo de regla STK demostrado; gobierna `safety_stock` M03** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / SIN CONSUMIDOR DIRECTO** |
+| **P-STK-003** | Stock | **Sin consumidor directo de regla STK demostrado; umbral mínimo de cobertura M04** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / SIN CONSUMIDOR DIRECTO** |
+| **P-STK-004** | Stock | **R-STK-002 directa / R-STK-003 derivada** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO — STK** |
+| **P-STK-005** | Stock | **R-STK-003 derivada mediante M07** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO — STK** |
+| **P-STK-006** | Stock | **Sin consumidor directo de regla STK demostrado; ventana de base histórica de demanda** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / SIN CONSUMIDOR DIRECTO** |
+| **P-PYE-001** | Proyección | **Sin consumidor directo demostrado; horizonte metodológico M05** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / SIN CONSUMIDOR DIRECTO** |
+| **P-PYE-002** | Proyección | **Sin consumidor directo demostrado; control metodológico M05/M06, sujeto a evidencia** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / SIN CONSUMIDOR DIRECTO** |
+| **P-PYE-003** | Proyección | **Sin consumidor directo demostrado; control metodológico M05/M06, sujeto a evidencia** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / SIN CONSUMIDOR DIRECTO** |
+| **P-PYE-004** | Proyección | **Sin consumidor directo demostrado; control metodológico de temporalidad/lead time** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / SIN CONSUMIDOR DIRECTO** |
+| **P-PYE-005** | Proyección | **Sin consumidor directo; no autoriza transformación ventas → demanda** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / NO OPERATIVO COMO TRANSFORMACIÓN** |
+| **P-PYE-006** | Proyección | **Sin consumidor directo demostrado; R-STK-001 no usa umbral fijo de días en su condición vigente** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / SIN CONSUMIDOR DIRECTO** |
 | **P-MGE-001** | Rentabilidad | **R-MGE-001** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
 | **P-MGE-002** | Rentabilidad | **R-MGE-003** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
 | **P-MGE-003** | Rentabilidad | **R-MGE-002** | Según regla | Sí | Sí | Sí | **CONFIRMADO** |
@@ -140,7 +154,7 @@ No se asignará una regla concreta a un parámetro si la documentación disponib
 
 ## G-06 — Consumidor funcional
 
-Un parámetro sin consumidor funcional o justificación explícita no se considerará parámetro MVP confirmado.
+Un parámetro sin consumidor directo de regla puede seguir perteneciendo al MVP cuando exista una función metodológica o de configuración explícitamente demostrada por la autoridad especializada. No debe presentarse como consumidor de regla.
 
 ## G-07 — Gap
 
@@ -150,12 +164,15 @@ Una regla que requiera un valor configurable sin disponer del parámetro corresp
 
 # 8. RELACIONES CONFIRMADAS
 
-Las siguientes relaciones quedan confirmadas por el cruce documental realizado y, para los parámetros de pago, por la especificación especializada `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` y su incorporación a la Matriz de Reglas MVP v2.1:
+Las siguientes relaciones quedan confirmadas por el cruce documental realizado y por las especificaciones especializadas aplicables:
 
 | Parámetro | Regla consumidora | Tipo | Estado |
 |---|---|---|---|
 | `P-PRE-004` | `R-PRE-001` | Directa | CONFIRMADO |
 | `P-PRE-005` | `R-PRE-002` | Directa | CONFIRMADO |
+| `P-STK-004` | `R-STK-002` | Directa | CONFIRMADO — STK |
+| `P-STK-004` | `R-STK-003` | Derivada | CONFIRMADO — STK |
+| `P-STK-005` | `R-STK-003` | Derivada | CONFIRMADO — STK |
 | `P-MGE-001` | `R-MGE-001` | Directa | CONFIRMADO |
 | `P-MGE-002` | `R-MGE-003` | Directa | CONFIRMADO |
 | `P-MGE-003` | `R-MGE-002` | Directa | CONFIRMADO |
@@ -172,6 +189,22 @@ Las siguientes relaciones quedan confirmadas por el cruce documental realizado y
 | `P-DAT-001` | `R-DAT-001` | Directa | CONFIRMADO |
 | `P-DAT-002` | `R-HIS-001` | Directa | CONFIRMADO |
 | `P-PRE-006` | `R-HIS-002` | Directa | CONFIRMADO |
+
+### Resolución STK — GAP-STK-PARAM-RULE
+
+`04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md` v1.0 cierra el cruce individual `P-STK-001…006` y `P-PYE-001…006`.
+
+Se confirman únicamente tres relaciones de regla:
+
+- `P-STK-004 → R-STK-002` directa;
+- `P-STK-004 → R-STK-003` derivada;
+- `P-STK-005 → R-STK-003` derivada.
+
+El resto de parámetros STK/PYE queda clasificado expresamente como configuración/metodología sin consumidor directo de regla demostrado. Esto constituye una resolución del cruce, no un pendiente genérico.
+
+`P-PYE-005` no autoriza transformación ventas → demanda y su valor inicial `Sí` no produce comportamiento operativo por sí mismo.
+
+**Estado GAP-STK-PARAM-RULE: CERRADO FUNCIONALMENTE.**
 
 ### Resolución histórica — GAP-HIS-01
 
@@ -191,15 +224,16 @@ Las siguientes relaciones quedan confirmadas por el cruce documental realizado y
 
 ### Evidencia especializada
 
-La determinación se documenta adicionalmente en:
+Las determinaciones se documentan adicionalmente en:
 
-`04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.1
+- `04_Reglas/Especificacion_Reglas_Historico_MVP.md` v1.1;
+- `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md` v1.0.
 
 La creación de un parámetro `HIS-*` queda expresamente descartada.
 
 ---
 
-# 9. HALLAZGOS RESUELTOS POR EL DECISION LOG
+# 9. HALLAZGOS RESUELTOS POR EL DECISION LOG Y ESPECIFICACIONES
 
 - `P-DAT-004` queda fuera del MVP configurable.
 - `P-DAT-005` se reclasifica como presentación/trazabilidad.
@@ -211,28 +245,31 @@ La creación de un parámetro `HIS-*` queda expresamente descartada.
 - `C-07` queda documentalmente satisfecho para `P-PAG-001…005` mediante `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` y su incorporación a `Matriz_Reglas_MVP v2.1`.
 - `GAP-HIS-01` queda resuelto mediante la determinación de `P-DAT-002` como consumidor efectivo de `R-HIS-001` y la exclusión de `P-PRE-003` como parámetro directo.
 - `GAP-HIS-02` queda resuelto mediante la determinación de `P-PRE-006` como consumidor efectivo de `R-HIS-002` y la no sustitución por `P-DAT-003`.
+- `GAP-STK-PARAM-RULE` queda resuelto sin asignar consumidores por inferencia ni validar valores iniciales.
 
 ---
 
 # 10. PENDIENTES DE VALIDACIÓN
 
-1. Completar la migración documental de los IDs de `02_Parametros` a `P-*`.
-2. Completar la migración documental de los IDs de `04_Reglas` a `R-*`.
-3. Identificar documentalmente cada regla consumidora de cada parámetro que permanece pendiente.
-4. Confirmar los parámetros realmente necesarios para el MVP.
+1. Completar la migración documental de los IDs de `02_Parametros` a `P-*` fuera de los ámbitos ya reconciliados.
+2. Completar la migración documental de los IDs de `04_Reglas` a `R-*` fuera de los ámbitos ya reconciliados.
+3. Identificar documentalmente cada regla consumidora de los parámetros que todavía permanecen pendientes fuera del cruce STK/PYE cerrado.
+4. Confirmar los parámetros realmente necesarios para el MVP fuera de los ámbitos ya resueltos.
 5. Validar los valores empresariales definitivos.
 6. Determinar los parámetros específicos de cada empresa.
 7. Confirmar la editabilidad individual.
-8. Resolver los gaps de parametrización que aparezcan al completar el cruce.
+8. Resolver los gaps de parametrización que aparezcan al completar cruces futuros.
 
-Estos pendientes son de alcance general del MVP y **no mantienen abiertos GAP-HIS-01, GAP-HIS-02 ni C-07**.
+Estos pendientes son de alcance general del MVP y **no mantienen abiertos GAP-HIS-01, GAP-HIS-02, C-07 ni GAP-STK-PARAM-RULE**.
 
 ---
 
 # 11. ESTADO
 
-**Versión:** 0.8
-**Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO
+**Versión:** 0.9
+**Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO / STK
 **Baseline:** EIOS Vertical MVP
 
-`GAP-HIS-01` y `GAP-HIS-02` quedan cerrados funcionalmente en esta matriz. Las relaciones `P-DAT-002 → R-HIS-001` y `P-PRE-006 → R-HIS-002` quedan confirmadas; `P-PRE-003` y `P-DAT-003` quedan expresamente diferenciados como conceptos sin relación maestro → derivado demostrada.
+`GAP-STK-PARAM-RULE` queda cerrado funcionalmente. Las únicas relaciones `P-STK/P-PYE → R-STK` confirmadas son las tres demostradas por la autoridad especializada; el resto queda clasificado explícitamente como metodología/configuración sin consumidor directo demostrado.
+
+Los valores iniciales del catálogo permanecen pendientes de validación empresarial y no se convierten en política por este cierre.
