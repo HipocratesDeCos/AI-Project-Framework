@@ -114,7 +114,17 @@ def test_view_model_does_not_invent_decision_authority_fields():
 def test_view_model_fails_closed_on_invalid_shape():
     with pytest.raises(TypeError):
         build_vertical_mvp_view_model([])
+    with pytest.raises(ValueError, match="rules"):
+        build_vertical_mvp_view_model({"execution": {}})
     with pytest.raises(ValueError, match="execution"):
         build_vertical_mvp_view_model({"execution": None, "rules": None})
+    with pytest.raises(ValueError, match="claves contractuales"):
+        build_vertical_mvp_view_model({"execution": {}, "rules": None})
     with pytest.raises(ValueError, match="rules"):
-        build_vertical_mvp_view_model({"execution": {}, "rules": []})
+        payload = _payload_with_rules()
+        payload["rules"] = []
+        build_vertical_mvp_view_model(payload)
+    with pytest.raises(ValueError, match="claves contractuales"):
+        payload = _payload_with_rules()
+        del payload["rules"]["assessments"]
+        build_vertical_mvp_view_model(payload)
