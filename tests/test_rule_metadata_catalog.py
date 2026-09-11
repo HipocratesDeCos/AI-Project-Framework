@@ -4,10 +4,12 @@ import pytest
 
 from eios.core.models import Assessment, DecisionContext, PurchaseOperation, Rule
 from eios.rules import (
+    authorized_rule,
     authorized_rule_metadata,
     bind_authorized_assessment,
     implemented_rule_ids,
     run_assessment_set_vertical,
+    run_authorized_assessments_vertical,
 )
 
 
@@ -77,9 +79,16 @@ def test_catalog_resolves_authorized_metadata(rule_id: str, effect: str, severit
     assert metadata.severity == severity
 
 
+def test_catalog_builds_canonical_rule() -> None:
+    rule = authorized_rule("R-FIN-001", RULES)
+    assert rule == Rule(rule_id="R-FIN-001", version=RULES, requires_evidence=True)
+
+
 def test_catalog_rejects_unknown_rule() -> None:
     with pytest.raises(ValueError, match="no materializada"):
         authorized_rule_metadata("R-PRE-001", RULES)
+    with pytest.raises(ValueError, match="no materializada"):
+        authorized_rule("R-PRE-001", RULES)
 
 
 def test_bind_authorized_assessment_rejects_rule_mismatch() -> None:
@@ -113,3 +122,48 @@ def test_runtime_uses_catalog_bindings_without_manual_metadata() -> None:
         "R-STK-003",
         "R-HIS-002",
     )
+
+
+def test_high_level_runtime_requires_only_assessments_and_context() -> None:
+    result = run_authorized_assessments_vertical(
+        purchase=_purchase(),
+        context=_context(),
+        assessments=(
+            _assessment("R-FIN-001", "FALSE"),
+            _assessment("R-STK-004", "TRUE"),
+            _assessment("R-HIS-002", "TRUE"),
+        ),
+        base_result="COMPRAR",
+    )
+
+    assert result.crc_result.consolidated_result == "COMPRAR CONDICIONADO"
+    assert result.crc_result.dominant_reason == "R-STK-004 assessment."
+    assert tuple(trace.rule_id for trace in result.traces) == (
+        "R-FIN-001",
+        "R-STK-004",
+        "R-HIS-002",
+    )
+    assert all(trace.rules_version == RULES for trace in result.traces)
+
+
+def test_high_level_runtime_fails_closed_for_uncatalogued_rule() -> None:
+    with pytest.raises(ValueError, match="no materializada"):
+        run_authorized_assessments_vertical(
+            purchase=_purchase(),
+            context=_context(),
+            assessments=(_assessment("R-PRE-001"),),
+            base_result="COMPRAR",
+        )
+
+
+def test_high_level_runtime_rejects_duplicate_rule_ids() -> None:
+    with pytest.raises(ValueError, match="duplicados"):
+        run_authorized_assessments_vertical(
+            purchase=_purchase(),
+            context=_context(),
+            assessments=(
+                _assessment("R-STK-003"),
+                _assessment("R-STK-003", "FALSE"),
+            ),
+            base_result="COMPRAR",
+        )
