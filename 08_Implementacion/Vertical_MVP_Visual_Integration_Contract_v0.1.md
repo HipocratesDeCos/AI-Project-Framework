@@ -15,6 +15,10 @@ El adaptador recibe un `Mapping` con:
 - `execution`: estado, versión de política, limitaciones y capacidades ya producidas;
 - `rules`: `null` cuando no existe resultado de Rules/CRC, o el bloque ya producido con reglas ejecutadas/omitidas, resultado consolidado, Assessments y trazas.
 
+`execution` debe contener las claves contractuales `status`, `policy_version`, `unresolved_items`, `failure_reason` y `capabilities`.
+
+Cuando `rules` no sea `null`, debe contener `executed_rule_ids`, `omitted_rule_ids`, `consolidated_result`, `dominant_reason`, `relevant_factors`, `conflicts`, `assessments` y `trace_references`.
+
 No recibe modelos de dominio para evaluarlos y no ejecuta capacidades EIOS.
 
 ## 3. Salida
@@ -26,9 +30,9 @@ El view-model puede exponer únicamente:
 - capacidades y sus estados ya producidos;
 - disponibilidad del bloque Rules/CRC;
 - cobertura de reglas: ejecutadas y omitidas, como categorías separadas;
-- resultado consolidado de soporte, razón dominante, factores relevantes y conflictos;
+- `crc_support_result`: resultado consolidado de soporte, razón dominante, factores relevantes y conflictos;
 - Assessments tal como fueron producidos;
-- referencias de traza ya existentes.
+- `rule_trace_references`: referencias de traza propias del bloque Rules/CRC.
 
 ## 4. Invariantes obligatorios
 
@@ -40,7 +44,7 @@ El view-model puede exponer únicamente:
 6. **Sin autoridad nueva.** Prohibidos `score`, `ranking`, `recommendation`, `approval`, `best_scenario` o equivalentes inferidos por esta capa.
 7. **Sin mutación.** El view-model es una copia de presentación; modificarlo no puede modificar el payload de entrada.
 8. **Orden preservado.** No se reordenan capacidades, reglas, Assessments ni trazas.
-9. **Fallo cerrado de forma.** La entrada debe ser un `Mapping`, `execution` debe ser un `Mapping` y `rules`, si existe, debe ser un `Mapping`.
+9. **Fallo cerrado de forma.** La entrada debe ser un `Mapping`; `execution` debe ser un `Mapping`; la clave `rules` debe existir y su valor debe ser `null` o un `Mapping`; ninguna sección contractual puede omitir sus claves obligatorias. Las claves ausentes no se sustituyen por listas vacías ni `null` sintéticos.
 
 ## 5. Fuera de alcance
 
@@ -61,6 +65,7 @@ La implementación debe demostrar:
 - conservación de reglas omitidas sin Assessment sintético;
 - conservación literal de `NOT_EVALUABLE`;
 - copia independiente del payload fuente;
+- rechazo de payloads o secciones incompletas;
 - ausencia de campos de autoridad no autorizados.
 
 ## 7. Dictamen de auditoría previa
