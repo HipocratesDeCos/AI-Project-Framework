@@ -1,14 +1,15 @@
 """U1 application boundary.
 
-This module adapts UI input to the existing O1 contract. It deliberately does
-not invoke analytical capabilities or create decision authority.
+This module adapts UI input to canonical EIOS contracts and exposes existing
+backend results for presentation. It never invokes analytical capabilities or
+creates decision authority.
 """
-
 from __future__ import annotations
 
 from typing import Any, Mapping
 
 from eios.core.models import DecisionContext, PurchaseOperation
+from eios.mvp import VerticalMVPSupportResult
 
 
 FORBIDDEN_FIELDS = frozenset({"decision_version", "decision_fingerprint"})
@@ -49,3 +50,54 @@ def present_support_package(package: Any) -> Mapping[str, Any]:
     if not hasattr(package, "model_dump"):
         raise FrontendBoundaryError("paquete O1 no válido")
     return package.model_dump(mode="json")
+
+
+def present_vertical_mvp_result(result: VerticalMVPSupportResult) -> Mapping[str, Any]:
+    """Expose Vertical MVP execution + Rules/CRC detail as a stable UI payload."""
+    if not isinstance(result, VerticalMVPSupportResult):
+        raise FrontendBoundaryError("resultado Vertical MVP no válido")
+
+    execution = result.execution
+    payload: dict[str, Any] = {
+        "execution": {
+            "status": execution.status.value,
+            "policy_version": execution.policy_version,
+            "unresolved_items": list(execution.unresolved_items),
+            "failure_reason": execution.failure_reason,
+            "capabilities": [
+                {
+                    "capability": item.capability,
+                    "status": item.status.value,
+                    "result_available": item.result_available,
+                    "trace_references": list(item.trace_references),
+                    "unresolved_items": list(item.unresolved_items),
+                }
+                for item in execution.capability_results
+            ],
+        },
+        "rules": None,
+    }
+
+    if result.rules is not None:
+        crc = result.rules.crc_result
+        payload["rules"] = {
+            "executed_rule_ids": list(result.rules.executed_rule_ids),
+            "omitted_rule_ids": list(result.rules.omitted_rule_ids),
+            "consolidated_result": crc.consolidated_result,
+            "dominant_reason": crc.dominant_reason,
+            "relevant_factors": list(crc.relevant_factors),
+            "conflicts": list(crc.conflicts),
+            "assessments": [
+                {
+                    "rule_id": item.rule_id,
+                    "status": item.status,
+                    "outcome": item.outcome,
+                    "reason": item.reason,
+                    "evidence_ids": list(item.evidence_ids),
+                }
+                for item in result.rules.assessments
+            ],
+            "trace_references": [trace.trace_id for trace in result.rules.traces],
+        }
+
+    return payload
