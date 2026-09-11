@@ -1,7 +1,7 @@
 # EIOS — STOCK & DEMAND METHODOLOGICAL MATRIX
 
-**Versión:** 0.5
-**Estado:** DISEÑO PARCIAL — STK-M01…M04 CERRADOS; STK-M05…M10 PENDIENTES
+**Versión:** 0.6
+**Estado:** DISEÑO PARCIAL — STK-M01…M05 CERRADOS; STK-M06…M10 PENDIENTES
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 10/09/2026
 
@@ -154,9 +154,13 @@ La unidad estándar es días, salvo parametrización autorizada. Cero confirmado
 
 Los umbrales son parámetros versionados y autorizados; los 30/90 días del catálogo siguen pendientes. La composición del stock disponible y la ventana de promedio no se infieren. Autoridad completa: `01_Modelo/STK_M04_Coverage_Authority.md`.
 
-### STK-M05 — Proyección
+### STK-M05 — Proyección — CERRADO
 
-Debe definirse cómo se incorpora el plazo de entrega y la fecha prevista de recepción.
+`stock_projection` representa la evolución proyectada desde `as_of_date`: stock disponible actual más entradas previstas menos salidas previstas, en la unidad base normalizada y sobre horizonte explícito.
+
+Solo participan entradas cuya existencia, cantidad y fecha estén evidenciadas. `lead_time` puede fechar una reposición evidenciada, pero nunca convierte una compra no confirmada en entrada. Las salidas proceden de demanda, consumo, reservas u otras necesidades reconocidas por fuente autorizada.
+
+Los elementos sin datos o evidencia son `UNKNOWN / NOT_EVIDENCED`, nunca cero ni omisión silenciosa. La salida es evidencia proyectiva, no decisión de compra o reposición. `PYE-001…006` siguen pendientes. Autoridad completa: `01_Modelo/STK_M05_Projection_Authority.md`.
 
 ### STK-M06 — Pedidos pendientes y tránsito
 
@@ -182,7 +186,7 @@ Debe definirse el tratamiento de datos de stock/demanda temporalmente incompatib
 
 ## 9. Regla de no invención
 
-Hasta que `STK-M05…STK-M10` estén resueltos documentalmente:
+Hasta que `STK-M06…STK-M10` estén resueltos documentalmente:
 
 - no se implementan fórmulas cuantitativas de STK;
 - no se asignan consumidores definitivos a `P-STK-*` o `PYE-*` por inferencia nominal;
@@ -213,6 +217,6 @@ STK podrá pasar a contrato técnico cuando exista evidencia suficiente para det
 
 ## 11. Estado
 
-**STK Methodological Matrix v0.5**
-**Estado:** DISEÑO PARCIAL — STK-M01…M04 CERRADOS; STK-M05…M10 PENDIENTES
+**STK Methodological Matrix v0.6**
+**Estado:** DISEÑO PARCIAL — STK-M01…M05 CERRADOS; STK-M06…M10 PENDIENTES
 **No constituye contrato de implementación.**
