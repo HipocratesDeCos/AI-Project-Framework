@@ -33,9 +33,9 @@ def build_vertical_mvp_view_model(payload: Mapping[str, Any]) -> Mapping[str, An
         "capabilities": deepcopy(execution.get("capabilities", [])),
         "rules_available": rules is not None,
         "rule_coverage": None,
-        "support_result": None,
+        "crc_support_result": None,
         "assessments": None,
-        "trace_references": None,
+        "rule_trace_references": None,
     }
 
     if rules is None:
@@ -45,14 +45,14 @@ def build_vertical_mvp_view_model(payload: Mapping[str, Any]) -> Mapping[str, An
         "executed_rule_ids": deepcopy(rules.get("executed_rule_ids", [])),
         "omitted_rule_ids": deepcopy(rules.get("omitted_rule_ids", [])),
     }
-    view["support_result"] = {
+    view["crc_support_result"] = {
         "consolidated_result": rules.get("consolidated_result"),
         "dominant_reason": rules.get("dominant_reason"),
         "relevant_factors": deepcopy(rules.get("relevant_factors", [])),
         "conflicts": deepcopy(rules.get("conflicts", [])),
     }
     view["assessments"] = deepcopy(rules.get("assessments", []))
-    view["trace_references"] = deepcopy(rules.get("trace_references", []))
+    view["rule_trace_references"] = deepcopy(rules.get("trace_references", []))
     return view
 
 
