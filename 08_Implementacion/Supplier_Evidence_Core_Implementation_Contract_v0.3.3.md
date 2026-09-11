@@ -1,6 +1,6 @@
 # EIOS — SUPPLIER EVIDENCE CORE · IMPLEMENTATION CONTRACT v0.3.3
 
-**Estado:** CORRECCIÓN TÉCNICA CONSOLIDADA — PENDIENTE DE AUDIT 2 DE IMPLEMENTACIÓN  
+**Estado:** 🔒 CERRADO — AUDIT 2 + CI SUPERADOS  
 **Fecha:** 11/09/2026  
 **Base normativa:** `Supplier_Evidence_Core_Implementation_Contract_v0.3.2.md` 🔒  
 **Causa:** hallazgos objetivos `PROV-IMPL-A1-01` y `PROV-IMPL-A1-03`
@@ -141,8 +141,22 @@ Añadir como mínimo:
 
 ---
 
-## 6. Estado
+## 6. Evidencia de cierre
 
-**v0.3.3 corrige únicamente representabilidad física.**
+- Audit 1 de implementación: completada y depurada.
+- Audit 2 final estática: **SUPERADA — 0 bloqueos**.
+- Snapshot ejecutable certificado: `d45ed1ca9d557d8d4cebd121c13eed79d182992d`.
+- GitHub Actions `EIOS Tests` **#586: SUCCESS**.
+- Suite Python completa: **SUCCESS**.
+- Validación SQL transversal: **SUCCESS**.
+- No existen cambios ejecutables posteriores al snapshot certificado en el momento de cierre.
 
-No se considera cerrada hasta que la implementación depurada supere Audit 2 y CI.
+---
+
+## 7. Estado final
+
+**v0.3.3 queda 🔒 CERRADA.**
+
+La implementación física Supplier Evidence Core v0.1 es apta para cierre documental, CI del HEAD final y reconciliación pre-merge.
+
+Los gaps PROV-G02…G09 permanecen fuera de alcance y no se consideran resueltos por este cierre.
