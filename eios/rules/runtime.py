@@ -4,8 +4,9 @@ The runtime composes closed contracts without calculating business conditions:
 Assessment(s) -> reproducible Trace(s) -> C0 capability adapter -> CRC -> O1
 support package.
 
-Rule-specific modules remain responsible for producing valid Assessments and
-for supplying authorized RuleMetadata.
+Rule-specific modules remain responsible for producing valid Assessments. For
+implemented rules, ``bind_authorized_assessment`` resolves normative metadata
+from the technical catalog so callers do not duplicate R0/R1/R2/R3 literals.
 """
 from __future__ import annotations
 
@@ -37,6 +38,26 @@ class RuleAssessmentBinding:
     rule: Rule
     assessment: Assessment
     metadata: RuleMetadata
+
+
+def bind_authorized_assessment(
+    rule: Rule,
+    assessment: Assessment,
+) -> RuleAssessmentBinding:
+    """Bind an implemented rule/Assessment using catalogued normative metadata.
+
+    Unknown rules fail closed. The catalog does not evaluate the rule and does
+    not modify either object.
+    """
+    if assessment.rule_id != rule.rule_id:
+        raise ValueError("Assessment.rule_id debe coincidir con Rule.rule_id")
+    from .catalog import authorized_rule_metadata
+
+    return RuleAssessmentBinding(
+        rule=rule,
+        assessment=assessment,
+        metadata=authorized_rule_metadata(rule.rule_id, rule.version),
+    )
 
 
 class RuleSetVerticalResult(BaseModel):
@@ -183,6 +204,7 @@ __all__ = [
     "RuleAssessmentBinding",
     "RuleSetVerticalResult",
     "RuleVerticalResult",
+    "bind_authorized_assessment",
     "run_assessment_set_vertical",
     "run_assessment_vertical",
 ]
