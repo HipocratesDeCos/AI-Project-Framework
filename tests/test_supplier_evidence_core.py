@@ -47,12 +47,12 @@ def operation(**overrides):
     return PurchaseOperation(**data)
 
 
-def contradiction(issue_id="ISS-1"):
+def contradiction(issue_id="ISS-1", record_ref=None, evidence_refs=None):
     return SupplierDataIssueRef(
         issue_id=issue_id,
         issue_type="CONTRADICTION",
-        issue_record_ref=f"REC-{issue_id}",
-        evidence_refs=(f"E-{issue_id}-1", f"E-{issue_id}-2"),
+        issue_record_ref=record_ref or f"REC-{issue_id}",
+        evidence_refs=evidence_refs or (f"E-{issue_id}-1", f"E-{issue_id}-2"),
     )
 
 
@@ -188,6 +188,8 @@ def comparison(comparison_id="CMP-1", current="O-CUR", alt="O-ALT", **overrides)
     return StructuralComparisonRequest(**data)
 
 
+# Candidate evidence / state mapping
+
 def test_demonstrated_current_candidate_resolves_as_evidenced():
     result = evaluate_supplier_evidence(payload(candidates=(candidate(),)))
     assert result.candidate_resolutions[0].state == "EVIDENCED_CANDIDATE"
@@ -273,6 +275,28 @@ def test_same_supplier_can_have_two_distinct_candidate_proposals():
     result = evaluate_supplier_evidence(item)
     assert [x.candidate_id for x in result.candidate_resolutions] == ["C-1", "C-2"]
 
+
+# Audit 1 traceability correction
+
+def test_result_preserves_full_candidate_evidence_and_validity():
+    item = candidate(trace_refs=("TRACE-C1",))
+    result = evaluate_supplier_evidence(payload(candidates=(item,)))
+    restored = result.candidates[0]
+    assert restored == item
+    assert restored.source_ref == "SRC-C-1"
+    assert restored.applicability_ref == "APP-C-1"
+    assert restored.valid_from == date(2026, 9, 1)
+    assert restored.valid_to == date(2026, 9, 30)
+
+
+def test_candidate_output_order_stays_aligned_with_resolutions():
+    items = (candidate("C-2", "SUP-2"), candidate("C-1", "SUP-1"))
+    result = evaluate_supplier_evidence(payload(candidates=items))
+    assert [x.candidate_id for x in result.candidates] == ["C-2", "C-1"]
+    assert [x.candidate_id for x in result.candidate_resolutions] == ["C-2", "C-1"]
+
+
+# Observation typing and ownership
 
 def test_known_observation_keeps_exact_typed_value():
     item = decimal_current()
@@ -370,6 +394,8 @@ def test_text_availability_is_preserved_without_quantity_inference():
     assert restored.value_integer is None
 
 
+# Historical facts and signals
+
 @pytest.mark.parametrize(
     "event_date,captured_at",
     [(date(2026, 9, 12), date(2026, 9, 10)), (date(2026, 9, 10), date(2026, 9, 12))],
@@ -440,6 +466,8 @@ def test_unrelated_supplier_records_are_rejected(kind):
         payload(**values)
 
 
+# External metrics
+
 def test_known_authorized_external_metric_is_preserved():
     result = evaluate_supplier_evidence(payload(candidates=(candidate(),), external_metrics=(metric(),)))
     assert result.external_metrics[0].value == Decimal("0.97")
@@ -475,6 +503,14 @@ def test_context_only_metric_is_never_auto_elevated():
     result = evaluate_supplier_evidence(payload(candidates=(candidate(),), external_metrics=(item,)))
     assert result.external_metrics[0].usage_state == "CONTEXT_ONLY_METRIC"
 
+
+def test_metric_period_end_after_evaluation_date_is_rejected():
+    item = metric(period_end=date(2026, 9, 12))
+    with pytest.raises(ValidationError):
+        payload(candidates=(candidate(),), external_metrics=(item,))
+
+
+# Structural comparison
 
 def test_explicit_request_produces_one_structural_comparison():
     result = evaluate_supplier_evidence(payload(
@@ -532,6 +568,44 @@ def test_conflicting_observation_makes_comparison_not_structurally_comparable():
     assert any(x.item_type == "COMPARISON" for x in result.conflicting_items)
 
 
+def test_same_issue_id_with_different_issue_content_is_not_deduplicated():
+    issue_current = contradiction(
+        issue_id="I-SAME", record_ref="REC-CUR", evidence_refs=("E-CUR-1", "E-CUR-2")
+    )
+    issue_alt = contradiction(
+        issue_id="I-SAME", record_ref="REC-ALT", evidence_refs=("E-ALT-1", "E-ALT-2")
+    )
+    cur = current_obs(
+        state="CONFLICTING_DATA", value_text=None, source_ref=None,
+        evidence_id=None, captured_at=None, issue_refs=(issue_current,),
+    )
+    alt = candidate_obs(
+        state="CONFLICTING_DATA", value_text=None, source_ref=None,
+        evidence_id=None, captured_at=None, issue_refs=(issue_alt,),
+    )
+    result = evaluate_supplier_evidence(payload(
+        candidates=(candidate(),), observations=(cur, alt), comparison_requests=(comparison(),),
+    ))
+    cmp = result.structural_comparisons[0]
+    assert [x.issue_record_ref for x in cmp.issue_refs] == ["REC-CUR", "REC-ALT"]
+
+
+def test_exact_duplicate_issue_is_deduplicated_stably():
+    issue = contradiction(issue_id="I-DUP")
+    cur = current_obs(
+        state="CONFLICTING_DATA", value_text=None, source_ref=None,
+        evidence_id=None, captured_at=None, issue_refs=(issue,),
+    )
+    alt = candidate_obs(
+        state="CONFLICTING_DATA", value_text=None, source_ref=None,
+        evidence_id=None, captured_at=None, issue_refs=(issue,),
+    )
+    result = evaluate_supplier_evidence(payload(
+        candidates=(candidate(),), observations=(cur, alt), comparison_requests=(comparison(),),
+    ))
+    assert len(result.structural_comparisons[0].issue_refs) == 1
+
+
 def test_observation_outside_current_validity_is_not_structurally_comparable():
     alt = candidate_obs(valid_to=date(2026, 9, 10))
     result = evaluate_supplier_evidence(payload(
@@ -542,7 +616,7 @@ def test_observation_outside_current_validity_is_not_structurally_comparable():
     assert "OBSERVATION_OUTSIDE_VALIDITY" in result.structural_comparisons[0].limitations
 
 
-def test_dimension_mismatch_precedes_price_authority_requirement():
+def test_dimension_mismatch_precedes_price_authority_and_preserves_both_dimensions():
     current = decimal_current(
         observation_id="PRICE-CUR", dimension="PRICE_REFERENCE", unit="EUR",
         semantic_ref="SEM-PRICE", value_decimal=Decimal("100"),
@@ -557,6 +631,8 @@ def test_dimension_mismatch_precedes_price_authority_requirement():
     ))
     cmp = result.structural_comparisons[0]
     assert cmp.state == "NOT_STRUCTURALLY_COMPARABLE"
+    assert cmp.current_dimension == "PRICE_REFERENCE"
+    assert cmp.candidate_dimension == "LEAD_TIME"
     assert "DIMENSION_INCOMPATIBLE" in cmp.limitations
     assert "PRICE_COMPARABILITY_AUTHORITY_REQUIRED" not in cmp.limitations
 
@@ -597,6 +673,7 @@ def test_two_price_observations_with_authority_ref_are_structurally_comparable_o
     ))
     cmp = result.structural_comparisons[0]
     assert cmp.state == "STRUCTURALLY_COMPARABLE"
+    assert cmp.current_dimension == cmp.candidate_dimension == "PRICE_REFERENCE"
     assert cmp.comparison_authority_ref == "PRICE-RESULT-1"
     assert cmp.difference_decimal == Decimal("-5")
 
@@ -628,9 +705,12 @@ def test_compatible_decimal_comparison_returns_exact_descriptive_difference():
     ))
     cmp = result.structural_comparisons[0]
     assert cmp.state == "STRUCTURALLY_COMPARABLE"
+    assert cmp.current_dimension == cmp.candidate_dimension == "PAYMENT_TERM"
     assert cmp.difference_decimal == Decimal("30")
     assert "better" not in cmp.model_dump() and "worse" not in cmp.model_dump()
 
+
+# Envelope identity, refs, aggregates and authority boundary
 
 def test_context_and_purchase_decision_identity_must_match():
     with pytest.raises(ValidationError):
@@ -697,6 +777,7 @@ def test_unresolved_aggregation_preserves_first_appearance_by_domain_then_input_
 
 def test_empty_collections_do_not_claim_business_nonexistence():
     result = evaluate_supplier_evidence(payload())
+    assert result.candidates == ()
     assert result.candidate_resolutions == ()
     assert result.unresolved_items == ()
     assert result.conflicting_items == ()
