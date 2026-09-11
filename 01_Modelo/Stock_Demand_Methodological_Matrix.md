@@ -1,7 +1,7 @@
 # EIOS — STOCK & DEMAND METHODOLOGICAL MATRIX
 
-**Versión:** 0.6
-**Estado:** DISEÑO PARCIAL — STK-M01…M05 CERRADOS; STK-M06…M10 PENDIENTES
+**Versión:** 0.7
+**Estado:** DISEÑO PARCIAL — STK-M01…M06 CERRADOS; STK-M07…M10 PENDIENTES
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 10/09/2026
 
@@ -162,9 +162,13 @@ Solo participan entradas cuya existencia, cantidad y fecha estén evidenciadas. 
 
 Los elementos sin datos o evidencia son `UNKNOWN / NOT_EVIDENCED`, nunca cero ni omisión silenciosa. La salida es evidencia proyectiva, no decisión de compra o reposición. `PYE-001…006` siguen pendientes. Autoridad completa: `01_Modelo/STK_M05_Projection_Authority.md`.
 
-### STK-M06 — Pedidos pendientes y tránsito
+### STK-M06 — Pedidos pendientes y tránsito — CERRADO
 
-Debe determinarse si se incorporan como aumentos de disponibilidad futura y en qué fecha, evitando doble contabilización.
+STK-M06 representa cantidades compradas formalmente reconocidas aún no incorporadas al stock disponible. Distingue pedido pendiente y tránsito como estados mutuamente excluyentes, en unidad base y con evidencia de existencia, cantidad y estado.
+
+Cada entrada conserva origen documental, proveedor, estado, fecha prevista y evidencia. Solo puede incorporarse una vez como entrada futura en la fecha evidenciada; una recepción confirmada retira la cantidad correspondiente y conserva toda la transición.
+
+Ausencia produce `UNKNOWN / NOT_EVIDENCED`, nunca cero o recepción confirmada. La evidencia logística no autoriza compra ni reposición y no valida la inclusión incondicional de `PYE-002/003`. Autoridad completa: `01_Modelo/STK_M06_Logistics_Authority.md`.
 
 ### STK-M07 — Exceso
 
@@ -186,7 +190,7 @@ Debe definirse el tratamiento de datos de stock/demanda temporalmente incompatib
 
 ## 9. Regla de no invención
 
-Hasta que `STK-M06…STK-M10` estén resueltos documentalmente:
+Hasta que `STK-M07…STK-M10` estén resueltos documentalmente:
 
 - no se implementan fórmulas cuantitativas de STK;
 - no se asignan consumidores definitivos a `P-STK-*` o `PYE-*` por inferencia nominal;
@@ -217,6 +221,6 @@ STK podrá pasar a contrato técnico cuando exista evidencia suficiente para det
 
 ## 11. Estado
 
-**STK Methodological Matrix v0.6**
-**Estado:** DISEÑO PARCIAL — STK-M01…M05 CERRADOS; STK-M06…M10 PENDIENTES
+**STK Methodological Matrix v0.7**
+**Estado:** DISEÑO PARCIAL — STK-M01…M06 CERRADOS; STK-M07…M10 PENDIENTES
 **No constituye contrato de implementación.**
