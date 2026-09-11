@@ -1,43 +1,19 @@
-"""Executable vertical slice for the authorized R-ENT-001 rule.
-
-This module composes already-closed EIOS contracts:
-ENT factual analysis -> individual Assessment -> reproducible Trace -> C0
-capability envelope -> isolated CRC contribution -> O1 support package.
-
-It does not create a general rule registry, execute other rules, replace CRC,
-or make a business decision.
-"""
+"""Executable vertical slice for the authorized R-ENT-001 rule."""
 from __future__ import annotations
-
-from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
-from eios.core.c0_reproducibility import build_trace
-from eios.core.capability_adapters import adapt_c0
-from eios.core.crc_mvp import CRCInput, CRCResult, RuleMetadata, resolve_crc
+from eios.core.crc_mvp import CRCResult, RuleMetadata
 from eios.core.models import Assessment, DecisionContext, Evidence, PurchaseOperation, Rule, Trace
-from eios.core.orchestration import CapabilityExecution, DecisionSupportPackage, build_support_package
+from eios.core.orchestration import CapabilityExecution, DecisionSupportPackage
 from eios.delivery import DeliveryStockoutAnalysisInput, DeliveryStockoutAnalysisResult, analyze_delivery_stockout
 
 from .delivery import R_ENT_001, evaluate_r_ent_001
-
-
-ConsolidatedBaseResult = Literal[
-    "COMPRAR",
-    "NEGOCIAR",
-    "COMPRAR CONDICIONADO",
-    "NO COMPRAR",
-    "INFORMACIÓN INSUFICIENTE",
-]
+from .runtime import ConsolidatedBaseResult, run_assessment_vertical
 
 
 class REnt001VerticalResult(BaseModel):
-    """Traceable output of the isolated R-ENT-001 vertical execution.
-
-    ``crc_result`` is the contribution of this isolated rule to CRC under the
-    caller-supplied base result.  It is not a final human purchasing decision.
-    """
+    """Traceable output of the isolated R-ENT-001 vertical execution."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -54,7 +30,6 @@ def _validate_rule_metadata(rule: Rule, metadata: RuleMetadata) -> None:
         raise ValueError("RuleMetadata debe corresponder exactamente a R-ENT-001")
     if metadata.version != rule.version:
         raise ValueError("RuleMetadata.version debe coincidir con Rule.version")
-    # Authority fixed by Matriz_Reglas_MVP for R-ENT-001.
     if metadata.effect != "R2" or metadata.severity != "ALTA":
         raise ValueError("R-ENT-001 requiere metadatos normativos R2 / ALTA")
 
@@ -70,15 +45,9 @@ def run_r_ent_001_vertical(
     base_result: ConsolidatedBaseResult,
     rule_metadata: RuleMetadata,
 ) -> REnt001VerticalResult:
-    """Execute the closed vertical slice for R-ENT-001.
-
-    The function intentionally accepts explicit rule metadata and an explicit
-    CRC base result.  It does not invent a global rule registry or a preceding
-    business result.
-    """
+    """Execute ENT analysis and delegate the generic vertical rule pipeline."""
 
     _validate_rule_metadata(rule, rule_metadata)
-
     analysis = analyze_delivery_stockout(analysis_input)
     assessment = evaluate_r_ent_001(
         purchase,
@@ -89,35 +58,21 @@ def run_r_ent_001_vertical(
         baseline_evidence,
         delivery_evidence,
     )
-    trace = build_trace(
-        context,
-        purchase,
-        rule,
-        tuple(assessment.evidence_ids),
-        assessment,
+    vertical = run_assessment_vertical(
+        purchase=purchase,
+        context=context,
+        rule=rule,
+        assessment=assessment,
+        base_result=base_result,
+        rule_metadata=rule_metadata,
     )
-    capability = adapt_c0((assessment,), (trace,))
-    crc_result = resolve_crc(
-        CRCInput(
-            assessments=[assessment],
-            decision_context=context,
-            base_result=base_result,
-        ),
-        {R_ENT_001: rule_metadata},
-    )
-    support_package = build_support_package(
-        purchase,
-        context,
-        capability_results=(capability,),
-    )
-
     return REnt001VerticalResult(
         analysis=analysis,
-        assessment=assessment,
-        trace=trace,
-        c0_capability=capability,
-        crc_result=crc_result,
-        support_package=support_package,
+        assessment=vertical.assessment,
+        trace=vertical.trace,
+        c0_capability=vertical.c0_capability,
+        crc_result=vertical.crc_result,
+        support_package=vertical.support_package,
     )
 
 
