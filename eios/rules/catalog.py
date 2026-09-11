@@ -1,14 +1,14 @@
 """Technical catalog of normative metadata for implemented EIOS rules.
 
-This module does not define new business authority.  It materializes only the
-rule effects/severities that are already approved in Matriz_Reglas_MVP for
-rules with executable bridges in ``eios.rules``.
+This module does not define new business authority. It materializes only the
+rule properties already approved for rules with executable bridges.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 from eios.core.crc_mvp import Effect, RuleMetadata, Severity
+from eios.core.models import Rule
 
 
 @dataclass(frozen=True)
@@ -16,6 +16,7 @@ class ImplementedRuleMetadata:
     rule_id: str
     effect: Effect
     severity: Severity
+    requires_evidence: bool = True
 
 
 _IMPLEMENTED_RULES: dict[str, ImplementedRuleMetadata] = {
@@ -30,22 +31,37 @@ _IMPLEMENTED_RULES: dict[str, ImplementedRuleMetadata] = {
 
 
 def implemented_rule_ids() -> tuple[str, ...]:
-    """Return the deterministic set of rules currently backed by executable bridges."""
+    """Return the deterministic set of rules backed by executable bridges."""
     return tuple(sorted(_IMPLEMENTED_RULES))
 
 
-def authorized_rule_metadata(rule_id: str, rules_version: str) -> RuleMetadata:
-    """Resolve approved metadata for one implemented rule and rules version.
-
-    The caller supplies ``rules_version`` from DecisionContext.  The catalog
-    supplies only the invariant effect/severity already authorized for the
-    implemented rule. Unknown rules fail closed.
-    """
-    if not rules_version or not rules_version.strip():
-        raise ValueError("rules_version no puede estar vacía")
+def _implemented(rule_id: str) -> ImplementedRuleMetadata:
     item = _IMPLEMENTED_RULES.get(rule_id)
     if item is None:
         raise ValueError(f"rule_id no materializada en catálogo: {rule_id}")
+    return item
+
+
+def _validate_version(rules_version: str) -> None:
+    if not rules_version or not rules_version.strip():
+        raise ValueError("rules_version no puede estar vacía")
+
+
+def authorized_rule(rule_id: str, rules_version: str) -> Rule:
+    """Build the canonical C0 Rule object for one implemented rule."""
+    _validate_version(rules_version)
+    item = _implemented(rule_id)
+    return Rule(
+        rule_id=item.rule_id,
+        version=rules_version,
+        requires_evidence=item.requires_evidence,
+    )
+
+
+def authorized_rule_metadata(rule_id: str, rules_version: str) -> RuleMetadata:
+    """Resolve approved metadata for one implemented rule and rules version."""
+    _validate_version(rules_version)
+    item = _implemented(rule_id)
     return RuleMetadata(
         rule_id=item.rule_id,
         version=rules_version,
@@ -56,6 +72,7 @@ def authorized_rule_metadata(rule_id: str, rules_version: str) -> RuleMetadata:
 
 __all__ = [
     "ImplementedRuleMetadata",
+    "authorized_rule",
     "authorized_rule_metadata",
     "implemented_rule_ids",
 ]
