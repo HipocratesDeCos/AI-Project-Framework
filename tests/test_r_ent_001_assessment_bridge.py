@@ -459,6 +459,45 @@ def test_horizon_copy_mismatch_is_rejected() -> None:
         _evaluate(analysis_input, inconsistent)
 
 
+def test_internal_baseline_article_mismatch_is_rejected() -> None:
+    analysis_input, _ = _analysis_pair()
+    bad_baseline = analysis_input.baseline.model_copy(update={"article_id": "OTHER-ARTICLE"})
+    bad_input = analysis_input.model_copy(update={"baseline": bad_baseline})
+    analysis = analyze_delivery_stockout(bad_input)
+    with pytest.raises(ValueError, match="Baseline pertenece a otro artículo"):
+        _evaluate(bad_input, analysis)
+
+
+def test_internal_delivery_purchase_ref_mismatch_is_rejected() -> None:
+    analysis_input, _ = _analysis_pair()
+    bad_delivery = analysis_input.delivery.model_copy(update={"evaluated_purchase_ref": "purchase:other"})
+    bad_input = analysis_input.model_copy(update={"delivery": bad_delivery})
+    analysis = analyze_delivery_stockout(bad_input)
+    with pytest.raises(ValueError, match="Delivery evidence usa otro evaluated_purchase_ref"):
+        _evaluate(bad_input, analysis)
+
+
+def test_fabricated_late_result_with_not_evidenced_delivery_is_rejected() -> None:
+    analysis_input, actual = _analysis_pair(delivery=_delivery(state="NOT_EVIDENCED"))
+    fabricated = actual.model_copy(update={"state": "LATE_DELIVERY_DEMONSTRATED"})
+    with pytest.raises(ValueError, match="requiere delivery KNOWN"):
+        _evaluate(analysis_input, fabricated)
+
+
+def test_fabricated_not_late_result_with_indeterminate_baseline_is_rejected() -> None:
+    analysis_input, actual = _analysis_pair(baseline=_baseline(state="NOT_DETERMINABLE"))
+    fabricated = actual.model_copy(update={"state": "NOT_LATE_DEMONSTRATED"})
+    with pytest.raises(ValueError, match="requiere baseline KNOWN"):
+        _evaluate(analysis_input, fabricated)
+
+
+def test_fabricated_within_horizon_result_requires_not_applicable_depletion() -> None:
+    analysis_input, actual = _analysis_pair()
+    fabricated = actual.model_copy(update={"state": "NOT_LATE_WITHIN_EVIDENCED_HORIZON"})
+    with pytest.raises(ValueError, match="requires depletion NOT_APPLICABLE|requiere depletion NOT_APPLICABLE"):
+        _evaluate(analysis_input, fabricated)
+
+
 def test_assessment_contract_does_not_gain_decisional_fields() -> None:
     analysis_input, analysis = _analysis_pair()
     assessment = _evaluate(analysis_input, analysis)
