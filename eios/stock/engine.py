@@ -19,7 +19,6 @@ from .models import (
     CoverageResult,
     DataIssueRef,
     DemandAllocation,
-    DemandProjectionSchedule,
     DemandRateResult,
     ExcessResult,
     ExcessToleranceBasis,
@@ -42,11 +41,7 @@ from .models import (
 )
 
 
-_UNCERTAINTY_ORDER = {
-    "UNKNOWN": 1,
-    "NOT_EVIDENCED": 2,
-    "CONFLICTING_DATA": 3,
-}
+_UNCERTAINTY_ORDER = {"UNKNOWN": 1, "NOT_EVIDENCED": 2, "CONFLICTING_DATA": 3}
 
 
 def _decimal(value: Decimal | int | bool | None, field: str) -> Decimal:
@@ -78,14 +73,26 @@ def _merge_issues(*groups: Iterable[DataIssueRef]) -> tuple[DataIssueRef, ...]:
 
 
 def _uncertainty_state(states: Iterable[str]) -> str:
-    uncertain = [s for s in states if s in _UNCERTAINTY_ORDER]
+    """Return the most specific M09/M10 uncertainty, ignoring KNOWN/NA.
+
+    NOT_APPLICABLE is intentionally handled by each operation because some
+    result contracts expose it while others do not.
+    """
+    uncertain = [state for state in states if state in _UNCERTAINTY_ORDER]
     if not uncertain:
         return "KNOWN"
-    return max(uncertain, key=lambda s: _UNCERTAINTY_ORDER[s])
+    return max(uncertain, key=lambda state: _UNCERTAINTY_ORDER[state])
 
 
-def _identity_equal(left: StockResultIdentity, right: StockResultIdentity) -> bool:
-    return left == right
+def _required_stock_state(states: Iterable[str]) -> str:
+    """State for a required StockDataState dependency set."""
+    material = tuple(states)
+    uncertain = _uncertainty_state(material)
+    if uncertain != "KNOWN":
+        return uncertain
+    if "NOT_APPLICABLE" in material:
+        return "NOT_APPLICABLE"
+    return "KNOWN"
 
 
 def build_identity(context: StockComputationContext) -> StockResultIdentity:
@@ -152,66 +159,62 @@ def calculate_stock_availability(payload: StockAvailabilityInput) -> StockAvaila
     _assert_quantity_context(on_hand, context)
     _assert_quantity_context(committed, context)
 
+    if on_hand.state == "NOT_APPLICABLE" or committed.state == "NOT_APPLICABLE":
+        raise ValueError("Stock físico/comprometido no admite NOT_APPLICABLE para disponibilidad")
     if on_hand.effective_date not in {None, context.evaluation_date} and on_hand.state != "KNOWN":
         raise ValueError("Stock on hand refiere a otra fecha")
     if committed.effective_date not in {None, context.evaluation_date} and committed.state != "KNOWN":
         raise ValueError("Stock committed refiere a otra fecha")
 
-    component_items = payload.committed_components.items
-    issue_refs = _merge_issues(on_hand.issue_refs, committed.issue_refs, payload.committed_components.issue_refs)
-    trace_refs = _merge_traces(on_hand.trace_refs, committed.trace_refs, payload.committed_components.trace_refs)
-
-    states = [on_hand.state, committed.state, payload.committed_components.state]
-    result_state = _uncertainty_state(states)
-    if any(s == "NOT_APPLICABLE" for s in (on_hand.state, committed.state)):
-        raise ValueError("Stock físico/comprometido no admite NOT_APPLICABLE para disponibilidad")
-
-    if result_state != "KNOWN":
+    components = payload.committed_components.items
+    issues = _merge_issues(on_hand.issue_refs, committed.issue_refs, payload.committed_components.issue_refs)
+    traces = _merge_traces(on_hand.trace_refs, committed.trace_refs, payload.committed_components.trace_refs)
+    state = _uncertainty_state((on_hand.state, committed.state, payload.committed_components.state))
+    if state != "KNOWN":
         return StockAvailabilityResult(
             identity=identity,
             unit=context.base_unit,
-            state=result_state,  # type: ignore[arg-type]
-            committed_components=tuple(component_items),
-            issue_refs=issue_refs,
-            trace_refs=trace_refs,
+            state=state,  # type: ignore[arg-type]
+            committed_components=tuple(components),
+            issue_refs=issues,
+            trace_refs=traces,
         )
 
     if on_hand.effective_date != context.evaluation_date or committed.effective_date != context.evaluation_date:
         raise ValueError("Stock KNOWN debe pertenecer exactamente a evaluation_date")
     assert on_hand.value is not None and committed.value is not None
 
-    seen_commitments: set[str] = set()
-    seen_segments: set[str] = set()
-    total_components = Decimal("0")
-    for component in component_items:
+    commitments: set[str] = set()
+    segments: set[str] = set()
+    total = Decimal("0")
+    for component in components:
         if component.scope != context.scope or component.article_id != context.article_id:
             raise ValueError("Componente committed incompatible con scope/article")
         if component.unit != context.base_unit or component.effective_date != context.evaluation_date:
             raise ValueError("Componente committed incompatible con unidad/fecha")
-        if component.commitment_id in seen_commitments:
+        if component.commitment_id in commitments:
             raise ValueError("commitment_id duplicado")
-        seen_commitments.add(component.commitment_id)
+        commitments.add(component.commitment_id)
         if component.demand_segment_id:
-            if component.demand_segment_id in seen_segments:
+            if component.demand_segment_id in segments:
                 raise ValueError("demand_segment_id duplicado")
-            seen_segments.add(component.demand_segment_id)
-        total_components += component.quantity
-    if total_components != committed.value:
+            segments.add(component.demand_segment_id)
+        total += component.quantity
+    if total != committed.value:
         raise ValueError("La composición committed debe sumar exactamente stock_committed")
 
     available = max(Decimal("0"), on_hand.value - committed.value)
     deficit = max(Decimal("0"), committed.value - on_hand.value)
-    incorporated = _aggregate_confirmed_components(component_items)
     return StockAvailabilityResult(
         identity=identity,
         stock_available=available,
         availability_deficit=deficit,
         unit=context.base_unit,
         state="KNOWN",
-        committed_components=tuple(component_items),
-        incorporated_confirmed_demand=incorporated,
-        issue_refs=issue_refs,
-        trace_refs=trace_refs,
+        committed_components=tuple(components),
+        incorporated_confirmed_demand=_aggregate_confirmed_components(components),
+        issue_refs=issues,
+        trace_refs=traces,
     )
 
 
@@ -226,38 +229,47 @@ def _assert_parameter_context(parameter: ConfiguredParameterValue, context: Stoc
 
 def build_projection_horizon(context: StockComputationContext, parameter: ConfiguredParameterValue) -> ProjectionHorizon:
     _assert_parameter_context(parameter, context)
-    issues = parameter.issue_refs
-    traces = parameter.trace_refs
+    if parameter.state == "NOT_APPLICABLE":
+        return ProjectionHorizon(
+            parameter=parameter,
+            state="NOT_APPLICABLE",
+            issue_refs=parameter.issue_refs,
+            trace_refs=parameter.trace_refs,
+        )
     if parameter.state != "KNOWN":
         state = _uncertainty_state((parameter.state,))
         if state == "KNOWN":
             state = "UNKNOWN"
-        return ProjectionHorizon(parameter=parameter, state=state, issue_refs=issues, trace_refs=traces)  # type: ignore[arg-type]
+        return ProjectionHorizon(
+            parameter=parameter,
+            state=state,  # type: ignore[arg-type]
+            issue_refs=parameter.issue_refs,
+            trace_refs=parameter.trace_refs,
+        )
     if parameter.parameter_id != "PYE-001":
         raise ValueError("ProjectionHorizon requiere PYE-001")
     if isinstance(parameter.value, bool) or not isinstance(parameter.value, int) or parameter.value <= 0:
         raise ValueError("PYE-001 requiere entero positivo no booleano")
     if parameter.unit not in {"days", "day", "días", "dias", "día", "dia"} and not parameter.normalization_ref:
         raise ValueError("PYE-001 debe estar normalizado a días")
-    end = context.evaluation_date + timedelta(days=parameter.value)
     return ProjectionHorizon(
         parameter=parameter,
         horizon_days=parameter.value,
-        horizon_end=end,
+        horizon_end=context.evaluation_date + timedelta(days=parameter.value),
         state="KNOWN",
-        issue_refs=issues,
-        trace_refs=traces,
+        issue_refs=parameter.issue_refs,
+        trace_refs=parameter.trace_refs,
     )
 
 
-def _demand_unknown_result(
+def _demand_nondetermined_result(
     context: StockComputationContext,
     states: Iterable[str],
     issues: Iterable[DataIssueRef],
     traces: Iterable[str],
     source_ref: str | None = None,
 ) -> DemandRateResult:
-    state = _uncertainty_state(states)
+    state = _required_stock_state(states)
     if state == "KNOWN":
         state = "UNKNOWN"
     return DemandRateResult(
@@ -279,19 +291,17 @@ def calculate_historical_demand(
     identity = build_identity(context)
     selection = context.demand_selection
     if selection.state != "KNOWN":
-        return _demand_unknown_result(
-            context,
-            (selection.state,),
-            selection.issue_refs,
-            selection.trace_refs,
-            selection.source_ref,
+        return _demand_nondetermined_result(
+            context, (selection.state,), selection.issue_refs, selection.trace_refs, selection.source_ref
         )
     if selection.method != "HISTORICAL_CONSUMPTION" or context.forecast_version is not None:
         raise ValueError("Contexto no autorizado para demanda histórica")
-
     _assert_parameter_context(policy.parameter, context)
-    issue_refs = _merge_issues(selection.issue_refs, policy.issue_refs, policy.parameter.issue_refs, periods.issue_refs)
-    trace_refs = _merge_traces(selection.trace_refs, policy.trace_refs, policy.parameter.trace_refs, periods.trace_refs)
+    if policy.state == "NOT_APPLICABLE" or policy.parameter.state == "NOT_APPLICABLE":
+        raise ValueError("Una selección histórica KNOWN no puede consumir política/parámetro NOT_APPLICABLE")
+
+    issues = _merge_issues(selection.issue_refs, policy.issue_refs, policy.parameter.issue_refs, periods.issue_refs)
+    traces = _merge_traces(selection.trace_refs, policy.trace_refs, policy.parameter.trace_refs, periods.trace_refs)
     preliminary = _uncertainty_state((policy.state, policy.parameter.state, periods.state))
     if preliminary != "KNOWN":
         return DemandRateResult(
@@ -299,8 +309,8 @@ def calculate_historical_demand(
             selection=selection,
             unit=context.base_unit,
             state=preliminary,  # type: ignore[arg-type]
-            issue_refs=issue_refs,
-            trace_refs=trace_refs,
+            issue_refs=issues,
+            trace_refs=traces,
         )
 
     parameter = policy.parameter
@@ -315,7 +325,7 @@ def calculate_historical_demand(
     if policy.extended_applicable_to and policy.extended_applicable_to < context.evaluation_date:
         raise ValueError("extended_applicable_to no puede preceder evaluation_date")
 
-    expected = {p.period_id: p for p in policy.required_periods}
+    expected = {spec.period_id: spec for spec in policy.required_periods}
     if len(periods.items) != len(expected):
         raise ValueError("La ventana histórica debe coincidir exactamente con periodos requeridos")
     total_quantity = Decimal("0")
@@ -331,6 +341,8 @@ def calculate_historical_demand(
             raise ValueError("Periodo histórico incompatible con contexto")
         if period.methodology_version != context.methodology_version:
             raise ValueError("methodology_version histórica incompatible")
+        if period.state == "NOT_APPLICABLE":
+            raise ValueError("Un periodo requerido no puede ser NOT_APPLICABLE sin invalidar la política seleccionada")
         child_states.append(period.state)
         child_issues.extend(period.issue_refs)
         child_traces.extend(period.trace_refs)
@@ -345,19 +357,18 @@ def calculate_historical_demand(
             selection=selection,
             unit=context.base_unit,
             state=state,  # type: ignore[arg-type]
-            issue_refs=_merge_issues(issue_refs, child_issues),
-            trace_refs=_merge_traces(trace_refs, child_traces),
+            issue_refs=_merge_issues(issues, child_issues),
+            trace_refs=_merge_traces(traces, child_traces),
         )
     if total_days <= 0:
         raise ValueError("La ventana histórica debe contener días evidenciados")
 
-    rate = total_quantity / Decimal(total_days)
     applicable_to = policy.extended_applicable_to or context.evaluation_date
     return DemandRateResult(
         identity=identity,
         selection=selection,
         method="HISTORICAL_CONSUMPTION",
-        daily_demand=rate,
+        daily_demand=total_quantity / Decimal(total_days),
         unit=context.base_unit,
         state="KNOWN",
         reference_date=context.evaluation_date,
@@ -367,8 +378,8 @@ def calculate_historical_demand(
         window_or_horizon=f"STK-006:{parameter.value}",
         source_ref=policy.source_ref,
         forecast_version=None,
-        issue_refs=_merge_issues(issue_refs, child_issues),
-        trace_refs=_merge_traces(trace_refs, child_traces),
+        issue_refs=_merge_issues(issues, child_issues),
+        trace_refs=_merge_traces(traces, child_traces),
     )
 
 
@@ -378,23 +389,15 @@ def use_authorized_forecast(context: StockComputationContext, forecast: Authoriz
     issues = _merge_issues(selection.issue_refs, forecast.issue_refs)
     traces = _merge_traces(selection.trace_refs, forecast.trace_refs)
     if selection.state != "KNOWN":
-        return _demand_unknown_result(context, (selection.state,), issues, traces, forecast.source_ref)
+        return _demand_nondetermined_result(context, (selection.state,), issues, traces, forecast.source_ref)
     if selection.method != "AUTHORIZED_FORECAST" or not context.forecast_version:
         raise ValueError("Contexto no autorizado para forecast")
     if forecast.scope != context.scope or forecast.article_id != context.article_id or forecast.unit != context.base_unit:
         raise ValueError("Forecast incompatible con contexto")
+    if forecast.state == "NOT_APPLICABLE":
+        raise ValueError("Una selección forecast KNOWN no puede consumir forecast NOT_APPLICABLE")
     if forecast.state != "KNOWN":
-        state = _uncertainty_state((forecast.state,))
-        if state == "KNOWN":
-            state = "UNKNOWN"
-        return DemandRateResult(
-            identity=identity,
-            selection=selection,
-            unit=context.base_unit,
-            state=state,  # type: ignore[arg-type]
-            issue_refs=issues,
-            trace_refs=traces,
-        )
+        return _demand_nondetermined_result(context, (forecast.state,), issues, traces, forecast.source_ref)
     if forecast.forecast_version != context.forecast_version:
         raise ValueError("forecast_version incompatible")
     assert forecast.daily_demand is not None and forecast.reference_date is not None
@@ -421,12 +424,13 @@ def use_authorized_forecast(context: StockComputationContext, forecast: Authoriz
 
 
 def calculate_coverage(availability: StockAvailabilityResult, demand: DemandRateResult) -> CoverageResult:
-    if not _identity_equal(availability.identity, demand.identity):
+    if availability.identity != demand.identity:
         raise ValueError("Availability y demand pertenecen a identidades distintas")
+    if demand.state == "NOT_APPLICABLE":
+        raise ValueError("Coverage requiere una demanda aplicable al método seleccionado")
     issues = _merge_issues(availability.issue_refs, demand.issue_refs)
     traces = _merge_traces(availability.trace_refs, demand.trace_refs)
-    states = (availability.state, demand.state)
-    state = _uncertainty_state(states)
+    state = _uncertainty_state((availability.state, demand.state))
     if state != "KNOWN":
         return CoverageResult(
             identity=availability.identity,
@@ -435,13 +439,10 @@ def calculate_coverage(availability: StockAvailabilityResult, demand: DemandRate
             issue_refs=issues,
             trace_refs=traces,
         )
-    if availability.state == "NOT_APPLICABLE" or demand.state == "NOT_APPLICABLE":
-        raise ValueError("NOT_APPLICABLE no es estado de salida de CoverageResult")
     assert availability.stock_available is not None and demand.daily_demand is not None
-    if demand.reference_date is None or demand.applicable_from is None or demand.applicable_to is None:
-        raise ValueError("Demanda KNOWN sin aplicabilidad")
-    reference_date = availability.identity.evaluation_date
-    if not (demand.applicable_from <= reference_date <= demand.applicable_to):
+    assert demand.applicable_from is not None and demand.applicable_to is not None
+    reference = availability.identity.evaluation_date
+    if not (demand.applicable_from <= reference <= demand.applicable_to):
         raise ValueError("Demanda no aplicable a evaluation_date")
     if demand.daily_demand == 0:
         return CoverageResult(
@@ -464,16 +465,20 @@ def calculate_coverage(availability: StockAvailabilityResult, demand: DemandRate
 def _validate_horizon(payload: StockProjectionInput) -> None:
     horizon = payload.horizon
     context = payload.context
-    if horizon.parameter.company_id != context.scope.company_id:
+    parameter = horizon.parameter
+    if parameter.company_id != context.scope.company_id:
         raise ValueError("Horizon de otra compañía")
-    if horizon.parameter.parameters_version != context.decision_context.parameters_version:
+    if parameter.parameters_version != context.decision_context.parameters_version:
         raise ValueError("Horizon con parameters_version incompatible")
-    if horizon.parameter.applicable_reference_date != context.evaluation_date:
+    if parameter.applicable_reference_date != context.evaluation_date:
         raise ValueError("Horizon no aplicable a evaluation_date")
     if horizon.state == "KNOWN":
+        if parameter.parameter_id != "PYE-001" or parameter.state != "KNOWN":
+            raise ValueError("Horizon KNOWN requiere PYE-001 KNOWN")
         assert horizon.horizon_days is not None and horizon.horizon_end is not None
-        expected = context.evaluation_date + timedelta(days=horizon.horizon_days)
-        if horizon.horizon_end != expected:
+        if isinstance(parameter.value, bool) or parameter.value != horizon.horizon_days:
+            raise ValueError("horizon_days no coincide con PYE-001")
+        if horizon.horizon_end != context.evaluation_date + timedelta(days=horizon.horizon_days):
             raise ValueError("horizon_end no coincide con PYE-001")
 
 
@@ -487,9 +492,9 @@ def _validate_schedule(payload: StockProjectionInput) -> None:
         raise ValueError("Schedule usa demanda de otra identidad")
     if payload.movements.state == "KNOWN":
         expected_ids = tuple(
-            m.movement_id
-            for m in payload.movements.items
-            if m.source_kind in {"AUTHORIZED_DEMAND", "CONFIRMED_DEMAND"}
+            movement.movement_id
+            for movement in payload.movements.items
+            if movement.source_kind in {"AUTHORIZED_DEMAND", "CONFIRMED_DEMAND"}
         )
         if len(expected_ids) != len(set(expected_ids)):
             raise ValueError("Movimientos de demanda contienen IDs duplicados")
@@ -525,8 +530,8 @@ def _validate_movements(payload: StockProjectionInput) -> None:
         for item in payload.opening.incorporated_confirmed_demand
         for segment in item.demand_segment_ids
     }
-    opening_commitments = {c.commitment_id for c in payload.opening.committed_components}
-    seen_supply: dict[str, str] = {}
+    opening_commitments = {component.commitment_id for component in payload.opening.committed_components}
+    seen_supply: set[str] = set()
     for movement in payload.movements.items:
         if movement.movement_id in seen_ids:
             raise ValueError("movement_id duplicado")
@@ -535,22 +540,23 @@ def _validate_movements(payload: StockProjectionInput) -> None:
             raise ValueError("Movimiento de otro scope/article")
         if movement.unit is not None and movement.unit != context.base_unit:
             raise ValueError("Movimiento con unidad incompatible")
-        if movement.state == "KNOWN" and movement.effective_date is not None:
-            if context.evaluation_date < movement.effective_date <= horizon.horizon_end:
-                if movement.source_kind == "CONFIRMED_DEMAND":
-                    assert movement.demand_segment_id is not None
-                    if movement.demand_segment_id in seen_segments:
-                        raise ValueError("Segmento de demanda duplicado opening/M05")
-                    seen_segments.add(movement.demand_segment_id)
-                if movement.source_kind in {"RESERVATION", "OTHER_AUTHORIZED_NEED"} and movement.commitment_id:
-                    if movement.commitment_id in opening_commitments:
-                        continue
-                if movement.source_kind in {"PENDING_ORDER", "IN_TRANSIT"}:
-                    assert movement.supply_identity is not None
-                    previous = seen_supply.get(movement.supply_identity)
-                    if previous is not None:
-                        raise ValueError("supply_identity duplicada o pending/transit simultáneo")
-                    seen_supply[movement.supply_identity] = movement.source_kind
+        if movement.state != "KNOWN" or movement.effective_date is None:
+            continue
+        if not (context.evaluation_date < movement.effective_date <= horizon.horizon_end):
+            continue
+        if movement.source_kind == "CONFIRMED_DEMAND":
+            assert movement.demand_segment_id is not None
+            if movement.demand_segment_id in seen_segments:
+                raise ValueError("Segmento de demanda duplicado opening/M05")
+            seen_segments.add(movement.demand_segment_id)
+        if movement.source_kind in {"RESERVATION", "OTHER_AUTHORIZED_NEED"} and movement.commitment_id:
+            if movement.commitment_id in opening_commitments:
+                continue
+        if movement.source_kind in {"PENDING_ORDER", "IN_TRANSIT"}:
+            assert movement.supply_identity is not None
+            if movement.supply_identity in seen_supply:
+                raise ValueError("supply_identity duplicada o pending/transit simultáneo")
+            seen_supply.add(movement.supply_identity)
 
 
 def _composition_to_mutable(items: Sequence[IncorporatedDemandQuantity]) -> OrderedDict[str, dict[str, object]]:
@@ -568,13 +574,13 @@ def _composition_to_mutable(items: Sequence[IncorporatedDemandQuantity]) -> Orde
 def _composition_snapshot(data: OrderedDict[str, dict[str, object]]) -> tuple[IncorporatedDemandQuantity, ...]:
     return tuple(
         IncorporatedDemandQuantity(
-            confirmed_demand_id=cid,
+            confirmed_demand_id=confirmed_id,
             quantity=values["quantity"],  # type: ignore[arg-type]
             unit=values["unit"],  # type: ignore[arg-type]
             demand_segment_ids=tuple(values["segments"]),  # type: ignore[arg-type]
             trace_refs=_unique(values["traces"]),  # type: ignore[arg-type]
         )
-        for cid, values in data.items()
+        for confirmed_id, values in data.items()
     )
 
 
@@ -609,40 +615,42 @@ def calculate_stock_projection(payload: StockProjectionInput) -> StockProjection
     _validate_schedule(payload)
     _validate_movements(payload)
 
-    base_issues = _merge_issues(
+    issues = _merge_issues(
         payload.opening.issue_refs,
         payload.horizon.issue_refs,
         payload.movements.issue_refs,
         payload.demand_schedule.issue_refs,
     )
-    base_traces = _merge_traces(
+    traces = _merge_traces(
         payload.opening.trace_refs,
         payload.horizon.trace_refs,
         payload.movements.trace_refs,
         payload.demand_schedule.trace_refs,
     )
-
-    primary_state = _uncertainty_state(
+    primary_state = _required_stock_state(
         (payload.opening.state, payload.horizon.state, payload.movements.state, payload.demand_schedule.state)
     )
     if primary_state != "KNOWN" or payload.opening.stock_available is None or payload.horizon.horizon_end is None:
         state = primary_state if primary_state != "KNOWN" else "UNKNOWN"
-        metric = ProjectedDecimalMetric(state=state, issue_refs=base_issues, trace_refs=base_traces)  # type: ignore[arg-type]
-        date_metric = ProjectedDateMetric(state=state, issue_refs=base_issues, trace_refs=base_traces)  # type: ignore[arg-type]
         return StockProjectionResult(
             identity=identity,
             horizon=payload.horizon,
-            minimum_projected_stock=metric,
-            depletion_date=date_metric,
+            minimum_projected_stock=ProjectedDecimalMetric(
+                state=state, issue_refs=issues, trace_refs=traces  # type: ignore[arg-type]
+            ),
+            depletion_date=ProjectedDateMetric(
+                state=state, issue_refs=issues, trace_refs=traces  # type: ignore[arg-type]
+            ),
             state=state,  # type: ignore[arg-type]
-            issue_refs=base_issues,
-            trace_refs=base_traces,
+            issue_refs=issues,
+            trace_refs=traces,
         )
 
     evaluation_date = context.evaluation_date
     horizon_end = payload.horizon.horizon_end
     known_by_date: dict = defaultdict(list)
     uncertainty_starts: list[tuple] = []
+    opening_ids = {component.commitment_id for component in payload.opening.committed_components}
     for movement in payload.movements.items:
         if movement.effective_date is not None and not (evaluation_date < movement.effective_date <= horizon_end):
             continue
@@ -650,14 +658,13 @@ def calculate_stock_projection(payload: StockProjectionInput) -> StockProjection
             continue
         if movement.state == "KNOWN":
             assert movement.effective_date is not None
-            if movement.source_kind in {"RESERVATION", "OTHER_AUTHORIZED_NEED"} and movement.commitment_id:
-                opening_ids = {c.commitment_id for c in payload.opening.committed_components}
-                if movement.commitment_id in opening_ids:
-                    continue
+            if movement.source_kind in {"RESERVATION", "OTHER_AUTHORIZED_NEED"} and movement.commitment_id in opening_ids:
+                continue
             known_by_date[movement.effective_date].append(movement)
         else:
-            start = movement.effective_date or evaluation_date
-            uncertainty_starts.append((start, movement.state, movement.issue_refs, movement.trace_refs))
+            uncertainty_starts.append(
+                (movement.effective_date or evaluation_date, movement.state, movement.issue_refs, movement.trace_refs)
+            )
 
     current = payload.opening.stock_available
     composition = _composition_to_mutable(payload.opening.incorporated_confirmed_demand)
@@ -668,14 +675,11 @@ def calculate_stock_projection(payload: StockProjectionInput) -> StockProjection
         for uncertainty in uncertainty_starts:
             if uncertainty[0] == day or (uncertainty[0] <= evaluation_date and day == evaluation_date + timedelta(days=1)):
                 running_uncertainty.append(uncertainty)
-        movements_today = sorted(known_by_date.get(day, ()), key=lambda m: m.movement_id)
+        movements_today = sorted(known_by_date.get(day, ()), key=lambda movement: movement.movement_id)
         if not running_uncertainty:
             for movement in movements_today:
                 assert movement.quantity is not None
-                if movement.direction == "INFLOW":
-                    current += movement.quantity
-                else:
-                    current -= movement.quantity
+                current = current + movement.quantity if movement.direction == "INFLOW" else current - movement.quantity
                 if movement.source_kind == "CONFIRMED_DEMAND":
                     _add_confirmed_movement(composition, movement)
             points.append(
@@ -684,70 +688,65 @@ def calculate_stock_projection(payload: StockProjectionInput) -> StockProjection
                     projected_stock=current,
                     state="KNOWN",
                     incorporated_confirmed_demand=_composition_snapshot(composition),
-                    trace_refs=_merge_traces(base_traces, *(m.trace_refs for m in movements_today)),
+                    trace_refs=_merge_traces(traces, *(movement.trace_refs for movement in movements_today)),
                 )
             )
         else:
             for movement in movements_today:
                 if movement.source_kind == "CONFIRMED_DEMAND":
                     _add_confirmed_movement(composition, movement)
-            uncertainty_state = _uncertainty_state(u[1] for u in running_uncertainty)
+            state = _uncertainty_state(item[1] for item in running_uncertainty)
             points.append(
                 ProjectionPoint(
                     reference_date=day,
-                    state=uncertainty_state,  # type: ignore[arg-type]
+                    state=state,  # type: ignore[arg-type]
                     incorporated_confirmed_demand=_composition_snapshot(composition),
-                    issue_refs=_merge_issues(*(u[2] for u in running_uncertainty)),
-                    trace_refs=_merge_traces(base_traces, *(u[3] for u in running_uncertainty)),
+                    issue_refs=_merge_issues(*(item[2] for item in running_uncertainty)),
+                    trace_refs=_merge_traces(traces, *(item[3] for item in running_uncertainty)),
                 )
             )
         day += timedelta(days=1)
 
-    all_known = all(p.state == "KNOWN" for p in points)
+    all_known = all(point.state == "KNOWN" for point in points)
     if all_known:
-        values = [payload.opening.stock_available] + [p.projected_stock for p in points]
-        assert all(v is not None for v in values)
+        values = [payload.opening.stock_available] + [point.projected_stock for point in points]
         minimum = ProjectedDecimalMetric(
-            value=min(v for v in values if v is not None),
+            value=min(value for value in values if value is not None),
             state="KNOWN",
-            trace_refs=base_traces,
+            trace_refs=traces,
         )
     else:
-        uncertain_points = [p for p in points if p.state != "KNOWN"]
-        metric_state = _uncertainty_state(p.state for p in uncertain_points)
+        uncertain = [point for point in points if point.state != "KNOWN"]
+        state = _uncertainty_state(point.state for point in uncertain)
         minimum = ProjectedDecimalMetric(
-            state=metric_state,  # type: ignore[arg-type]
-            issue_refs=_merge_issues(*(p.issue_refs for p in uncertain_points)),
-            trace_refs=_merge_traces(base_traces, *(p.trace_refs for p in uncertain_points)),
+            state=state,  # type: ignore[arg-type]
+            issue_refs=_merge_issues(*(point.issue_refs for point in uncertain)),
+            trace_refs=_merge_traces(traces, *(point.trace_refs for point in uncertain)),
         )
 
     if payload.opening.stock_available == 0:
-        depletion = ProjectedDateMetric(value=evaluation_date, state="KNOWN", trace_refs=base_traces)
+        depletion = ProjectedDateMetric(value=evaluation_date, state="KNOWN", trace_refs=traces)
     else:
-        depletion = None
-        prior_uncertainty: list[ProjectionPoint] = []
+        depletion: ProjectedDateMetric | None = None
+        first_uncertain: ProjectionPoint | None = None
         for point in points:
             if point.state != "KNOWN":
-                prior_uncertainty.append(point)
+                first_uncertain = point
                 break
             assert point.projected_stock is not None
             if point.projected_stock <= 0:
                 depletion = ProjectedDateMetric(value=point.reference_date, state="KNOWN", trace_refs=point.trace_refs)
                 break
-        if depletion is None:
-            if prior_uncertainty:
-                state = _uncertainty_state(p.state for p in prior_uncertainty)
-                depletion = ProjectedDateMetric(
-                    state=state,  # type: ignore[arg-type]
-                    issue_refs=_merge_issues(*(p.issue_refs for p in prior_uncertainty)),
-                    trace_refs=_merge_traces(*(p.trace_refs for p in prior_uncertainty)),
-                )
-            elif all_known:
-                depletion = ProjectedDateMetric(state="NOT_APPLICABLE", trace_refs=base_traces)
-            else:
-                depletion = ProjectedDateMetric(state="UNKNOWN", trace_refs=base_traces)
+        if depletion is None and first_uncertain is not None:
+            depletion = ProjectedDateMetric(
+                state=first_uncertain.state,
+                issue_refs=first_uncertain.issue_refs,
+                trace_refs=first_uncertain.trace_refs,
+            )
+        elif depletion is None:
+            depletion = ProjectedDateMetric(state="NOT_APPLICABLE", trace_refs=traces)
 
-    result_state = "KNOWN" if all_known else _uncertainty_state(p.state for p in points if p.state != "KNOWN")
+    result_state = "KNOWN" if all_known else _uncertainty_state(point.state for point in points if point.state != "KNOWN")
     last_composition = points[-1].incorporated_confirmed_demand if points else payload.opening.incorporated_confirmed_demand
     return StockProjectionResult(
         identity=identity,
@@ -757,8 +756,8 @@ def calculate_stock_projection(payload: StockProjectionInput) -> StockProjection
         depletion_date=depletion,
         incorporated_confirmed_demand_at_horizon=last_composition,
         state=result_state,  # type: ignore[arg-type]
-        issue_refs=_merge_issues(base_issues, *(p.issue_refs for p in points)),
-        trace_refs=_merge_traces(base_traces, *(p.trace_refs for p in points)),
+        issue_refs=_merge_issues(issues, *(point.issue_refs for point in points)),
+        trace_refs=_merge_traces(traces, *(point.trace_refs for point in points)),
     )
 
 
@@ -778,7 +777,7 @@ def build_current_stock_reference(availability: StockAvailabilityResult) -> Stoc
 
 
 def build_projected_stock_reference(projection: StockProjectionResult, reference_date) -> StockReferenceValue:
-    point = next((p for p in projection.points if p.reference_date == reference_date), None)
+    point = next((item for item in projection.points if item.reference_date == reference_date), None)
     if point is None:
         raise ValueError("reference_date no existe en la proyección")
     return StockReferenceValue(
@@ -816,11 +815,11 @@ def calculate_excess(
     tolerance_basis: ExcessToleranceBasis,
 ) -> ExcessResult:
     identity = stock_reference.identity
-    issues: tuple[DataIssueRef, ...] = stock_reference.issue_refs
-    traces: tuple[str, ...] = stock_reference.trace_refs
+    issues = stock_reference.issue_refs
+    traces = stock_reference.trace_refs
     states: list[str] = [stock_reference.state]
-
     maximum: Decimal | None = None
+
     if maximum_basis.mode == "DIRECT_QUANTITY":
         threshold = maximum_basis.direct_threshold
         assert threshold is not None
@@ -903,12 +902,13 @@ def calculate_excess(
 
     threshold_value = maximum + tolerance
     excess = max(Decimal("0"), stock_reference.value - threshold_value)
-    if stock_reference.value <= maximum:
-        state = "NO_EXCESS"
-    elif stock_reference.value <= threshold_value:
-        state = "WITHIN_TOLERANCE"
-    else:
-        state = "EXCESS"
+    state = (
+        "NO_EXCESS"
+        if stock_reference.value <= maximum
+        else "WITHIN_TOLERANCE"
+        if stock_reference.value <= threshold_value
+        else "EXCESS"
+    )
     return ExcessResult(
         identity=identity,
         stock_reference=stock_reference,
@@ -932,8 +932,20 @@ def _validate_allocation_scope(excess: ExcessResult, scope: AllocationScope) -> 
         raise ValueError("AllocationScope incompatible")
     if scope.excess_reference_date != excess.stock_reference.reference_date:
         raise ValueError("AllocationScope usa otra fecha de exceso")
-    if scope.horizon.state != "KNOWN" or scope.horizon.horizon_end is None:
+    horizon = scope.horizon
+    parameter = horizon.parameter
+    if horizon.state != "KNOWN" or horizon.horizon_days is None or horizon.horizon_end is None:
         raise ValueError("AllocationScope requiere horizon KNOWN")
+    if parameter.parameter_id != "PYE-001" or parameter.state != "KNOWN":
+        raise ValueError("AllocationScope requiere PYE-001 KNOWN")
+    if parameter.company_id != scope.identity.company_id or parameter.parameters_version != scope.identity.parameters_version:
+        raise ValueError("PYE-001 incompatible con identidad")
+    if parameter.applicable_reference_date != scope.evaluation_date:
+        raise ValueError("PYE-001 no vigente en evaluation_date")
+    if isinstance(parameter.value, bool) or parameter.value != horizon.horizon_days:
+        raise ValueError("horizon_days no coincide con PYE-001")
+    if horizon.horizon_end != scope.evaluation_date + timedelta(days=horizon.horizon_days):
+        raise ValueError("horizon_end incompatible con PYE-001")
 
 
 def _not_verifiable_absorption(
@@ -999,64 +1011,77 @@ def calculate_confirmed_demand_absorption(
             trace_refs=base_traces,
         )
 
-    if ledger.state != "KNOWN":
-        return _not_verifiable_absorption(excess, base_issues, base_traces)
-    if ledger.reference_date != allocation_scope.evaluation_date or ledger.scope != allocation_scope.scope or ledger.article_id != allocation_scope.article_id:
-        raise ValueError("Ledger incompatible con AllocationScope")
-
-    order_ids = [o.confirmed_demand_id for o in orders.items]
+    horizon_end = allocation_scope.horizon.horizon_end
+    assert horizon_end is not None
+    order_ids = [order.confirmed_demand_id for order in orders.items]
     if len(order_ids) != len(set(order_ids)):
         raise ValueError("confirmed_demand_id duplicado en colección")
 
-    incorporated = {i.confirmed_demand_id: i.quantity for i in excess.incorporated_confirmed_demand}
-    allocated: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
-    for entry in ledger.entries:
-        if entry.scope != allocation_scope.scope or entry.article_id != allocation_scope.article_id:
-            raise ValueError("Ledger entry incompatible")
-        allocated[entry.confirmed_demand_id] += entry.allocated_quantity
-
-    remaining: dict[str, Decimal] = {}
-    applicable: dict[str, ConfirmedDemandRecord] = {}
-    unverifiable = False
-    issue_groups: list[Iterable[DataIssueRef]] = [base_issues]
-    horizon_end = allocation_scope.horizon.horizon_end
-    assert horizon_end is not None
+    potentially_applicable: list[ConfirmedDemandRecord] = []
+    order_issue_groups: list[Iterable[DataIssueRef]] = [base_issues]
     for order in orders.items:
         if order.scope != allocation_scope.scope or order.article_id != allocation_scope.article_id:
             raise ValueError("Pedido de otro scope/article")
-        issue_groups.append(order.issue_refs)
+        order_issue_groups.append(order.issue_refs)
         if order.applicability_state == "NO_VERIFICABLE":
-            unverifiable = True
-            continue
+            return _not_verifiable_absorption(excess, _merge_issues(*order_issue_groups), base_traces)
         if order.applicability_state == "NO_APLICABLE":
             continue
         pq = order.pending_quantity
         if pq.scope != allocation_scope.scope or pq.article_id != allocation_scope.article_id:
             raise ValueError("Pending quantity incompatible")
         if pq.state != "KNOWN" or pq.value is None:
-            unverifiable = True
-            continue
+            return _not_verifiable_absorption(excess, _merge_issues(*order_issue_groups, pq.issue_refs), base_traces)
         if pq.effective_date != allocation_scope.evaluation_date:
             raise ValueError("Pending quantity no vigente en evaluation_date")
         if pq.unit != excess.stock_reference.unit:
             raise ValueError("Pending quantity con unidad incompatible")
         if order.order_date is None or order.confirmation_date is None or order.expected_delivery_date is None:
-            unverifiable = True
-            continue
+            raise ValueError("Pedido APLICABLE_Y_VALIDADA sin fechas obligatorias")
         if not (order.order_date <= order.confirmation_date <= allocation_scope.evaluation_date):
             raise ValueError("Fechas comerciales incompatibles")
         if not (allocation_scope.excess_reference_date < order.expected_delivery_date <= horizon_end):
-            continue
+            raise ValueError("Pedido APLICABLE_Y_VALIDADA fuera de la ventana M08")
+        potentially_applicable.append(order)
+
+    if not potentially_applicable:
+        if allocation_plan:
+            raise ValueError("NO_APLICABLE no admite allocation_plan")
+        return ConfirmedDemandAbsorptionResult(
+            identity=excess.identity,
+            excess_result=excess,
+            business_state="NO_APLICABLE",
+            total_remaining_applicable=Decimal("0"),
+            absorbed_excess=Decimal("0"),
+            residual_excess=excess.excess_quantity,
+            allocation_plan=(),
+            resulting_ledger=None,
+            issue_refs=_merge_issues(*order_issue_groups),
+            trace_refs=base_traces,
+        )
+
+    if ledger.state != "KNOWN":
+        return _not_verifiable_absorption(excess, base_issues, base_traces)
+    if ledger.reference_date != allocation_scope.evaluation_date or ledger.scope != allocation_scope.scope or ledger.article_id != allocation_scope.article_id:
+        raise ValueError("Ledger incompatible con AllocationScope")
+
+    incorporated = {item.confirmed_demand_id: item.quantity for item in excess.incorporated_confirmed_demand}
+    allocated: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
+    for entry in ledger.entries:
+        allocated[entry.confirmed_demand_id] += entry.allocated_quantity
+
+    remaining: dict[str, Decimal] = {}
+    applicable: dict[str, ConfirmedDemandRecord] = {}
+    for order in potentially_applicable:
+        pq = order.pending_quantity
+        assert pq.value is not None
         prior = incorporated.get(order.confirmed_demand_id, Decimal("0")) + allocated[order.confirmed_demand_id]
         if prior > pq.value:
             raise ValueError("incorporated + allocated supera pending")
-        remaining_value = pq.value - prior
-        remaining[order.confirmed_demand_id] = remaining_value
-        if remaining_value > 0:
+        value = pq.value - prior
+        remaining[order.confirmed_demand_id] = value
+        if value > 0:
             applicable[order.confirmed_demand_id] = order
-
-    if unverifiable:
-        return _not_verifiable_absorption(excess, _merge_issues(*issue_groups), base_traces)
 
     total = sum(remaining.values(), Decimal("0"))
     if total == 0:
@@ -1082,10 +1107,10 @@ def calculate_confirmed_demand_absorption(
     if not allocation_plan:
         return _not_verifiable_absorption(excess, base_issues, base_traces)
 
-    plan_ids = [p.allocation_entry_id for p in allocation_plan]
+    plan_ids = [allocation.allocation_entry_id for allocation in allocation_plan]
     if len(plan_ids) != len(set(plan_ids)):
         raise ValueError("allocation_entry_id duplicado en plan")
-    existing_ids = {e.allocation_entry_id for e in ledger.entries}
+    existing_ids = {entry.allocation_entry_id for entry in ledger.entries}
     if existing_ids.intersection(plan_ids):
         raise ValueError("allocation_entry_id colisiona con ledger")
 
@@ -1099,25 +1124,24 @@ def calculate_confirmed_demand_absorption(
     for confirmed_id, quantity in by_order.items():
         if quantity > remaining[confirmed_id]:
             raise ValueError("Plan supera remaining_allocatable del pedido")
-    plan_total = sum((p.quantity_to_apply for p in allocation_plan), Decimal("0"))
-    if plan_total != absorbed:
+    if sum((allocation.quantity_to_apply for allocation in allocation_plan), Decimal("0")) != absorbed:
         raise ValueError("allocation_plan debe sumar exactamente absorbed_excess")
 
     new_entries = tuple(
         AllocationLedgerEntry(
-            allocation_entry_id=p.allocation_entry_id,
-            confirmed_demand_id=p.confirmed_demand_id,
+            allocation_entry_id=allocation.allocation_entry_id,
+            confirmed_demand_id=allocation.confirmed_demand_id,
             scope=allocation_scope.scope,
             article_id=allocation_scope.article_id,
-            allocated_quantity=p.quantity_to_apply,
-            unit=p.unit,
+            allocated_quantity=allocation.quantity_to_apply,
+            unit=allocation.unit,
             decision_id=allocation_scope.identity.decision_id,
             scenario_id=allocation_scope.identity.scenario_id,
             excess_reference_date=allocation_scope.excess_reference_date,
-            allocation_result_ref=p.allocation_source_ref,
-            trace_refs=p.trace_refs,
+            allocation_result_ref=allocation.allocation_source_ref,
+            trace_refs=allocation.trace_refs,
         )
-        for p in allocation_plan
+        for allocation in allocation_plan
     )
     resulting = AllocationLedgerSnapshot(
         reference_date=ledger.reference_date,
@@ -1126,7 +1150,7 @@ def calculate_confirmed_demand_absorption(
         state="KNOWN",
         entries=ledger.entries + new_entries,
         source_ref=ledger.source_ref,
-        trace_refs=_merge_traces(ledger.trace_refs, *(p.trace_refs for p in allocation_plan)),
+        trace_refs=_merge_traces(ledger.trace_refs, *(allocation.trace_refs for allocation in allocation_plan)),
     )
     return ConfirmedDemandAbsorptionResult(
         identity=excess.identity,
@@ -1138,7 +1162,7 @@ def calculate_confirmed_demand_absorption(
         allocation_plan=tuple(allocation_plan),
         resulting_ledger=resulting,
         issue_refs=base_issues,
-        trace_refs=_merge_traces(base_traces, *(p.trace_refs for p in allocation_plan)),
+        trace_refs=_merge_traces(base_traces, *(allocation.trace_refs for allocation in allocation_plan)),
     )
 
 
