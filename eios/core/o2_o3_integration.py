@@ -6,6 +6,7 @@ reinterpret scenario evaluation, rules, viability, or business decisions.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from copy import deepcopy
 from typing import Any
 
 from .models import DecisionContext, PurchaseOperation
@@ -39,9 +40,9 @@ def adapt_o3_result_for_o2(
 
     values: dict[str, Any] = {}
     if result.assessments:
-        values["assessments"] = tuple(result.assessments)
+        values["assessments"] = deepcopy(tuple(result.assessments))
     if result.viability_result is not None:
-        values["viability_result"] = result.viability_result
+        values["viability_result"] = deepcopy(result.viability_result)
 
     return O2ScenarioResult(
         scenario_id=result.scenario_id,
