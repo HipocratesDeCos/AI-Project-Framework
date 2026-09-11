@@ -174,6 +174,13 @@ class DeliveryStockoutAnalysisResult(FrozenModel):
         if len(self.limitation_codes) != len(set(self.limitation_codes)):
             raise ValueError("limitation_codes no puede contener duplicados")
 
+        has_same_day = "SAME_DAY_ORDER_NOT_DEMONSTRATED" in self.limitation_codes
+        if has_same_day:
+            if self.state != "NOT_LATE_DEMONSTRATED":
+                raise ValueError("SAME_DAY_ORDER_NOT_DEMONSTRATED solo admite NOT_LATE_DEMONSTRATED")
+            if self.depletion_date is None or self.expected_delivery_date != self.depletion_date:
+                raise ValueError("SAME_DAY_ORDER_NOT_DEMONSTRATED requiere igualdad de fechas")
+
         if self.state == "LATE_DELIVERY_DEMONSTRATED":
             if self.depletion_date is None or self.expected_delivery_date is None:
                 raise ValueError("LATE_DELIVERY_DEMONSTRATED requiere ambas fechas")
@@ -185,7 +192,6 @@ class DeliveryStockoutAnalysisResult(FrozenModel):
             if self.expected_delivery_date > self.depletion_date:
                 raise ValueError("NOT_LATE_DEMONSTRATED requiere delivery <= depletion")
             same_day = self.expected_delivery_date == self.depletion_date
-            has_same_day = "SAME_DAY_ORDER_NOT_DEMONSTRATED" in self.limitation_codes
             if same_day != has_same_day:
                 raise ValueError("SAME_DAY_ORDER_NOT_DEMONSTRATED debe coincidir exactamente con igualdad de fechas")
         elif self.state == "NOT_LATE_WITHIN_EVIDENCED_HORIZON":
