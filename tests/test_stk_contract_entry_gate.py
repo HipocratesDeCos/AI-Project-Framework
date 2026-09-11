@@ -71,7 +71,7 @@ def test_catalog_initial_values_remain_pending_not_normative_defaults():
     ):
         assert row in catalog
     assert "no valida los valores iniciales del catálogo" in authority
-    assert "no convertir esos valores iniciales en defaults normativos" in authority
+    assert "sin convertir esos valores iniciales en defaults normativos" in authority
 
 
 def test_contract_entry_authority_does_not_expand_c0_or_decide_purchase():
