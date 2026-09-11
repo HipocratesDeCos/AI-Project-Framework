@@ -59,8 +59,8 @@ def test_vertical_view_model_maps_execution_rules_crc_and_traceability():
     assert view["rules_available"] is True
     assert view["rule_coverage"]["executed_rule_ids"] == ["R-STK-003", "R-FIN-001"]
     assert view["rule_coverage"]["omitted_rule_ids"] == ["R-PAG-001"]
-    assert view["support_result"]["consolidated_result"] == "NEGOCIAR"
-    assert view["trace_references"] == ["TRACE-RULES"]
+    assert view["crc_support_result"]["consolidated_result"] == "NEGOCIAR"
+    assert view["rule_trace_references"] == ["TRACE-RULES"]
 
 
 def test_rules_null_remains_unavailable_instead_of_false_or_empty_result():
@@ -71,9 +71,9 @@ def test_rules_null_remains_unavailable_instead_of_false_or_empty_result():
 
     assert view["rules_available"] is False
     assert view["rule_coverage"] is None
-    assert view["support_result"] is None
+    assert view["crc_support_result"] is None
     assert view["assessments"] is None
-    assert view["trace_references"] is None
+    assert view["rule_trace_references"] is None
 
 
 def test_omitted_rule_does_not_create_synthetic_assessment():
@@ -108,7 +108,7 @@ def test_view_model_does_not_invent_decision_authority_fields():
     forbidden = {"score", "ranking", "recommendation", "approval", "best_scenario"}
 
     assert forbidden.isdisjoint(view)
-    assert forbidden.isdisjoint(view["support_result"])
+    assert forbidden.isdisjoint(view["crc_support_result"])
 
 
 def test_view_model_fails_closed_on_invalid_shape():
