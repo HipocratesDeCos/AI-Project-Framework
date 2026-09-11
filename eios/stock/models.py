@@ -1,8 +1,8 @@
 """Physical Stock & Demand contracts for EIOS STK v0.1.
 
-The module implements the closed STK Implementation Contract v0.17.
-It contains facts, inputs and deterministic analytical results only; no Rules,
-CRC, persistence or purchase decision authority lives here.
+Implements the closed STK Implementation Contract v0.17.  This module owns
+facts, inputs and deterministic analytical results only; Rules, CRC,
+persistence and final purchase authority remain outside STK.
 """
 from __future__ import annotations
 
@@ -480,6 +480,7 @@ class AuthorizedForecastRate(StatefulModel):
             _non_negative(self.daily_demand, "daily_demand")
             if not all((self.forecast_version, self.reference_date, self.applicable_from, self.applicable_to, self.horizon_ref)):
                 raise ValueError("Forecast KNOWN requiere versión e intervalo/horizonte")
+            assert self.applicable_from is not None and self.reference_date is not None and self.applicable_to is not None
             if not (self.applicable_from <= self.reference_date <= self.applicable_to):
                 raise ValueError("reference_date fuera de aplicabilidad forecast")
             if not _has_evidence(self.source_ref, self.trace_refs):
@@ -508,13 +509,19 @@ class DemandRateResult(StatefulModel):
     def validate_result(self) -> "DemandRateResult":
         self.validate_conflict_state(self.state)
         if self.state == "KNOWN":
-            if self.method is None or self.daily_demand is None or self.reference_date is None:
-                raise ValueError("DemandRate KNOWN requiere método, tasa y fecha")
+            if self.selection.state != "KNOWN" or self.method is None or self.daily_demand is None or self.reference_date is None:
+                raise ValueError("DemandRate KNOWN requiere selección, método, tasa y fecha")
+            if self.method != self.selection.method:
+                raise ValueError("DemandRate.method debe coincidir con selection.method")
             _non_negative(self.daily_demand, "daily_demand")
-            if self.applicable_from is None or self.applicable_to is None:
-                raise ValueError("DemandRate KNOWN requiere intervalo")
-            if self.applicable_to < self.applicable_from:
-                raise ValueError("Intervalo de demanda inválido")
+            if self.applicable_from is None or self.applicable_to is None or self.applicable_to < self.applicable_from:
+                raise ValueError("DemandRate KNOWN requiere intervalo válido")
+            if self.method == "HISTORICAL_CONSUMPTION":
+                if self.forecast_version is not None or self.identity.forecast_version is not None:
+                    raise ValueError("Demanda histórica no puede portar forecast_version")
+            else:
+                if not self.forecast_version or self.identity.forecast_version != self.forecast_version:
+                    raise ValueError("Forecast KNOWN exige versión exacta en identidad y resultado")
         elif self.daily_demand is not None:
             raise ValueError("DemandRate no KNOWN no publica tasa")
         return self
@@ -563,9 +570,7 @@ class ProjectionMovement(StatefulModel):
     @model_validator(mode="after")
     def validate_movement(self) -> "ProjectionMovement":
         self.validate_conflict_state(self.state)
-        expected_direction: MovementDirection = (
-            "INFLOW" if self.source_kind in {"PENDING_ORDER", "IN_TRANSIT", "PROPOSED_PURCHASE"} else "OUTFLOW"
-        )
+        expected_direction: MovementDirection = "INFLOW" if self.source_kind in {"PENDING_ORDER", "IN_TRANSIT", "PROPOSED_PURCHASE"} else "OUTFLOW"
         if self.direction != expected_direction:
             raise ValueError("source_kind y direction incompatibles")
         if self.state == "KNOWN":
@@ -576,15 +581,12 @@ class ProjectionMovement(StatefulModel):
                 raise ValueError("Movimiento normalizado requiere normalization_ref")
             if not _has_evidence(self.source_ref, self.trace_refs):
                 raise ValueError("Movimiento KNOWN requiere fuente/traza")
-            if self.source_kind in {"PENDING_ORDER", "IN_TRANSIT"}:
-                if not all((self.supply_identity, self.supplier_id, self.supply_document_ref)):
-                    raise ValueError("M06 KNOWN requiere supply identity, proveedor y documento")
-            if self.source_kind == "AUTHORIZED_DEMAND":
-                if self.confirmed_demand_id is not None or self.demand_segment_id is not None:
-                    raise ValueError("AUTHORIZED_DEMAND genérica no porta IDs comerciales")
-            if self.source_kind == "CONFIRMED_DEMAND":
-                if not self.confirmed_demand_id or not self.demand_segment_id:
-                    raise ValueError("CONFIRMED_DEMAND requiere pedido y segmento")
+            if self.source_kind in {"PENDING_ORDER", "IN_TRANSIT"} and not all((self.supply_identity, self.supplier_id, self.supply_document_ref)):
+                raise ValueError("M06 KNOWN requiere supply identity, proveedor y documento")
+            if self.source_kind == "AUTHORIZED_DEMAND" and (self.confirmed_demand_id is not None or self.demand_segment_id is not None):
+                raise ValueError("AUTHORIZED_DEMAND genérica no porta IDs comerciales")
+            if self.source_kind == "CONFIRMED_DEMAND" and (not self.confirmed_demand_id or not self.demand_segment_id):
+                raise ValueError("CONFIRMED_DEMAND requiere pedido y segmento")
             if self.source_kind == "RESERVATION" and (not self.commitment_id or not self.opening_reconciliation_ref):
                 raise ValueError("RESERVATION requiere commitment_id y reconciliation_ref")
             if self.source_kind == "OTHER_AUTHORIZED_NEED" and not self.opening_reconciliation_ref:
@@ -615,6 +617,8 @@ class DemandProjectionSchedule(StatefulModel):
         if self.state == "KNOWN":
             if self.selection.state != "KNOWN" or self.demand.state != "KNOWN":
                 raise ValueError("Schedule KNOWN requiere selección y demanda KNOWN")
+            if self.selection != self.demand.selection or self.demand.method != self.selection.method:
+                raise ValueError("Schedule KNOWN requiere selección idéntica a DemandRateResult")
             if self.schedule_from is None or self.schedule_to is None or self.schedule_to < self.schedule_from:
                 raise ValueError("Schedule KNOWN requiere intervalo válido")
             if not self.transformation_ref or not self.reconciliation_ref:
@@ -725,9 +729,8 @@ class StockMaximumBasis(FrozenModel):
         if self.mode == "DIRECT_QUANTITY":
             if self.direct_threshold is None or self.coverage_parameter is not None or self.demand is not None:
                 raise ValueError("DIRECT_QUANTITY requiere solo direct_threshold")
-        else:
-            if self.direct_threshold is not None or self.coverage_parameter is None or self.demand is None:
-                raise ValueError("COVERAGE_MAXIMUM requiere parameter + demand")
+        elif self.direct_threshold is not None or self.coverage_parameter is None or self.demand is None:
+            raise ValueError("COVERAGE_MAXIMUM requiere parameter + demand")
         return self
 
 
@@ -742,9 +745,8 @@ class ExcessToleranceBasis(FrozenModel):
         if self.mode == "QUANTITY":
             if self.quantity_threshold is None or self.rate_parameter is not None:
                 raise ValueError("QUANTITY requiere solo quantity_threshold")
-        else:
-            if self.quantity_threshold is not None or self.rate_parameter is None:
-                raise ValueError("RATE requiere solo rate_parameter")
+        elif self.quantity_threshold is not None or self.rate_parameter is None:
+            raise ValueError("RATE requiere solo rate_parameter")
         return self
 
 
@@ -761,6 +763,8 @@ class ExcessResult(StatefulModel):
     @model_validator(mode="after")
     def validate_result(self) -> "ExcessResult":
         self.validate_conflict_state(self.state)
+        if self.incorporated_confirmed_demand != self.stock_reference.incorporated_confirmed_demand:
+            raise ValueError("ExcessResult debe copiar exactamente la composición de stock_reference")
         determined = self.state in {"NO_EXCESS", "WITHIN_TOLERANCE", "EXCESS"}
         values = (self.stock_maximum, self.excess_tolerance_quantity, self.excess_threshold, self.excess_quantity)
         if determined:
@@ -798,8 +802,6 @@ class ConfirmedDemandRecord(StatefulModel):
                 raise ValueError("Pedido aplicable requiere pending KNOWN")
             if not _has_evidence(self.source_ref, self.trace_refs):
                 raise ValueError("Pedido aplicable requiere fuente/traza")
-        if self.applicability_state == "NO_VERIFICABLE" and not self.issue_refs:
-            raise ValueError("NO_VERIFICABLE requiere incidencias")
         return self
 
 
@@ -842,6 +844,9 @@ class AllocationLedgerSnapshot(FrozenModel):
             ids = [e.allocation_entry_id for e in self.entries]
             if len(ids) != len(set(ids)):
                 raise ValueError("Ledger no admite allocation_entry_id duplicado")
+            for entry in self.entries:
+                if entry.scope != self.scope or entry.article_id != self.article_id:
+                    raise ValueError("Ledger KNOWN no admite entries de otro scope/article")
         if self.state == "CONFLICTING_DATA" and not any(i.issue_type == "CONTRADICTION" for i in self.issue_refs):
             raise ValueError("Ledger conflictivo requiere incidencia")
         return self
@@ -894,11 +899,8 @@ class ConfirmedDemandAbsorptionResult(StatefulModel):
                 if value is None:
                     raise ValueError(f"{self.business_state} requiere {name}")
                 _non_negative(value, name)
-        if self.business_state == "NO_VERIFICABLE":
-            if any(v is not None for v in (self.absorbed_excess, self.residual_excess)):
-                raise ValueError("NO_VERIFICABLE no publica absorción/residual")
-            if not self.issue_refs:
-                raise ValueError("NO_VERIFICABLE requiere incidencias")
+        if self.business_state == "NO_VERIFICABLE" and any(v is not None for v in (self.absorbed_excess, self.residual_excess)):
+            raise ValueError("NO_VERIFICABLE no publica absorción/residual")
         return self
 
 
