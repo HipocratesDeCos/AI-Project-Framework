@@ -1,12 +1,12 @@
 """Physical Stock & Demand contracts for EIOS STK v0.1.
 
-Implements the closed STK Implementation Contract v0.17.  This module owns
+Implements the closed STK Implementation Contract v0.17. This module owns
 facts, inputs and deterministic analytical results only; Rules, CRC,
 persistence and final purchase authority remain outside STK.
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from typing import Generic, Literal, TypeVar
 
@@ -309,8 +309,13 @@ class ProjectionHorizon(StatefulModel):
                 raise ValueError("Horizon KNOWN requiere PYE-001 KNOWN")
             if self.horizon_days is None or isinstance(self.horizon_days, bool) or self.horizon_days <= 0:
                 raise ValueError("horizon_days debe ser entero positivo no booleano")
-            if self.horizon_end is None:
-                raise ValueError("Horizon KNOWN requiere horizon_end")
+            if isinstance(self.parameter.value, bool) or not isinstance(self.parameter.value, int) or self.parameter.value <= 0:
+                raise ValueError("PYE-001 KNOWN requiere entero positivo no booleano")
+            if self.horizon_days != self.parameter.value:
+                raise ValueError("horizon_days debe coincidir exactamente con PYE-001")
+            expected_end = self.parameter.applicable_reference_date + timedelta(days=self.horizon_days)
+            if self.horizon_end != expected_end:
+                raise ValueError("horizon_end debe derivar exactamente de PYE-001 y su fecha aplicable")
         elif self.horizon_days is not None or self.horizon_end is not None:
             raise ValueError("Horizon no KNOWN no publica horizonte determinado")
         return self
@@ -519,9 +524,8 @@ class DemandRateResult(StatefulModel):
             if self.method == "HISTORICAL_CONSUMPTION":
                 if self.forecast_version is not None or self.identity.forecast_version is not None:
                     raise ValueError("Demanda histórica no puede portar forecast_version")
-            else:
-                if not self.forecast_version or self.identity.forecast_version != self.forecast_version:
-                    raise ValueError("Forecast KNOWN exige versión exacta en identidad y resultado")
+            elif not self.forecast_version or self.identity.forecast_version != self.forecast_version:
+                raise ValueError("Forecast KNOWN exige versión exacta en identidad y resultado")
         elif self.daily_demand is not None:
             raise ValueError("DemandRate no KNOWN no publica tasa")
         return self
@@ -694,6 +698,17 @@ class StockProjectionResult(StatefulModel):
     incorporated_confirmed_demand_at_horizon: tuple[IncorporatedDemandQuantity, ...] = ()
     state: StockDataState
 
+    @model_validator(mode="after")
+    def validate_projection_result(self) -> "StockProjectionResult":
+        self.validate_conflict_state(self.state)
+        if self.points:
+            expected = self.points[-1].incorporated_confirmed_demand
+            if self.incorporated_confirmed_demand_at_horizon != expected:
+                raise ValueError("La composición de horizonte debe coincidir exactamente con el último point")
+        elif self.incorporated_confirmed_demand_at_horizon:
+            raise ValueError("Sin points no puede publicarse composición de horizonte")
+        return self
+
 
 class StockReferenceValue(StatefulModel):
     identity: StockResultIdentity
@@ -763,6 +778,8 @@ class ExcessResult(StatefulModel):
     @model_validator(mode="after")
     def validate_result(self) -> "ExcessResult":
         self.validate_conflict_state(self.state)
+        if self.identity != self.stock_reference.identity:
+            raise ValueError("ExcessResult.identity debe coincidir con stock_reference.identity")
         if self.incorporated_confirmed_demand != self.stock_reference.incorporated_confirmed_demand:
             raise ValueError("ExcessResult debe copiar exactamente la composición de stock_reference")
         determined = self.state in {"NO_EXCESS", "WITHIN_TOLERANCE", "EXCESS"}
@@ -802,6 +819,9 @@ class ConfirmedDemandRecord(StatefulModel):
                 raise ValueError("Pedido aplicable requiere pending KNOWN")
             if not _has_evidence(self.source_ref, self.trace_refs):
                 raise ValueError("Pedido aplicable requiere fuente/traza")
+        elif self.applicability_state == "NO_APLICABLE":
+            if not self.applicability_source_ref or not _has_evidence(self.source_ref, self.trace_refs):
+                raise ValueError("NO_APLICABLE requiere exclusión demostrada y fuente/traza")
         return self
 
 
@@ -890,6 +910,9 @@ class ConfirmedDemandAbsorptionResult(StatefulModel):
 
     @model_validator(mode="after")
     def validate_result(self) -> "ConfirmedDemandAbsorptionResult":
+        if self.identity != self.excess_result.identity:
+            raise ValueError("AbsorptionResult.identity debe coincidir con ExcessResult.identity")
+        determined_excess = self.excess_result.excess_quantity
         if self.business_state in {"NO_EXISTE", "NO_APLICABLE", "APLICABLE_Y_VALIDADA"}:
             for name, value in (
                 ("total_remaining_applicable", self.total_remaining_applicable),
@@ -899,8 +922,36 @@ class ConfirmedDemandAbsorptionResult(StatefulModel):
                 if value is None:
                     raise ValueError(f"{self.business_state} requiere {name}")
                 _non_negative(value, name)
-        if self.business_state == "NO_VERIFICABLE" and any(v is not None for v in (self.absorbed_excess, self.residual_excess)):
-            raise ValueError("NO_VERIFICABLE no publica absorción/residual")
+            if determined_excess is None:
+                raise ValueError("Un estado M08 determinado requiere ExcessResult determinado")
+            assert self.total_remaining_applicable is not None
+            assert self.absorbed_excess is not None
+            assert self.residual_excess is not None
+            if self.total_remaining_applicable < self.absorbed_excess:
+                raise ValueError("total_remaining_applicable no puede ser menor que absorbed_excess")
+            if self.absorbed_excess + self.residual_excess != determined_excess:
+                raise ValueError("absorbed_excess + residual_excess debe igualar excess_quantity")
+        if self.business_state in {"NO_EXISTE", "NO_APLICABLE"}:
+            if self.absorbed_excess != Decimal("0"):
+                raise ValueError(f"{self.business_state} exige absorbed_excess=0")
+            if self.allocation_plan:
+                raise ValueError(f"{self.business_state} exige allocation_plan vacío")
+            if determined_excess is not None and self.residual_excess != determined_excess:
+                raise ValueError(f"{self.business_state} debe preservar todo el exceso como residual")
+        elif self.business_state == "APLICABLE_Y_VALIDADA":
+            assert self.absorbed_excess is not None
+            if self.absorbed_excess <= 0:
+                raise ValueError("APLICABLE_Y_VALIDADA exige absorción positiva")
+            if not self.allocation_plan:
+                raise ValueError("APLICABLE_Y_VALIDADA exige allocation_plan no vacío")
+            plan_total = sum((item.quantity_to_apply for item in self.allocation_plan), Decimal("0"))
+            if plan_total != self.absorbed_excess:
+                raise ValueError("allocation_plan debe sumar exactamente absorbed_excess")
+            if self.resulting_ledger is None or self.resulting_ledger.state != "KNOWN":
+                raise ValueError("APLICABLE_Y_VALIDADA exige resulting_ledger KNOWN")
+        elif self.business_state == "NO_VERIFICABLE":
+            if any(v is not None for v in (self.absorbed_excess, self.residual_excess)):
+                raise ValueError("NO_VERIFICABLE no publica absorción/residual")
         return self
 
 
