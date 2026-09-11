@@ -83,14 +83,24 @@ def reference(value="80"):
 
 
 def excess(state="EXCESS"):
-    ref = reference()
+    if state == "EXCESS":
+        ref = reference("80")
+        excess_quantity = Decimal("25")
+    elif state == "NO_EXCESS":
+        ref = reference("40")
+        excess_quantity = Decimal("0")
+    elif state == "WITHIN_TOLERANCE":
+        ref = reference("53")
+        excess_quantity = Decimal("0")
+    else:
+        raise ValueError("fixture state no soportado")
     return ExcessResult(
         identity=identity(),
         stock_reference=ref,
         stock_maximum=Decimal("50"),
         excess_tolerance_quantity=Decimal("5"),
         excess_threshold=Decimal("55"),
-        excess_quantity=Decimal("25") if state == "EXCESS" else Decimal("0"),
+        excess_quantity=excess_quantity,
         state=state,
         incorporated_confirmed_demand=(),
     )
