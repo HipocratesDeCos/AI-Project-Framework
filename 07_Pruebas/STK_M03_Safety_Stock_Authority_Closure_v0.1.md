@@ -1,6 +1,6 @@
 # EIOS — STK-M03 · Cierre de autoridad metodológica de stock de seguridad v0.1
 
-**Estado:** CERRADO — MATERIALIZADO — VALIDACIÓN LOCAL SUPERADA
+**Estado:** CERRADO — MATERIALIZADO — INTEGRADO EN `main` — CI VALIDADO
 **Baseline:** `fe8aefa46c2f33cf7f15a7a9f82ba1ba22438d7c`
 **Ámbito:** definición y gobierno de `safety_stock`; sin fórmula ni implementación cuantitativa
 
@@ -36,4 +36,13 @@ Se actualiza la matriz y se añaden autoridad M03 y pruebas. No se modifica el c
 
 ## 7. CI
 
-La validación local reproduce el job vigente. GitHub Actions sobre materialización e integración constituye el gate externo final.
+La unidad quedó validada mediante la siguiente cadena de evidencia:
+
+- materialización: `2e4bbeaa077b4d93f95235df81fb4d02e905d99a`;
+- pull request de integración: `#46`;
+- CI sobre la cabeza del pull request: ejecución `34525455672`, `SUCCESS`;
+- integración en `main`: `0ac2872c13dd9c61a68aafabb33e658c67090990`;
+- CI posterior a la integración: ejecución `34565531587`, `SUCCESS`;
+- reconciliación local posterior: `293 passed`, con advertencias Pydantic y UserWarning promovidas a error.
+
+La cadena DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI queda completa para `STK-M03`.
