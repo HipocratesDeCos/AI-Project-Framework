@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from pydantic import BaseModel, ConfigDict
+
 from eios.core.models import DecisionContext, Evidence, PurchaseOperation
 from eios.delivery.models import DeliveryStockoutAnalysisInput, DeliveryStockoutAnalysisResult
 from eios.finance import FinanceBasicInput, FinanceBasicResult
@@ -74,6 +76,36 @@ class HistorySufficiencyRuleInputs:
     parameter_evidence: Evidence | None
 
 
+class DecisionRuleExecutionResult(BaseModel):
+    """Unified rule execution output with explicit coverage semantics."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    executed_rule_ids: tuple[str, ...]
+    omitted_rule_ids: tuple[str, ...]
+    vertical: RuleSetVerticalResult
+
+    @property
+    def assessments(self):
+        return self.vertical.assessments
+
+    @property
+    def traces(self):
+        return self.vertical.traces
+
+    @property
+    def c0_capability(self):
+        return self.vertical.c0_capability
+
+    @property
+    def crc_result(self):
+        return self.vertical.crc_result
+
+    @property
+    def support_package(self):
+        return self.vertical.support_package
+
+
 def run_decision_rules(
     *,
     purchase: PurchaseOperation,
@@ -85,7 +117,7 @@ def run_decision_rules(
     finance_capacity: FinanceCapacityRuleInputs | None = None,
     finance_safety_margin: FinanceSafetyMarginRuleInputs | None = None,
     history_sufficiency: HistorySufficiencyRuleInputs | None = None,
-) -> RuleSetVerticalResult:
+) -> DecisionRuleExecutionResult:
     """Evaluate supplied implemented rules and consolidate them in one call.
 
     Omitted rule inputs are omitted from this execution; they are not silently
@@ -168,20 +200,31 @@ def run_decision_rules(
             history_sufficiency.parameter_evidence,
         )
 
-    ordered_assessments = tuple(
-        assessments_by_rule[rule_id]
-        for rule_id in implemented_rule_ids()
-        if rule_id in assessments_by_rule
+    catalog_rule_ids = implemented_rule_ids()
+    executed_rule_ids = tuple(
+        rule_id for rule_id in catalog_rule_ids if rule_id in assessments_by_rule
     )
-    return run_authorized_assessments_vertical(
+    omitted_rule_ids = tuple(
+        rule_id for rule_id in catalog_rule_ids if rule_id not in assessments_by_rule
+    )
+    ordered_assessments = tuple(
+        assessments_by_rule[rule_id] for rule_id in executed_rule_ids
+    )
+    vertical = run_authorized_assessments_vertical(
         purchase=purchase,
         context=context,
         assessments=ordered_assessments,
         base_result=base_result,
     )
+    return DecisionRuleExecutionResult(
+        executed_rule_ids=executed_rule_ids,
+        omitted_rule_ids=omitted_rule_ids,
+        vertical=vertical,
+    )
 
 
 __all__ = [
+    "DecisionRuleExecutionResult",
     "DeliveryRuleInputs",
     "FinanceCapacityRuleInputs",
     "FinanceSafetyMarginRuleInputs",
