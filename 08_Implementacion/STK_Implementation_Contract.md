@@ -3,15 +3,15 @@
 ## 1. Identidad
 
 **Documento:** STK Implementation Contract  
-**Versión:** 0.3  
-**Estado:** DEPURADO 2 — PENDIENTE DE AUDIT 2 FINAL  
-**Baseline:** `main @ c2bd5b9b73974426d29cc234ffda42d494e720fb`  
+**Versión:** 0.4  
+**Estado:** DEPURADO FINAL — PENDIENTE DE AUDIT 2 FINAL  
+**Baseline de origen:** `main @ c2bd5b9b73974426d29cc234ffda42d494e720fb`  
 **Dominio:** Capa 3 — Stock / Demanda  
 **Autoridad metodológica:** `01_Modelo/Stock_Demand_Methodological_Matrix.md` v1.1  
 **Autoridad de entrada:** `01_Modelo/STK_Contract_Entry_Authority.md` v1.0  
 **Autoridad de reglas:** `04_Reglas/Matriz_Reglas_MVP.md` v2.1  
 **Dependencias:** `04_Reglas/Rule_Dependency_Matrix.md` v1.4  
-**Auditorías:** `STK_Implementation_Contract_Audit_v0.1.md` y `STK_Implementation_Contract_Audit_2_v0.1.md`
+**Auditorías:** `STK_Implementation_Contract_Audit_v0.1.md`, `STK_Implementation_Contract_Audit_2_v0.1.md`, `STK_Implementation_Contract_Audit_2_Final_v0.2.md`
 
 ---
 
@@ -19,9 +19,9 @@
 
 Este contrato define la frontera física mínima implementable de **Stock & Demand Intelligence (STK) v0.1**.
 
-STK materializa únicamente semántica y cálculos ya autorizados. No crea reglas, parámetros, defaults normativos, forecasting implícito, autoridad paralela de evidencia ni decisión automática.
+STK materializa únicamente semántica, relaciones y cálculos previamente autorizados. No crea reglas empresariales, parámetros, defaults normativos, forecasting implícito, autoridad paralela de evidencia ni decisiones automáticas.
 
-STK produce resultados analíticos para capas posteriores; Motor de Reglas, CRC, MED y decisor humano conservan sus respectivas autoridades.
+STK produce resultados analíticos y evidencia operativa. El Motor de Reglas conserva R-STK-001…004, CRC conserva la resolución de conflictos, MED conserva la integración y la autoridad decisional final permanece en la persona autorizada.
 
 La implementación ejecutable permanece bloqueada hasta superar `AUDIT 2 FINAL → CERRAR`.
 
@@ -33,7 +33,7 @@ STK reutiliza `DecisionContext` y no modifica `PurchaseOperation`, `Evidence`, `
 
 `PurchaseOperation.quantity` no se convierte automáticamente en cantidad STK normalizada porque C0 no contiene la unidad base objetivo.
 
-Paquete previsto:
+Paquete físico previsto:
 
 ```text
 eios/stock/
@@ -42,17 +42,31 @@ eios/stock/
 └── engine.py
 ```
 
-No se permiten dependencias circulares con `eios.core`.
+STK no puede introducir dependencias circulares con `eios.core`.
 
 ---
 
-## 4. Identidad temporal
+## 4. Identidad temporal y de resultado
 
-La fecha canónica es `evaluation_date`; `as_of_date` se materializa con esa misma identidad.
+La fecha canónica STK es `evaluation_date`; las referencias metodológicas previas a `as_of_date` se materializan con esa misma identidad.
 
-La proyección v0.1 opera a granularidad **diaria**. No existe autoridad para inferir secuencia intradía.
+La proyección v0.1 opera a granularidad **diaria**. No existe autoridad para inferir una secuencia intradía.
 
-Toda entrada actual debe ser válida para `evaluation_date`; toda entrada futura declara su fecha/horizonte explícito.
+Todo resultado intermedio reutilizable conserva una identidad equivalente a:
+
+```text
+StockResultIdentity
+├── decision_id: str
+├── scenario_id: str
+├── data_snapshot_id: str
+├── parameters_version: str
+├── article_id: str
+├── evaluation_date: date
+├── base_unit: str
+└── methodology_version: str
+```
+
+Esta identidad se deriva del `DecisionContext` y del contexto STK; no constituye una nueva identidad empresarial. Un consumidor posterior debe exigir igualdad exacta de identidad salvo que este contrato indique expresamente otra relación temporal.
 
 ---
 
@@ -66,19 +80,19 @@ NOT_APPLICABLE
 CONFLICTING_DATA
 ```
 
-- `KNOWN`: valor utilizable y trazable;
-- `UNKNOWN`: no determinable;
+- `KNOWN`: valor utilizable y suficientemente evidenciado;
+- `UNKNOWN`: valor no determinable;
 - `NOT_EVIDENCED`: valor declarado sin soporte suficiente;
-- `NOT_APPLICABLE`: evidencia de que no aplica;
+- `NOT_APPLICABLE`: evidencia de que la magnitud no aplica;
 - `CONFLICTING_DATA`: fuentes materialmente incompatibles no resueltas.
 
-No redefinen los estados C0.
+Estos estados son especializados y no redefinen C0.
 
-### Invariantes
+Invariantes:
 
-1. `state != KNOWN` no presenta un valor como determinado.
+1. `state != KNOWN` no presenta un valor numérico como determinado.
 2. `UNKNOWN / NOT_EVIDENCED / CONFLICTING_DATA ≠ 0`.
-3. Todo valor `KNOWN` exige al menos `source_ref` o `trace_ref`.
+3. Todo dato `KNOWN` exige `source_ref` o al menos un `trace_ref`.
 
 ---
 
@@ -94,9 +108,9 @@ CollectionEnvelope[T]
 
 Reglas:
 
-1. una colección `KNOWN` exige `source_ref` o al menos un `trace_ref`, incluso si está vacía;
+1. una colección `KNOWN` exige fuente o traza incluso cuando está vacía;
 2. solo `KNOWN + items=()` significa conjunto vacío evidenciado;
-3. una colección vacía `UNKNOWN`/`NOT_EVIDENCED` no significa inexistencia;
+3. una colección vacía `UNKNOWN/NOT_EVIDENCED` no significa inexistencia;
 4. `CONFLICTING_DATA` impide tratar la colección como completa.
 
 ---
@@ -116,12 +130,12 @@ NormalizedQuantity
 
 Reglas:
 
-- Decimal finito;
+- valor Decimal finito;
 - cantidad física `KNOWN` no negativa;
-- mismo artículo/unidad para operaciones entre cantidades;
-- `state != KNOWN` → `value = null`;
+- operaciones entre cantidades exigen mismo artículo y unidad;
+- `state != KNOWN` implica `value = null`;
 - `KNOWN` exige trazabilidad;
-- no hay conversión de unidad implícita.
+- no existe conversión de unidad implícita.
 
 ---
 
@@ -137,7 +151,7 @@ StockComputationContext
 └── forecast_version: str | null
 ```
 
-`parameters_version` y `data_snapshot_id` proceden de `DecisionContext`.
+`parameters_version` y `data_snapshot_id` se reutilizan desde `DecisionContext`. El contexto genera la `StockResultIdentity` utilizada por resultados y consumidores.
 
 ---
 
@@ -151,27 +165,28 @@ ConfiguredParameterValue
 ├── state: StockDataState
 ├── parameters_version: str
 ├── source_ref: str
+├── normalization_ref: str | null
 └── trace_refs: tuple[str, ...]
 ```
 
-Para utilizar un parámetro como `KNOWN`:
+Un parámetro `KNOWN` solo puede consumirse si:
 
 ```text
 ConfiguredParameterValue.parameters_version
 == DecisionContext.parameters_version
 ```
 
-No existe fallback a valores iniciales del catálogo.
-
-Cada operación debe validar además el `parameter_id` esperado, no solo unidad o tipo.
+Cada operación valida el `parameter_id`, tipo, dimensión/unidad y, cuando sea necesaria, la normalización autorizada. No existe fallback a los valores iniciales del catálogo.
 
 ---
 
 ## 10. Disponibilidad de stock
 
+Entrada:
+
 ```text
 StockAvailabilityInput
-├── context
+├── context: StockComputationContext
 ├── stock_on_hand: NormalizedQuantity
 └── stock_committed: NormalizedQuantity
 ```
@@ -187,18 +202,16 @@ Salida:
 
 ```text
 StockAvailabilityResult
-├── article_id
-├── unit
-├── evaluation_date
+├── identity: StockResultIdentity
 ├── stock_on_hand
 ├── stock_committed
 ├── stock_available: Decimal | null
 ├── availability_deficit: Decimal | null
-├── state
+├── state: StockDataState
 └── trace_refs
 ```
 
-El déficit permanece visible aunque `stock_available` tenga suelo cero.
+El déficit permanece visible aunque `stock_available` tenga suelo cero. Un consumidor debe exigir que `identity` coincida con su contexto STK.
 
 ---
 
@@ -206,36 +219,39 @@ El déficit permanece visible aunque `stock_available` tenga suelo cero.
 
 ```text
 ConsumptionPeriod
-├── article_id
+├── article_id: str
 ├── period_id: str
 ├── period_start: date
 ├── period_end: date
 ├── evidenced_days: int
 ├── quantity: Decimal | null
-├── unit
-├── state
-├── source_ref
-└── trace_refs
+├── unit: str
+├── state: StockDataState
+├── source_ref: str
+└── trace_refs: tuple[str, ...]
 ```
 
-`KNOWN` exige:
+Un periodo `KNOWN` exige consumo real, periodo trazable, `period_start <= period_end`, `evidenced_days > 0`, cantidad no negativa y ausencia de solapamiento con otro periodo de la misma ventana.
 
-- consumo real;
-- periodo identificable y trazable;
-- `evidenced_days > 0`;
-- cantidad no negativa;
-- no solapamiento con otro periodo de la misma ventana.
-
-Ventas y forecast no son consumo real. Cero solo existe cuando está evidenciado.
+Ventas y forecast no son consumo real. Cero solo existe cuando está explícitamente evidenciado.
 
 ---
 
 ## 12. Política histórica de demanda
 
+La ventana requerida se materializa sin inferir el calendario:
+
+```text
+RequiredPeriodSpec
+├── period_id: str
+├── period_start: date
+└── period_end: date
+```
+
 ```text
 HistoricalDemandPolicy
 ├── parameter: ConfiguredParameterValue
-├── required_period_ids: tuple[str, ...]
+├── required_periods: tuple[RequiredPeriodSpec, ...]
 ├── period_calendar_ref: str
 ├── source_ref: str
 └── trace_refs: tuple[str, ...]
@@ -245,11 +261,15 @@ Reglas:
 
 1. `parameter.parameter_id == P-STK-006`;
 2. parámetro `KNOWN` y versión coincidente;
-3. su valor entero positivo debe corresponder al número de periodos mensuales requeridos;
-4. `len(required_period_ids)` debe coincidir con ese valor;
-5. `required_period_ids` son únicos;
-6. `period_calendar_ref` identifica la fuente que resuelve qué periodos mensuales concretos forman la ventana para `evaluation_date`;
-7. STK no presupone meses naturales ni genera por sí mismo IDs de periodo.
+3. el valor debe ser entero positivo;
+4. su unidad debe estar normalizada/autorizada como **meses o número de periodos mensuales**; si requiere conversión, `normalization_ref` es obligatorio;
+5. la implementación no infiere la unidad por el ID `P-STK-006`;
+6. `len(required_periods)` coincide con el valor normalizado del parámetro;
+7. `RequiredPeriodSpec.period_id` es único;
+8. cada especificación cumple `period_start <= period_end`;
+9. las especificaciones no se solapan;
+10. `period_calendar_ref` identifica la fuente que determina los periodos concretos aplicables a `evaluation_date`;
+11. STK no presupone meses naturales ni genera IDs por sí mismo.
 
 ---
 
@@ -257,7 +277,7 @@ Reglas:
 
 ```text
 HistoricalDemandInput
-├── context
+├── context: StockComputationContext
 ├── policy: HistoricalDemandPolicy
 └── periods: CollectionEnvelope[ConsumptionPeriod]
 ```
@@ -265,12 +285,14 @@ HistoricalDemandInput
 Resultado `KNOWN` solo si:
 
 - colección `KNOWN` y trazable;
-- el conjunto de `period_id` recibido coincide exactamente con `required_period_ids`;
+- `ConsumptionPeriod.period_id` es único en la colección;
+- existe correspondencia uno-a-uno entre los periodos recibidos y `required_periods`;
+- para cada ID coinciden exactamente `period_start` y `period_end` con su `RequiredPeriodSpec`;
 - todos los periodos son `KNOWN`;
-- no se solapan;
-- artículo/unidad homogéneos;
+- no hay solapamientos;
+- artículo/unidad son homogéneos y compatibles con el contexto;
 - cada `evidenced_days > 0`;
-- no existen contradicciones.
+- no existen contradicciones no resueltas.
 
 Cálculo:
 
@@ -280,60 +302,63 @@ evidenced_days_in_window = sum(period.evidenced_days)
 historical_daily_demand = total_evidenced_consumption / evidenced_days_in_window
 ```
 
-No se sustituye ni acorta la ventana.
+No se sustituye, duplica ni acorta la ventana.
+
+Salida:
+
+```text
+DemandRateResult
+├── identity: StockResultIdentity
+├── method: HISTORICAL_CONSUMPTION | AUTHORIZED_FORECAST
+├── daily_demand: Decimal | null
+├── unit: str
+├── state: StockDataState
+├── window_or_horizon
+├── source_ref
+├── forecast_version: str | null
+└── trace_refs
+```
 
 ---
 
 ## 14. Forecast autorizado
 
-Métodos de demanda v0.1:
-
-```text
-AUTHORIZED_FORECAST
-HISTORICAL_CONSUMPTION
-```
-
-Forecast físico:
-
 ```text
 AuthorizedDemandForecast
-├── article_id
+├── article_id: str
 ├── daily_demand: Decimal | null
-├── unit
+├── unit: str
 ├── horizon_start: date
 ├── horizon_end: date
-├── state
+├── state: StockDataState
 ├── forecast_version: str
-├── source_ref
-└── trace_refs
+├── source_ref: str
+└── trace_refs: tuple[str, ...]
 ```
 
-Para consumirlo como `KNOWN`:
+Para consumir un forecast como `KNOWN`:
 
-1. `forecast_version` no vacío;
-2. `StockComputationContext.forecast_version == AuthorizedDemandForecast.forecast_version`;
-3. `horizon_start <= evaluation_date <= horizon_end` para cobertura en fecha de evaluación;
+1. versión no vacía;
+2. `context.forecast_version == forecast.forecast_version` y ninguno es nulo;
+3. `horizon_start <= evaluation_date <= horizon_end`;
 4. artículo/unidad compatibles;
-5. trazabilidad suficiente.
+5. tasa no negativa y finita;
+6. trazabilidad suficiente.
 
-STK no calcula forecast ni hace fallback forecast↔histórico.
-
-`DemandRateResult` conserva método, tasa diaria, unidad, estado, ventana/horizonte, versión y trazas.
-
-Ventas históricas no son un método de demanda v0.1.
+STK no calcula forecast y no realiza fallback automático forecast↔histórico. Ventas históricas no constituyen método de demanda STK v0.1.
 
 ---
 
 ## 15. Cobertura M04
 
-Si stock disponible y demanda diaria son `KNOWN` y `daily_demand > 0`:
+Si stock disponible y demanda diaria son `KNOWN`, pertenecen a la misma `StockResultIdentity` y `daily_demand > 0`:
 
 ```text
 coverage_days = stock_available / daily_demand
 status = DETERMINED
 ```
 
-Si demanda cero está confirmada y evidenciada:
+Si `daily_demand == 0` está confirmada y evidenciada:
 
 ```text
 coverage_days = null
@@ -341,17 +366,11 @@ status = UNBOUNDED
 reason = CONFIRMED_ZERO_DEMAND
 ```
 
-No se representa infinito numérico.
+No se representa infinito numérico. Estados de cobertura:
 
-Estados de cobertura:
+`DETERMINED | UNBOUNDED | UNKNOWN | NOT_EVIDENCED | CONFLICTING_DATA`.
 
-```text
-DETERMINED
-UNBOUNDED
-UNKNOWN
-NOT_EVIDENCED
-CONFLICTING_DATA
-```
+La salida conserva `StockResultIdentity`.
 
 ---
 
@@ -367,35 +386,37 @@ ProjectionMovement
 ├── quantity: Decimal | null
 ├── unit: str
 ├── effective_date: date | null
-├── state
+├── state: StockDataState
 ├── source_kind: PENDING_ORDER | IN_TRANSIT | AUTHORIZED_DEMAND | RESERVATION | OTHER_AUTHORIZED_NEED | PROPOSED_PURCHASE
-├── source_ref
-└── trace_refs
+├── source_ref: str
+└── trace_refs: tuple[str, ...]
 ```
 
-### Dirección obligatoria
+Dirección obligatoria:
 
 ```text
-PENDING_ORDER | IN_TRANSIT | PROPOSED_PURCHASE
-→ INFLOW
-
-AUTHORIZED_DEMAND | RESERVATION | OTHER_AUTHORIZED_NEED
-→ OUTFLOW
+PENDING_ORDER | IN_TRANSIT | PROPOSED_PURCHASE → INFLOW
+AUTHORIZED_DEMAND | RESERVATION | OTHER_AUTHORIZED_NEED → OUTFLOW
 ```
 
-Una combinación incompatible es error estructural.
+Invariantes:
+
+- `movement_id` es único dentro de la colección de una proyección; un duplicado es error estructural y nunca se suma dos veces;
+- movimiento `KNOWN` exige cantidad no negativa, finita, unidad/artículo compatibles y traza;
+- no se convierte una tasa de demanda en movimientos implícitos.
 
 ### M06
 
 Para `PENDING_ORDER`/`IN_TRANSIT`:
 
 - `supply_identity` obligatorio;
-- cada `supply_identity` activo aparece una sola vez en la colección de proyección;
+- cada `supply_identity` activo aparece una sola vez en la colección;
 - una parcialidad distinta exige identidad de segmento distinta y trazable;
-- la misma identidad no puede existir como pendiente y tránsito a la vez;
+- una identidad no puede coexistir como pendiente y tránsito;
 - una entrada futura `KNOWN` exige `evaluation_date <= effective_date <= horizon_end`;
 - fecha vencida no se desplaza automáticamente;
-- recepción confirmada deja M06.
+- recepción confirmada deja M06;
+- historial logístico aporta trazabilidad, no cantidades adicionales.
 
 ### Cantidad propuesta
 
@@ -407,11 +428,7 @@ Para `PROPOSED_PURCHASE`:
 - fecha explícita;
 - traza.
 
-STK no presume aprobación o recepción.
-
-### Demanda y calendario
-
-Una tasa de demanda no genera automáticamente movimientos `OUTFLOW`. Se requiere calendario/movimiento autorizado y fechado.
+STK no presume aprobación ni recepción.
 
 ---
 
@@ -419,9 +436,7 @@ Una tasa de demanda no genera automáticamente movimientos `OUTFLOW`. Se requier
 
 `StockProjectionInput.movements` es `CollectionEnvelope[ProjectionMovement]`.
 
-Solo una colección `KNOWN` y trazable puede afirmar que el conjunto requerido del horizonte está completo.
-
-Colección no determinada → proyección global no determinada.
+Solo una colección `KNOWN`, trazable y sin IDs duplicados puede afirmar que el conjunto recibido del horizonte está determinado. Una colección no determinada hace no determinada la proyección global según M09/M10.
 
 ---
 
@@ -429,7 +444,7 @@ Colección no determinada → proyección global no determinada.
 
 ```text
 StockProjectionInput
-├── context
+├── context: StockComputationContext
 ├── opening_availability: StockAvailabilityResult
 ├── movements: CollectionEnvelope[ProjectionMovement]
 ├── horizon_end: date
@@ -440,14 +455,12 @@ Precondiciones:
 
 - `scenario_id == DecisionContext.scenario_id`;
 - `horizon_end >= evaluation_date`;
-- `opening_availability` corresponde a mismo artículo, unidad y `evaluation_date`;
-- opening `KNOWN` para proyección determinada.
+- `opening_availability.identity == context.result_identity`;
+- opening `KNOWN` para una proyección determinada.
 
 ### 18.1 Cálculo diario
 
-No hay orden intradía por ID.
-
-Para cada fecha:
+No existe orden intradía por ID. Para cada fecha:
 
 ```text
 total_inflows_date = sum(known inflows)
@@ -455,41 +468,37 @@ total_outflows_date = sum(known outflows)
 closing_stock_date = opening_stock_date + total_inflows_date - total_outflows_date
 ```
 
-Movimientos del mismo día se agregan antes del cierre. El cierre alimenta la fecha siguiente. Stock negativo se conserva.
+Movimientos del mismo día se agregan antes del cierre. El cierre alimenta la fecha siguiente. El stock negativo se conserva como evidencia.
 
 ### 18.2 Incertidumbre
 
-Cada `ProjectionPoint` conserva `date`, `projected_stock`, `state`, totales de entrada/salida y trazas.
+Cada `ProjectionPoint` conserva identidad STK, fecha, stock proyectado, estado, totales de entrada/salida y trazas.
 
 - movimiento requerido no determinado con fecha conocida → incertidumbre desde esa fecha;
-- movimiento requerido no determinado con `effective_date = null` → incertidumbre desde `evaluation_date` para toda la proyección futura;
-- un movimiento conocido posterior no restaura `KNOWN` por sí solo.
+- movimiento requerido no determinado con `effective_date = null` → incertidumbre desde `evaluation_date`;
+- un movimiento conocido posterior no restaura por sí solo un estado `KNOWN`.
 
 ### 18.3 Mínimo y agotamiento
 
-El valor inicial forma parte de la secuencia analizada.
+El valor inicial forma parte de la secuencia:
 
 ```text
 minimum_projected_stock = min(opening_stock, determined daily closings)
 ```
 
-Si `opening_stock_available == 0` y es `KNOWN`:
+Si `opening_stock_available == 0` y es `KNOWN`, `depletion_date = evaluation_date`.
 
-```text
-depletion_date = evaluation_date
-```
+En otro caso, `depletion_date` es la primera fecha de cierre diario determinado con stock `<= 0`. No se afirma un instante intradía.
 
-En otro caso, `depletion_date` es la primera fecha de cierre diario determinada con stock `<= 0`.
-
-No se afirma instante intradía.
+La salida de proyección conserva `StockResultIdentity` y el `scenario_id` canónico.
 
 ---
 
 ## 19. Frontera R-STK-001
 
-STK entrega evidencia analítica (`minimum_projected_stock`, `depletion_date`, recepción relevante y estado). No emite `COMPRAR` ni `COMPRAR CONDICIONADO`.
+STK entrega evidencia como `minimum_projected_stock`, `depletion_date`, recepciones relevantes y estados de determinabilidad. No emite `COMPRAR`, `COMPRAR CONDICIONADO`, `NEGOCIAR` o `NO COMPRAR`.
 
-`P-PYE-006 = 15 días` no se usa como condición oculta.
+`P-PYE-006 = 15 días` no se usa como condición oculta ni default.
 
 ---
 
@@ -501,24 +510,28 @@ StockMaximumBasis
 ├── direct_quantity: NormalizedQuantity | null
 ├── coverage_maximum: ConfiguredParameterValue | null
 ├── demand_rate: DemandRateResult | null
-├── state
-├── source_ref
-└── trace_refs
+├── state: StockDataState
+├── source_ref: str
+└── trace_refs: tuple[str, ...]
 ```
+
+Las ramas son mutuamente excluyentes:
+
+- `DIRECT_QUANTITY` → `direct_quantity` presente; `coverage_maximum = null`; `demand_rate = null`;
+- `COVERAGE_MAXIMUM` → `direct_quantity = null`; `coverage_maximum` y `demand_rate` presentes.
+
+`state` debe ser compatible con la rama activa. Campos de una rama inactiva no pueden influir en el cálculo.
 
 ### DIRECT_QUANTITY
 
-- `direct_quantity` obligatorio y `KNOWN`;
-- no crea un parámetro nuevo;
-- `coverage_maximum` y `demand_rate` no se usan para derivar el máximo.
+Cantidad `KNOWN`, trazable y compatible con contexto. No crea un parámetro nuevo.
 
 ### COVERAGE_MAXIMUM
 
 - `coverage_maximum.parameter_id == P-STK-004`;
-- valor `KNOWN`, versión coincidente y unidad temporal compatible en días;
-- `demand_rate` `KNOWN`;
-- **`daily_demand > 0`**;
-- mismo artículo/unidad.
+- valor `KNOWN`, versión coincidente y unidad temporal normalizada en días;
+- `demand_rate` `KNOWN` con identidad compatible;
+- `daily_demand > 0`.
 
 Solo entonces:
 
@@ -526,7 +539,7 @@ Solo entonces:
 stock_maximum = coverage_maximum_days * authorized_daily_demand
 ```
 
-Con demanda cero confirmada no se deriva `stock_maximum = 0`; esta base queda no aplicable/no determinable para el cálculo de máximo por cobertura.
+Con demanda cero confirmada no se deriva `stock_maximum = 0`; la base por cobertura queda no aplicable/no determinable.
 
 ---
 
@@ -537,11 +550,11 @@ NormalizedRate
 ├── parameter_id: str
 ├── normalized_rate: Decimal | null
 ├── original_unit: str
-├── state
+├── state: StockDataState
 ├── parameters_version: str
 ├── normalization_ref: str
-├── source_ref
-└── trace_refs
+├── source_ref: str
+└── trace_refs: tuple[str, ...]
 ```
 
 ```text
@@ -549,9 +562,14 @@ ExcessToleranceBasis
 ├── kind: QUANTITY | RATE
 ├── quantity: NormalizedQuantity | null
 ├── rate: NormalizedRate | null
-├── state
-└── trace_refs
+├── state: StockDataState
+└── trace_refs: tuple[str, ...]
 ```
+
+Ramas mutuamente excluyentes:
+
+- `QUANTITY` → `quantity` presente y `rate = null`;
+- `RATE` → `quantity = null` y `rate` presente.
 
 Para `RATE`:
 
@@ -559,9 +577,7 @@ Para `RATE`:
 - versión coincidente;
 - `normalized_rate >= 0`;
 - `normalization_ref` obligatorio;
-- STK no infiere que `10` signifique 10 % ni que `0.10` sea la escala correcta sin normalización trazada.
-
-Cálculo:
+- no se infiere si `10` significa 10 % ni si `0.10` es la escala correcta sin normalización trazada.
 
 ```text
 excess_tolerance_quantity = stock_maximum * normalized_rate
@@ -575,13 +591,13 @@ Para `QUANTITY`, la cantidad debe ser `KNOWN`, misma unidad/artículo y trazable
 
 ```text
 ExcessInput
-├── context
+├── context: StockComputationContext
 ├── stock_reference: NormalizedQuantity
 ├── maximum_basis: StockMaximumBasis
 └── tolerance_basis: ExcessToleranceBasis
 ```
 
-Con entradas determinadas:
+Con entradas determinadas y compatibles:
 
 ```text
 excess_threshold = stock_maximum + excess_tolerance_quantity
@@ -590,24 +606,17 @@ excess_quantity = max(0, stock_reference - excess_threshold)
 
 Estados:
 
-```text
-NO_EXCESS
-WITHIN_TOLERANCE
-EXCESS
-UNKNOWN
-NOT_EVIDENCED
-CONFLICTING_DATA
-```
+`NO_EXCESS | WITHIN_TOLERANCE | EXCESS | UNKNOWN | NOT_EVIDENCED | CONFLICTING_DATA`.
 
-Si `stock_reference` procede de M05, esa procedencia queda trazada y M07 no vuelve a sumar M06 ni propuesta.
+Si `stock_reference` procede de M05, conserva la `StockResultIdentity`/traza correspondiente y M07 no vuelve a sumar M06 ni propuesta.
 
-STK calcula; Motor de Reglas evalúa `R-STK-002/003`.
-
-Relaciones confirmadas únicamente:
+STK calcula; el Motor de Reglas evalúa R-STK-002/003. Relaciones parámetro↔regla confirmadas únicamente:
 
 - `P-STK-004 → R-STK-002`;
 - `P-STK-004 → R-STK-003` derivada;
 - `P-STK-005 → R-STK-003` derivada.
+
+La salida `ExcessResult` conserva `StockResultIdentity`, máximo, tolerancia, umbral, exceso, estado y trazas.
 
 ---
 
@@ -621,23 +630,29 @@ Solo `KNOWN + items=()` y colección trazable permite `NO_EXISTE`.
 
 ```text
 ConfirmedDemandRecord
-├── confirmed_demand_id
-├── order_id
-├── customer_id
-├── article_id
-├── pending_quantity: Decimal | null
-├── unit
-├── order_date
-├── confirmation_date
+├── confirmed_demand_id: str
+├── order_id: str
+├── customer_id: str
+├── article_id: str
+├── pending_quantity: NormalizedQuantity
+├── order_date: date
+├── confirmation_date: date
 ├── expected_delivery_date: date | null
-├── business_status
+├── business_status: str
 ├── applicability_state: NO_APLICABLE | APLICABLE_Y_VALIDADA | NO_VERIFICABLE
 ├── applicability_source_ref: str
-├── source_ref
-└── trace_refs
+├── source_ref: str
+└── trace_refs: tuple[str, ...]
 ```
 
-La aplicabilidad consumida por v0.1 debe estar trazada; un booleano aislado no basta. STK v0.1 materializa la cuantificación de la absorción y no inventa una regla adicional de reclasificación logística.
+Reglas:
+
+1. la cantidad pendiente conserva su propio estado, artículo, unidad y evidencia;
+2. solo `pending_quantity.state == KNOWN` puede absorber exceso;
+3. `APLICABLE_Y_VALIDADA` exige `expected_delivery_date` no nula, evidenciada y compatible con la fecha/horizonte de la evaluación;
+4. si la fecha de entrega falta o no puede verificarse, el registro no puede ser `APLICABLE_Y_VALIDADA`;
+5. un booleano aislado no constituye evidencia de pedido confirmado;
+6. cancelaciones, parcialidades y cambios requieren nueva evidencia vigente.
 
 ---
 
@@ -645,21 +660,19 @@ La aplicabilidad consumida por v0.1 debe estar trazada; un booleano aislado no b
 
 ```text
 AllocationScope
-├── decision_id
-├── scenario_id
-├── article_id
-└── evaluation_date
+├── decision_id: str
+├── scenario_id: str
+├── article_id: str
+└── evaluation_date: date
 ```
 
-Debe coincidir con `StockComputationContext`.
-
-Entrada de absorción:
+Debe coincidir con la `StockResultIdentity` aplicable.
 
 ```text
 ConfirmedDemandAbsorptionInput
-├── context
+├── context: StockComputationContext
 ├── allocation_scope: AllocationScope
-├── excess_result
+├── excess_result: ExcessResult
 ├── confirmed_demand: CollectionEnvelope[ConfirmedDemandRecord]
 └── already_allocated_ids: frozenset[str]
 ```
@@ -667,37 +680,28 @@ ConfirmedDemandAbsorptionInput
 Reglas:
 
 1. `confirmed_demand_id` único en la colección;
-2. IDs presentes en `already_allocated_ids` no pueden reutilizarse;
-3. solo `APLICABLE_Y_VALIDADA`, mismo artículo/unidad y cantidad pendiente `KNOWN` absorben;
+2. IDs ya presentes en `already_allocated_ids` no pueden reutilizarse;
+3. solo `APLICABLE_Y_VALIDADA`, mismo artículo/unidad, identidad/contexto compatible, fecha aplicable y cantidad pendiente `KNOWN` absorben;
 4. `NO_APLICABLE` y `NO_VERIFICABLE` no reducen exceso;
-5. colección no `KNOWN` hace M08 no evaluable; no se infiere que no existan pedidos.
+5. colección no `KNOWN` hace M08 no evaluable; no se infiere inexistencia.
 
-Cálculo, cuando M08 es evaluable:
+Cálculo:
 
 ```text
-confirmed_order_quantity_applicable = sum(unique not-yet-allocated applicable quantities)
+confirmed_order_quantity_applicable = sum(unique not-yet-allocated applicable pending quantities)
 absorbed_excess = min(excess_quantity, confirmed_order_quantity_applicable)
 residual_excess = max(0, excess_quantity - absorbed_excess)
 ```
 
-Salida conserva:
+La salida conserva exceso original, absorbido, residual, IDs usados, `allocated_ids = already_allocated_ids ∪ ids_used`, identidad, estado y trazas.
 
-- exceso original;
-- absorbido;
-- residual;
-- IDs usados;
-- `allocated_ids = already_allocated_ids ∪ ids_used`;
-- estado M08 y trazas.
-
-La operación es pura; no requiere estado interno/persistencia para hacer cumplir el alcance recibido.
-
-M08 no reescribe M07.
+La operación es pura; no requiere persistencia interna. M08 no reescribe M07.
 
 ---
 
 ## 25. M09 — ausencia
 
-Se conserva una estructura equivalente a:
+Estructura equivalente:
 
 ```text
 UnresolvedInput
@@ -710,7 +714,7 @@ UnresolvedInput
 └── trace_refs
 ```
 
-No existe imputación v0.1.
+No existe política de imputación STK v0.1. Un dato ausente no se sustituye por cero, media, último valor, estimación o default.
 
 ---
 
@@ -718,7 +722,7 @@ No existe imputación v0.1.
 
 `CONFLICTING_DATA` bloquea el cálculo dependiente sin seleccionar automáticamente por recencia, máximo, mínimo, promedio, score o prioridad arbitraria.
 
-Una resolución externa autorizada puede aportar posteriormente un valor `KNOWN` conservando referencia a la autoridad aplicada.
+Una resolución externa autorizada puede aportar posteriormente un valor `KNOWN` conservando referencia a la evidencia original y a la autoridad de resolución aplicada.
 
 ---
 
@@ -731,14 +735,17 @@ Se rechaza técnicamente:
 - Decimal no finito;
 - cantidad física negativa;
 - artículo/unidad incompatibles;
+- `StockResultIdentity` incompatible entre productor y consumidor;
 - `scenario_id` inconsistente;
 - horizonte anterior a `evaluation_date`;
-- `KNOWN` sin traza;
-- colección `KNOWN` sin traza;
+- `KNOWN` o colección `KNOWN` sin traza;
+- `movement_id` duplicado;
 - `supply_identity` ausente o duplicado en M06;
-- source_kind/direction incompatible;
-- versión de parámetro/forecast inconsistente;
-- IDs de periodos que no coinciden con la política;
+- `source_kind/direction` incompatible;
+- versión de parámetro o forecast inconsistente;
+- P-STK-006 con unidad/dimensión no autorizada ni normalizada;
+- periodo histórico duplicado o límites temporales incompatibles con `RequiredPeriodSpec`;
+- ramas discriminadas simultáneamente pobladas;
 - ID de demanda confirmada duplicado.
 
 ### Incertidumbre empresarial
@@ -750,18 +757,19 @@ Se representa mediante estado:
 - colección no evidenciada;
 - fecha futura no evidenciada;
 - forecast no verificable;
+- pedido M08 sin fecha/evidencia suficiente;
 - aplicabilidad M08 no verificable.
 
 ---
 
 ## 28. Determinismo
 
-- `Decimal` para cantidades/tasas;
+- `Decimal` para cantidades y tasas;
 - rechazo de `NaN`/infinitos;
 - fechas explícitas;
 - no dependencia de hora del sistema;
 - sin redondeo empresarial implícito;
-- misma entrada + mismas versiones/contexto → mismo resultado.
+- misma entrada + misma identidad/versiones → mismo resultado.
 
 ---
 
@@ -770,12 +778,12 @@ Se representa mediante estado:
 No se hardcodean como política:
 
 - 15 % safety stock;
-- 30/90 días cobertura;
+- 30/90 días de cobertura;
 - 10 % tolerancia;
-- 12 meses consumo;
-- 90 días horizonte;
+- 12 meses de consumo;
+- 90 días de horizonte;
 - `PYE-002…005 = Sí`;
-- 15 días riesgo.
+- 15 días de riesgo.
 
 La ausencia de configuración requerida no activa esos valores como fallback.
 
@@ -783,11 +791,11 @@ La ausencia de configuración requerida no activa esos valores como fallback.
 
 ## 30. Interfaces de autoridad
 
-- Quality & Trust / Evidence: STK consume, no redefine admisibilidad.
-- Motor de Reglas: consume STK; STK no emite decisión de regla.
+- Quality & Trust / Evidence: STK consume evidencia; no redefine admisibilidad.
+- Motor de Reglas: consume hechos STK; STK no emite el resultado empresarial de R-STK.
 - CRC: fuera de STK.
 - TCO: STK v0.1 no inyecta costes derivados.
-- Decision Twin: escenarios distintos no se sobrescriben.
+- Decision Twin: escenarios distintos no se sobrescriben ni mezclan gracias a identidad de contexto.
 - MED: integra resultados sin transferir autoridad.
 
 ---
@@ -799,56 +807,66 @@ La ausencia de configuración requerida no activa esos valores como fallback.
 3. Ausencia ≠ cero.
 4. `KNOWN` exige traza.
 5. Colección `KNOWN` exige traza.
-6. Artículo/unidad compatibles.
-7. Stock disponible no negativo; déficit visible.
-8. Vacío evidenciado ≠ ausencia.
-9. Demanda solo forecast autorizado o histórico de consumo.
-10. Ventana histórica coincide exactamente con periodos requeridos.
-11. Ventas ≠ demanda.
-12. Sin fallback de método.
-13. Forecast y contexto comparten versión.
-14. Forecast solo dentro de horizonte válido.
-15. `supply_identity` único evita doble conteo M06.
-16. Source kind y dirección son compatibles.
-17. Fecha M06 vencida no se mueve al futuro.
-18. Tasa de demanda no crea movimientos implícitos.
-19. Propuesta exige `scenario_id` coincidente.
-20. Opening projection reutiliza `StockAvailabilityResult`.
-21. Sin orden intradía inventado; cierre diario agregado.
-22. Incertidumbre sin fecha contamina desde `evaluation_date`.
-23. Incertidumbre fechada contamina desde esa fecha.
-24. Stock proyectado puede ser negativo.
-25. Opening cero produce `depletion_date = evaluation_date`.
-26. Mínimo incluye opening stock.
-27. Coverage maximum requiere demanda diaria > 0 para derivar máximo.
-28. M07 no duplica M05/M06.
-29. Tolerancia tipada y normalizada con traza.
-30. M08 no reutiliza IDs dentro del `AllocationScope` recibido.
-31. M08 no reescribe M07.
-32. Contradicción no se resuelve por heurística.
-33. Sin defaults normativos.
-34. Determinismo.
+6. Vacío evidenciado ≠ ausencia.
+7. Artículo/unidad compatibles.
+8. Resultados intermedios conservan y validan `StockResultIdentity`.
+9. Stock disponible no negativo y déficit visible.
+10. Demanda solo forecast autorizado o histórico de consumo.
+11. P-STK-006 exige unidad mensual normalizada/autorizada.
+12. Ventana histórica coincide uno-a-uno en ID y límites con `RequiredPeriodSpec`.
+13. IDs de consumo históricos son únicos.
+14. Ventas ≠ demanda.
+15. Sin fallback de método.
+16. Forecast y contexto comparten versión.
+17. Forecast solo dentro de horizonte válido.
+18. `movement_id` único.
+19. `supply_identity` único evita doble conteo M06.
+20. Source kind y dirección son compatibles.
+21. Fecha M06 vencida no se mueve al futuro.
+22. Tasa de demanda no crea movimientos implícitos.
+23. Propuesta exige `scenario_id` coincidente.
+24. Opening projection reutiliza `StockAvailabilityResult` con identidad compatible.
+25. Sin orden intradía inventado; cierre diario agregado.
+26. Incertidumbre sin fecha contamina desde `evaluation_date`.
+27. Incertidumbre fechada contamina desde esa fecha.
+28. Stock proyectado puede ser negativo.
+29. Opening cero produce `depletion_date = evaluation_date`.
+30. Mínimo incluye opening stock.
+31. Coverage maximum requiere demanda diaria > 0.
+32. Ramas de máximo y tolerancia son mutuamente excluyentes.
+33. M07 no duplica M05/M06.
+34. Tolerancia tipada y normalizada con traza.
+35. Cantidad pendiente M08 conserva estado cuantitativo propio.
+36. Pedido M08 aplicable/validado exige fecha prevista evidenciada y aplicable.
+37. M08 no reutiliza IDs dentro del `AllocationScope` recibido.
+38. M08 no reescribe M07.
+39. Contradicción no se resuelve por heurística.
+40. Sin defaults normativos.
+41. Determinismo.
 
 ---
 
 ## 32. Pruebas mínimas futuras
 
-La implementación debe cubrir al menos:
+La implementación deberá cubrir al menos:
 
-- disponibilidad, déficit y trazabilidad;
-- vacío evidenciado vs ausencia de colección;
-- versión de parámetro incorrecta;
-- ventana histórica con ID sustituido/faltante;
-- forecast versión/horizonte;
+- disponibilidad, déficit, identidad y trazabilidad;
+- vacío evidenciado vs ausencia;
+- parámetro con versión incorrecta;
+- P-STK-006 con unidad incorrecta/no normalizada;
+- ventana histórica con ID duplicado, sustituido, faltante o límites temporales incompatibles;
+- forecast con versión/horizonte inválidos;
 - cobertura determinada y `UNBOUNDED`;
-- M06 identidad duplicada y dirección inválida;
-- fecha vencida sin roll-forward;
+- `movement_id` duplicado;
+- M06 con identidad duplicada, dirección inválida y fecha vencida sin roll-forward;
 - propuesta en escenario incorrecto;
+- mezcla rechazada de resultados intermedios entre escenarios/snapshots;
 - proyección diaria agregada, opening cero, stock negativo e incertidumbre con/sin fecha;
+- bases discriminadas con ramas simultáneas rechazadas;
 - máximo directo y por cobertura, incluida demanda cero;
-- tolerancia por cantidad/tasa normalizada;
+- tolerancia por cantidad y tasa normalizada;
 - estados de exceso;
-- M08 colección ausente, vacío evidenciado, absorción parcial/total y reutilización bloqueada por allocation scope;
+- M08 con cantidad pendiente no conocida, fecha no verificable, colección ausente, vacío evidenciado, absorción parcial/total y reutilización bloqueada;
 - M09/M10;
 - no decisión, no defaults y reproducibilidad.
 
@@ -877,8 +895,9 @@ Fuera de alcance:
 
 ## 34. Estado
 
-**Contrato v0.3:** DEPURADO tras Audit 2 v0.1.  
+**Contrato v0.4:** DEPURADO FINAL tras Audit 2 Final v0.2.  
 **Hallazgos A1…A9:** resueltos.  
 **Hallazgos B1…B13:** resueltos.  
-**Siguiente paso:** AUDIT 2 FINAL independiente.  
+**Hallazgos C1…C7:** resueltos.  
+**Siguiente paso:** AUDIT 2 FINAL independiente sobre v0.4.  
 **Implementación ejecutable:** NO AUTORIZADA TODAVÍA.
