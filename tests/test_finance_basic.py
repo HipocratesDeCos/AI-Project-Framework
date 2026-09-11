@@ -129,7 +129,7 @@ def test_not_evidenced_flow_with_evidenced_date_after_horizon_does_not_contamina
         currency=None,
         due_date=date(2026, 10, 15),
         due_date_evidenced=True,
-        source_ref=None,
+        source_ref="DATE-SRC-F-OUT",
         evidence_state="NOT_EVIDENCED",
     )
     result = calculate_finance_basic(payload(cash_flows=(unresolved_outside,)))
@@ -161,7 +161,7 @@ def test_conflicting_flow_with_evidenced_date_after_horizon_does_not_contaminate
         currency=None,
         due_date=date(2026, 10, 15),
         due_date_evidenced=True,
-        source_ref=None,
+        source_ref="DATE-SRC-F-CON-OUT",
         evidence_state="CONFLICTING_DATA",
     )
     result = calculate_finance_basic(payload(cash_flows=(conflicting_outside,)))
@@ -192,6 +192,20 @@ def test_due_date_evidenced_requires_due_date():
             amount=None,
             currency=None,
             due_date=None,
+            due_date_evidenced=True,
+            source_ref="DATE-SRC",
+            evidence_state="NOT_EVIDENCED",
+        )
+
+
+def test_due_date_evidenced_requires_source_ref():
+    with pytest.raises(ValidationError):
+        CashFlow(
+            flow_id="F-NOSOURCE",
+            flow_type="PAYMENT",
+            amount=None,
+            currency=None,
+            due_date=date(2026, 10, 15),
             due_date_evidenced=True,
             source_ref=None,
             evidence_state="NOT_EVIDENCED",
