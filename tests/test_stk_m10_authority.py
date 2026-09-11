@@ -56,4 +56,5 @@ def test_m10_closes_methodology_without_authorizing_implementation_or_decision()
     assert "no constituye por sí mismo un contrato técnico ni autoriza la implementación cuantitativa" in authority
     assert "no constituye una decisión de compra" in authority
     assert "autoridad decisional final permanece en la persona autorizada" in authority
-    assert "**Estado actual:** NO APTO PARA IMPLEMENTACIÓN CUANTITATIVA." in matrix
+    assert "**Estado actual:** APTO PARA DISEÑO DE CONTRATO TÉCNICO STK." in matrix
+    assert "**No constituye por sí misma implementación ejecutable.**" in matrix
