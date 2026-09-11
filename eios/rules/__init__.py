@@ -1,6 +1,6 @@
 """EIOS rule-engine components."""
 
-from .catalog import authorized_rule_metadata, implemented_rule_ids
+from .catalog import authorized_rule, authorized_rule_metadata, implemented_rule_ids
 from .delivery import (
     BASELINE_EVIDENCE_SOURCE_TYPE,
     DELIVERY_EVIDENCE_SOURCE_TYPE,
@@ -34,6 +34,7 @@ from .runtime import (
     bind_authorized_assessment,
     run_assessment_set_vertical,
     run_assessment_vertical,
+    run_authorized_assessments_vertical,
 )
 from .stock import (
     R_STK_003,
@@ -66,6 +67,7 @@ __all__ = [
     "RuleVerticalResult",
     "STOCK_CONFIRMED_DEMAND_EVIDENCE_SOURCE_TYPE",
     "STOCK_EXCESS_EVIDENCE_SOURCE_TYPE",
+    "authorized_rule",
     "authorized_rule_metadata",
     "bind_authorized_assessment",
     "evaluate_r_ent_001",
@@ -79,5 +81,6 @@ __all__ = [
     "price_intelligence_result_ref",
     "run_assessment_set_vertical",
     "run_assessment_vertical",
+    "run_authorized_assessments_vertical",
     "run_r_ent_001_vertical",
 ]
