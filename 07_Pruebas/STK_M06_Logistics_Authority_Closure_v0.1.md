@@ -1,6 +1,6 @@
 # EIOS — STK-M06 · Cierre de autoridad metodológica logística v0.1
 
-**Estado:** CERRADO — MATERIALIZADO — VALIDACIÓN LOCAL SUPERADA
+**Estado:** CERRADO — MATERIALIZADO — INTEGRADO EN `main` — CI VALIDADO
 **Baseline:** `97a0bee524f912dc503799ad795eafb071f64a8c`
 **Ámbito:** pedidos pendientes, tránsito, evidencia, transiciones y no duplicación; sin motor cuantitativo
 
@@ -45,4 +45,13 @@ Se actualiza la matriz STK y se añaden autoridad M06 y pruebas. No se modifican
 
 ## 7. CI
 
-La CI externa permanece pendiente hasta la publicación del SHA materializado.
+La unidad quedó validada mediante la siguiente cadena de evidencia:
+
+- materialización: `80ffe960a7392075e7d35b65e4bd225952d581b5`;
+- pull request de integración: `#52`;
+- CI sobre la cabeza del pull request: ejecución `34567780725`, `SUCCESS`;
+- integración en `main`: `6fe3c61642667fca9f89dde084e6e428a4e6dc74`;
+- CI posterior a la integración: ejecución `34567933930`, `SUCCESS`;
+- reconciliación local posterior: `308 passed`, con advertencias Pydantic y UserWarning promovidas a error.
+
+La cadena DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI queda completa para `STK-M06`.
