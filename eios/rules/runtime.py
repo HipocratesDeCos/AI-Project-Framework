@@ -5,8 +5,8 @@ Assessment(s) -> reproducible Trace(s) -> C0 capability adapter -> CRC -> O1
 support package.
 
 Rule-specific modules remain responsible for producing valid Assessments. For
-implemented rules, ``bind_authorized_assessment`` resolves normative metadata
-from the technical catalog so callers do not duplicate R0/R1/R2/R3 literals.
+implemented rules, catalog-backed helpers resolve the canonical C0 Rule and
+normative metadata so callers do not duplicate authority literals.
 """
 from __future__ import annotations
 
@@ -167,6 +167,36 @@ def run_assessment_set_vertical(
     )
 
 
+def run_authorized_assessments_vertical(
+    *,
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    assessments: Sequence[Assessment],
+    base_result: ConsolidatedBaseResult,
+) -> RuleSetVerticalResult:
+    """Run implemented Assessments without caller-supplied Rule/metadata objects.
+
+    Each Assessment.rule_id must be present in the implemented rule catalog.
+    Canonical Rule and RuleMetadata objects are resolved against the current
+    DecisionContext.rules_version. Unknown rules fail closed.
+    """
+    from .catalog import authorized_rule
+
+    bindings = tuple(
+        bind_authorized_assessment(
+            authorized_rule(assessment.rule_id, context.rules_version),
+            assessment,
+        )
+        for assessment in assessments
+    )
+    return run_assessment_set_vertical(
+        purchase=purchase,
+        context=context,
+        bindings=bindings,
+        base_result=base_result,
+    )
+
+
 def run_assessment_vertical(
     *,
     purchase: PurchaseOperation,
@@ -207,4 +237,5 @@ __all__ = [
     "bind_authorized_assessment",
     "run_assessment_set_vertical",
     "run_assessment_vertical",
+    "run_authorized_assessments_vertical",
 ]
