@@ -1,9 +1,9 @@
 # EIOS — STOCK & DEMAND METHODOLOGICAL MATRIX
 
-**Versión:** 0.9
-**Estado:** DISEÑO PARCIAL — STK-M01…M08 CERRADOS; STK-M09…M10 PENDIENTES
+**Versión:** 0.10
+**Estado:** DISEÑO PARCIAL — STK-M01…M09 CERRADOS; STK-M10 PENDIENTE
 **Baseline:** EIOS Vertical MVP  
-**Fecha:** 10/09/2026
+**Fecha:** 11/09/2026
 
 ---
 
@@ -186,9 +186,13 @@ La absorción es el mínimo entre exceso y cantidad confirmada aplicable pendien
 
 La mitigación no reescribe M07 ni autoriza decisiones. Autoridad completa: `01_Modelo/STK_M08_Confirmed_Demand_Authority.md`.
 
-### STK-M09 — Ausencia de datos
+### STK-M09 — Ausencia de datos — CERRADO
 
-Debe definirse qué entradas son críticas y qué resultado produce su ausencia. Nunca debe sustituirse ausencia por cero sin autoridad explícita.
+STK-M09 representa la imposibilidad de determinar de forma suficientemente evidenciada datos necesarios para evaluar el stock. La ausencia no equivale a cero, inexistencia, normalidad ni ausencia de riesgo.
+
+Estados mínimos: `UNKNOWN`, `NOT_EVIDENCED`, `NOT_APPLICABLE` y `CONFLICTING_DATA`. No se sustituyen datos por cero, medias, valores anteriores, estimaciones o valores por defecto sin política empresarial específica, autorizada, versionada y trazable.
+
+La incertidumbre se propaga a las conclusiones dependientes de M01–M08; se registran dato, fuente esperada, fecha, causa y módulos afectados, y toda reevaluación conserva versiones. M09 no inventa criticidades pendientes ni autoriza decisiones. Autoridad completa: `01_Modelo/STK_M09_Missing_Data_Authority.md`.
 
 ### STK-M10 — Contradicciones
 
@@ -198,7 +202,7 @@ Debe definirse el tratamiento de datos de stock/demanda temporalmente incompatib
 
 ## 9. Regla de no invención
 
-Hasta que `STK-M09…STK-M10` estén resueltos documentalmente:
+Hasta que `STK-M10` esté resuelto documentalmente:
 
 - no se implementan fórmulas cuantitativas de STK;
 - no se asignan consumidores definitivos a `P-STK-*` o `PYE-*` por inferencia nominal;
@@ -229,6 +233,6 @@ STK podrá pasar a contrato técnico cuando exista evidencia suficiente para det
 
 ## 11. Estado
 
-**STK Methodological Matrix v0.9**
-**Estado:** DISEÑO PARCIAL — STK-M01…M08 CERRADOS; STK-M09…M10 PENDIENTES
+**STK Methodological Matrix v0.10**
+**Estado:** DISEÑO PARCIAL — STK-M01…M09 CERRADOS; STK-M10 PENDIENTE
 **No constituye contrato de implementación.**
