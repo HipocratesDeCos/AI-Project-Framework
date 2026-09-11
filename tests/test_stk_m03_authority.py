@@ -30,4 +30,5 @@ def test_m03_keeps_quantitative_boundary():
     assert "`STK-002` sea el 15 % del consumo" in authority
     assert "| STK-002 | Stock de seguridad | 15 | % del consumo | Riesgo | Pendiente de validación |" in catalog
     assert "`STK-M04…M10` permanecen pendientes" in authority
-    assert "**Estado actual:** NO APTO PARA IMPLEMENTACIÓN CUANTITATIVA." in matrix
+    assert "**Estado actual:** APTO PARA DISEÑO DE CONTRATO TÉCNICO STK." in matrix
+    assert "**No constituye por sí misma implementación ejecutable.**" in matrix
