@@ -140,6 +140,38 @@ def test_partial_capability_remains_partial():
     assert outcome.unresolved_items == ("TRANSPORT",)
 
 
+@pytest.mark.parametrize("capability_status", [O1ExecutionStatus.READY, O1ExecutionStatus.RUNNING])
+def test_nonterminal_capability_state_remains_partial(capability_status):
+    result = CapabilityExecution(
+        capability="PRICE",
+        status=capability_status,
+        result_available=False,
+    )
+    outcome = execute_plan(
+        purchase(), context(),
+        ExecutionPlan(capabilities=("PRICE",), policy_version="E2E-1"),
+        {"PRICE": lambda *_: result},
+    )
+    assert outcome.status == BoundaryStatus.PARTIALLY_COMPLETED
+    assert outcome.capability_results == (result,)
+
+
+def test_completed_capability_without_result_is_failed():
+    incomplete = CapabilityExecution(
+        capability="PRICE",
+        status=O1ExecutionStatus.COMPLETED,
+        result_available=False,
+    )
+    outcome = execute_plan(
+        purchase(), context(),
+        ExecutionPlan(capabilities=("PRICE",), policy_version="E2E-1"),
+        {"PRICE": lambda *_: incomplete},
+    )
+    assert outcome.status == BoundaryStatus.FAILED
+    assert "COMPLETED" in outcome.failure_reason
+    assert "resultado" in outcome.failure_reason
+
+
 def test_invoker_cannot_mutate_input_seen_by_later_capabilities_or_caller():
     original_purchase = purchase()
     original_context = context()
