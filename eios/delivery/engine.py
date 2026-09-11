@@ -32,6 +32,10 @@ def _context_matches(payload: DeliveryStockoutAnalysisInput) -> bool:
     )
 
 
+def _issue_record_refs(*issue_groups) -> tuple[str, ...]:
+    return _unique(issue.issue_record_ref for group in issue_groups for issue in group)
+
+
 def _result(
     payload: DeliveryStockoutAnalysisInput,
     state: DeliveryAnalysisState,
@@ -40,7 +44,18 @@ def _result(
     baseline = payload.baseline
     delivery = payload.delivery
     projection = baseline.projection
-    projection_issue_refs = tuple(issue.issue_record_ref for issue in projection.issue_refs)
+    projection_issue_refs = _issue_record_refs(
+        projection.issue_refs,
+        projection.depletion_date.issue_refs,
+        projection.horizon.issue_refs,
+    )
+    projection_trace_refs = _unique(
+        (
+            *projection.trace_refs,
+            *projection.depletion_date.trace_refs,
+            *projection.horizon.trace_refs,
+        )
+    )
     return DeliveryStockoutAnalysisResult(
         decision_id=payload.decision_id,
         article_id=payload.article_id,
@@ -56,7 +71,7 @@ def _result(
         evidence_refs=_unique((*baseline.evidence_refs, *delivery.evidence_refs)),
         unresolved_refs=_unique(baseline.unresolved_refs),
         issue_refs=_unique((*baseline.issue_refs, *delivery.issue_refs, *projection_issue_refs)),
-        trace_refs=_unique((*baseline.trace_refs, *delivery.trace_refs, *projection.trace_refs)),
+        trace_refs=_unique((*baseline.trace_refs, *delivery.trace_refs, *projection_trace_refs)),
         upstream_limitations=_unique(baseline.limitations),
     )
 
