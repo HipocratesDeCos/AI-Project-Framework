@@ -21,6 +21,16 @@ from .finance import (
     evaluate_r_fin_003,
     finance_basic_result_ref,
 )
+from .orchestrator import (
+    DecisionRuleExecutionResult,
+    DeliveryRuleInputs,
+    FinanceCapacityRuleInputs,
+    FinanceSafetyMarginRuleInputs,
+    HistorySufficiencyRuleInputs,
+    StockAbsorptionRuleInputs,
+    StockExcessRuleInputs,
+    run_domain_rules,
+)
 from .pricing import (
     P_PRE_006,
     PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE,
@@ -51,7 +61,12 @@ __all__ = [
     "BASELINE_EVIDENCE_SOURCE_TYPE",
     "ConsolidatedBaseResult",
     "DELIVERY_EVIDENCE_SOURCE_TYPE",
+    "DecisionRuleExecutionResult",
+    "DeliveryRuleInputs",
     "FINANCE_BASIC_EVIDENCE_SOURCE_TYPE",
+    "FinanceCapacityRuleInputs",
+    "FinanceSafetyMarginRuleInputs",
+    "HistorySufficiencyRuleInputs",
     "PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE",
     "PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE",
     "P_FIN_002",
@@ -72,6 +87,8 @@ __all__ = [
     "RulesEngineResult",
     "STOCK_CONFIRMED_DEMAND_EVIDENCE_SOURCE_TYPE",
     "STOCK_EXCESS_EVIDENCE_SOURCE_TYPE",
+    "StockAbsorptionRuleInputs",
+    "StockExcessRuleInputs",
     "authorized_rule",
     "authorized_rule_metadata",
     "bind_authorized_assessment",
@@ -88,6 +105,7 @@ __all__ = [
     "run_assessment_set_vertical",
     "run_assessment_vertical",
     "run_authorized_assessments_vertical",
+    "run_domain_rules",
     "run_r_ent_001_vertical",
     "run_rules_engine",
 ]
