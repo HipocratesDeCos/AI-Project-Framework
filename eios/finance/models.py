@@ -85,8 +85,11 @@ class CashFlow(BaseModel):
 
     @model_validator(mode="after")
     def validate_evidence_semantics(self) -> "CashFlow":
-        if self.due_date_evidenced and self.due_date is None:
-            raise ValueError("due_date_evidenced=True requiere due_date")
+        if self.due_date_evidenced:
+            if self.due_date is None:
+                raise ValueError("due_date_evidenced=True requiere due_date")
+            if self.source_ref is None:
+                raise ValueError("due_date_evidenced=True requiere source_ref")
 
         if self.evidence_state == "DEMONSTRATED":
             missing = [
