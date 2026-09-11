@@ -106,6 +106,23 @@ def _numeric_parameter(
     return value
 
 
+def _treasury_minimum(
+    finance_input: FinanceBasicInput,
+    context: DecisionContext,
+    resolved: ResolvedConfiguration,
+    evidence: Evidence,
+) -> Decimal | None:
+    value = _numeric_parameter(finance_input, context, resolved, evidence, P_FIN_002)
+    if resolved.unit not in {"EUR", "€"}:
+        return None
+    if value is None or value < 0:
+        return None
+    supplied = finance_input.treasury_minimum
+    if supplied is not None and supplied != value:
+        return None
+    return value
+
+
 def _not_evaluable(rule_id: str, evidence_ids: list[str], reason: str) -> Assessment:
     return Assessment(
         rule_id=rule_id,
@@ -152,17 +169,9 @@ def evaluate_r_fin_001(
         )
 
     evidence_ids.append(parameter_evidence.evidence_id)
-    threshold = _numeric_parameter(
-        finance_input, context, threshold_resolution, parameter_evidence, P_FIN_002
+    threshold = _treasury_minimum(
+        finance_input, context, threshold_resolution, parameter_evidence
     )
-    if threshold_resolution.unit not in {"EUR", "€"}:
-        threshold = None
-    if threshold is not None and threshold < 0:
-        threshold = None
-    supplied_minimum = finance_input.treasury_minimum
-    if threshold is not None and supplied_minimum is not None and supplied_minimum != threshold:
-        threshold = None
-
     if validate_evidence(parameter_evidence).status != "VALID" or threshold is None:
         return _not_evaluable(
             R_FIN_001,
@@ -193,8 +202,10 @@ def evaluate_r_fin_003(
     finance_input: FinanceBasicInput,
     finance_result: FinanceBasicResult,
     finance_evidence: Evidence,
+    treasury_minimum_resolution: ResolvedConfiguration | None,
+    treasury_minimum_evidence: Evidence | None,
     margin_resolution: ResolvedConfiguration | None,
-    parameter_evidence: Evidence | None,
+    margin_evidence: Evidence | None,
 ) -> Assessment:
     """Evaluate ``financial_safety_margin_pct < P-FIN-004`` conservatively."""
     _validate_identity(purchase, context, rule, R_FIN_003, finance_input, finance_result)
@@ -214,21 +225,37 @@ def evaluate_r_fin_003(
             f"R-FIN-003 no evaluable: margen financiero {margin.status}.",
         )
 
-    if margin_resolution is None or parameter_evidence is None:
+    if treasury_minimum_resolution is None or treasury_minimum_evidence is None:
+        return _not_evaluable(
+            R_FIN_003,
+            evidence_ids,
+            "R-FIN-003 no evaluable: P-FIN-002 no está resuelta/evidenciada.",
+        )
+    evidence_ids.append(treasury_minimum_evidence.evidence_id)
+    minimum = _treasury_minimum(
+        finance_input, context, treasury_minimum_resolution, treasury_minimum_evidence
+    )
+    if validate_evidence(treasury_minimum_evidence).status != "VALID" or minimum is None:
+        return _not_evaluable(
+            R_FIN_003,
+            evidence_ids,
+            "R-FIN-003 no evaluable: P-FIN-002 no coincide con el mínimo usado por Finance Basic.",
+        )
+
+    if margin_resolution is None or margin_evidence is None:
         return _not_evaluable(
             R_FIN_003,
             evidence_ids,
             "R-FIN-003 no evaluable: P-FIN-004 no está resuelta/evidenciada.",
         )
-
-    evidence_ids.append(parameter_evidence.evidence_id)
+    evidence_ids.append(margin_evidence.evidence_id)
     threshold = _numeric_parameter(
-        finance_input, context, margin_resolution, parameter_evidence, P_FIN_004
+        finance_input, context, margin_resolution, margin_evidence, P_FIN_004
     )
     if margin_resolution.unit != "%":
         threshold = None
 
-    if validate_evidence(parameter_evidence).status != "VALID" or threshold is None:
+    if validate_evidence(margin_evidence).status != "VALID" or threshold is None:
         return _not_evaluable(
             R_FIN_003,
             evidence_ids,
