@@ -59,9 +59,15 @@ def _validate_identity(
         raise ValueError("FinanceBasicResult y FinanceBasicInput usan monedas distintas")
 
 
-def _validate_finance_evidence(result: FinanceBasicResult, evidence: Evidence) -> None:
+def _validate_finance_evidence(
+    finance_input: FinanceBasicInput,
+    result: FinanceBasicResult,
+    evidence: Evidence,
+) -> None:
     if evidence.source_type != FINANCE_BASIC_EVIDENCE_SOURCE_TYPE:
         raise ValueError("finance_evidence.source_type incompatible")
+    if evidence.captured_at != finance_input.snapshot.as_of_date:
+        raise ValueError("finance_evidence debe corresponder a la fecha del snapshot financiero")
     if evidence.state == "DEMONSTRATED" and evidence.demonstration_ref != finance_basic_result_ref(result):
         raise ValueError("finance_evidence no está vinculada al FinanceBasicResult evaluado")
 
@@ -82,6 +88,8 @@ def _validate_parameter_resolution(
         raise ValueError("P-FIN-002 debe resolverse para la fecha del snapshot financiero")
     if evidence.source_type != PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE:
         raise ValueError("parameter_evidence.source_type incompatible")
+    if evidence.captured_at != finance_input.snapshot.as_of_date:
+        raise ValueError("parameter_evidence debe corresponder a la fecha del snapshot financiero")
     if evidence.state == "DEMONSTRATED" and evidence.demonstration_ref != resolved.configuration_ref:
         raise ValueError("parameter_evidence no está vinculada a la configuración P-FIN-002")
 
@@ -94,6 +102,10 @@ def _validate_parameter_resolution(
     except (InvalidOperation, ValueError):
         return None
     if not value.is_finite() or value < 0:
+        return None
+
+    supplied_minimum = finance_input.treasury_minimum
+    if supplied_minimum is not None and supplied_minimum != value:
         return None
     return value
 
@@ -115,7 +127,7 @@ def evaluate_r_fin_001(
     Missing/uncertain finance or parameter evidence remains NOT_EVALUABLE.
     """
     _validate_identity(purchase, context, rule, finance_input, finance_result)
-    _validate_finance_evidence(finance_result, finance_evidence)
+    _validate_finance_evidence(finance_input, finance_result, finance_evidence)
     evidence_ids = [finance_evidence.evidence_id]
 
     if validate_evidence(finance_evidence).status != "VALID":
