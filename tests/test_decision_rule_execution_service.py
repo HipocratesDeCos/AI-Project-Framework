@@ -7,6 +7,14 @@ from eios.core.models import Assessment, DecisionContext, PurchaseOperation
 
 
 RULES_VERSION = "rules-v1"
+ALL_RULES = (
+    "R-ENT-001",
+    "R-FIN-001",
+    "R-FIN-003",
+    "R-HIS-002",
+    "R-STK-003",
+    "R-STK-004",
+)
 
 
 def _context() -> DecisionContext:
@@ -102,14 +110,9 @@ def test_service_executes_six_rules_and_consolidates_in_canonical_order(
         "R-FIN-003",
         "R-HIS-002",
     ]
-    assert tuple(item.rule_id for item in result.assessments) == (
-        "R-ENT-001",
-        "R-FIN-001",
-        "R-FIN-003",
-        "R-HIS-002",
-        "R-STK-003",
-        "R-STK-004",
-    )
+    assert result.executed_rule_ids == ALL_RULES
+    assert result.omitted_rule_ids == ()
+    assert tuple(item.rule_id for item in result.assessments) == ALL_RULES
     assert result.crc_result.consolidated_result == "COMPRAR CONDICIONADO"
     assert len(result.traces) == 6
     assert result.c0_capability.result_available is True
@@ -132,6 +135,8 @@ def test_service_runs_only_explicitly_supplied_rules(
     )
 
     assert calls == ["R-FIN-001"]
+    assert result.executed_rule_ids == ("R-FIN-001",)
+    assert result.omitted_rule_ids == tuple(rule for rule in ALL_RULES if rule != "R-FIN-001")
     assert tuple(item.rule_id for item in result.assessments) == ("R-FIN-001",)
     assert result.crc_result.consolidated_result == "NO COMPRAR"
 
@@ -143,6 +148,8 @@ def test_service_with_no_rule_inputs_preserves_authorized_base_result() -> None:
         base_result="NEGOCIAR",
     )
 
+    assert result.executed_rule_ids == ()
+    assert result.omitted_rule_ids == ALL_RULES
     assert result.assessments == ()
     assert result.traces == ()
     assert result.crc_result.consolidated_result == "NEGOCIAR"
