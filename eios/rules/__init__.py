@@ -8,6 +8,7 @@ from .delivery import (
     evaluate_r_ent_001,
 )
 from .delivery_runtime import REnt001VerticalResult, run_r_ent_001_vertical
+from .engine import RulesEngineInput, RulesEngineResult, run_rules_engine
 from .finance import (
     FINANCE_BASIC_EVIDENCE_SOURCE_TYPE,
     PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE,
@@ -65,6 +66,8 @@ __all__ = [
     "RuleAssessmentBinding",
     "RuleSetVerticalResult",
     "RuleVerticalResult",
+    "RulesEngineInput",
+    "RulesEngineResult",
     "STOCK_CONFIRMED_DEMAND_EVIDENCE_SOURCE_TYPE",
     "STOCK_EXCESS_EVIDENCE_SOURCE_TYPE",
     "authorized_rule",
@@ -83,4 +86,5 @@ __all__ = [
     "run_assessment_vertical",
     "run_authorized_assessments_vertical",
     "run_r_ent_001_vertical",
+    "run_rules_engine",
 ]
