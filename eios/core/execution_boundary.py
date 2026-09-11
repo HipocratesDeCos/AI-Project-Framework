@@ -104,6 +104,16 @@ def execute_plan(
     # alter which invoker is selected after preflight.
     catalog = MappingProxyType(dict(invokers))
 
+    # O1 builds the support package after analytical execution and is explicitly
+    # outside the analytical invoker catalog of this boundary.
+    forbidden = tuple(name for name in plan.capabilities if name == "O1")
+    if forbidden:
+        return ExecutionOutcome(
+            status=BoundaryStatus.BLOCKED,
+            policy_version=plan.policy_version,
+            unresolved_items=("O1:FORBIDDEN_BOUNDARY_CAPABILITY",),
+        )
+
     # Complete preflight: every declared capability must exist and be callable
     # before the first capability is invoked.
     missing = tuple(name for name in plan.capabilities if name not in catalog)
