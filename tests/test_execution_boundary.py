@@ -46,6 +46,21 @@ def test_plan_requires_policy_version():
         ExecutionPlan(capabilities=("C0",), policy_version="")
 
 
+def test_o1_is_blocked_before_analytical_execution():
+    called = []
+    outcome = execute_plan(
+        purchase(), context(),
+        ExecutionPlan(capabilities=("O1", "PRICE"), policy_version="E2E-1"),
+        {
+            "O1": lambda *_: (called.append("O1") or completed("O1")),
+            "PRICE": lambda *_: (called.append("PRICE") or completed("PRICE")),
+        },
+    )
+    assert outcome.status == BoundaryStatus.BLOCKED
+    assert outcome.unresolved_items == ("O1:FORBIDDEN_BOUNDARY_CAPABILITY",)
+    assert called == []
+
+
 def test_unknown_capability_is_blocked_before_execution():
     called = []
     plan = ExecutionPlan(capabilities=("C0", "PRICE"), policy_version="E2E-1")
@@ -115,7 +130,7 @@ def test_identity_mismatch_is_rejected():
         execute_plan(
             bad, context(),
             ExecutionPlan(capabilities=("C0",), policy_version="E2E-1"),
-            {"C0": completed},
+            {"C0": lambda *_: completed("C0")},
         )
 
 
@@ -125,7 +140,7 @@ def test_decision_identity_mismatch_is_rejected():
         execute_plan(
             bad, context(),
             ExecutionPlan(capabilities=("C0",), policy_version="E2E-1"),
-            {"C0": completed},
+            {"C0": lambda *_: completed("C0")},
         )
 
 
@@ -253,13 +268,14 @@ def test_context_versions_are_passed_unchanged():
 
 def test_plan_and_inputs_are_not_mutated():
     plan = ExecutionPlan(capabilities=("C0",), policy_version="E2E-1")
-    invokers = {"C0": completed}
+    invokers = {"C0": lambda *_: completed("C0")}
     original_purchase = purchase()
     original_context = context()
     before_plan = plan.model_dump()
     before_purchase = original_purchase.model_dump()
     before_context = original_context.model_dump()
-    execute_plan(original_purchase, original_context, plan, invokers)
+    outcome = execute_plan(original_purchase, original_context, plan, invokers)
+    assert outcome.status == BoundaryStatus.COMPLETED
     assert plan.model_dump() == before_plan
     assert original_purchase.model_dump() == before_purchase
     assert original_context.model_dump() == before_context
@@ -292,8 +308,9 @@ def test_execution_outcome_is_immutable():
     outcome = execute_plan(
         purchase(), context(),
         ExecutionPlan(capabilities=("C0",), policy_version="E2E-1"),
-        {"C0": completed},
+        {"C0": lambda *_: completed("C0")},
     )
+    assert outcome.status == BoundaryStatus.COMPLETED
     with pytest.raises((TypeError, ValueError)):
         outcome.status = BoundaryStatus.FAILED
 
@@ -306,6 +323,6 @@ def test_forbidden_business_outputs_are_absent(forbidden):
     outcome = execute_plan(
         purchase(), context(),
         ExecutionPlan(capabilities=("C0",), policy_version="E2E-1"),
-        {"C0": completed},
+        {"C0": lambda *_: completed("C0")},
     )
     assert not hasattr(outcome, forbidden)
