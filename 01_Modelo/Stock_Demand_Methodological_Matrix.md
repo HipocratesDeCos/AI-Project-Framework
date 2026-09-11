@@ -1,7 +1,7 @@
 # EIOS — STOCK & DEMAND METHODOLOGICAL MATRIX
 
-**Versión:** 0.8
-**Estado:** DISEÑO PARCIAL — STK-M01…M07 CERRADOS; STK-M08…M10 PENDIENTES
+**Versión:** 0.9
+**Estado:** DISEÑO PARCIAL — STK-M01…M08 CERRADOS; STK-M09…M10 PENDIENTES
 **Baseline:** EIOS Vertical MVP  
 **Fecha:** 10/09/2026
 
@@ -178,9 +178,13 @@ La referencia futura consume M05 y no vuelve a sumar M06. La tolerancia porcentu
 
 El resultado no autoriza cancelaciones, devoluciones, liquidaciones, transferencias o reducciones. Autoridad completa: `01_Modelo/STK_M07_Excess_Authority.md`.
 
-### STK-M08 — Pedido confirmado
+### STK-M08 — Pedido confirmado — CERRADO
 
-Debe definirse cómo se demuestra la absorción del exceso por un pedido confirmado y cómo se evita convertir una expectativa en hecho.
+STK-M08 representa demanda comercial firme y evidenciada que absorbe total o parcialmente exceso M07. Un pedido exige identidad, cliente, artículo, cantidad, fechas, estado y fuente verificables; un booleano aislado no basta.
+
+La absorción es el mínimo entre exceso y cantidad confirmada aplicable pendiente de servir; se conservan exceso original, absorción y residual, sin reutilizar cantidades. Estados: `NO_EXISTE`, `NO_APLICABLE`, `APLICABLE_Y_VALIDADA`, `NO_VERIFICABLE`.
+
+La mitigación no reescribe M07 ni autoriza decisiones. Autoridad completa: `01_Modelo/STK_M08_Confirmed_Demand_Authority.md`.
 
 ### STK-M09 — Ausencia de datos
 
@@ -194,7 +198,7 @@ Debe definirse el tratamiento de datos de stock/demanda temporalmente incompatib
 
 ## 9. Regla de no invención
 
-Hasta que `STK-M08…STK-M10` estén resueltos documentalmente:
+Hasta que `STK-M09…STK-M10` estén resueltos documentalmente:
 
 - no se implementan fórmulas cuantitativas de STK;
 - no se asignan consumidores definitivos a `P-STK-*` o `PYE-*` por inferencia nominal;
@@ -225,6 +229,6 @@ STK podrá pasar a contrato técnico cuando exista evidencia suficiente para det
 
 ## 11. Estado
 
-**STK Methodological Matrix v0.8**
-**Estado:** DISEÑO PARCIAL — STK-M01…M07 CERRADOS; STK-M08…M10 PENDIENTES
+**STK Methodological Matrix v0.9**
+**Estado:** DISEÑO PARCIAL — STK-M01…M08 CERRADOS; STK-M09…M10 PENDIENTES
 **No constituye contrato de implementación.**
