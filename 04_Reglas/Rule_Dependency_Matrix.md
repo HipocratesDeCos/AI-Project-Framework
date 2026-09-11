@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.4  
+**Versión:** 1.5  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
@@ -349,6 +349,8 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 | DEP-DAT-001-RDAT-001 | `R-DAT-001` | `PARAMETER` | `P-DAT-001` | PARAMETER | Parámetro consumidor de calidad de datos | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
 | DEP-HIS-002-RHIS-001 | `R-HIS-001` | `PARAMETER` | `P-DAT-002` | PARAMETER | Antigüedad máxima de referencia | PENDING | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
 | DEP-HIS-006-RHIS-002 | `R-HIS-002` | `PARAMETER` | `P-PRE-006` | PARAMETER | Mínimo de operaciones comparables | PENDING | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
+| DEP-ENT-BSQ-RENT-001 | `R-ENT-001` | `EVIDENCE` | `BaselineStockoutQualification` | STK / ENT METHODOLOGY | Timing de agotamiento cualificado desde escenario base sin la compra evaluada | PENDING | `04_Reglas/Especificacion_Reglas_Entrega_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Exige provenance de baseline y exclusión de la compra; no implica dependencia COMPONENT directa a STK. |
+| DEP-ENT-DTE-RENT-001 | `R-ENT-001` | `EVIDENCE` | `PurchaseSpecificDeliveryTimingEvidence` | DELIVERY / SUPPLIER EVIDENCE ADAPTER | Fecha prevista de entrega aplicable específicamente a la propuesta evaluada | PENDING | `04_Reglas/Especificacion_Reglas_Entrega_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Supplier DELIVERY_DATE es fuente opcional adaptada, no dependencia COMPONENT obligatoria. |
 
 ---
 
@@ -368,6 +370,10 @@ Las siguientes relaciones no deben inferirse:
 | `P-STK-006` | consumidor directo `R-STK-001…004` | `REJECTED` como relación directa; gobierna ventana histórica cuando exista valor vigente. |
 | `P-PYE-001…006` | consumidor directo `R-STK-001…004` | `REJECTED` como relación directa en esta versión; sus funciones metodológicas no se convierten en condiciones de regla. |
 | `P-PYE-005` | ventas históricas → demanda STK | `REJECTED` como transformación implícita; requiere política específica posterior si llegara a autorizarse. |
+| `P-PYE-004` | consumidor directo `R-ENT-001` | `REJECTED` como relación directa; no autoriza derivación lead time → fecha de entrega. |
+| `lead_time` | `lead_time → expected_delivery_date` dentro de ENT | `REJECTED` como transformación implícita; requiere autoridad externa específica. |
+| `scenario_id` | `scenario_id → baseline` | `REJECTED` como semántica suficiente; baseline exige relation/provenance demostrada. |
+| `Supplier` | dependencia COMPONENT obligatoria de `R-ENT-001` | `REJECTED` por falta de exclusividad: delivery evidence puede proceder de otra fuente autorizada. |
 
 Estas determinaciones se apoyan en la documentación especializada correspondiente y no deben reabrirse por similitud semántica.
 
@@ -380,7 +386,7 @@ La cobertura se limita a relaciones cuya existencia está demostrada documentalm
 Quedan pendientes de cruce, entre otros:
 
 - dependencias `DATA` no identificadas individualmente;
-- dependencias `EVIDENCE` específicas por regla;
+- dependencias `EVIDENCE` específicas por reglas distintas de `R-ENT-001` cuando aún carezcan de fuente demostrable;
 - dependencias `COMPONENT` cuando no exista evidencia documental directa;
 - determinación documental de `Criticality` por dependencia;
 - determinación documental de `Evaluability_Impact` por dependencia;
@@ -388,6 +394,8 @@ Quedan pendientes de cruce, entre otros:
 - relaciones adicionales de parámetros fuera del cruce STK/PYE ya cerrado que sigan marcadas como pendientes en la matriz de parámetros.
 
 El cruce individual `P-STK/P-PYE ↔ R-STK` deja de formar parte de los pendientes generales: queda resuelto por `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md` y reconciliado en esta versión.
+
+El cruce `R-ENT-001 ↔ evidencia temporal` deja de formar parte de los pendientes generales: queda demostrado por `04_Reglas/Especificacion_Reglas_Entrega_MVP.md` y se materializa mediante dos dependencias `EVIDENCE / CONFIRMED`. Permanecen `PENDING` la criticidad y el impacto de evaluabilidad por no existir autoridad suficiente para asignarlos.
 
 Estos pendientes no autorizan inferencias. Representan **gaps de evidencia/dependencia aún no resueltos**.
 
@@ -441,20 +449,29 @@ No se debe:
 
 # 22. Estado
 
-**Versión:** 1.4  
+**Versión:** 1.5  
 **Estado:** CERRADO  
 **Ámbito:** Dependencias transversales de reglas EIOS  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
-Esta versión amplía exclusivamente la cobertura `PARAMETER / DERIVED` demostrada para STK, manteniendo `Criticality` y `Evaluability_Impact` en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura de `DATA`, `EVIDENCE` ni `COMPONENT`.
+Esta versión conserva íntegramente la cobertura previa y amplía exclusivamente dos relaciones `EVIDENCE` demostradas para `R-ENT-001`, manteniendo `Criticality` y `Evaluability_Impact` en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA` ni `COMPONENT`.
 
-La reconciliación STK confirma:
+La reconciliación STK mantiene:
 
 - `P-STK-004 → R-STK-002` como relación directa;
 - `P-STK-004 → R-STK-003` como relación derivada;
 - `P-STK-005 → R-STK-003` como relación derivada;
 - ausencia de consumidor directo demostrado para el resto de `P-STK/P-PYE` en las reglas STK vigentes;
 - prohibición de utilizar `P-PYE-005` como transformación implícita ventas → demanda.
+
+La reconciliación ENT confirma:
+
+- `R-ENT-001 → BaselineStockoutQualification` como `EVIDENCE / CONFIRMED`;
+- `R-ENT-001 → PurchaseSpecificDeliveryTimingEvidence` como `EVIDENCE / CONFIRMED`;
+- ausencia de parámetro ENT demostrado;
+- rechazo de `P-PYE-004` como consumidor directo de `R-ENT-001`;
+- rechazo de la transformación implícita lead time → expected delivery date;
+- ausencia de dependencia COMPONENT obligatoria a Supplier o STK por mera procedencia de datos.
 
 ### Dictamen de cierre
 
@@ -465,10 +482,11 @@ La auditoría documental confirma:
 - compatibilidad con `04_Reglas/Evidence_Contract.md`;
 - conformidad con `03_Arquitectura/Architecture_Blueprint.md`;
 - compatibilidad con `01_Modelo/STK_Contract_Entry_Authority.md` y M01…M10;
+- compatibilidad con `01_Modelo/Delivery_Stockout_Methodological_Closure_v0.3.md`;
 - ausencia de redefinición de C0;
 - mantenimiento de gaps no demostrados como `PENDING` o `REJECTED`, sin inferencias.
 
-El cierre es **contractual y documental**. No implica completar dependencias `DATA`, `EVIDENCE` o `COMPONENT` que carezcan de evidencia demostrable, ni asignar `Criticality` o `Evaluability_Impact` por inferencia.
+El cierre es **contractual y documental**. No implica completar dependencias `DATA`, `EVIDENCE` o `COMPONENT` de otras reglas que carezcan de evidencia demostrable, ni asignar `Criticality` o `Evaluability_Impact` por inferencia.
 
 Los pendientes declarados constituyen deuda controlada de cobertura y no invalidan el contrato cerrado de la matriz.
 
