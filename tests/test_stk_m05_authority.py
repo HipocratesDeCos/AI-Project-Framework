@@ -46,4 +46,5 @@ def test_m05_preserves_parameter_and_human_authority_boundaries():
     assert "| PYE-001 | Horizonte de proyección | 90 | días | Pendiente de validación |" in catalog
     assert "| PYE-006 | Umbral de riesgo de rotura | 15 | días | Pendiente de validación |" in catalog
     assert "`STK-M06…M10` permanecen pendientes" in authority
-    assert "**Estado actual:** NO APTO PARA IMPLEMENTACIÓN CUANTITATIVA." in matrix
+    assert "**Estado actual:** APTO PARA DISEÑO DE CONTRATO TÉCNICO STK." in matrix
+    assert "**No constituye por sí misma implementación ejecutable.**" in matrix

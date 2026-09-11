@@ -52,4 +52,5 @@ def test_m09_preserves_human_authority_and_stk_boundary():
     assert "no constituye por sí mismo una decisión de compra" in authority
     assert "autoridad decisional final permanece en la persona autorizada" in authority
     assert "`STK-M10` permanece pendiente" in authority
-    assert "**Estado actual:** NO APTO PARA IMPLEMENTACIÓN CUANTITATIVA." in matrix
+    assert "**Estado actual:** APTO PARA DISEÑO DE CONTRATO TÉCNICO STK." in matrix
+    assert "**No constituye por sí misma implementación ejecutable.**" in matrix

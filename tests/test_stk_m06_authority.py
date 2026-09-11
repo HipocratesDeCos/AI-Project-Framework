@@ -48,4 +48,5 @@ def test_m06_preserves_parameter_and_human_authority_boundaries():
     assert "| PYE-003 | Considerar compras en tránsito | Sí | Sí/No | Pendiente de validación |" in catalog
     assert "No constituye por sí mismo autorización de compra" in authority
     assert "`STK-M07…M10` permanecen pendientes" in authority
-    assert "**Estado actual:** NO APTO PARA IMPLEMENTACIÓN CUANTITATIVA." in matrix
+    assert "**Estado actual:** APTO PARA DISEÑO DE CONTRATO TÉCNICO STK." in matrix
+    assert "**No constituye por sí misma implementación ejecutable.**" in matrix

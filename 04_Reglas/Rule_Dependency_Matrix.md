@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.3  
+**Versión:** 1.4  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
@@ -328,6 +328,9 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | DEP-PRE-004-RPRE-001 | `R-PRE-001` | `PARAMETER` | `P-PRE-004` | PARAMETER | Parámetro consumidor de la regla | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa documentada. |
 | DEP-PRE-005-RPRE-002 | `R-PRE-002` | `PARAMETER` | `P-PRE-005` | PARAMETER | Parámetro consumidor de la regla | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa documentada. |
+| DEP-STK-004-RSTK-002 | `R-STK-002` | `PARAMETER` | `P-STK-004` | PARAMETER | Umbral máximo de cobertura consumido por la condición de cobertura elevada | PENDING | `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa demostrada por R-STK-002 + M04. |
+| DEP-STK-004-RSTK-003 | `R-STK-003` | `DERIVED` | `P-STK-004` | PARAMETER | Conversión de coverage_maximum a cantidad máxima cuando el máximo se gobierna por cobertura | PENDING | `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Transformación documentada por M04/M07. |
+| DEP-STK-005-RSTK-003 | `R-STK-003` | `DERIVED` | `P-STK-005` | PARAMETER | Tolerancia incorporada al umbral cuantitativo de exceso | PENDING | `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Transformación documentada por M07. |
 | DEP-MGE-001-RMGE-001 | `R-MGE-001` | `PARAMETER` | `P-MGE-001` | PARAMETER | Parámetro consumidor de margen | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa documentada. |
 | DEP-MGE-002-RMGE-003 | `R-MGE-003` | `PARAMETER` | `P-MGE-002` | PARAMETER | Parámetro consumidor de margen objetivo | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
 | DEP-MGE-003-RMGE-002 | `R-MGE-002` | `PARAMETER` | `P-MGE-003` | PARAMETER | Parámetro consumidor de tolerancia | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
@@ -359,6 +362,12 @@ Las siguientes relaciones no deben inferirse:
 | `P-DAT-003` | `P-DAT-003 → R-HIS-002` | `REJECTED` como consumidor directo; el consumidor demostrado es `P-PRE-006`. |
 | `P-DAT-003` | `P-DAT-003 → P-PRE-006` maestro → derivado | `REJECTED` por falta de transformación documentada. |
 | `P-PRE-003` | `P-PRE-003 → P-DAT-002` maestro → derivado | `REJECTED` por falta de transformación documentada. |
+| `P-STK-001` | consumidor directo `R-STK-001…004` | `REJECTED` como relación directa en la autoridad vigente; mantiene función metodológica M02. |
+| `P-STK-002` | consumidor directo `R-STK-001…004` | `REJECTED` como relación directa; mantiene función metodológica M03. |
+| `P-STK-003` | consumidor directo `R-STK-001…004` | `REJECTED` como relación directa; mantiene función metodológica M04. |
+| `P-STK-006` | consumidor directo `R-STK-001…004` | `REJECTED` como relación directa; gobierna ventana histórica cuando exista valor vigente. |
+| `P-PYE-001…006` | consumidor directo `R-STK-001…004` | `REJECTED` como relación directa en esta versión; sus funciones metodológicas no se convierten en condiciones de regla. |
+| `P-PYE-005` | ventas históricas → demanda STK | `REJECTED` como transformación implícita; requiere política específica posterior si llegara a autorizarse. |
 
 Estas determinaciones se apoyan en la documentación especializada correspondiente y no deben reabrirse por similitud semántica.
 
@@ -366,7 +375,7 @@ Estas determinaciones se apoyan en la documentación especializada correspondien
 
 # 18. Cobertura inicial y pendientes
 
-La cobertura inicial se limita a relaciones cuya existencia está demostrada documentalmente.
+La cobertura se limita a relaciones cuya existencia está demostrada documentalmente.
 
 Quedan pendientes de cruce, entre otros:
 
@@ -376,7 +385,9 @@ Quedan pendientes de cruce, entre otros:
 - determinación documental de `Criticality` por dependencia;
 - determinación documental de `Evaluability_Impact` por dependencia;
 - tratamientos de contingencia específicos cuando una autoridad competente los defina;
-- relaciones adicionales de parámetros marcadas como pendientes en la matriz de parámetros.
+- relaciones adicionales de parámetros fuera del cruce STK/PYE ya cerrado que sigan marcadas como pendientes en la matriz de parámetros.
+
+El cruce individual `P-STK/P-PYE ↔ R-STK` deja de formar parte de los pendientes generales: queda resuelto por `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md` y reconciliado en esta versión.
 
 Estos pendientes no autorizan inferencias. Representan **gaps de evidencia/dependencia aún no resueltos**.
 
@@ -430,30 +441,35 @@ No se debe:
 
 # 22. Estado
 
-**Versión:** 1.3  
+**Versión:** 1.4  
 **Estado:** CERRADO  
 **Ámbito:** Dependencias transversales de reglas EIOS  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
-Esta versión depura quirúrgicamente las inferencias detectadas en `Criticality` y `Evaluability_Impact`. No amplía la cobertura de `DATA`, `EVIDENCE` ni `COMPONENT`.
+Esta versión amplía exclusivamente la cobertura `PARAMETER / DERIVED` demostrada para STK, manteniendo `Criticality` y `Evaluability_Impact` en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura de `DATA`, `EVIDENCE` ni `COMPONENT`.
 
-La matriz queda formalmente cerrada tras superar la auditoría de contrato y autoridad realizada sobre el baseline `1183c4ae1a67d63e0051c45a84022353adbc1463`.
+La reconciliación STK confirma:
+
+- `P-STK-004 → R-STK-002` como relación directa;
+- `P-STK-004 → R-STK-003` como relación derivada;
+- `P-STK-005 → R-STK-003` como relación derivada;
+- ausencia de consumidor directo demostrado para el resto de `P-STK/P-PYE` en las reglas STK vigentes;
+- prohibición de utilizar `P-PYE-005` como transformación implícita ventas → demanda.
 
 ### Dictamen de cierre
 
-La auditoría de cierre confirma:
+La auditoría documental confirma:
 
 - conformidad con `00_Gobierno/Matriz_Autoridad_Documental.md`;
 - coherencia con la Matriz de Parámetros y la Matriz de Reglas;
 - compatibilidad con `04_Reglas/Evidence_Contract.md`;
 - conformidad con `03_Arquitectura/Architecture_Blueprint.md`;
-- ausencia de contradicciones con el C0 físico y sus tests;
-- coherencia con el historial Git revisado;
-- ausencia de autoridad superior que deba modificarse;
-- mantenimiento explícito de los gaps no demostrados como `PENDING`, sin inferencias.
+- compatibilidad con `01_Modelo/STK_Contract_Entry_Authority.md` y M01…M10;
+- ausencia de redefinición de C0;
+- mantenimiento de gaps no demostrados como `PENDING` o `REJECTED`, sin inferencias.
 
-El cierre es **contractual y documental**. No implica completar las dependencias `DATA`, `EVIDENCE` o `COMPONENT` que carezcan de evidencia demostrable, ni asignar `Criticality` o `Evaluability_Impact` por inferencia.
+El cierre es **contractual y documental**. No implica completar dependencias `DATA`, `EVIDENCE` o `COMPONENT` que carezcan de evidencia demostrable, ni asignar `Criticality` o `Evaluability_Impact` por inferencia.
 
-Los pendientes declarados en esta versión constituyen deuda controlada de cobertura y no invalidan el contrato cerrado de la matriz. Cualquier nueva dependencia deberá incorporarse mediante el procedimiento de actualización establecido en esta matriz y con evidencia documental suficiente.
+Los pendientes declarados constituyen deuda controlada de cobertura y no invalidan el contrato cerrado de la matriz.
 
 **Estado de cierre: CERRADO.**

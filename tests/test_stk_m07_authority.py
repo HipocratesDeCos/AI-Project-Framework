@@ -53,4 +53,5 @@ def test_m07_preserves_catalog_and_human_authority_boundaries():
     assert "| STK-005 | Tolerancia de exceso | 10 | % | Alerta | Pendiente de validación |" in catalog
     assert "No autoriza automáticamente cancelaciones" in authority
     assert "`STK-M08…M10` permanecen pendientes" in authority
-    assert "**Estado actual:** NO APTO PARA IMPLEMENTACIÓN CUANTITATIVA." in matrix
+    assert "**Estado actual:** APTO PARA DISEÑO DE CONTRATO TÉCNICO STK." in matrix
+    assert "**No constituye por sí misma implementación ejecutable.**" in matrix

@@ -49,4 +49,5 @@ def test_m08_preserves_human_authority_and_stk_boundary():
     assert "No equivale a autorización de compra, cancelación, reducción de stock" in authority
     assert "autoridad decisional humana" in authority
     assert "`STK-M09…M10` permanecen pendientes" in authority
-    assert "**Estado actual:** NO APTO PARA IMPLEMENTACIÓN CUANTITATIVA." in matrix
+    assert "**Estado actual:** APTO PARA DISEÑO DE CONTRATO TÉCNICO STK." in matrix
+    assert "**No constituye por sí misma implementación ejecutable.**" in matrix
