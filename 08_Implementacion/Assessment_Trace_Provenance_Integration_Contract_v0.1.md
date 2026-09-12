@@ -181,5 +181,14 @@ Se ha verificado el diff completo frente al baseline:
 - los tests cubren `reason`, fingerprint, `trace_id`, contexto extranjero, fingerprint de input, legacy, incoherencias status/outcome/evidence, regla no catalogada, duplicados, NOT_EVALUABLE, inmutabilidad e invoker E2E;
 - no aparece score, ranking, recomendación, selección, aprobación, rechazo ni autoridad decisional.
 
-**DICTAMEN AUDITORÍA 2:** SUPERADA — SIN BLOQUEADORES DE DISEÑO.  
-**Cierre técnico definitivo:** condicionado a CI completa sobre el head exacto de la PR y posterior CI de `main`.
+**DICTAMEN AUDITORÍA 2:** SUPERADA — SIN BLOQUEADORES DE DISEÑO.
+
+## 17. Hallazgo CI #678 y depuración
+
+La primera CI sobre PR #105 ejecutó 804 tests: 803 pasaron y uno antiguo falló.
+
+El fallo no era productivo. `build_support_package` ordena y deduplica por contrato las `trace_references` mediante `sorted(set(...))`; el test `test_batch_crc_resolves_multiple_active_rules_by_effect_priority` asumía accidentalmente que el orden de UUID de Trace coincidía con el orden de las reglas. El refuerzo del material de `trace_id` cambió los UUID y expuso esa dependencia no contractual.
+
+**Depuración:** el test se corrige para afirmar la ordenación canónica de O1. No se modifica `build_support_package`, CRC, Rules runtime ni ninguna semántica empresarial.
+
+**Cierre técnico definitivo:** condicionado a una nueva CI completa sobre el head corregido de la PR y posterior CI de `main`.
