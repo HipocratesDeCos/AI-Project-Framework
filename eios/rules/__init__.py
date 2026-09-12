@@ -1,4 +1,4 @@
-"""EIOS rule-engine components."""
+"""EIOS rule-engine public components."""
 
 from .catalog import authorized_rule, authorized_rule_metadata, implemented_rule_ids
 from .delivery import (
@@ -52,16 +52,7 @@ from .provenance import (
     run_provenanced_assessments_vertical,
     validate_assessment_trace_binding,
 )
-from .runtime import (
-    ConsolidatedBaseResult,
-    RuleAssessmentBinding,
-    RuleSetVerticalResult,
-    RuleVerticalResult,
-    bind_authorized_assessment,
-    run_assessment_set_vertical,
-    run_assessment_vertical,
-    run_authorized_assessments_vertical,
-)
+from .runtime import ConsolidatedBaseResult, RuleSetVerticalResult, RuleVerticalResult
 from .scenario_integration import (
     build_authorized_scenario_analytics_from_provenanced_assessments,
 )
@@ -100,7 +91,6 @@ __all__ = [
     "R_STK_003",
     "R_STK_004",
     "REnt001VerticalResult",
-    "RuleAssessmentBinding",
     "RuleSetVerticalResult",
     "RuleVerticalResult",
     "RulesEngineC0Invoker",
@@ -112,7 +102,6 @@ __all__ = [
     "StockExcessRuleInputs",
     "authorized_rule",
     "authorized_rule_metadata",
-    "bind_authorized_assessment",
     "build_authorized_scenario_analytics_from_provenanced_assessments",
     "build_domain_rules_c0_invoker",
     "build_provenanced_rules_engine_c0_invoker",
@@ -127,9 +116,6 @@ __all__ = [
     "finance_basic_result_ref",
     "implemented_rule_ids",
     "price_intelligence_result_ref",
-    "run_assessment_set_vertical",
-    "run_assessment_vertical",
-    "run_authorized_assessments_vertical",
     "run_domain_rules",
     "run_provenanced_assessments_vertical",
     "run_r_ent_001_vertical",
