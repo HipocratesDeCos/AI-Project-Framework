@@ -101,6 +101,32 @@ def _validate_negotiation_intelligence_context(
         )
 
 
+def _validate_negotiation_ladder_context(
+    result: NegotiationLadderResult,
+    context: DecisionContext,
+    negotiation_intelligence_result: NegotiationIntelligenceResult | None,
+) -> None:
+    refs = result.context_references
+    mismatches: list[str] = []
+
+    if refs.decision_id != context.decision_id:
+        mismatches.append("decision_id")
+    if refs.scenario_id is not None and refs.scenario_id != context.scenario_id:
+        mismatches.append("scenario_id")
+    if (
+        negotiation_intelligence_result is not None
+        and refs.negotiation_result_id
+        != negotiation_intelligence_result.negotiation_result_id
+    ):
+        mismatches.append("negotiation_result_id")
+
+    if mismatches:
+        raise ValueError(
+            "NegotiationLadderResult no coincide con su contexto autorizado: "
+            + ", ".join(mismatches)
+        )
+
+
 def run_mvp_execution(
     *,
     purchase: PurchaseOperation,
@@ -149,6 +175,11 @@ def run_mvp_execution(
             negotiation_intelligence_result, adapt_ni
         )
     if negotiation_ladder_result is not None:
+        _validate_negotiation_ladder_context(
+            negotiation_ladder_result,
+            context,
+            negotiation_intelligence_result,
+        )
         invokers["NEGOTIATION_LADDER"] = _snapshot_invoker(
             negotiation_ladder_result, adapt_nl
         )
