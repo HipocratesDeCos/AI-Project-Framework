@@ -1,9 +1,8 @@
 """Controlled two-stage O4 -> O2 -> O3 scenario orchestration.
 
 Stage 1 materializes O4 candidates through O2 and exposes their scenario IDs.
-Stage 2 invokes O3 only when complete, explicit analytical packages containing
-pre-produced Assessments and Viability Frontier results are supplied for every
-VALID O2 scenario.
+Raw Stage 2 transport/completion is internal: external callers must cross the
+provenance-safe scenario integration boundary before O3 is invoked.
 """
 from __future__ import annotations
 
@@ -24,7 +23,7 @@ from .scenario_generation import GenerationPolicy, GenerationVariable
 
 
 class AuthorizedScenarioAnalytics(BaseModel):
-    """Externally produced analytical inputs explicitly bound to one scenario."""
+    """Internal Stage-2 transport; its construction alone proves no provenance."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -116,12 +115,17 @@ def prepare_o4_o2_o3_orchestration(
     )
 
 
-def complete_o4_o2_o3_orchestration(
+def _complete_o4_o2_o3_orchestration(
     *,
     preparation: O4O2O3Preparation,
     analytics: tuple[AuthorizedScenarioAnalytics, ...] = (),
 ) -> O4O2O3OrchestrationResult:
-    """Stage 2: invoke O3 only after exact complete analytical association."""
+    """Internal Stage 2 after analytical provenance has been established.
+
+    This function validates exact analytical coverage and invokes O3, but it does
+    not itself prove C0/VF provenance. External completion must use the public
+    provenance-safe boundary in ``eios.rules.scenario_integration``.
+    """
     preparation_snapshot = preparation.model_copy(deep=True)
     analytics_snapshot = tuple(item.model_copy(deep=True) for item in analytics)
 
@@ -172,9 +176,7 @@ def complete_o4_o2_o3_orchestration(
 
 
 __all__ = [
-    "AuthorizedScenarioAnalytics",
     "O4O2O3Preparation",
     "O4O2O3OrchestrationResult",
     "prepare_o4_o2_o3_orchestration",
-    "complete_o4_o2_o3_orchestration",
 ]

@@ -2,16 +2,20 @@ from copy import deepcopy
 from datetime import date
 from decimal import Decimal
 
-from eios.core.models import DecisionContext, PurchaseOperation
-from eios.core.o4_o2_o3_orchestration import (
-    AuthorizedScenarioAnalytics,
-    complete_o4_o2_o3_orchestration,
-    prepare_o4_o2_o3_orchestration,
-)
+from eios.core.c0_reproducibility import build_trace
+from eios.core.models import Assessment, DecisionContext, PurchaseOperation
+from eios.core.o4_o2_o3_orchestration import prepare_o4_o2_o3_orchestration
 from eios.core.scenario_evaluation import ScenarioEvaluationStatus
 from eios.core.scenario_generation import GenerationPolicy, GenerationVariable
+from eios.core.viability_frontier import ViabilityResult, ViabilityStatus
 from eios.frontend.application_boundary import present_vertical_mvp_result
 from eios.frontend.visual.vertical_mvp_view_model import build_vertical_mvp_view_model
+from eios.rules import (
+    AssessmentTraceBinding,
+    ProvenancedScenarioAnalyticsInput,
+    authorized_rule,
+    complete_provenanced_o4_o2_o3_orchestration,
+)
 from eios.vertical_orchestration import run_vertical_mvp_from_orchestration
 
 
@@ -51,31 +55,81 @@ def _variable(domain=(1, 2)) -> GenerationVariable:
     )
 
 
+def _child_context(preparation, scenario_id: str) -> DecisionContext:
+    base = preparation.context
+    return DecisionContext(
+        decision_id=base.decision_id,
+        scenario_id=scenario_id,
+        rules_version=base.rules_version,
+        parameters_version=base.parameters_version,
+        data_snapshot_id=base.data_snapshot_id,
+    )
+
+
+def _child_purchase(preparation, scenario_id: str) -> PurchaseOperation:
+    return PurchaseOperation(
+        decision_id=preparation.context.decision_id,
+        scenario_id=scenario_id,
+        article_id="ART-E2E",
+        supplier_id="SUP-E2E",
+        quantity=Decimal("12"),
+        unit_price=Decimal("4.50"),
+        currency="EUR",
+        operation_date=date(2026, 9, 12),
+    )
+
+
 def _analytics(
+    preparation,
     scenario_id: str,
     *,
     status: ScenarioEvaluationStatus = ScenarioEvaluationStatus.COMPLETED,
-) -> AuthorizedScenarioAnalytics:
-    kwargs = {
-        "scenario_id": scenario_id,
-        "assessments": (
-            {
-                "assessment_id": f"A-{scenario_id}",
-                "status": "AUTHORIZED",
-            },
-        ),
-        "viability_result": {
-            "viability_id": f"VF-{scenario_id}",
-            "status": "AUTHORIZED",
-        },
-        "trace_references": (f"TRACE-{scenario_id}",),
-        "status": status,
-    }
+) -> ProvenancedScenarioAnalyticsInput:
+    context = _child_context(preparation, scenario_id)
+    purchase = _child_purchase(preparation, scenario_id)
+    assessment = Assessment(
+        rule_id="R-STK-003",
+        status="EVALUABLE",
+        outcome="TRUE",
+        evidence_ids=[f"EV-{scenario_id}"],
+        reason=f"Scenario {scenario_id} assessment.",
+    )
+    rule = authorized_rule(assessment.rule_id, context.rules_version)
+    trace = build_trace(
+        context,
+        purchase,
+        rule,
+        tuple(assessment.evidence_ids),
+        assessment,
+    )
+    viability = ViabilityResult(
+        decision_id=context.decision_id,
+        scenario_id=scenario_id,
+        status=ViabilityStatus.VIABLE,
+        assessment_ids=(f"VF-A-{scenario_id}",),
+        rule_ids=(f"VF-R-{scenario_id}",),
+        trace_references=(f"VF-TRACE-{scenario_id}",),
+        rules_version=context.rules_version,
+        parameters_version=context.parameters_version,
+        data_snapshot_id=context.data_snapshot_id,
+    )
+    limitations = ()
+    failure_reason = None
     if status is ScenarioEvaluationStatus.NOT_EVALUABLE:
-        kwargs["limitations"] = ("missing-evidence",)
+        limitations = ("missing-evidence",)
     if status is ScenarioEvaluationStatus.FAILED:
-        kwargs["failure_reason"] = "technical-evaluation-failure"
-    return AuthorizedScenarioAnalytics(**kwargs)
+        failure_reason = "technical-evaluation-failure"
+    return ProvenancedScenarioAnalyticsInput(
+        scenario_id=scenario_id,
+        purchase=purchase,
+        assessment_bindings=(
+            AssessmentTraceBinding(assessment=assessment, trace=trace),
+        ),
+        viability_result=viability,
+        status=status,
+        limitations=limitations,
+        failure_reason=failure_reason,
+    )
 
 
 def _run_chain(
@@ -96,10 +150,10 @@ def _run_chain(
         if scenario.status.value == "VALID"
     )
     analytics = tuple(
-        _analytics(scenario.scenario_id, status=status)
+        _analytics(preparation, scenario.scenario_id, status=status)
         for scenario in valid_scenarios
     )
-    orchestration = complete_o4_o2_o3_orchestration(
+    orchestration = complete_provenanced_o4_o2_o3_orchestration(
         preparation=preparation,
         analytics=analytics,
     )
@@ -126,6 +180,7 @@ def test_completed_pipeline_preserves_identity_analytics_and_traceability_to_vie
     chain = _run_chain()
     view = chain["view"]
     context = view["scenario_execution_context"]
+    analytics_by_id = {item.scenario_id: item for item in chain["analytics"]}
 
     assert view["execution_status"] == "COMPLETED"
     assert view["rules_available"] is False
@@ -147,18 +202,32 @@ def test_completed_pipeline_preserves_identity_analytics_and_traceability_to_vie
 
     for record in view["scenario_records"]:
         scenario_id = record["scenario_id"]
+        source = analytics_by_id[scenario_id]
         assert record["status"] == "COMPLETED"
         assert record["values"]["assessments"] == [
             {
-                "assessment_id": f"A-{scenario_id}",
-                "status": "AUTHORIZED",
+                "rule_id": "R-STK-003",
+                "status": "EVALUABLE",
+                "outcome": "TRUE",
+                "evidence_ids": [f"EV-{scenario_id}"],
+                "reason": f"Scenario {scenario_id} assessment.",
             }
         ]
         assert record["values"]["viability_result"] == {
-            "viability_id": f"VF-{scenario_id}",
-            "status": "AUTHORIZED",
+            "decision_id": "D-E2E-SCENARIO",
+            "scenario_id": scenario_id,
+            "status": "VIABLE",
+            "assessment_ids": [f"VF-A-{scenario_id}"],
+            "rule_ids": [f"VF-R-{scenario_id}"],
+            "trace_references": [f"VF-TRACE-{scenario_id}"],
+            "rules_version": "RULES-E2E-1",
+            "parameters_version": "PARAMS-E2E-1",
+            "data_snapshot_id": "SNAP-E2E-1",
+            "limitation": None,
         }
-        assert record["trace_references"] == [f"TRACE-{scenario_id}"]
+        assert record["trace_references"] == [
+            source.assessment_bindings[0].trace.trace_id
+        ]
 
 
 def test_multiple_scenarios_keep_deterministic_order_through_entire_chain():
@@ -221,11 +290,11 @@ def test_pipeline_is_immutable_and_presentation_outputs_are_detached():
         policy=_policy(),
     )
     scenario_id = preparation.materialization.scenarios[0].scenario_id
-    analytics = (_analytics(scenario_id),)
+    analytics = (_analytics(preparation, scenario_id),)
     analytics_before = deepcopy(analytics)
     preparation_before = preparation.model_copy(deep=True)
 
-    orchestration = complete_o4_o2_o3_orchestration(
+    orchestration = complete_provenanced_o4_o2_o3_orchestration(
         preparation=preparation,
         analytics=analytics,
     )

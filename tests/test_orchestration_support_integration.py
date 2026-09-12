@@ -8,7 +8,7 @@ from eios.core.models import DecisionContext, PurchaseOperation
 from eios.core.o2 import O2ScenarioStatus
 from eios.core.o4_o2_o3_orchestration import (
     AuthorizedScenarioAnalytics,
-    complete_o4_o2_o3_orchestration,
+    _complete_o4_o2_o3_orchestration,
     prepare_o4_o2_o3_orchestration,
 )
 from eios.core.orchestration import O1ExecutionStatus
@@ -78,7 +78,7 @@ def _completed_orchestration(domain=(1,), analytics_factory=_analytics):
         for scenario in prepared.materialization.scenarios
         if scenario.status.value == "VALID"
     )
-    return complete_o4_o2_o3_orchestration(
+    return _complete_o4_o2_o3_orchestration(
         preparation=prepared,
         analytics=packets,
     )
@@ -185,7 +185,7 @@ def test_draft_only_orchestration_fails_closed_without_fabricated_o2_state():
     prepared = prepare_o4_o2_o3_orchestration(
         context=_context(), variables=(), policy=_policy()
     )
-    orchestration_result = complete_o4_o2_o3_orchestration(
+    orchestration_result = _complete_o4_o2_o3_orchestration(
         preparation=prepared, analytics=()
     )
 
@@ -199,7 +199,7 @@ def test_empty_generation_fails_closed_without_fabricated_o2_state():
     prepared = prepare_o4_o2_o3_orchestration(
         context=_context(), variables=(_variable(domain=()),), policy=_policy()
     )
-    orchestration_result = complete_o4_o2_o3_orchestration(
+    orchestration_result = _complete_o4_o2_o3_orchestration(
         preparation=prepared, analytics=()
     )
 
