@@ -74,6 +74,33 @@ def _validate_price_result_context(
         )
 
 
+def _validate_negotiation_intelligence_context(
+    result: NegotiationIntelligenceResult,
+    context: DecisionContext,
+) -> None:
+    refs = result.context_references
+    mismatches: list[str] = []
+
+    if refs.decision_id != context.decision_id:
+        mismatches.append("decision_id")
+
+    for field in (
+        "scenario_id",
+        "rules_version",
+        "parameters_version",
+        "data_snapshot_id",
+    ):
+        value = getattr(refs, field)
+        if value is not None and value != getattr(context, field):
+            mismatches.append(field)
+
+    if mismatches:
+        raise ValueError(
+            "NegotiationIntelligenceResult no coincide con DecisionContext: "
+            + ", ".join(mismatches)
+        )
+
+
 def run_mvp_execution(
     *,
     purchase: PurchaseOperation,
@@ -115,6 +142,9 @@ def run_mvp_execution(
             scenario_coordination_result, adapt_scenario_coordination
         )
     if negotiation_intelligence_result is not None:
+        _validate_negotiation_intelligence_context(
+            negotiation_intelligence_result, context
+        )
         invokers["NEGOTIATION_INTELLIGENCE"] = _snapshot_invoker(
             negotiation_intelligence_result, adapt_ni
         )
