@@ -7,7 +7,7 @@ import json
 from decimal import Decimal
 from typing import Any
 
-from .models import InputContract
+from .models import Assessment, InputContract
 
 
 def _canonical_value(value: Any) -> Any:
@@ -22,15 +22,9 @@ def _canonical_value(value: Any) -> Any:
     return value
 
 
-def canonical_input_payload(input_contract: InputContract) -> dict[str, Any]:
-    """Return the complete canonical representation of the C0 input."""
-    return _canonical_value(input_contract.model_dump(mode="python"))
-
-
-def input_fingerprint(input_contract: InputContract) -> str:
-    """Return a stable SHA-256 fingerprint of the complete input contract."""
+def _sha256_payload(payload: dict[str, Any]) -> str:
     canonical = json.dumps(
-        canonical_input_payload(input_contract),
+        payload,
         ensure_ascii=False,
         separators=(",", ":"),
         sort_keys=True,
@@ -38,4 +32,33 @@ def input_fingerprint(input_contract: InputContract) -> str:
     return hashlib.sha256(canonical).hexdigest()
 
 
-__all__ = ["canonical_input_payload", "input_fingerprint"]
+def canonical_input_payload(input_contract: InputContract) -> dict[str, Any]:
+    """Return the complete canonical representation of the C0 input."""
+    return _canonical_value(input_contract.model_dump(mode="python"))
+
+
+def input_fingerprint(input_contract: InputContract) -> str:
+    """Return a stable SHA-256 fingerprint of the complete input contract."""
+    return _sha256_payload(canonical_input_payload(input_contract))
+
+
+def canonical_assessment_payload(assessment: Assessment) -> dict[str, Any]:
+    """Return the complete canonical representation of one Assessment.
+
+    List order is preserved because it is part of the physical Assessment
+    payload; only mapping keys are canonicalized for deterministic hashing.
+    """
+    return _canonical_value(assessment.model_dump(mode="python"))
+
+
+def assessment_fingerprint(assessment: Assessment) -> str:
+    """Return a stable SHA-256 fingerprint of the complete Assessment."""
+    return _sha256_payload(canonical_assessment_payload(assessment))
+
+
+__all__ = [
+    "assessment_fingerprint",
+    "canonical_assessment_payload",
+    "canonical_input_payload",
+    "input_fingerprint",
+]

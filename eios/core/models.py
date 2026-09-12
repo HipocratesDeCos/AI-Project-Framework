@@ -146,6 +146,11 @@ class Trace(BaseModel):
     parameters_version: str = Field(min_length=1, max_length=64)
     data_snapshot_id: str = Field(min_length=1, max_length=64)
     input_fingerprint: str = Field(min_length=64, max_length=64)
+    assessment_fingerprint: str | None = Field(
+        default=None,
+        min_length=64,
+        max_length=64,
+    )
     rule_id: str = Field(min_length=1, max_length=64)
     assessment_status: AssessmentStatus
     assessment_outcome: AssessmentOutcome | None = None
