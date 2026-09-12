@@ -53,7 +53,7 @@ def present_support_package(package: Any) -> Mapping[str, Any]:
 
 
 def present_vertical_mvp_result(result: VerticalMVPSupportResult) -> Mapping[str, Any]:
-    """Expose Vertical MVP execution + Rules/CRC detail as a stable UI payload."""
+    """Expose Vertical MVP execution, Rules/CRC and scenario support for UI use."""
     if not isinstance(result, VerticalMVPSupportResult):
         raise FrontendBoundaryError("resultado Vertical MVP no válido")
 
@@ -76,6 +76,7 @@ def present_vertical_mvp_result(result: VerticalMVPSupportResult) -> Mapping[str
             ],
         },
         "rules": None,
+        "scenario_support": None,
     }
 
     if result.rules is not None:
@@ -99,5 +100,8 @@ def present_vertical_mvp_result(result: VerticalMVPSupportResult) -> Mapping[str
             ],
             "trace_references": [trace.trace_id for trace in result.rules.traces],
         }
+
+    if result.scenario_support is not None:
+        payload["scenario_support"] = result.scenario_support.model_dump(mode="json")
 
     return payload
