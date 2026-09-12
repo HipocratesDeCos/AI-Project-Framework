@@ -8,11 +8,10 @@ from eios.rules import (
     R_STK_004,
     STOCK_CONFIRMED_DEMAND_EVIDENCE_SOURCE_TYPE,
     STOCK_EXCESS_EVIDENCE_SOURCE_TYPE,
-    RuleAssessmentBinding,
     evaluate_r_stk_003,
     evaluate_r_stk_004,
-    run_assessment_set_vertical,
 )
+from eios.rules.runtime import RuleAssessmentBinding, run_assessment_set_vertical
 from eios.stock.models import (
     AllocationLedgerEntry,
     AllocationLedgerSnapshot,
