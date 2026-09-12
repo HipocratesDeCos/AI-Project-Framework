@@ -2,12 +2,19 @@ from decimal import Decimal
 
 import pytest
 
+from eios.core.c0_reproducibility import build_trace
 from eios.core.execution_boundary import BoundaryStatus, ExecutionOutcome
 from eios.core.models import Assessment, DecisionContext, PurchaseOperation
 from eios.core.orchestration import CapabilityExecution, O1ExecutionStatus
 from eios.frontend.application_boundary import FrontendBoundaryError, present_vertical_mvp_result
 from eios.mvp import VerticalMVPSupportResult
-from eios.rules import RulesEngineInput, implemented_rule_ids, run_rules_engine
+from eios.rules import (
+    AssessmentTraceBinding,
+    RulesEngineInput,
+    authorized_rule,
+    implemented_rule_ids,
+    run_rules_engine,
+)
 from eios.rules.orchestrator import DecisionRuleExecutionResult
 
 
@@ -35,6 +42,8 @@ def _purchase() -> PurchaseOperation:
 
 
 def _result_with_rules() -> VerticalMVPSupportResult:
+    purchase = _purchase()
+    context = _context()
     assessment = Assessment(
         rule_id="R-STK-003",
         status="EVALUABLE",
@@ -42,11 +51,19 @@ def _result_with_rules() -> VerticalMVPSupportResult:
         evidence_ids=["EV-STK"],
         reason="Exceso de stock demostrado.",
     )
+    rule = authorized_rule(assessment.rule_id, context.rules_version)
+    trace = build_trace(
+        context,
+        purchase,
+        rule,
+        tuple(assessment.evidence_ids),
+        assessment,
+    )
     engine = run_rules_engine(
         RulesEngineInput(
-            purchase=_purchase(),
-            context=_context(),
-            assessments=(assessment,),
+            purchase=purchase,
+            context=context,
+            bindings=(AssessmentTraceBinding(assessment=assessment, trace=trace),),
             base_result="COMPRAR",
         )
     )
