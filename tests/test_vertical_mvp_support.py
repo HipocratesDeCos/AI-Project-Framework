@@ -16,7 +16,6 @@ from eios.rules import (
     run_rules_engine,
 )
 from eios.rules.orchestrator import DecisionRuleExecutionResult, StockExcessRuleInputs
-from eios.tco.models import TCOResult
 
 
 def _context() -> DecisionContext:
@@ -42,18 +41,6 @@ def _purchase() -> PurchaseOperation:
     )
 
 
-def _tco() -> TCOResult:
-    return TCOResult(
-        decision_id="D-MVP-SVC",
-        scenario_id="S-MVP-SVC",
-        currency="EUR",
-        value=Decimal("55"),
-        contributing_components=("purchase",),
-        unresolved_components=(),
-        limitations=(),
-    )
-
-
 def _quality_invoker(purchase: PurchaseOperation, context: DecisionContext):
     assert purchase.decision_id == "D-MVP-SVC"
     assert purchase.scenario_id == "S-MVP-SVC"
@@ -64,6 +51,18 @@ def _quality_invoker(purchase: PurchaseOperation, context: DecisionContext):
         status=O1ExecutionStatus.COMPLETED,
         result_available=True,
         trace_references=("trace-qtg",),
+    )
+
+
+def _tco_invoker(purchase: PurchaseOperation, context: DecisionContext):
+    assert purchase.decision_id == "D-MVP-SVC"
+    assert purchase.scenario_id == "S-MVP-SVC"
+    assert context.decision_id == "D-MVP-SVC"
+    assert context.scenario_id == "S-MVP-SVC"
+    return CapabilityExecution(
+        capability="TCO",
+        status=O1ExecutionStatus.COMPLETED,
+        result_available=True,
     )
 
 
@@ -120,7 +119,7 @@ def test_vertical_service_runs_non_rule_capabilities_directly():
         policy_version="MVP-E2E-1",
         base_result="COMPRAR",
         quality_invoker=_quality_invoker,
-        tco_result=_tco(),
+        tco_invoker=_tco_invoker,
         decision_twin_invoker=_decision_twin_invoker,
     )
 
@@ -151,7 +150,7 @@ def test_vertical_service_exposes_rules_crc_and_e2e_in_same_result(monkeypatch):
         base_result="COMPRAR",
         stock_excess=StockExcessRuleInputs(marker, marker),
         quality_invoker=_quality_invoker,
-        tco_result=_tco(),
+        tco_invoker=_tco_invoker,
     )
 
     assert result.status == BoundaryStatus.COMPLETED
@@ -171,9 +170,11 @@ def test_vertical_service_signature_has_no_detached_opaque_results():
 
     assert "quality_result" not in parameters
     assert "price_result" not in parameters
+    assert "tco_result" not in parameters
     assert "decision_twin_result" not in parameters
     assert "quality_invoker" in parameters
     assert "price_invoker" in parameters
+    assert "tco_invoker" in parameters
     assert "decision_twin_invoker" in parameters
 
 
