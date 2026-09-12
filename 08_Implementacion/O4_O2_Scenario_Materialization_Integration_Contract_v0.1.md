@@ -8,7 +8,7 @@
 
 Conectar la generación controlada O4 con el Scenario Engine O2 sin modificar ninguno de ambos componentes y sin ejecutar O3.
 
-O4 conserva la autoridad exclusiva sobre generación finita y determinista de candidatos. O2 conserva la autoridad exclusiva sobre identidad, fingerprint, versionado y estado estructural de `ScenarioVersion`.
+O4 conserva la autoridad exclusiva sobre generación finita y determinista de candidatos. O2 conserva la autoridad exclusiva sobre identidad, fingerprint, canonicalización, versionado y estado estructural de `ScenarioVersion`.
 
 ## 2. Entrada autorizada
 
@@ -26,7 +26,7 @@ La integración devuelve un `O4O2MaterializationResult` inmutable con:
 - copia profunda del `GenerationResult` original;
 - cero o más `ScenarioVersion` creados mediante `create_scenario` de O2.
 
-El `GenerationResult` se conserva completo para no perder `status`, `policy_version`, `reason`, `parent_scenario_id`, `depth` ni los cambios candidatos.
+El `GenerationResult` se conserva completo para mantener literalmente la representación O4 de `status`, `policy_version`, `reason`, `parent_scenario_id`, `depth` y cambios candidatos. La representación interna de los `ScenarioVersion` materializados pertenece a O2 y puede aplicar su canonicalización contractual.
 
 ## 4. Política de materialización
 
@@ -36,7 +36,9 @@ Cada `CandidateScenario` se materializa llamando exclusivamente a:
 
 `create_scenario(context, changes=candidate.changes, parent_scenario_id=candidate.parent_scenario_id, validate=True)`
 
-No se fabrica ni modifica ningún `scenario_id`, fingerprint, versión o snapshot fuera de O2.
+No se fabrica ni modifica ningún `scenario_id`, fingerprint, versión, snapshot o representación canónica fuera de O2.
+
+La integración no exige igualdad estructural entre `candidate.changes` y `ScenarioVersion.changes`, porque la canonicalización materializada es responsabilidad cerrada de O2. La fuente O4 original permanece disponible en `generation`.
 
 ### 4.2 Estados O4 no generativos
 
@@ -48,7 +50,7 @@ No se convierten en fallos O2, escenarios sintéticos ni estados empresariales.
 
 O4 puede emitir un candidato de cero variables con `changes=()`.
 
-Ese candidato se materializa literalmente mediante O2. Como `create_scenario` define un escenario sin cambios como `DRAFT`, la integración debe conservar `DRAFT`.
+Ese candidato se entrega sin alteración a `create_scenario`. Como O2 define un escenario sin cambios como `DRAFT`, la integración debe conservar el `DRAFT` resultante.
 
 Queda prohibido forzarlo a `VALID`, añadir cambios ficticios o declararlo listo para O3.
 
@@ -67,9 +69,9 @@ Cualquier ejecución coordinada O4 → O2 → O3 que produzca evaluación requer
 
 ## 7. Determinismo e identidad
 
-- El orden de candidatos materializados conserva el orden determinista de O4.
+- El orden de escenarios materializados conserva el orden determinista de candidatos O4.
 - Para la misma entrada O4 y el mismo `DecisionContext`, O2 debe producir los mismos `scenario_id` y fingerprints.
-- La identidad y versiones proceden exclusivamente del `DecisionContext` y de `create_scenario`.
+- La identidad, canonicalización y versiones proceden exclusivamente del `DecisionContext` y de `create_scenario`.
 - La integración no introduce identidad paralela.
 
 ## 8. Inmutabilidad
@@ -101,8 +103,8 @@ Quedan prohibidos:
 Las pruebas deben demostrar al menos:
 
 1. `GENERATED` con cambios produce `ScenarioVersion VALID`;
-2. identidad y fingerprint dependen exclusivamente de O2 y son deterministas;
-3. padre y cambios se preservan literalmente;
+2. identidad, fingerprint y canonicalización dependen exclusivamente de O2 y son deterministas;
+3. `parent_scenario_id` se conserva y la fuente O4 original permanece íntegra;
 4. múltiples candidatos conservan orden y unicidad determinista;
 5. cero variables produce escenario `DRAFT`, nunca `VALID` sintético;
 6. `EMPTY`, `BLOCKED`, `NOT_EVALUABLE` y `FAILED` no crean escenarios;
@@ -114,6 +116,6 @@ Las pruebas deben demostrar al menos:
 
 ## 11. Auditoría previa
 
-**DICTAMEN: APTO PARA IMPLEMENTACIÓN.**
+**DICTAMEN: APTO PARA IMPLEMENTACIÓN TRAS DEPURACIÓN.**
 
-La integración llena una brecha expresamente diferida por el contrato O4 y utiliza únicamente la autoridad pública ya cerrada de O2. No amplía O3 ni transforma estados técnicos en conclusiones empresariales.
+Audit 1 detectó y corrigió una formulación incorrecta que exigía preservación literal de los cambios dentro de `ScenarioVersion`. El contrato depurado reconoce que O2 posee la autoridad de canonicalización y conserva separadamente la fuente O4 original. La integración llena una brecha expresamente diferida por O4 sin ampliar O3 ni transformar estados técnicos en conclusiones empresariales.
