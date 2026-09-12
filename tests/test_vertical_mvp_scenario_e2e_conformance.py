@@ -181,9 +181,11 @@ def test_not_evaluable_remains_non_decisional_through_presentation():
     view = chain["view"]
     record = view["scenario_records"][0]
 
-    assert view["execution_status"] == "NOT_EVALUABLE"
+    assert view["execution_status"] == "PARTIALLY_COMPLETED"
+    assert view["unresolved_items"] == ["missing-evidence"]
     assert view["capabilities"][0]["status"] == "NOT_EVALUABLE"
     assert view["capabilities"][0]["result_available"] is False
+    assert view["capabilities"][0]["unresolved_items"] == ["missing-evidence"]
     assert record["status"] == "NOT_EVALUABLE"
     assert record["unresolved_items"] == ["missing-evidence"]
     assert record["failure_reason"] is None
