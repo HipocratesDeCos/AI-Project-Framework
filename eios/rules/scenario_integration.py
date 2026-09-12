@@ -1,20 +1,24 @@
 """Provenance-safe bridge from C0 Assessments into scenario analytics.
 
-The bridge validates already-produced Assessment+Trace bindings against the
-actual O2 child scenario and delegates the independently produced typed
-ViabilityResult to the closed VF->Scenario Analytics boundary. It never
-executes rules, Viability Frontier, O2 or O3.
+This module is the public completion boundary for externally supplied scenario
+analytics. It validates already-produced Assessment+Trace bindings against the
+actual O2 child scenario, validates the independently produced typed
+ViabilityResult, builds the internal Stage-2 transport, and only then delegates
+to O3. It never executes business rules, Viability Frontier, O4 or O2.
 """
 from __future__ import annotations
 
 from collections.abc import Sequence
 from copy import deepcopy
+from dataclasses import dataclass
 from typing import Any
 
 from eios.core.models import Assessment, DecisionContext, PurchaseOperation
 from eios.core.o4_o2_o3_orchestration import (
     AuthorizedScenarioAnalytics,
+    O4O2O3OrchestrationResult,
     O4O2O3Preparation,
+    _complete_o4_o2_o3_orchestration,
 )
 from eios.core.scenario_engine import ScenarioStatus, ScenarioVersion
 from eios.core.scenario_evaluation import ScenarioEvaluationStatus
@@ -24,6 +28,19 @@ from eios.core.viability_scenario_integration import (
 )
 
 from .provenance import AssessmentTraceBinding, validate_assessment_trace_binding
+
+
+@dataclass(frozen=True)
+class ProvenancedScenarioAnalyticsInput:
+    """Verifiable inputs for one O2 child scenario; not an authorization token."""
+
+    scenario_id: str
+    purchase: PurchaseOperation
+    assessment_bindings: tuple[AssessmentTraceBinding, ...]
+    viability_result: ViabilityResult
+    status: ScenarioEvaluationStatus = ScenarioEvaluationStatus.COMPLETED
+    limitations: tuple[str, ...] = ()
+    failure_reason: str | None = None
 
 
 def _target_scenario_context(
@@ -77,7 +94,7 @@ def build_authorized_scenario_analytics_from_provenanced_assessments(
     limitations: tuple[str, ...] = (),
     failure_reason: str | None = None,
 ) -> AuthorizedScenarioAnalytics:
-    """Build one analytical package from independently provenanced C0 and VF data.
+    """Build internal Stage-2 transport from independently provenanced C0 and VF data.
 
     The supplied PurchaseOperation is used only to verify C0 Trace provenance for
     the target O2 child scenario. This function does not claim that it generically
@@ -135,4 +152,47 @@ def build_authorized_scenario_analytics_from_provenanced_assessments(
     )
 
 
-__all__ = ["build_authorized_scenario_analytics_from_provenanced_assessments"]
+def complete_provenanced_o4_o2_o3_orchestration(
+    *,
+    preparation: O4O2O3Preparation,
+    analytics: Sequence[ProvenancedScenarioAnalyticsInput] = (),
+) -> O4O2O3OrchestrationResult:
+    """Public Stage-2 completion after proving every supplied analytical package."""
+    preparation_snapshot = preparation.model_copy(deep=True)
+    input_snapshots = tuple(deepcopy(item) for item in analytics)
+
+    scenario_ids: list[str] = []
+    packages: list[AuthorizedScenarioAnalytics] = []
+    for item in input_snapshots:
+        if not isinstance(item, ProvenancedScenarioAnalyticsInput):
+            raise TypeError(
+                "Scenario Stage 2 requiere ProvenancedScenarioAnalyticsInput"
+            )
+        scenario_ids.append(item.scenario_id)
+        packages.append(
+            build_authorized_scenario_analytics_from_provenanced_assessments(
+                preparation=preparation_snapshot,
+                scenario_id=item.scenario_id,
+                purchase=item.purchase,
+                assessment_bindings=item.assessment_bindings,
+                viability_result=item.viability_result,
+                status=item.status,
+                limitations=item.limitations,
+                failure_reason=item.failure_reason,
+            )
+        )
+
+    if len(set(scenario_ids)) != len(scenario_ids):
+        raise ValueError("scenario_id analítico duplicado")
+
+    return _complete_o4_o2_o3_orchestration(
+        preparation=preparation_snapshot,
+        analytics=tuple(packages),
+    )
+
+
+__all__ = [
+    "ProvenancedScenarioAnalyticsInput",
+    "build_authorized_scenario_analytics_from_provenanced_assessments",
+    "complete_provenanced_o4_o2_o3_orchestration",
+]
