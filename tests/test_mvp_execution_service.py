@@ -1,4 +1,5 @@
 from decimal import Decimal
+from inspect import signature
 
 import pytest
 
@@ -6,7 +7,6 @@ from eios.core.execution_boundary import BoundaryStatus
 from eios.core.models import DecisionContext, PurchaseOperation
 from eios.core.mvp_execution import run_mvp_execution
 from eios.core.orchestration import CapabilityExecution, O1ExecutionStatus
-from eios.quality.gate import QualityTrustResult
 from eios.tco.models import TCOResult
 
 
@@ -33,17 +33,38 @@ def _purchase() -> PurchaseOperation:
     )
 
 
-def _completed_c0(*_):
+def _completed(capability: str, trace_reference: str) -> CapabilityExecution:
     return CapabilityExecution(
-        capability="C0",
+        capability=capability,
         status=O1ExecutionStatus.COMPLETED,
         result_available=True,
-        trace_references=("trace-c0",),
+        trace_references=(trace_reference,),
     )
 
 
-def test_mvp_execution_runs_available_capabilities_in_canonical_order():
-    quality = QualityTrustResult(status="APTO", confidence="ALTA", checks=())
+def _completed_c0(*_):
+    return _completed("C0", "trace-c0")
+
+
+def test_mvp_execution_runs_available_capabilities_in_canonical_order_and_context():
+    purchase = _purchase()
+    context = _context()
+    seen: dict[str, tuple[dict, dict]] = {}
+
+    def quality_invoker(received_purchase, received_context):
+        seen["QTG"] = (
+            received_purchase.model_dump(mode="python"),
+            received_context.model_dump(mode="python"),
+        )
+        return _completed("QTG", "trace-qtg")
+
+    def decision_twin_invoker(received_purchase, received_context):
+        seen["DECISION_TWIN"] = (
+            received_purchase.model_dump(mode="python"),
+            received_context.model_dump(mode="python"),
+        )
+        return _completed("DECISION_TWIN", "trace-twin")
+
     tco = TCOResult(
         decision_id="D-MVP",
         scenario_id="S-MVP",
@@ -55,12 +76,13 @@ def test_mvp_execution_runs_available_capabilities_in_canonical_order():
     )
 
     outcome = run_mvp_execution(
-        purchase=_purchase(),
-        context=_context(),
+        purchase=purchase,
+        context=context,
         policy_version="MVP-E2E-1",
-        quality_result=quality,
+        quality_invoker=quality_invoker,
         tco_result=tco,
         rules_invoker=_completed_c0,
+        decision_twin_invoker=decision_twin_invoker,
     )
 
     assert outcome.status == BoundaryStatus.COMPLETED
@@ -68,8 +90,14 @@ def test_mvp_execution_runs_available_capabilities_in_canonical_order():
         "QTG",
         "TCO",
         "C0",
+        "DECISION_TWIN",
     )
     assert all(item.result_available for item in outcome.capability_results)
+    expected = (
+        purchase.model_dump(mode="python"),
+        context.model_dump(mode="python"),
+    )
+    assert seen == {"QTG": expected, "DECISION_TWIN": expected}
 
 
 def test_mvp_execution_preserves_partial_tco_state():
@@ -94,6 +122,26 @@ def test_mvp_execution_preserves_partial_tco_state():
     assert outcome.unresolved_items == ("TRANSPORT",)
     assert outcome.capability_results[0].capability == "TCO"
     assert outcome.capability_results[0].result_available is False
+
+
+def test_mvp_execution_accepts_other_capabilities_without_opaque_invokers():
+    outcome = run_mvp_execution(
+        purchase=_purchase(),
+        context=_context(),
+        policy_version="MVP-E2E-1",
+        rules_invoker=_completed_c0,
+    )
+
+    assert tuple(item.capability for item in outcome.capability_results) == ("C0",)
+
+
+def test_mvp_execution_public_signature_has_no_detached_opaque_results():
+    parameters = signature(run_mvp_execution).parameters
+
+    assert "quality_result" not in parameters
+    assert "decision_twin_result" not in parameters
+    assert "quality_invoker" in parameters
+    assert "decision_twin_invoker" in parameters
 
 
 def test_mvp_execution_requires_at_least_one_capability():

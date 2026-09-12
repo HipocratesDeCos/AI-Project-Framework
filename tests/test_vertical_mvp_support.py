@@ -1,4 +1,5 @@
 from decimal import Decimal
+from inspect import signature
 
 import pytest
 
@@ -6,7 +7,7 @@ import eios.mvp as mvp
 from eios.core.c0_reproducibility import build_trace
 from eios.core.execution_boundary import BoundaryStatus
 from eios.core.models import Assessment, DecisionContext, PurchaseOperation
-from eios.quality.gate import QualityTrustResult
+from eios.core.orchestration import CapabilityExecution, O1ExecutionStatus
 from eios.rules import (
     AssessmentTraceBinding,
     RulesEngineInput,
@@ -53,6 +54,30 @@ def _tco() -> TCOResult:
     )
 
 
+def _quality_invoker(purchase: PurchaseOperation, context: DecisionContext):
+    assert purchase.decision_id == "D-MVP-SVC"
+    assert purchase.scenario_id == "S-MVP-SVC"
+    assert context.decision_id == "D-MVP-SVC"
+    assert context.scenario_id == "S-MVP-SVC"
+    return CapabilityExecution(
+        capability="QTG",
+        status=O1ExecutionStatus.COMPLETED,
+        result_available=True,
+        trace_references=("trace-qtg",),
+    )
+
+
+def _decision_twin_invoker(purchase: PurchaseOperation, context: DecisionContext):
+    assert purchase.decision_id == "D-MVP-SVC"
+    assert context.decision_id == "D-MVP-SVC"
+    return CapabilityExecution(
+        capability="DECISION_TWIN",
+        status=O1ExecutionStatus.COMPLETED,
+        result_available=True,
+        trace_references=("trace-twin",),
+    )
+
+
 def _rules_result() -> DecisionRuleExecutionResult:
     purchase = _purchase()
     context = _context()
@@ -94,8 +119,9 @@ def test_vertical_service_runs_non_rule_capabilities_directly():
         context=_context(),
         policy_version="MVP-E2E-1",
         base_result="COMPRAR",
-        quality_result=QualityTrustResult("APTO", "ALTA", ()),
+        quality_invoker=_quality_invoker,
         tco_result=_tco(),
+        decision_twin_invoker=_decision_twin_invoker,
     )
 
     assert result.status == BoundaryStatus.COMPLETED
@@ -104,6 +130,7 @@ def test_vertical_service_runs_non_rule_capabilities_directly():
     assert tuple(item.capability for item in result.capability_results) == (
         "QTG",
         "TCO",
+        "DECISION_TWIN",
     )
 
 
@@ -123,7 +150,7 @@ def test_vertical_service_exposes_rules_crc_and_e2e_in_same_result(monkeypatch):
         policy_version="MVP-E2E-1",
         base_result="COMPRAR",
         stock_excess=StockExcessRuleInputs(marker, marker),
-        quality_result=QualityTrustResult("APTO", "ALTA", ()),
+        quality_invoker=_quality_invoker,
         tco_result=_tco(),
     )
 
@@ -137,6 +164,15 @@ def test_vertical_service_exposes_rules_crc_and_e2e_in_same_result(monkeypatch):
     assert "R-FIN-001" in result.omitted_rule_ids
     assert result.crc_result is not None
     assert result.crc_result.consolidated_result == "NEGOCIAR"
+
+
+def test_vertical_service_signature_has_no_detached_opaque_results():
+    parameters = signature(mvp.run_vertical_mvp_support).parameters
+
+    assert "quality_result" not in parameters
+    assert "decision_twin_result" not in parameters
+    assert "quality_invoker" in parameters
+    assert "decision_twin_invoker" in parameters
 
 
 def test_vertical_service_requires_at_least_one_supplied_capability():
