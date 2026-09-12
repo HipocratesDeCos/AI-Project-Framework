@@ -64,7 +64,7 @@ def _support():
 
 def _vertical_result(with_support: bool = True) -> VerticalMVPSupportResult:
     execution = ExecutionOutcome(
-        status=BoundaryStatus.COMPLETED,
+        status=BoundaryStatus.PARTIALLY_COMPLETED,
         policy_version="MVP-E2E-SCENARIO-1",
         capability_results=(
             CapabilityExecution(
@@ -75,6 +75,7 @@ def _vertical_result(with_support: bool = True) -> VerticalMVPSupportResult:
                 unresolved_items=("missing-evidence", "technical-gap"),
             ),
         ),
+        unresolved_items=("missing-evidence", "technical-gap"),
     )
     return VerticalMVPSupportResult(
         execution=execution,
