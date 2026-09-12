@@ -1,6 +1,6 @@
 # EIOS — Scenario Stage 2 Provenance Boundary Contract v0.1
 
-**Estado:** AUDITORÍA 1 SUPERADA — APTO PARA IMPLEMENTACIÓN  
+**Estado:** AUDITORÍA 2 SUPERADA — PENDIENTE CI  
 **Baseline:** `main @ 5e5243d4e5245991c5e6db515aaff14e3840a059`  
 **Ámbito:** separar la mecánica interna O4→O2→O3 Stage 2 de la frontera externa autorizada, de modo que la finalización pública no pueda recibir `Assessment`/trazas/VF opacos.
 
@@ -135,3 +135,22 @@ Preparation, compras hijo, bindings, Assessments, Traces y ViabilityResult se co
 **Depuración:** se mantiene el modelo como transporte interno; se privatiza la finalización Stage 2 y se introduce una finalización pública que reconstruye ese transporte exclusivamente a partir de bindings+Trace y VF tipado.
 
 **DICTAMEN AUDITORÍA 1:** SUPERADA — APTO PARA IMPLEMENTACIÓN.
+
+## 13. Auditoría 2
+
+Se ha auditado el diff completo frente a `main @ 5e5243d4e5245991c5e6db515aaff14e3840a059`:
+
+- 7 archivos modificados/añadidos en el primer cierre de alcance;
+- 0 commits por detrás del baseline;
+- la producción se limita a la frontera de orquestación Stage 2 y al facade provenance-safe de Rules;
+- no se modifica lógica de O4, O2, O3 ni Viability Frontier;
+- no se modifica ninguna regla empresarial, C0 core, CRC, O1, Scenario Coordination ni presentación;
+- `AuthorizedScenarioAnalytics` queda identificado expresamente como transporte interno, no como prueba de procedencia;
+- `_complete_o4_o2_o3_orchestration` queda fuera de `__all__`;
+- la API pública nueva exige `ProvenancedScenarioAnalyticsInput` y reconstruye cada transporte mediante validación C0+Trace y VF tipada;
+- el E2E principal de escenarios ya no fabrica Assessment/VF/trazas opacos;
+- los tests de mecánica Stage 2 se identifican y consumen como internos;
+- los nuevos tests cubren rechazo de transporte opaco, Trace manipulado, cobertura missing/extra/duplicate y visibilidad pública;
+- no aparece score, ranking, recomendación, selección, aprobación, rechazo ni autoridad decisional.
+
+**DICTAMEN AUDITORÍA 2:** SUPERADA — SIN BLOQUEADORES DE DISEÑO. Cierre técnico condicionado a CI completa y reconciliación post-merge.
