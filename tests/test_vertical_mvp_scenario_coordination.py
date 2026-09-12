@@ -166,6 +166,23 @@ def test_execution_service_accepts_scenario_coordination_as_a_vertical_capabilit
     )
 
 
+def test_execution_service_rejects_scenario_package_from_foreign_context():
+    foreign_context = _context().model_copy(update={"rules_version": "R2"})
+    package = build_support_package(
+        _purchase(),
+        foreign_context,
+        (O2ScenarioResult(scenario_id="ALT-A", status=O2ScenarioStatus.COMPLETED),),
+    )
+
+    with pytest.raises(ValueError, match="rules_version"):
+        run_mvp_execution(
+            purchase=_purchase(),
+            context=_context(),
+            policy_version="MVP-E2E-SCENARIO-1",
+            scenario_coordination_result=package,
+        )
+
+
 def test_vertical_facade_builds_o2_from_o3_and_preserves_full_support_package():
     a = _completed_o3("ALT-A")
     b = _completed_o3("ALT-B")
