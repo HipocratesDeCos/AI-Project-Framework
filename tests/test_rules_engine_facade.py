@@ -1,9 +1,16 @@
 from decimal import Decimal
 
 import pytest
+from pydantic import ValidationError
 
-from eios.core.models import Assessment, DecisionContext, PurchaseOperation
-from eios.rules import RulesEngineInput, run_rules_engine
+from eios.core.c0_reproducibility import build_trace
+from eios.core.models import Assessment, DecisionContext, PurchaseOperation, Rule
+from eios.rules import (
+    AssessmentTraceBinding,
+    RulesEngineInput,
+    authorized_rule,
+    run_rules_engine,
+)
 
 
 RULES = "rules-v1"
@@ -32,25 +39,46 @@ def _purchase(*, decision_id: str = "D-ENGINE", scenario_id: str = "S-ENGINE") -
     )
 
 
-def _assessment(rule_id: str, outcome: str = "TRUE") -> Assessment:
+def _assessment(
+    rule_id: str,
+    outcome: str | None = "TRUE",
+    *,
+    status: str = "EVALUABLE",
+) -> Assessment:
     return Assessment(
         rule_id=rule_id,
-        status="EVALUABLE",
-        outcome=outcome,
+        status=status,
+        outcome=outcome if status == "EVALUABLE" else None,
         evidence_ids=[f"EV-{rule_id}"],
         reason=f"{rule_id} assessment.",
     )
 
 
-def test_rules_engine_executes_authorized_assessment_set() -> None:
+def _binding(
+    rule_id: str,
+    outcome: str | None = "TRUE",
+    *,
+    status: str = "EVALUABLE",
+    context: DecisionContext | None = None,
+    purchase: PurchaseOperation | None = None,
+) -> AssessmentTraceBinding:
+    ctx = context or _context()
+    operation = purchase or _purchase()
+    assessment = _assessment(rule_id, outcome, status=status)
+    rule = authorized_rule(rule_id, ctx.rules_version)
+    trace = build_trace(ctx, operation, rule, tuple(assessment.evidence_ids), assessment)
+    return AssessmentTraceBinding(assessment=assessment, trace=trace)
+
+
+def test_rules_engine_executes_provenanced_authorized_binding_set() -> None:
     result = run_rules_engine(
         RulesEngineInput(
             purchase=_purchase(),
             context=_context(),
-            assessments=(
-                _assessment("R-FIN-001", "FALSE"),
-                _assessment("R-STK-003", "TRUE"),
-                _assessment("R-HIS-002", "TRUE"),
+            bindings=(
+                _binding("R-FIN-001", "FALSE"),
+                _binding("R-STK-003", "TRUE"),
+                _binding("R-HIS-002", "TRUE"),
             ),
             base_result="COMPRAR",
         )
@@ -70,12 +98,12 @@ def test_rules_engine_executes_authorized_assessment_set() -> None:
     )
 
 
-def test_rules_engine_preserves_authorized_base_result_when_empty() -> None:
+def test_rules_engine_preserves_authorized_base_result_when_bindings_empty() -> None:
     result = run_rules_engine(
         RulesEngineInput(
             purchase=_purchase(),
             context=_context(),
-            assessments=(),
+            bindings=(),
             base_result="COMPRAR CONDICIONADO",
         )
     )
@@ -83,15 +111,23 @@ def test_rules_engine_preserves_authorized_base_result_when_empty() -> None:
     assert result.assessments == ()
     assert result.traces == ()
     assert result.crc_result.consolidated_result == "COMPRAR CONDICIONADO"
+    assert result.c0_capability.result_available is False
+    assert result.c0_capability.unresolved_items == ("C0_NO_ASSESSMENTS",)
 
 
-def test_rules_engine_fails_closed_for_uncatalogued_rule() -> None:
+def test_rules_engine_fails_closed_for_uncatalogued_binding() -> None:
+    context = _context()
+    purchase = _purchase()
+    assessment = _assessment("R-PRE-001")
+    rule = Rule(rule_id="R-PRE-001", version=RULES, requires_evidence=True)
+    trace = build_trace(context, purchase, rule, tuple(assessment.evidence_ids), assessment)
     payload = RulesEngineInput(
-        purchase=_purchase(),
-        context=_context(),
-        assessments=(_assessment("R-PRE-001"),),
+        purchase=purchase,
+        context=context,
+        bindings=(AssessmentTraceBinding(assessment=assessment, trace=trace),),
         base_result="COMPRAR",
     )
+
     with pytest.raises(ValueError, match="no materializada"):
         run_rules_engine(payload)
 
@@ -101,7 +137,7 @@ def test_rules_engine_rejects_purchase_context_identity_mismatch() -> None:
         RulesEngineInput(
             purchase=_purchase(decision_id="D-OTHER"),
             context=_context(),
-            assessments=(),
+            bindings=(),
             base_result="COMPRAR",
         )
 
@@ -111,13 +147,11 @@ def test_rules_engine_keeps_not_evaluable_as_not_evaluable() -> None:
         RulesEngineInput(
             purchase=_purchase(),
             context=_context(),
-            assessments=(
-                Assessment(
-                    rule_id="R-FIN-001",
+            bindings=(
+                _binding(
+                    "R-FIN-001",
+                    None,
                     status="NOT_EVALUABLE",
-                    outcome=None,
-                    evidence_ids=["EV-FIN"],
-                    reason="R-FIN-001 no evaluable: evidencia insuficiente.",
                 ),
             ),
             base_result="COMPRAR",
@@ -127,3 +161,47 @@ def test_rules_engine_keeps_not_evaluable_as_not_evaluable() -> None:
     assert result.assessments[0].status == "NOT_EVALUABLE"
     assert result.assessments[0].outcome is None
     assert result.crc_result.consolidated_result == "INFORMACIÓN INSUFICIENTE"
+
+
+def test_public_engine_rejects_legacy_assessments_field() -> None:
+    with pytest.raises(ValidationError, match="assessments"):
+        RulesEngineInput(
+            purchase=_purchase(),
+            context=_context(),
+            assessments=(_assessment("R-STK-003"),),
+            base_result="COMPRAR",
+        )
+
+
+def test_public_engine_rejects_binding_from_another_context() -> None:
+    binding = _binding("R-STK-003")
+    foreign_context = _context(decision_id="D-OTHER", scenario_id="S-OTHER")
+    foreign_purchase = _purchase(decision_id="D-OTHER", scenario_id="S-OTHER")
+
+    with pytest.raises(ValueError, match="Trace.decision_id"):
+        run_rules_engine(
+            RulesEngineInput(
+                purchase=foreign_purchase,
+                context=foreign_context,
+                bindings=(binding,),
+                base_result="COMPRAR",
+            )
+        )
+
+
+def test_public_engine_rejects_legacy_trace_without_assessment_fingerprint() -> None:
+    binding = _binding("R-STK-003")
+    legacy = AssessmentTraceBinding(
+        assessment=binding.assessment,
+        trace=binding.trace.model_copy(update={"assessment_fingerprint": None}),
+    )
+
+    with pytest.raises(ValueError, match="legacy sin assessment_fingerprint"):
+        run_rules_engine(
+            RulesEngineInput(
+                purchase=_purchase(),
+                context=_context(),
+                bindings=(legacy,),
+                base_result="COMPRAR",
+            )
+        )
