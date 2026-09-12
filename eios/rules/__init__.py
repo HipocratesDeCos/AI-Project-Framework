@@ -45,6 +45,12 @@ from .pricing import (
     evaluate_r_his_002,
     price_intelligence_result_ref,
 )
+from .provenance import (
+    AssessmentTraceBinding,
+    ProvenancedRulesC0Invoker,
+    build_provenanced_rules_engine_c0_invoker,
+    run_provenanced_assessments_vertical,
+)
 from .runtime import (
     ConsolidatedBaseResult,
     RuleAssessmentBinding,
@@ -65,6 +71,7 @@ from .stock import (
 )
 
 __all__ = [
+    "AssessmentTraceBinding",
     "BASELINE_EVIDENCE_SOURCE_TYPE",
     "ConsolidatedBaseResult",
     "DELIVERY_EVIDENCE_SOURCE_TYPE",
@@ -80,6 +87,7 @@ __all__ = [
     "P_FIN_002",
     "P_FIN_004",
     "P_PRE_006",
+    "ProvenancedRulesC0Invoker",
     "R_ENT_001",
     "R_FIN_001",
     "R_FIN_003",
@@ -102,6 +110,7 @@ __all__ = [
     "authorized_rule_metadata",
     "bind_authorized_assessment",
     "build_domain_rules_c0_invoker",
+    "build_provenanced_rules_engine_c0_invoker",
     "build_rules_engine_c0_invoker",
     "evaluate_r_ent_001",
     "evaluate_r_fin_001",
@@ -117,6 +126,7 @@ __all__ = [
     "run_assessment_vertical",
     "run_authorized_assessments_vertical",
     "run_domain_rules",
+    "run_provenanced_assessments_vertical",
     "run_r_ent_001_vertical",
     "run_rules_engine",
 ]
