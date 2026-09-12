@@ -7,7 +7,7 @@ import pytest
 
 from eios.core.models import DecisionContext, PurchaseOperation
 from eios.core.o4_o2_o3_orchestration import (
-    complete_o4_o2_o3_orchestration,
+    _complete_o4_o2_o3_orchestration,
     prepare_o4_o2_o3_orchestration,
 )
 from eios.core.scenario_evaluation import ScenarioEvaluationStatus
@@ -263,7 +263,7 @@ def test_validated_viability_serializes_through_o3_vertical_and_presentation():
         trace_references=("TRACE-O3-1",),
     )
 
-    orchestration = complete_o4_o2_o3_orchestration(
+    orchestration = _complete_o4_o2_o3_orchestration(
         preparation=preparation,
         analytics=(package,),
     )
