@@ -47,6 +47,7 @@ def _payload_with_rules():
             ],
             "trace_references": ["TRACE-RULES"],
         },
+        "scenario_support": None,
     }
 
 
@@ -61,6 +62,10 @@ def test_vertical_view_model_maps_execution_rules_crc_and_traceability():
     assert view["rule_coverage"]["omitted_rule_ids"] == ["R-PAG-001"]
     assert view["crc_support_result"]["consolidated_result"] == "NEGOCIAR"
     assert view["rule_trace_references"] == ["TRACE-RULES"]
+    assert view["scenario_support_available"] is False
+    assert view["scenario_execution_context"] is None
+    assert view["scenario_records"] is None
+    assert view["scenario_comparison"] is None
 
 
 def test_rules_null_remains_unavailable_instead_of_false_or_empty_result():
@@ -115,11 +120,17 @@ def test_view_model_fails_closed_on_invalid_shape():
     with pytest.raises(TypeError):
         build_vertical_mvp_view_model([])
     with pytest.raises(ValueError, match="rules"):
-        build_vertical_mvp_view_model({"execution": {}})
-    with pytest.raises(ValueError, match="execution"):
-        build_vertical_mvp_view_model({"execution": None, "rules": None})
-    with pytest.raises(ValueError, match="claves contractuales"):
+        build_vertical_mvp_view_model({"execution": {}, "scenario_support": None})
+    with pytest.raises(ValueError, match="scenario_support"):
         build_vertical_mvp_view_model({"execution": {}, "rules": None})
+    with pytest.raises(ValueError, match="execution"):
+        build_vertical_mvp_view_model(
+            {"execution": None, "rules": None, "scenario_support": None}
+        )
+    with pytest.raises(ValueError, match="claves contractuales"):
+        build_vertical_mvp_view_model(
+            {"execution": {}, "rules": None, "scenario_support": None}
+        )
     with pytest.raises(ValueError, match="rules"):
         payload = _payload_with_rules()
         payload["rules"] = []
