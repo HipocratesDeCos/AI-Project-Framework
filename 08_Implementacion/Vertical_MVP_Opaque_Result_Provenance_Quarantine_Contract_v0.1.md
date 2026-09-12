@@ -1,6 +1,6 @@
 # EIOS — Vertical MVP Opaque Result Provenance Quarantine Contract v0.1
 
-**Estado:** DEPURADO TRAS AUDITORÍA 1 — APTO PARA IMPLEMENTACIÓN
+**Estado:** 🔒 CERRADO EN RAMA — AUDITORÍA 2 SUPERADA — MATERIALIZADO — INTEGRACIÓN PENDIENTE DE CI
 
 ## 1. Propósito
 
@@ -12,14 +12,14 @@ Esta unidad corrige una frontera de composición. No modifica la semántica de Q
 
 En el baseline `main @ 4810d80f5490dcb9407fe34d552d82d223e02297`:
 
-- `run_mvp_execution(...)` acepta `quality_result: QualityTrustResult` y `decision_twin_result: DecisionTwinComparison` ya producidos;
-- ambos se convierten mediante `_snapshot_invoker(...)` en capacidades de la ejecución actual;
-- `_snapshot_invoker(...)` ignora los `PurchaseOperation` y `DecisionContext` recibidos por el boundary;
+- `run_mvp_execution(...)` aceptaba `quality_result: QualityTrustResult` y `decision_twin_result: DecisionTwinComparison` ya producidos;
+- ambos se convertían mediante `_snapshot_invoker(...)` en capacidades de la ejecución actual;
+- `_snapshot_invoker(...)` ignoraba los `PurchaseOperation` y `DecisionContext` recibidos por el boundary;
 - `QualityTrustResult` no conserva identidad decisional, escenario, versiones, snapshot ni fingerprint de entrada;
 - `DecisionTwinComparison` tampoco conserva identidad decisional/contextual suficiente y sus `trace_refs` son referencias opacas no resolubles por esta frontera;
 - además, Decision Twin puede comparar alternativas pertenecientes a escenarios distintos, por lo que forzar un único `scenario_id` del `DecisionContext` sobre sus alternativas sería semánticamente incorrecto.
 
-Consecuencia: el servicio puede re-etiquetar un resultado QTG/Decision Twin desprendido de su procedencia como si perteneciera al contexto de ejecución actual.
+Consecuencia: el servicio podía re-etiquetar un resultado QTG/Decision Twin desprendido de su procedencia como si perteneciera al contexto de ejecución actual.
 
 ## 3. Fronteras que se preservan
 
@@ -35,12 +35,12 @@ Consecuencia: el servicio puede re-etiquetar un resultado QTG/Decision Twin desp
 
 ### 4.1 Servicio core
 
-`run_mvp_execution(...)` dejará de aceptar resultados crudos:
+`run_mvp_execution(...)` deja de aceptar resultados crudos:
 
 - `quality_result`
 - `decision_twin_result`
 
-En su lugar aceptará invocadores explícitos compatibles con `CapabilityInvoker`:
+En su lugar acepta invocadores explícitos compatibles con `CapabilityInvoker`:
 
 - `quality_invoker: CapabilityInvoker | None`
 - `decision_twin_invoker: CapabilityInvoker | None`
@@ -54,13 +54,13 @@ El servicio no snapshoteará ni adaptará internamente resultados QTG/Decision T
 
 ### 4.2 Fachada pública
 
-`run_vertical_mvp_support(...)` migrará la misma frontera:
+`run_vertical_mvp_support(...)` aplica la misma frontera:
 
 - elimina `quality_result` y `decision_twin_result`;
 - acepta `quality_invoker` y `decision_twin_invoker`;
 - los reenvía sin transformar a `run_mvp_execution(...)`.
 
-La fachada tampoco podrá volver a crear un snapshot invoker de esos resultados.
+La fachada tampoco vuelve a crear un snapshot invoker de esos resultados.
 
 ### 4.3 Alcance de la garantía
 
@@ -78,7 +78,7 @@ Los consumidores físicos identificados en el repositorio son:
 - `eios/mvp.py`;
 - tests de ambas fronteras.
 
-La unidad actualizará conjuntamente estos consumidores. No se crea una ruta legacy que permita re-etiquetar QTG/Decision Twin.
+La unidad actualiza conjuntamente estos consumidores. No se crea una ruta legacy que permita re-etiquetar QTG/Decision Twin.
 
 ## 6. Orden y ejecución
 
@@ -88,9 +88,9 @@ Se conserva `MVP_CAPABILITY_ORDER` sin cambios:
 
 La ejecución continúa delegándose en `execute_plan(...)`. Errores técnicos de los invocadores siguen siendo gestionados por la semántica técnica ya autorizada del boundary; no se convierten en rechazo de negocio.
 
-## 7. Pruebas obligatorias
+## 7. Pruebas materializadas
 
-La implementación deberá demostrar al menos:
+La implementación demuestra en tests dedicados:
 
 1. QTG por invocador conserva su posición canónica.
 2. Decision Twin por invocador conserva su posición canónica.
@@ -101,15 +101,35 @@ La implementación deberá demostrar al menos:
 7. No existe en las firmas públicas migradas `quality_result` ni `decision_twin_result`.
 8. No se alteran los modelos QTG/Decision Twin.
 9. No se introducen campos de decisión, recomendación o ranking.
-10. La suite completa Python + SQL permanece verde.
+10. La suite completa Python + SQL queda como gate obligatorio de CI.
 
-## 8. Criterio de cierre
+## 8. Auditoría 2
 
-La unidad solo podrá marcarse cerrada cuando:
+**Resultado: SUPERADA — SIN BLOQUEADORES DE DISEÑO O MATERIALIZACIÓN.**
 
-- Auditoría 2 confirme que no queda ruta de re-etiquetado QTG/Decision Twin en estas dos fronteras;
-- el diff contra el baseline sea mínimo y coherente con este contrato;
-- CI del head exacto del PR sea verde;
-- `main` se reconcilie antes del merge;
-- el merge se haga sobre el head validado;
-- CI post-merge sobre el SHA exacto de `main` sea verde.
+Comparación contra `main @ 4810d80f5490dcb9407fe34d552d82d223e02297` antes del cierre documental:
+
+- rama exclusivamente por delante del baseline;
+- 5 artefactos físicos afectados: este contrato, dos fronteras productivas y dos archivos de tests;
+- ningún modelo QTG o Decision Twin modificado;
+- ningún adaptador de capacidad modificado;
+- ningún cambio de autoridad decisional o semántica de negocio;
+- `MVP_CAPABILITY_ORDER` intacto;
+- las firmas públicas ya no contienen `quality_result` ni `decision_twin_result`;
+- los invocadores QTG/Decision Twin reciben el contexto real del boundary;
+- la semántica multi-escenario de Decision Twin permanece intacta;
+- no se presenta el invocador como certificado de procedencia: únicamente se elimina la re-etiquetación opaca realizada por estas capas.
+
+El rebuild o validación provenance-safe de QTG y Decision Twin queda fuera de esta unidad y requerirá contrato específico antes de añadir productores de invocadores.
+
+## 9. Cierre e integración
+
+El diseño, Auditoría 1, depuración, Auditoría 2 y materialización quedan cerrados en la rama.
+
+**Este estado no autoriza a declarar la unidad integrada en `main`.** La integración solo quedará cerrada cuando se cumplan todos los gates siguientes:
+
+- CI Python + SQL del head exacto del PR en verde;
+- reconciliación de `main` inmediatamente antes del merge;
+- merge del head exacto que superó CI;
+- reconciliación postintegración;
+- CI post-merge sobre el SHA exacto de `main` en verde.
