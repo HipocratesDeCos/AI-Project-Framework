@@ -6,7 +6,7 @@ import eios.core.o4_o2_o3_orchestration as orchestration
 from eios.core.models import DecisionContext
 from eios.core.o4_o2_o3_orchestration import (
     AuthorizedScenarioAnalytics,
-    complete_o4_o2_o3_orchestration,
+    _complete_o4_o2_o3_orchestration,
     prepare_o4_o2_o3_orchestration,
 )
 from eios.core.scenario_engine import ScenarioStatus
@@ -69,7 +69,7 @@ def test_stage_two_completes_o3_only_with_explicit_assessment_and_viability():
     )
     scenario_id = prepared.materialization.scenarios[0].scenario_id
 
-    result = complete_o4_o2_o3_orchestration(
+    result = _complete_o4_o2_o3_orchestration(
         preparation=prepared,
         analytics=(analytics_for(scenario_id),),
     )
@@ -90,7 +90,7 @@ def test_missing_analytics_fails_before_o3_is_invoked(monkeypatch):
 
     monkeypatch.setattr(orchestration, "evaluate_scenario", must_not_run)
     with pytest.raises(ValueError, match="faltan paquetes analíticos"):
-        complete_o4_o2_o3_orchestration(preparation=prepared, analytics=())
+        _complete_o4_o2_o3_orchestration(preparation=prepared, analytics=())
 
 
 def test_empty_assessments_are_rejected():
@@ -118,7 +118,7 @@ def test_unknown_or_extra_analytics_are_rejected():
     valid_id = prepared.materialization.scenarios[0].scenario_id
 
     with pytest.raises(ValueError, match="no autorizados/sobrantes"):
-        complete_o4_o2_o3_orchestration(
+        _complete_o4_o2_o3_orchestration(
             preparation=prepared,
             analytics=(analytics_for(valid_id), analytics_for("UNKNOWN")),
         )
@@ -132,7 +132,7 @@ def test_duplicate_analytics_ids_are_rejected():
     packet = analytics_for(scenario_id)
 
     with pytest.raises(ValueError, match="duplicado"):
-        complete_o4_o2_o3_orchestration(
+        _complete_o4_o2_o3_orchestration(
             preparation=prepared,
             analytics=(packet, packet.model_copy(deep=True)),
         )
@@ -149,7 +149,7 @@ def test_zero_variable_draft_is_preserved_and_never_sent_to_o3(monkeypatch):
         raise AssertionError("O3 no debe recibir DRAFT")
 
     monkeypatch.setattr(orchestration, "evaluate_scenario", must_not_run)
-    result = complete_o4_o2_o3_orchestration(preparation=prepared, analytics=())
+    result = _complete_o4_o2_o3_orchestration(preparation=prepared, analytics=())
     assert result.evaluations == ()
 
 
@@ -160,7 +160,7 @@ def test_non_generative_o4_state_produces_no_o3_evaluation():
     assert prepared.materialization.generation.status is GenerationStatus.EMPTY
     assert prepared.materialization.scenarios == ()
 
-    result = complete_o4_o2_o3_orchestration(preparation=prepared, analytics=())
+    result = _complete_o4_o2_o3_orchestration(preparation=prepared, analytics=())
     assert result.evaluations == ()
 
 
@@ -176,7 +176,7 @@ def test_partial_o3_state_limitations_and_traces_are_preserved():
         trace_references=("TRACE-2", "TRACE-1"),
     )
 
-    result = complete_o4_o2_o3_orchestration(
+    result = _complete_o4_o2_o3_orchestration(
         preparation=prepared, analytics=(packet,)
     )
     evaluation = result.evaluations[0]
@@ -192,7 +192,7 @@ def test_output_order_depends_on_o2_scenarios_not_analytics_input_order():
     ids = tuple(item.scenario_id for item in prepared.materialization.scenarios)
     assert len(ids) == 2
 
-    result = complete_o4_o2_o3_orchestration(
+    result = _complete_o4_o2_o3_orchestration(
         preparation=prepared,
         analytics=(analytics_for(ids[1]), analytics_for(ids[0])),
     )
@@ -209,7 +209,7 @@ def test_stage_two_does_not_rerun_o4_o2(monkeypatch):
         raise AssertionError("Etapa 2 no debe reejecutar O4/O2")
 
     monkeypatch.setattr(orchestration, "run_o4_o2_materialization", must_not_rerun)
-    result = complete_o4_o2_o3_orchestration(
+    result = _complete_o4_o2_o3_orchestration(
         preparation=prepared,
         analytics=(analytics_for(scenario_id),),
     )
@@ -232,7 +232,7 @@ def test_inputs_and_nested_analytics_are_isolated():
         assessments=(assessment,),
         viability_result=viability,
     )
-    result = complete_o4_o2_o3_orchestration(
+    result = _complete_o4_o2_o3_orchestration(
         preparation=prepared, analytics=(packet,)
     )
 
@@ -249,7 +249,7 @@ def test_orchestration_exposes_no_decision_authority_fields():
         context=context(), variables=(variable(),), policy=policy()
     )
     scenario_id = prepared.materialization.scenarios[0].scenario_id
-    result = complete_o4_o2_o3_orchestration(
+    result = _complete_o4_o2_o3_orchestration(
         preparation=prepared,
         analytics=(analytics_for(scenario_id),),
     )
