@@ -1,9 +1,8 @@
-"""Canonical public execution facade for the EIOS Rules Engine v0.1.
+"""Canonical public execution facade for the EIOS Rules Engine v0.2.
 
-The facade does not evaluate business conditions. Rule-specific bridges produce
-Assessment objects; this boundary validates execution identity and delegates
-catalog binding, Trace generation, CRC consolidation and O1 packaging to the
-authorized rules runtime.
+The public boundary accepts only already-produced Assessment+Trace bindings
+whose provenance can be verified against the exact purchase and execution
+context. Business conditions remain owned by rule-specific bridges.
 """
 from __future__ import annotations
 
@@ -11,23 +10,20 @@ from typing import TypeAlias
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from eios.core.models import Assessment, DecisionContext, PurchaseOperation
+from eios.core.models import DecisionContext, PurchaseOperation
 
-from .runtime import (
-    ConsolidatedBaseResult,
-    RuleSetVerticalResult,
-    run_authorized_assessments_vertical,
-)
+from .provenance import AssessmentTraceBinding, run_provenanced_assessments_vertical
+from .runtime import ConsolidatedBaseResult, RuleSetVerticalResult
 
 
 class RulesEngineInput(BaseModel):
-    """Public input boundary for already-produced individual rule Assessments."""
+    """Public provenance-safe boundary for already-produced rule results."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     purchase: PurchaseOperation
     context: DecisionContext
-    assessments: tuple[Assessment, ...] = ()
+    bindings: tuple[AssessmentTraceBinding, ...] = ()
     base_result: ConsolidatedBaseResult
 
     @model_validator(mode="after")
@@ -43,11 +39,11 @@ RulesEngineResult: TypeAlias = RuleSetVerticalResult
 
 
 def run_rules_engine(payload: RulesEngineInput) -> RulesEngineResult:
-    """Execute the authorized rules runtime through one stable public boundary."""
-    return run_authorized_assessments_vertical(
+    """Execute the public Rules Engine only after complete provenance checks."""
+    return run_provenanced_assessments_vertical(
         purchase=payload.purchase,
         context=payload.context,
-        assessments=payload.assessments,
+        bindings=payload.bindings,
         base_result=payload.base_result,
     )
 
