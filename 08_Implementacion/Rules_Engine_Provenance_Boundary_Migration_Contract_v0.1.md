@@ -1,6 +1,6 @@
 # EIOS — Rules Engine Provenance Boundary Migration Contract v0.1
 
-**Estado:** DISEÑO PARA AUDITORÍA 1  
+**Estado:** AUDITORÍA 2 SUPERADA — PENDIENTE CI  
 **Baseline:** `main @ c986e97d395be6c386dcc0524b643346c5e1e433`  
 **Ámbito:** cerrar las fronteras públicas que aceptan Assessments preproducidos sin Trace, preservando la ejecución legítima de reglas producidas dentro de la misma llamada/contexto.
 
@@ -8,118 +8,142 @@
 
 PR #105 demostró que un `Assessment` aislado no acredita decisión, escenario, versiones, snapshot ni input original. La reutilización entre fronteras requiere `AssessmentTraceBinding` y validación provenance-safe.
 
-Sin embargo, el facade público actual `RulesEngineInput/run_rules_engine` y `build_rules_engine_c0_invoker` todavía aceptan Assessments sueltos. Ese diseño permite omitir la nueva frontera segura.
+El facade público `RulesEngineInput/run_rules_engine` y el antiguo `build_rules_engine_c0_invoker(assessments=...)` mantenían un bypass que permitía introducir Assessments desconectados y generar la trazabilidad después.
 
 ## 2. Distinción obligatoria
 
-No todo uso de un Assessment sin Trace previo es inseguro.
-
 ### 2.1 Producción en la misma ejecución
 
-`run_domain_rules` produce cada Assessment mediante bridges de reglas dentro de la misma llamada, con el mismo `PurchaseOperation`, `DecisionContext` y Rule autorizada, y acto seguido compone Trace/CRC/O1.
+`run_domain_rules` y verticales específicos producen sus Assessments dentro de la misma llamada, usando el mismo `PurchaseOperation`, `DecisionContext` y Rule autorizada, y los componen inmediatamente.
 
-Ese flujo no reutiliza un Assessment desconectado y puede seguir usando una rutina interna de composición same-execution.
+Ese flujo no reutiliza un Assessment entre contextos y conserva el runtime interno same-execution.
 
 ### 2.2 Reutilización entre fronteras
 
-Toda API pública que reciba un resultado Assessment ya producido debe exigir su Trace original y validar procedencia antes de reutilizarlo.
+Toda frontera pública que reciba un Assessment ya producido debe exigir su Trace original y validar procedencia completa antes de reutilizarlo.
 
-## 3. Nuevo contrato del facade público
+## 3. Facade público v0.2
 
-`RulesEngineInput` pasa a contener:
+`RulesEngineInput` contiene exclusivamente:
 - `purchase: PurchaseOperation`;
 - `context: DecisionContext`;
 - `bindings: tuple[AssessmentTraceBinding, ...]`;
 - `base_result`.
 
-Ya no acepta el campo `assessments`.
+El campo público `assessments` desaparece y, por `extra="forbid"`, su uso falla explícitamente.
 
-`run_rules_engine(...)` delega exclusivamente en `run_provenanced_assessments_vertical(...)`.
+`run_rules_engine(...)` delega en `run_provenanced_assessments_vertical(...)`.
 
-La salida `RulesEngineResult = RuleSetVerticalResult` permanece sin cambios.
+La salida `RulesEngineResult = RuleSetVerticalResult` se conserva.
 
 ## 4. Invoker E2E
 
-`build_rules_engine_c0_invoker(...)` conserva el nombre de integración, pero su entrada cambia a:
+`build_rules_engine_c0_invoker(...)` conserva su nombre de integración, pero acepta únicamente:
 - `bindings: Sequence[AssessmentTraceBinding]`;
 - `base_result`.
 
-Delega al invoker provenance-safe ya cerrado por PR #105. No crea Trace nuevo ni acepta Assessments desconectados.
+Delega al invoker provenance-safe de PR #105. No genera Trace nuevo ni acepta Assessments desconectados.
 
-`build_domain_rules_c0_invoker(...)` permanece sin cambios semánticos: evalúa los bundles de dominio dentro del contexto recibido.
+`build_domain_rules_c0_invoker(...)` mantiene su semántica: ejecuta los bundles de dominio dentro del contexto recibido.
 
-## 5. Migración de run_domain_rules
+## 5. run_domain_rules
 
-`run_domain_rules` deja de atravesar el facade público con Assessments recién producidos.
+`run_domain_rules` ya no atraviesa el facade público de reutilización. Tras producir los Assessments dentro de la misma ejecución, usa la composición interna `run_authorized_assessments_vertical(...)` con el mismo purchase/context.
 
-En su lugar utiliza la composición interna same-execution ya existente (`run_authorized_assessments_vertical`) inmediatamente después de producir los Assessments y dentro del mismo `purchase/context`.
+Esto no convierte esa función interna en una frontera pública autorizada para material preproducido.
 
-Esto no convierte dicha rutina en frontera pública autorizada para reutilización externa.
+## 6. Cuarentena del namespace público
 
-## 6. Cuarentena del facade de eios.rules
-
-Los helpers que aceptan Assessment sin Trace y generan Trace posteriormente dejan de exportarse desde `eios.rules` cuando su función es interna/compatibilidad:
+Dejan de exportarse desde `eios.rules`:
 - `RuleAssessmentBinding`;
 - `bind_authorized_assessment`;
 - `run_assessment_set_vertical`;
 - `run_assessment_vertical`;
 - `run_authorized_assessments_vertical`.
 
-Pueden permanecer físicamente en `eios.rules.runtime` para consumidores internos same-execution existentes. Esta unidad no los elimina ni altera su semántica.
+Permanecen físicamente en `eios.rules.runtime` para consumidores internos same-execution. No se elimina ni cambia su semántica.
 
-Los tipos de resultado pueden permanecer exportados si no crean una vía de entrada insegura.
+## 7. Ruptura controlada
 
-## 7. Compatibilidad y ruptura controlada
+La migración es deliberada:
+- `RulesEngineInput(assessments=...)` debe ser inválido;
+- `build_rules_engine_c0_invoker(assessments=...)` debe ser inválido;
+- la ruta pública equivalente exige bindings provenance-safe.
 
-Es una migración contractual intencionada de una API preproducción:
-- `RulesEngineInput(assessments=...)` debe fallar por `extra="forbid"`/campo ausente;
-- `build_rules_engine_c0_invoker(assessments=...)` deja de ser válido;
-- la ruta equivalente segura utiliza bindings con Trace.
-
-No se mantiene un fallback silencioso porque restablecería el bypass que se pretende cerrar.
+No existe fallback silencioso.
 
 ## 8. Autoridades preservadas
 
-- Rules específicas siguen produciendo Assessment.
-- C0/Trace conserva procedencia.
+- Rules específicas producen Assessment.
+- Trace conserva procedencia y reproducibilidad.
 - CRC conserva consolidación.
-- O1 conserva soporte.
-- `NOT_EVALUABLE` permanece distinto de FALSE.
-- Ningún fallo técnico/provenance se convierte en rechazo empresarial.
+- O1 conserva empaquetado de soporte.
+- `NOT_EVALUABLE != FALSE`.
+- un fallo técnico/provenance no se convierte en rechazo empresarial.
+- no se añade score, ranking, recomendación, selección, aprobación ni decisión.
 
 ## 9. Fail-closed
 
-La frontera pública debe rechazar:
-- Assessment suelto mediante el antiguo campo `assessments`;
+La frontera pública rechaza:
+- el campo legacy `assessments`;
 - Trace legacy sin `assessment_fingerprint`;
-- binding de otra decisión/escenario/versiones/snapshot/input;
-- Assessment/Trace incoherentes;
-- rule_id no catalogado;
+- bindings de otra decisión/escenario/versiones/snapshot/input;
+- incoherencias Assessment/Trace;
+- reglas no catalogadas;
 - duplicados.
 
 ## 10. Fuera de alcance
 
-- modificar reglas empresariales;
-- cambiar CRC/O1;
-- cambiar O2/O3/VF;
-- retirar físicamente runtime helpers internos;
-- convertir same-execution en un sistema de tokens/autorizaciones artificial;
-- introducir score/ranking/recomendación/decisión;
+- cambiar reglas empresariales;
+- modificar C0 core, CRC u O1;
+- modificar O2/O3/VF;
+- eliminar físicamente runtime helpers internos;
+- alterar verticales same-execution;
 - UI, SQL o persistencia.
 
 ## 11. Criterios de aceptación
 
-1. `RulesEngineInput` acepta bindings y no acepta `assessments`;
+1. `RulesEngineInput` acepta bindings y rechaza `assessments`;
 2. facade público valida procedencia completa;
 3. binding extranjero/manipulado falla;
 4. Trace legacy falla;
 5. NOT_EVALUABLE se conserva;
-6. empty bindings conserva la semántica explícita previa de C0 sin Assessments;
+6. empty bindings conserva `C0_NO_ASSESSMENTS`;
 7. `build_rules_engine_c0_invoker` exige bindings y funciona en E2E;
-8. el invoker no puede reutilizar bindings en otro contexto;
-9. `run_domain_rules` conserva resultados/orden/cobertura existentes;
+8. el invoker no reutiliza bindings en otro contexto;
+9. `run_domain_rules` conserva resultados, orden y cobertura;
 10. `build_domain_rules_c0_invoker` conserva comportamiento;
-11. helpers sin Trace dejan de formar parte del facade `eios.rules`;
-12. no se modifica semántica empresarial ni autoridad decisional.
+11. helpers sin Trace no forman parte del facade `eios.rules`;
+12. no cambia semántica empresarial ni autoridad decisional.
 
-**DICTAMEN DE DISEÑO:** pendiente de Auditoría 1.
+## 12. Auditoría 1
+
+El inventario distinguió dos clases de consumidores:
+
+- **same-execution legítimos:** `run_domain_rules`, `delivery_runtime` y tests del runtime, donde el Assessment se produce y consume inmediatamente en el mismo contexto;
+- **reutilización insegura:** facade público con `Assessment` suelto y `build_rules_engine_c0_invoker(assessments=...)`, donde la procedencia original no podía demostrarse.
+
+Se comprobó que la migración no crea circularidad: el facade depende de `provenance`; `provenance` depende del runtime interno; el orquestador de dominio depende directamente del runtime interno; el adapter genérico depende del invoker provenance-safe.
+
+**DICTAMEN AUDITORÍA 1:** SUPERADA — migrar solo las fronteras de reutilización y preservar same-execution.
+
+## 13. Auditoría 2
+
+Comparación contra el baseline:
+- 11 archivos afectados;
+- contrato nuevo;
+- cambios limitados a `eios/rules/__init__.py`, `engine.py`, `execution_adapter.py`, `orchestrator.py` y tests asociados;
+- ningún archivo de reglas empresariales específicas modificado;
+- ningún cambio en C0 core, CRC, O1, O2, O3, Viability Frontier, Vertical o presentación.
+
+Comprobaciones:
+- el schema público contiene `bindings` y no `assessments`;
+- el invoker genérico ya no acepta `assessments`;
+- la ruta de dominio sigue produciendo y componiendo Assessments dentro del mismo contexto;
+- los helpers internos siguen probados desde `eios.rules.runtime`;
+- el namespace público tiene tests explícitos que bloquean la reexportación accidental de helpers sin Trace;
+- la cobertura pública incluye binding extranjero, Trace legacy, regla no catalogada, NOT_EVALUABLE, empty bindings y congelación del snapshot;
+- no se introduce autoridad decisional.
+
+**DICTAMEN AUDITORÍA 2:** SUPERADA — SIN BLOQUEADORES DE DISEÑO.  
+**Cierre definitivo:** condicionado a CI completa sobre el head exacto de PR y CI post-merge sobre `main`. La CI actúa además como detector final de consumidores legacy no identificados por el inventario estático.
