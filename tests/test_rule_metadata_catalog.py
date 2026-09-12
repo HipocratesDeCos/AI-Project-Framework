@@ -3,11 +3,9 @@ from decimal import Decimal
 import pytest
 
 from eios.core.models import Assessment, DecisionContext, PurchaseOperation, Rule
-from eios.rules import (
-    authorized_rule,
-    authorized_rule_metadata,
+from eios.rules import authorized_rule, authorized_rule_metadata, implemented_rule_ids
+from eios.rules.runtime import (
     bind_authorized_assessment,
-    implemented_rule_ids,
     run_assessment_set_vertical,
     run_authorized_assessments_vertical,
 )
@@ -101,7 +99,7 @@ def test_bind_authorized_assessment_rejects_rule_mismatch() -> None:
         )
 
 
-def test_runtime_uses_catalog_bindings_without_manual_metadata() -> None:
+def test_internal_runtime_uses_catalog_bindings_without_manual_metadata() -> None:
     fin_rule = Rule(rule_id="R-FIN-001", version=RULES, requires_evidence=True)
     stock_rule = Rule(rule_id="R-STK-003", version=RULES, requires_evidence=True)
     history_rule = Rule(rule_id="R-HIS-002", version=RULES, requires_evidence=True)
@@ -126,7 +124,7 @@ def test_runtime_uses_catalog_bindings_without_manual_metadata() -> None:
     )
 
 
-def test_high_level_runtime_requires_only_assessments_and_context() -> None:
+def test_same_execution_runtime_requires_assessments_and_context() -> None:
     result = run_authorized_assessments_vertical(
         purchase=_purchase(),
         context=_context(),
@@ -148,7 +146,7 @@ def test_high_level_runtime_requires_only_assessments_and_context() -> None:
     assert all(trace.rules_version == RULES for trace in result.traces)
 
 
-def test_high_level_runtime_fails_closed_for_uncatalogued_rule() -> None:
+def test_same_execution_runtime_fails_closed_for_uncatalogued_rule() -> None:
     with pytest.raises(ValueError, match="no materializada"):
         run_authorized_assessments_vertical(
             purchase=_purchase(),
@@ -158,7 +156,7 @@ def test_high_level_runtime_fails_closed_for_uncatalogued_rule() -> None:
         )
 
 
-def test_high_level_runtime_rejects_duplicate_rule_ids() -> None:
+def test_same_execution_runtime_rejects_duplicate_rule_ids() -> None:
     with pytest.raises(ValueError, match="duplicados"):
         run_authorized_assessments_vertical(
             purchase=_purchase(),
