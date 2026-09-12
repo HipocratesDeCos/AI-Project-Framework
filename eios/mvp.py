@@ -30,7 +30,6 @@ from eios.rules.orchestrator import (
     run_domain_rules,
 )
 from eios.rules.runtime import ConsolidatedBaseResult
-from eios.tco.models import TCOResult
 
 
 class VerticalMVPSupportResult(BaseModel):
@@ -88,7 +87,7 @@ def run_vertical_mvp_support(
     history_sufficiency: HistorySufficiencyRuleInputs | None = None,
     quality_invoker: CapabilityInvoker | None = None,
     price_invoker: CapabilityInvoker | None = None,
-    tco_result: TCOResult | None = None,
+    tco_invoker: CapabilityInvoker | None = None,
     decision_twin_invoker: CapabilityInvoker | None = None,
     scenario_evaluation_results: Sequence[ScenarioEvaluationResult] = (),
     negotiation_intelligence_result: NegotiationIntelligenceResult | None = None,
@@ -96,8 +95,8 @@ def run_vertical_mvp_support(
 ) -> VerticalMVPSupportResult:
     """Run supplied Vertical MVP capabilities and preserve detailed outputs.
 
-    Rule bridges are evaluated once. QTG, PRICE and Decision Twin outputs must
-    be supplied through explicit invokers rather than detached raw results.
+    Rule bridges are evaluated once. QTG, PRICE, TCO and Decision Twin outputs
+    must be supplied through explicit invokers rather than detached raw results.
     Scenario evaluation results are not recalculated: when supplied, they are
     coordinated through the validated O3→O2 bridge and represented as one
     SCENARIO_COORDINATION capability. Missing capabilities are omitted rather
@@ -146,8 +145,8 @@ def run_vertical_mvp_support(
         policy_version=policy_version,
         quality_invoker=quality_invoker,
         price_invoker=price_invoker,
+        tco_invoker=tco_invoker,
         rules_invoker=rules_invoker,
-        tco_result=tco_result,
         decision_twin_invoker=decision_twin_invoker,
         scenario_coordination_result=scenario_support,
         negotiation_intelligence_result=negotiation_intelligence_result,
