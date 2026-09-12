@@ -1,6 +1,6 @@
 # EIOS — Assessment + Trace → Scenario Analytics Integration Contract v0.1
 
-**Estado:** DISEÑO PARA AUDITORÍA 1  
+**Estado:** AUDITORÍA 2 SUPERADA — PENDIENTE CI  
 **Baseline:** `main @ 696823c0c8a53a3a2ca5faf1b84774fe0eed3995`  
 **Ámbito:** cerrar la procedencia de los Assessment C0 que alimentan `AuthorizedScenarioAnalytics` sin reejecutar reglas, Viability Frontier ni O3.
 
@@ -151,4 +151,37 @@ Preparation, PurchaseOperation, bindings, Assessment, Trace y ViabilityResult se
 16. inputs permanecen inmutables;
 17. no aparece autoridad decisional.
 
-**DICTAMEN DE DISEÑO:** pendiente de Auditoría 1.
+## 14. Auditoría 1
+
+Se comprobó la frontera contra O2, PR #99, PR #104 y PR #105.
+
+Hallazgos/resoluciones:
+- el `DecisionContext` de validación debe usar el `scenario_id` del hijo O2, no el `scenario_id` base de `preparation.context`;
+- el `PurchaseOperation` del hijo se utiliza exclusivamente como material reproducible para comprobar `input_fingerprint`; no certifica una materialización genérica de `ScenarioVersion.changes`;
+- `ViabilityResult.assessment_ids` pertenece al dominio `FrontierAssessment` y no puede equipararse a C0 `Assessment`;
+- no existe circularidad de dependencias al situar el bridge en `eios/rules`;
+- la validación reusable se expone de forma aditiva mediante `validate_assessment_trace_binding(...)`, sin reabrir la semántica del runtime Rules cerrado.
+
+**DICTAMEN AUDITORÍA 1:** SUPERADA TRAS INCORPORAR LAS SALVAGUARDAS ANTERIORES.
+
+## 15. Auditoría 2
+
+Diff contra baseline:
+- rama 5 commits por delante, 0 por detrás;
+- 5 archivos afectados;
+- 3 archivos añadidos: contrato, bridge y tests;
+- 2 modificaciones aditivas: export público del validador provenance-safe y exports de `eios.rules`;
+- O2, O3, VF, reglas específicas, CRC, O1, Vertical y presentación no se modifican.
+
+Comprobaciones:
+- no se invoca `evaluate_viability`, `evaluate_scenario`, `run_rules_engine` ni otra ejecución analítica;
+- no se aceptan trace references libres del caller;
+- no se deriva estado O3 desde VF;
+- no se enlaza C0 Assessment con FrontierAssessment por identificadores;
+- no se materializan cambios O2 en PurchaseOperation;
+- Assessment y Trace permanecen separados;
+- la salida usa el `AuthorizedScenarioAnalytics` ya autorizado por PR #99/104;
+- la cobertura llega hasta Stage 2 O3 y presentación Vertical sin añadir autoridad decisional.
+
+**DICTAMEN AUDITORÍA 2:** SUPERADA — SIN BLOQUEADORES DE DISEÑO.  
+**Cierre definitivo:** condicionado a CI completa sobre el head exacto de la PR y CI post-merge sobre `main`.
