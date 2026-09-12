@@ -23,6 +23,8 @@ La fachada:
 3. conserva dicho paquete completo en `VerticalMVPSupportResult.scenario_support`;
 4. adapta el paquete O2 a un único `CapabilityExecution` denominado `SCENARIO_COORDINATION` para la frontera E2E.
 
+`run_mvp_execution`, al aceptar directamente un `O2SupportPackage`, debe validar antes de registrarlo que `decision_id`, `rules_version`, `parameters_version` y `data_snapshot_id` coinciden con el `DecisionContext` de la ejecución. Un paquete O2 ajeno falla cerrado.
+
 Si no se suministran resultados O3, el comportamiento Vertical MVP existente permanece inalterado.
 
 ## 3. Posición canónica
@@ -52,15 +54,16 @@ El adaptador O2 → O1/Vertical no crea estados nuevos.
 ## 6. Invariantes
 
 1. O3 no se ejecuta ni recalcula desde esta integración.
-2. O2 se construye usando exclusivamente el bridge O2↔O3 ya validado.
-3. No se mutan `PurchaseOperation`, `DecisionContext` ni resultados O3.
-4. No se crean score, ranking, selección, recomendación, aprobación, rechazo u optimización.
-5. No se interpreta el contenido de Assessments ni de Viability Frontier.
-6. La identidad/versiones/snapshot siguen validadas por O2↔O3.
-7. `NOT_STARTED` continúa fallando cerrado en el bridge O2↔O3; no se convierte a `READY`.
-8. `scenario_support` es soporte descriptivo y nunca decisión del CEO.
-9. La ausencia de escenarios significa capacidad no suministrada; no genera un resultado sintético.
-10. Los componentes cerrados O2 y O3 no se modifican.
+2. O2 se construye usando exclusivamente el bridge O2↔O3 ya validado cuando la entrada procede de la fachada Vertical.
+3. Una entrada O2 directa al ejecutor se valida contra el `DecisionContext`; no puede cruzar decisiones, versiones ni snapshots.
+4. No se mutan `PurchaseOperation`, `DecisionContext`, resultados O3 ni paquetes O2 suministrados.
+5. No se crean score, ranking, selección, recomendación, aprobación, rechazo u optimización.
+6. No se interpreta el contenido de Assessments ni de Viability Frontier.
+7. La identidad/versiones/snapshot siguen validadas por O2↔O3 y por el gate directo del ejecutor.
+8. `NOT_STARTED` continúa fallando cerrado en el bridge O2↔O3; no se convierte a `READY`.
+9. `scenario_support` es soporte descriptivo y nunca decisión del CEO.
+10. La ausencia de escenarios significa capacidad no suministrada; no genera un resultado sintético.
+11. Los componentes cerrados O2 y O3 no se modifican.
 
 ## 7. Fuera de alcance
 
