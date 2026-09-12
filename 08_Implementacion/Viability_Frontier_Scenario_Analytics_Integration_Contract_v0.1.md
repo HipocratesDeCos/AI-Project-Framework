@@ -1,6 +1,6 @@
 # EIOS — Viability Frontier → Scenario Analytics Integration Contract v0.1
 
-**Estado:** DEPURADO TRAS AUDITORÍA 1 — APTO PARA IMPLEMENTACIÓN  
+**Estado:** 🔒 CERRADO — AUDITORÍA 2 SUPERADA — MATERIALIZADO  
 **Baseline:** `main @ 592144e96014cff2137667d1648a9601c00b768c`  
 **Ámbito:** vinculación tipada y fail-closed de un `ViabilityResult` ya producido con un `ScenarioVersion VALID` materializado en `O4O2O3Preparation`, antes de construir `AuthorizedScenarioAnalytics`.
 
@@ -168,4 +168,20 @@ Las pruebas deben demostrar:
 
 No se detectan responsabilidades implícitas adicionales, mappings de estado ni ampliación de autoridad.
 
-**DICTAMEN TRAS DEPURACIÓN:** APTO PARA IMPLEMENTACIÓN.
+## 15. Auditoría 2 y cierre
+
+Auditoría final sobre la implementación materializada:
+
+- diff estrictamente aditivo: contrato + módulo de integración + tests;
+- 0 modificaciones en VF, O4, O2, O3, orquestación, Vertical MVP o presentación;
+- no se importa ni ejecuta `evaluate_viability`;
+- no se acepta `DecisionContext` separado;
+- no existe mapping `ViabilityStatus → ScenarioEvaluationStatus`;
+- el contexto se deriva exclusivamente de `O4O2O3Preparation`;
+- la validación de decisión, escenario, versiones y snapshot es fail-closed;
+- la canonicalización VF es exhaustiva y puramente representacional;
+- no se introducen score, ranking, recomendación, aprobación, rechazo ni decisión.
+
+**DICTAMEN AUDITORÍA 2:** SUPERADA — SIN BLOQUEADORES.
+
+**DICTAMEN DE CIERRE:** 🔒 CERRADO Y MATERIALIZADO. Pendiente únicamente validación CI e integración en `main`.
