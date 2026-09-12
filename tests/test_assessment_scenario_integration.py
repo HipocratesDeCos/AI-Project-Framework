@@ -7,18 +7,17 @@ import pytest
 
 from eios.core.c0_reproducibility import build_trace
 from eios.core.models import Assessment, DecisionContext, PurchaseOperation
-from eios.core.o4_o2_o3_orchestration import (
-    complete_o4_o2_o3_orchestration,
-    prepare_o4_o2_o3_orchestration,
-)
+from eios.core.o4_o2_o3_orchestration import prepare_o4_o2_o3_orchestration
 from eios.core.scenario_evaluation import ScenarioEvaluationStatus
 from eios.core.scenario_generation import GenerationPolicy, GenerationVariable
 from eios.core.viability_frontier import ViabilityResult, ViabilityStatus
 from eios.frontend.application_boundary import present_vertical_mvp_result
 from eios.rules import (
     AssessmentTraceBinding,
+    ProvenancedScenarioAnalyticsInput,
     authorized_rule,
     build_authorized_scenario_analytics_from_provenanced_assessments,
+    complete_provenanced_o4_o2_o3_orchestration,
 )
 from eios.vertical_orchestration import run_vertical_mvp_from_orchestration
 
@@ -156,6 +155,18 @@ def _package(preparation=None, *, bindings=None, viability=None, **kwargs):
         purchase=_child_purchase(prep),
         assessment_bindings=selected_bindings,
         viability_result=viability or _viability(prep),
+        **kwargs,
+    )
+
+
+def _provenanced_input(preparation, *, bindings=None, viability=None, **kwargs):
+    scenario_id = preparation.materialization.scenarios[0].scenario_id
+    selected_bindings = bindings if bindings is not None else (_binding(preparation),)
+    return ProvenancedScenarioAnalyticsInput(
+        scenario_id=scenario_id,
+        purchase=_child_purchase(preparation),
+        assessment_bindings=selected_bindings,
+        viability_result=viability or _viability(preparation),
         **kwargs,
     )
 
@@ -406,28 +417,30 @@ def test_viability_status_does_not_derive_o3_status() -> None:
 def test_complete_stage2_consumes_provenanced_package_without_reexecution() -> None:
     preparation = _preparation()
     binding = _binding(preparation)
-    package = _package(preparation, bindings=(binding,))
+    item = _provenanced_input(preparation, bindings=(binding,))
 
-    result = complete_o4_o2_o3_orchestration(
+    result = complete_provenanced_o4_o2_o3_orchestration(
         preparation=preparation,
-        analytics=(package,),
+        analytics=(item,),
     )
 
     assert len(result.evaluations) == 1
     evaluation = result.evaluations[0]
-    assert evaluation.scenario_id == package.scenario_id
-    assert evaluation.assessments == package.assessments
-    assert evaluation.viability_result == package.viability_result
+    assert evaluation.scenario_id == item.scenario_id
+    assert evaluation.assessments[0]["rule_id"] == binding.assessment.rule_id
+    assert evaluation.viability_result["assessment_ids"] == (
+        "FRONTIER-ASSESSMENT-X",
+    )
     assert evaluation.trace_references == (binding.trace.trace_id,)
 
 
 def test_provenanced_payload_serializes_through_vertical_presentation() -> None:
     preparation = _preparation()
     binding = _binding(preparation)
-    package = _package(preparation, bindings=(binding,))
-    orchestration = complete_o4_o2_o3_orchestration(
+    item = _provenanced_input(preparation, bindings=(binding,))
+    orchestration = complete_provenanced_o4_o2_o3_orchestration(
         preparation=preparation,
-        analytics=(package,),
+        analytics=(item,),
     )
 
     vertical = run_vertical_mvp_from_orchestration(
@@ -438,7 +451,7 @@ def test_provenanced_payload_serializes_through_vertical_presentation() -> None:
     payload = present_vertical_mvp_result(vertical)
     scenario = payload["scenario_support"]["scenarios"][0]
 
-    assert scenario["scenario_id"] == package.scenario_id
+    assert scenario["scenario_id"] == item.scenario_id
     assert scenario["values"]["assessments"][0] == {
         "rule_id": "R-STK-003",
         "status": "EVALUABLE",
