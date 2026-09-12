@@ -54,7 +54,14 @@ La continuidad de estado no exige igualdad literal entre el estado de una capaci
 - esa agregación no convierte el resultado local en `FALSE`, no viable, rechazo ni decisión;
 - `FAILED` técnico sí produce `BoundaryStatus.FAILED` conforme al límite cerrado.
 
-Las limitaciones/unresolved y `failure_reason` correspondientes deben conservarse hasta presentación.
+La procedencia de unresolved también debe conservarse conforme al adaptador cerrado:
+
+- el registro individual O2 conserva el unresolved literal, por ejemplo `missing-evidence`;
+- `SCENARIO_COORDINATION` lo namespaciza como `<scenario_id>:missing-evidence`;
+- el `ExecutionOutcome` agregado conserva ese unresolved ya namespacizado;
+- esa namespacización es trazabilidad, no reinterpretación analítica.
+
+Los `failure_reason` correspondientes deben conservarse hasta presentación.
 
 ## 6. Trazabilidad y contenido
 
@@ -122,12 +129,13 @@ La suite E2E debe cubrir, como mínimo:
 2. preservación de decisión/versiones/snapshot;
 3. preservación de `scenario_id`, Assessment, Viability y trazas;
 4. varios escenarios con orden determinista;
-5. `NOT_EVALUABLE` íntegro en registro y `SCENARIO_COORDINATION`, con agregado Vertical `PARTIALLY_COMPLETED` y unresolved preservados;
-6. `FAILED` técnico íntegro hasta view-model;
-7. `rules_available=False` y `scenario_support_available=True`;
-8. única capacidad `SCENARIO_COORDINATION`;
-9. ausencia de autoridad decisional;
-10. inmutabilidad y salida desacoplada;
-11. repetibilidad determinista de la cadena.
+5. `NOT_EVALUABLE` íntegro en registro y `SCENARIO_COORDINATION`, con agregado Vertical `PARTIALLY_COMPLETED`;
+6. unresolved literal en registro y namespacizado por `scenario_id` en capacidad/agregado;
+7. `FAILED` técnico íntegro hasta view-model;
+8. `rules_available=False` y `scenario_support_available=True`;
+9. única capacidad `SCENARIO_COORDINATION`;
+10. ausencia de autoridad decisional;
+11. inmutabilidad y salida desacoplada;
+12. repetibilidad determinista de la cadena.
 
-**DICTAMEN DE DEPURACIÓN:** APTO. Se distingue explícitamente estado local de capacidad/escenario y estado agregado del límite Vertical, sin modificar ninguna semántica productiva cerrada.
+**DICTAMEN DE DEPURACIÓN:** APTO. Se distinguen explícitamente estado local, estado agregado y procedencia namespacizada de unresolved, sin modificar ninguna semántica productiva cerrada.
