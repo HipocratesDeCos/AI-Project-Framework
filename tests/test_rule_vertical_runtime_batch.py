@@ -64,7 +64,9 @@ def test_batch_crc_resolves_multiple_active_rules_by_effect_priority() -> None:
     assert result.crc_result.consolidated_result == "NO COMPRAR"
     assert "R-R2:R2" in result.crc_result.conflicts
     assert result.support_package.execution_status == O1ExecutionStatus.COMPLETED
-    assert result.support_package.trace_references == tuple(t.trace_id for t in result.traces)
+    assert result.support_package.trace_references == tuple(
+        sorted({t.trace_id for t in result.traces})
+    )
 
 
 def test_batch_all_false_preserves_explicit_base_result() -> None:
