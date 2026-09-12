@@ -50,6 +50,7 @@ from .provenance import (
     ProvenancedRulesC0Invoker,
     build_provenanced_rules_engine_c0_invoker,
     run_provenanced_assessments_vertical,
+    validate_assessment_trace_binding,
 )
 from .runtime import (
     ConsolidatedBaseResult,
@@ -60,6 +61,9 @@ from .runtime import (
     run_assessment_set_vertical,
     run_assessment_vertical,
     run_authorized_assessments_vertical,
+)
+from .scenario_integration import (
+    build_authorized_scenario_analytics_from_provenanced_assessments,
 )
 from .stock import (
     R_STK_003,
@@ -109,6 +113,7 @@ __all__ = [
     "authorized_rule",
     "authorized_rule_metadata",
     "bind_authorized_assessment",
+    "build_authorized_scenario_analytics_from_provenanced_assessments",
     "build_domain_rules_c0_invoker",
     "build_provenanced_rules_engine_c0_invoker",
     "build_rules_engine_c0_invoker",
@@ -129,4 +134,5 @@ __all__ = [
     "run_provenanced_assessments_vertical",
     "run_r_ent_001_vertical",
     "run_rules_engine",
+    "validate_assessment_trace_binding",
 ]

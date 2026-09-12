@@ -99,6 +99,37 @@ def _validate_provenance(
         raise ValueError("Trace.trace_id no es reproducible para el material suministrado")
 
 
+def validate_assessment_trace_binding(
+    *,
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    binding: AssessmentTraceBinding,
+) -> AssessmentTraceBinding:
+    """Validate and return a detached provenance-safe binding snapshot.
+
+    This narrow public boundary performs no CRC/O1 composition and never
+    evaluates a business rule. It exists so later integration layers can reuse
+    the exact provenance checks without recreating or weakening them.
+    """
+    purchase_snapshot = purchase.model_copy(deep=True)
+    context_snapshot = context.model_copy(deep=True)
+    binding_snapshot = binding.model_copy(deep=True)
+
+    _validate_purchase_context(purchase_snapshot, context_snapshot)
+    rule = authorized_rule(
+        binding_snapshot.assessment.rule_id,
+        context_snapshot.rules_version,
+    )
+    _validate_provenance(
+        purchase=purchase_snapshot,
+        context=context_snapshot,
+        rule=rule,
+        assessment=binding_snapshot.assessment,
+        trace=binding_snapshot.trace,
+    )
+    return binding_snapshot
+
+
 def run_provenanced_assessments_vertical(
     *,
     purchase: PurchaseOperation,
@@ -194,4 +225,5 @@ __all__ = [
     "ProvenancedRulesC0Invoker",
     "build_provenanced_rules_engine_c0_invoker",
     "run_provenanced_assessments_vertical",
+    "validate_assessment_trace_binding",
 ]
