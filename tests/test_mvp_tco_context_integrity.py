@@ -1,12 +1,15 @@
+from datetime import date
 from decimal import Decimal
+from inspect import signature
 
 import pytest
 
 from eios.core.execution_boundary import BoundaryStatus
 from eios.core.models import DecisionContext, PurchaseOperation
 from eios.core.mvp_execution import run_mvp_execution
-from eios.core.orchestration import CapabilityExecution, O1ExecutionStatus
-from eios.tco.models import TCOResult
+from eios.core.orchestration import O1ExecutionStatus
+from eios.core.tco_integration import build_provenanced_tco_invoker
+from eios.tco.models import CostComponent, TCOInput
 
 
 def _context() -> DecisionContext:
@@ -28,62 +31,80 @@ def _purchase() -> PurchaseOperation:
         quantity=Decimal("10"),
         unit_price=Decimal("5"),
         currency="EUR",
-        operation_date="2026-09-12",
+        operation_date=date(2026, 9, 12),
     )
 
 
-def _tco_result(**overrides) -> TCOResult:
-    values = {
-        "decision_id": "D-TCO-CTX",
-        "scenario_id": "S-TCO-CTX",
-        "currency": "EUR",
-        "value": Decimal("50"),
-        "contributing_components": ("ACQUISITION",),
-        "unresolved_components": (),
-        "limitations": (),
-    }
-    values.update(overrides)
-    return TCOResult(**values)
+def _complete_payload() -> TCOInput:
+    return TCOInput(purchase_operation=_purchase())
 
 
-def test_matching_complete_tco_context_executes_without_mutation():
-    context = _context()
-    result = _tco_result()
-    context_before = context.model_dump()
-    result_before = result.model_dump()
-
-    outcome = run_mvp_execution(
-        purchase=_purchase(),
-        context=context,
-        policy_version="MVP-TCO-CTX-1",
-        tco_result=result,
+def _incomplete_payload() -> TCOInput:
+    return TCOInput(
+        purchase_operation=_purchase(),
+        attributable_costs=(
+            CostComponent(
+                component="TRANSPORT",
+                amount=None,
+                currency="EUR",
+                applicability="APPLICABLE",
+                attribution_ref="ATTR-TRANSPORT",
+                rule_reference="RULE-TCO-TRANSPORT",
+            ),
+        ),
     )
 
-    assert outcome.status == BoundaryStatus.COMPLETED
-    assert tuple(item.capability for item in outcome.capability_results) == ("TCO",)
-    assert outcome.capability_results[0].result_available is True
-    assert context.model_dump() == context_before
-    assert result.model_dump() == result_before
 
-
-def test_matching_incomplete_tco_preserves_partial_semantics():
-    result = _tco_result(
-        value=None,
-        unresolved_components=("TRANSPORT",),
-        limitations=("MISSING_AMOUNT:TRANSPORT",),
-    )
-
+def test_matching_complete_tco_input_executes_through_invoker() -> None:
     outcome = run_mvp_execution(
         purchase=_purchase(),
         context=_context(),
         policy_version="MVP-TCO-CTX-1",
-        tco_result=result,
+        tco_invoker=build_provenanced_tco_invoker(payload=_complete_payload()),
+    )
+
+    assert outcome.status == BoundaryStatus.COMPLETED
+    capability = outcome.capability_results[0]
+    assert capability.capability == "TCO"
+    assert capability.status == O1ExecutionStatus.COMPLETED
+    assert capability.result_available is True
+
+
+def test_matching_incomplete_tco_preserves_partial_semantics() -> None:
+    outcome = run_mvp_execution(
+        purchase=_purchase(),
+        context=_context(),
+        policy_version="MVP-TCO-CTX-1",
+        tco_invoker=build_provenanced_tco_invoker(payload=_incomplete_payload()),
     )
 
     assert outcome.status == BoundaryStatus.PARTIALLY_COMPLETED
     assert outcome.unresolved_items == ("TRANSPORT",)
-    assert outcome.capability_results[0].capability == "TCO"
-    assert outcome.capability_results[0].result_available is False
+    capability = outcome.capability_results[0]
+    assert capability.capability == "TCO"
+    assert capability.status == O1ExecutionStatus.PARTIALLY_COMPLETED
+    assert capability.result_available is False
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    (
+        ("article_id", "ART-OTHER"),
+        ("supplier_id", "SUP-OTHER"),
+        ("quantity", Decimal("11")),
+        ("unit_price", Decimal("6")),
+        ("operation_date", date(2026, 9, 11)),
+    ),
+)
+def test_tco_invoker_rejects_foreign_purchase_even_when_ids_match(
+    field: str,
+    value,
+) -> None:
+    foreign = _purchase().model_copy(update={field: value})
+    invoker = build_provenanced_tco_invoker(payload=_complete_payload())
+
+    with pytest.raises(ValueError, match=field):
+        invoker(foreign, _context())
 
 
 @pytest.mark.parametrize(
@@ -93,52 +114,47 @@ def test_matching_incomplete_tco_preserves_partial_semantics():
         ("scenario_id", "S-OTHER"),
     ),
 )
-def test_tco_context_mismatch_is_rejected(field: str, value: str):
-    result = _tco_result(**{field: value})
+def test_tco_invoker_rejects_foreign_execution_context(
+    field: str,
+    value: str,
+) -> None:
+    foreign_context = _context().model_copy(update={field: value})
+    invoker = build_provenanced_tco_invoker(payload=_complete_payload())
 
     with pytest.raises(ValueError, match=field):
+        invoker(_purchase(), foreign_context)
+
+
+def test_tco_invoker_freezes_complete_input_snapshot() -> None:
+    payload = _complete_payload()
+    invoker = build_provenanced_tco_invoker(payload=payload)
+
+    payload.purchase_operation.quantity = Decimal("999")
+    payload.purchase_operation.article_id = "MUTATED-LATER"
+
+    capability = invoker(_purchase(), _context())
+
+    assert capability.capability == "TCO"
+    assert capability.status == O1ExecutionStatus.COMPLETED
+
+
+def test_tco_builder_requires_typed_physical_input() -> None:
+    with pytest.raises(TypeError, match="TCOInput"):
+        build_provenanced_tco_invoker(payload=object())
+
+
+def test_mvp_execution_public_signature_has_no_detached_tco_result() -> None:
+    parameters = signature(run_mvp_execution).parameters
+
+    assert "tco_result" not in parameters
+    assert "tco_invoker" in parameters
+
+
+def test_old_tco_result_keyword_is_rejected() -> None:
+    with pytest.raises(TypeError, match="tco_result"):
         run_mvp_execution(
             purchase=_purchase(),
             context=_context(),
             policy_version="MVP-TCO-CTX-1",
-            tco_result=result,
+            tco_result=object(),
         )
-
-
-def test_tco_context_mismatch_reports_all_incompatible_fields():
-    result = _tco_result(decision_id="D-OTHER", scenario_id="S-OTHER")
-
-    with pytest.raises(ValueError) as exc_info:
-        run_mvp_execution(
-            purchase=_purchase(),
-            context=_context(),
-            policy_version="MVP-TCO-CTX-1",
-            tco_result=result,
-        )
-
-    message = str(exc_info.value)
-    assert "decision_id" in message
-    assert "scenario_id" in message
-
-
-def test_tco_context_mismatch_fails_before_any_capability_runs():
-    calls: list[str] = []
-
-    def c0_invoker(*_):
-        calls.append("C0")
-        return CapabilityExecution(
-            capability="C0",
-            status=O1ExecutionStatus.COMPLETED,
-            result_available=True,
-        )
-
-    with pytest.raises(ValueError, match="decision_id"):
-        run_mvp_execution(
-            purchase=_purchase(),
-            context=_context(),
-            policy_version="MVP-TCO-CTX-1",
-            rules_invoker=c0_invoker,
-            tco_result=_tco_result(decision_id="D-OTHER"),
-        )
-
-    assert calls == []
