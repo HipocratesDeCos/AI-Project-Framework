@@ -2,7 +2,7 @@
 
 **Estado:** CERRADO PARA IMPLEMENTACIÓN
 **Baseline:** `main @ 06dbb9f3f28b19d3848af3a06510e8d7f5123049`
-**Ámbito:** materialización estructural de candidatos O4 mediante la autoridad de identidad/versionado O2.
+**Ámbito:** ejecución controlada O4 → materialización estructural O2.
 
 ## 1. Propósito
 
@@ -12,18 +12,23 @@ O4 conserva la autoridad exclusiva sobre generación finita y determinista de ca
 
 ## 2. Entrada autorizada
 
-La integración recibe exclusivamente:
+La operación de integración recibe:
 
-- un `GenerationResult` ya producido por O4;
-- el `DecisionContext` canónico asociado.
+- el `DecisionContext` canónico;
+- la secuencia de `GenerationVariable`;
+- la `GenerationPolicy` versionada;
+- `parent_scenario_id` opcional;
+- `depth` inicial.
 
-La integración no ejecuta `generate_scenarios` y no deriva variables, reglas, parámetros, Assessments ni resultados de Viability Frontier.
+La operación invoca `generate_scenarios` de O4 con ese mismo contexto y, en la misma cadena controlada, materializa sus candidatos mediante O2.
+
+No se acepta como interfaz pública un `GenerationResult` desacoplado de su contexto porque dicho modelo no conserva `decision_id`, versiones ni snapshot y no permitiría verificar su procedencia.
 
 ## 3. Salida
 
 La integración devuelve un `O4O2MaterializationResult` inmutable con:
 
-- copia profunda del `GenerationResult` original;
+- copia profunda del `GenerationResult` producido por O4 en esa misma ejecución;
 - cero o más `ScenarioVersion` creados mediante `create_scenario` de O2.
 
 El `GenerationResult` se conserva completo para mantener literalmente la representación O4 de `status`, `policy_version`, `reason`, `parent_scenario_id`, `depth` y cambios candidatos. La representación interna de los `ScenarioVersion` materializados pertenece a O2 y puede aplicar su canonicalización contractual.
@@ -42,7 +47,7 @@ La integración no exige igualdad estructural entre `candidate.changes` y `Scena
 
 ### 4.2 Estados O4 no generativos
 
-`EMPTY`, `BLOCKED`, `NOT_EVALUABLE` y `FAILED` producen un resultado de integración con `scenarios=()` y conservan literalmente el `GenerationResult` original.
+`EMPTY`, `BLOCKED`, `NOT_EVALUABLE` y `FAILED` producen un resultado de integración con `scenarios=()` y conservan literalmente el `GenerationResult` producido.
 
 No se convierten en fallos O2, escenarios sintéticos ni estados empresariales.
 
@@ -67,20 +72,20 @@ La integración:
 
 Cualquier ejecución coordinada O4 → O2 → O3 que produzca evaluación requerirá resultados analíticos autorizados y un alcance posterior específico.
 
-## 7. Determinismo e identidad
+## 7. Determinismo, procedencia e identidad
 
+- O4 y O2 reciben exactamente el mismo `DecisionContext` snapshot de la operación de integración.
 - El orden de escenarios materializados conserva el orden determinista de candidatos O4.
-- Para la misma entrada O4 y el mismo `DecisionContext`, O2 debe producir los mismos `scenario_id` y fingerprints.
+- Para las mismas entradas y contexto, O4 produce la misma generación y O2 los mismos `scenario_id` y fingerprints.
 - La identidad, canonicalización y versiones proceden exclusivamente del `DecisionContext` y de `create_scenario`.
-- La integración no introduce identidad paralela.
+- La integración no introduce identidad paralela ni permite inyectar resultados O4 de contexto no verificable.
 
 ## 8. Inmutabilidad
 
-La integración no muta:
+La integración trabaja sobre snapshots profundos y no muta:
 
-- `GenerationResult`;
-- `CandidateScenario`;
-- `AuthorizedScenarioChange`;
+- `GenerationVariable`;
+- `GenerationPolicy`;
 - `DecisionContext`.
 
 La salida conserva una copia profunda del resultado O4 para aislar estructuras mutables anidadas.
@@ -109,13 +114,16 @@ Las pruebas deben demostrar al menos:
 5. cero variables produce escenario `DRAFT`, nunca `VALID` sintético;
 6. `EMPTY`, `BLOCKED`, `NOT_EVALUABLE` y `FAILED` no crean escenarios;
 7. contexto y versiones se conservan;
-8. entradas no se mutan;
+8. variables, política y contexto de entrada no se mutan;
 9. estructuras mutables anidadas quedan aisladas mediante copia profunda;
-10. no aparecen campos o comportamientos de ranking, selección, recomendación o decisión;
-11. O2, O3 y O4 permanecen físicamente sin modificaciones.
+10. no existe interfaz pública para materializar un `GenerationResult` desacoplado de contexto;
+11. no aparecen campos o comportamientos de ranking, selección, recomendación o decisión;
+12. O2, O3 y O4 permanecen físicamente sin modificaciones.
 
-## 11. Auditoría previa
+## 11. Auditorías de diseño
 
-**DICTAMEN: APTO PARA IMPLEMENTACIÓN TRAS DEPURACIÓN.**
+**Audit 1:** detectó una formulación incorrecta que exigía preservación literal de cambios dentro de `ScenarioVersion`; corregida reconociendo la autoridad de canonicalización O2.
 
-Audit 1 detectó y corrigió una formulación incorrecta que exigía preservación literal de los cambios dentro de `ScenarioVersion`. El contrato depurado reconoce que O2 posee la autoridad de canonicalización y conserva separadamente la fuente O4 original. La integración llena una brecha expresamente diferida por O4 sin ampliar O3 ni transformar estados técnicos en conclusiones empresariales.
+**Audit 2:** detectó que `GenerationResult` no porta identidad/versiones/snapshot y, por tanto, una interfaz `GenerationResult + DecisionContext` permitiría una asociación de procedencia no verificable. Se elimina esa interfaz. La operación integrada invoca O4 y O2 sobre el mismo snapshot de contexto.
+
+**DICTAMEN FINAL: APTO PARA IMPLEMENTACIÓN.**
