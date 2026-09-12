@@ -5,6 +5,7 @@ analytical content, rank alternatives, or make a business decision.
 """
 from __future__ import annotations
 
+from .models import DecisionContext
 from .o2 import O2ScenarioStatus, O2SupportPackage
 from .orchestration import CapabilityExecution, O1ExecutionStatus
 
@@ -18,6 +19,22 @@ _STATUS_MAP = {
     O2ScenarioStatus.NOT_EVALUABLE: O1ExecutionStatus.NOT_EVALUABLE,
     O2ScenarioStatus.FAILED: O1ExecutionStatus.FAILED,
 }
+
+
+def validate_scenario_coordination_context(
+    result: O2SupportPackage,
+    context: DecisionContext,
+) -> None:
+    """Reject an O2 package that belongs to a different execution context."""
+    execution = result.execution_context
+    if execution.decision_id != context.decision_id:
+        raise ValueError("O2 decision_id incoherente con DecisionContext")
+    if execution.rules_version != context.rules_version:
+        raise ValueError("O2 rules_version incoherente con DecisionContext")
+    if execution.parameters_version != context.parameters_version:
+        raise ValueError("O2 parameters_version incoherente con DecisionContext")
+    if execution.data_snapshot_id != context.data_snapshot_id:
+        raise ValueError("O2 data_snapshot_id incoherente con DecisionContext")
 
 
 def adapt_scenario_coordination(result: O2SupportPackage) -> CapabilityExecution:
@@ -64,4 +81,4 @@ def adapt_scenario_coordination(result: O2SupportPackage) -> CapabilityExecution
     )
 
 
-__all__ = ["adapt_scenario_coordination"]
+__all__ = ["adapt_scenario_coordination", "validate_scenario_coordination_context"]
