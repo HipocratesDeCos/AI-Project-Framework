@@ -3,10 +3,17 @@ from decimal import Decimal
 import pytest
 
 import eios.mvp as mvp
+from eios.core.c0_reproducibility import build_trace
 from eios.core.execution_boundary import BoundaryStatus
 from eios.core.models import Assessment, DecisionContext, PurchaseOperation
 from eios.quality.gate import QualityTrustResult
-from eios.rules import RulesEngineInput, implemented_rule_ids, run_rules_engine
+from eios.rules import (
+    AssessmentTraceBinding,
+    RulesEngineInput,
+    authorized_rule,
+    implemented_rule_ids,
+    run_rules_engine,
+)
 from eios.rules.orchestrator import DecisionRuleExecutionResult, StockExcessRuleInputs
 from eios.tco.models import TCOResult
 
@@ -47,6 +54,8 @@ def _tco() -> TCOResult:
 
 
 def _rules_result() -> DecisionRuleExecutionResult:
+    purchase = _purchase()
+    context = _context()
     assessment = Assessment(
         rule_id="R-STK-003",
         status="EVALUABLE",
@@ -54,11 +63,19 @@ def _rules_result() -> DecisionRuleExecutionResult:
         evidence_ids=["EV-STK"],
         reason="Exceso demostrado.",
     )
+    rule = authorized_rule(assessment.rule_id, context.rules_version)
+    trace = build_trace(
+        context,
+        purchase,
+        rule,
+        tuple(assessment.evidence_ids),
+        assessment,
+    )
     engine_result = run_rules_engine(
         RulesEngineInput(
-            purchase=_purchase(),
-            context=_context(),
-            assessments=(assessment,),
+            purchase=purchase,
+            context=context,
+            bindings=(AssessmentTraceBinding(assessment=assessment, trace=trace),),
             base_result="COMPRAR",
         )
     )

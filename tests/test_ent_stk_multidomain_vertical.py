@@ -14,11 +14,10 @@ from eios.rules import (
     BASELINE_EVIDENCE_SOURCE_TYPE,
     DELIVERY_EVIDENCE_SOURCE_TYPE,
     STOCK_EXCESS_EVIDENCE_SOURCE_TYPE,
-    RuleAssessmentBinding,
     evaluate_r_ent_001,
     evaluate_r_stk_003,
-    run_assessment_set_vertical,
 )
+from eios.rules.runtime import RuleAssessmentBinding, run_assessment_set_vertical
 from eios.stock.models import (
     ConfiguredParameterValue,
     ExcessResult,

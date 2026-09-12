@@ -1,9 +1,9 @@
 """Domain-to-rules orchestration for implemented EIOS business rules.
 
-This layer converts already-produced domain results into individual Assessments
-through the closed rule bridges, then delegates consolidation to the canonical
-public Rules Engine. It does not discover rules, invent missing dependencies,
-or interpret omitted inputs as NOT_EVALUABLE.
+This layer converts domain results into individual Assessments inside the same
+purchase/context execution, then composes those freshly-produced results through
+the internal same-execution runtime. It does not use the public provenance reuse
+boundary because no detached Assessment crosses a boundary here.
 """
 from __future__ import annotations
 
@@ -20,10 +20,13 @@ from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
 
 from .catalog import authorized_rule, implemented_rule_ids
 from .delivery import R_ENT_001, R_STK_001, evaluate_r_ent_001, evaluate_r_stk_001
-from .engine import RulesEngineInput, RulesEngineResult, run_rules_engine
 from .finance import R_FIN_001, R_FIN_003, evaluate_r_fin_001, evaluate_r_fin_003
 from .pricing import R_HIS_002, evaluate_r_his_002
-from .runtime import ConsolidatedBaseResult
+from .runtime import (
+    ConsolidatedBaseResult,
+    RuleSetVerticalResult,
+    run_authorized_assessments_vertical,
+)
 from .stock import R_STK_003, R_STK_004, evaluate_r_stk_003, evaluate_r_stk_004
 
 
@@ -78,13 +81,13 @@ class HistorySufficiencyRuleInputs:
 
 
 class DecisionRuleExecutionResult(BaseModel):
-    """Rules Engine result plus explicit coverage of implemented rule bridges."""
+    """Rules result plus explicit coverage of implemented rule bridges."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     executed_rule_ids: tuple[str, ...]
     omitted_rule_ids: tuple[str, ...]
-    rules_engine_result: RulesEngineResult
+    rules_engine_result: RuleSetVerticalResult
 
     @property
     def assessments(self):
@@ -119,7 +122,7 @@ def run_domain_rules(
     finance_safety_margin: FinanceSafetyMarginRuleInputs | None = None,
     history_sufficiency: HistorySufficiencyRuleInputs | None = None,
 ) -> DecisionRuleExecutionResult:
-    """Evaluate supplied domain bundles and execute the canonical Rules Engine."""
+    """Evaluate supplied domain bundles and compose them in the same execution."""
     assessments_by_rule = {}
 
     if delivery is not None:
@@ -217,13 +220,11 @@ def run_domain_rules(
         assessments_by_rule[rule_id] for rule_id in executed_rule_ids
     )
 
-    engine_result = run_rules_engine(
-        RulesEngineInput(
-            purchase=purchase,
-            context=context,
-            assessments=ordered_assessments,
-            base_result=base_result,
-        )
+    engine_result = run_authorized_assessments_vertical(
+        purchase=purchase,
+        context=context,
+        assessments=ordered_assessments,
+        base_result=base_result,
     )
     return DecisionRuleExecutionResult(
         executed_rule_ids=executed_rule_ids,

@@ -6,7 +6,7 @@ import pytest
 from eios.core.crc_mvp import RuleMetadata
 from eios.core.models import Assessment, DecisionContext, PurchaseOperation, Rule
 from eios.core.orchestration import O1ExecutionStatus
-from eios.rules import RuleAssessmentBinding, run_assessment_set_vertical
+from eios.rules.runtime import RuleAssessmentBinding, run_assessment_set_vertical
 
 
 CONTEXT = DecisionContext(

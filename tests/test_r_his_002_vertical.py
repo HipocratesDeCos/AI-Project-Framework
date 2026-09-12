@@ -11,11 +11,10 @@ from eios.pricing import PriceCounts, PriceIntelligenceInput, PriceIntelligenceR
 from eios.rules import (
     PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE,
     PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE,
-    RuleAssessmentBinding,
     evaluate_r_his_002,
     price_intelligence_result_ref,
-    run_assessment_set_vertical,
 )
+from eios.rules.runtime import RuleAssessmentBinding, run_assessment_set_vertical
 
 
 EVAL = date(2026, 9, 11)

@@ -4,10 +4,9 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from copy import deepcopy
 
-from eios.core.models import Assessment, DecisionContext, PurchaseOperation
+from eios.core.models import DecisionContext, PurchaseOperation
 from eios.core.orchestration import CapabilityExecution
 
-from .engine import RulesEngineInput, run_rules_engine
 from .orchestrator import (
     DeliveryRuleInputs,
     FinanceCapacityRuleInputs,
@@ -16,6 +15,10 @@ from .orchestrator import (
     StockAbsorptionRuleInputs,
     StockExcessRuleInputs,
     run_domain_rules,
+)
+from .provenance import (
+    AssessmentTraceBinding,
+    build_provenanced_rules_engine_c0_invoker,
 )
 from .runtime import ConsolidatedBaseResult
 
@@ -26,29 +29,14 @@ DomainRulesC0Invoker = Callable[[PurchaseOperation, DecisionContext], Capability
 
 def build_rules_engine_c0_invoker(
     *,
-    assessments: Sequence[Assessment],
+    bindings: Sequence[AssessmentTraceBinding],
     base_result: ConsolidatedBaseResult,
 ) -> RulesEngineC0Invoker:
-    """Build a stable C0 invoker from already-produced Assessments."""
-    assessment_snapshot = tuple(item.model_copy(deep=True) for item in assessments)
-
-    def invoke(
-        purchase: PurchaseOperation,
-        context: DecisionContext,
-    ) -> CapabilityExecution:
-        result = run_rules_engine(
-            RulesEngineInput(
-                purchase=purchase,
-                context=context,
-                assessments=tuple(
-                    item.model_copy(deep=True) for item in assessment_snapshot
-                ),
-                base_result=base_result,
-            )
-        )
-        return result.c0_capability
-
-    return invoke
+    """Build the generic E2E C0 invoker from provenance-safe bindings only."""
+    return build_provenanced_rules_engine_c0_invoker(
+        bindings=tuple(binding.model_copy(deep=True) for binding in bindings),
+        base_result=base_result,
+    )
 
 
 def build_domain_rules_c0_invoker(
