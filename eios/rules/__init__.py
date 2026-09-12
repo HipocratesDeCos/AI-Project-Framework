@@ -54,7 +54,9 @@ from .provenance import (
 )
 from .runtime import ConsolidatedBaseResult, RuleSetVerticalResult, RuleVerticalResult
 from .scenario_integration import (
+    ProvenancedScenarioAnalyticsInput,
     build_authorized_scenario_analytics_from_provenanced_assessments,
+    complete_provenanced_o4_o2_o3_orchestration,
 )
 from .stock import (
     R_STK_003,
@@ -83,6 +85,7 @@ __all__ = [
     "P_FIN_004",
     "P_PRE_006",
     "ProvenancedRulesC0Invoker",
+    "ProvenancedScenarioAnalyticsInput",
     "R_ENT_001",
     "R_FIN_001",
     "R_FIN_003",
@@ -106,6 +109,7 @@ __all__ = [
     "build_domain_rules_c0_invoker",
     "build_provenanced_rules_engine_c0_invoker",
     "build_rules_engine_c0_invoker",
+    "complete_provenanced_o4_o2_o3_orchestration",
     "evaluate_r_ent_001",
     "evaluate_r_fin_001",
     "evaluate_r_fin_003",
