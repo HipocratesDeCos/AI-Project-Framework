@@ -1,8 +1,9 @@
-"""Controlled O4 -> O2 -> O3 scenario orchestration.
+"""Controlled two-stage O4 -> O2 -> O3 scenario orchestration.
 
-This module does not produce analytical evidence. O3 is invoked only when an
-explicit analytical package containing pre-produced Assessments and a
-Viability Frontier result is supplied for every VALID O2 scenario.
+Stage 1 materializes O4 candidates through O2 and exposes their scenario IDs.
+Stage 2 invokes O3 only when complete, explicit analytical packages containing
+pre-produced Assessments and Viability Frontier results are supplied for every
+VALID O2 scenario.
 """
 from __future__ import annotations
 
@@ -44,19 +45,41 @@ class AuthorizedScenarioAnalytics(BaseModel):
         return self
 
 
-class O4O2O3OrchestrationResult(BaseModel):
-    """Immutable chain output preserving O4/O2 materialization and O3 results."""
+class O4O2O3Preparation(BaseModel):
+    """Stage-1 immutable snapshot exposing O2 scenario identities."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
+    context: DecisionContext
     materialization: O4O2MaterializationResult
+
+    @model_validator(mode="after")
+    def validate_context_binding(self) -> "O4O2O3Preparation":
+        for scenario in self.materialization.scenarios:
+            if scenario.decision_id != self.context.decision_id:
+                raise ValueError("scenario.decision_id incoherente con contexto preparado")
+            if scenario.rules_version != self.context.rules_version:
+                raise ValueError("scenario.rules_version incoherente con contexto preparado")
+            if scenario.parameters_version != self.context.parameters_version:
+                raise ValueError("scenario.parameters_version incoherente con contexto preparado")
+            if scenario.data_snapshot_id != self.context.data_snapshot_id:
+                raise ValueError("scenario.data_snapshot_id incoherente con contexto preparado")
+        return self
+
+
+class O4O2O3OrchestrationResult(BaseModel):
+    """Immutable final chain output preserving preparation and O3 results."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    preparation: O4O2O3Preparation
     evaluations: tuple[ScenarioEvaluationResult, ...] = ()
 
     @model_validator(mode="after")
     def validate_chain(self) -> "O4O2O3OrchestrationResult":
         valid_ids = tuple(
             scenario.scenario_id
-            for scenario in self.materialization.scenarios
+            for scenario in self.preparation.materialization.scenarios
             if scenario.status == ScenarioStatus.VALID
         )
         evaluation_ids = tuple(item.scenario_id for item in self.evaluations)
@@ -67,20 +90,18 @@ class O4O2O3OrchestrationResult(BaseModel):
         return self
 
 
-def run_o4_o2_o3_orchestration(
+def prepare_o4_o2_o3_orchestration(
     *,
     context: DecisionContext,
     variables: tuple[GenerationVariable, ...],
     policy: GenerationPolicy,
-    analytics: tuple[AuthorizedScenarioAnalytics, ...] = (),
     parent_scenario_id: str | None = None,
     depth: int = 0,
-) -> O4O2O3OrchestrationResult:
-    """Run O4/O2 and invoke O3 only with complete explicit analytical inputs."""
+) -> O4O2O3Preparation:
+    """Stage 1: run O4/O2 once and expose immutable scenario identities."""
     context_snapshot = context.model_copy(deep=True)
     variables_snapshot = tuple(item.model_copy(deep=True) for item in variables)
     policy_snapshot = policy.model_copy(deep=True)
-    analytics_snapshot = tuple(item.model_copy(deep=True) for item in analytics)
 
     materialization = run_o4_o2_materialization(
         context=context_snapshot.model_copy(deep=True),
@@ -89,11 +110,24 @@ def run_o4_o2_o3_orchestration(
         parent_scenario_id=parent_scenario_id,
         depth=depth,
     )
-    materialization_snapshot = materialization.model_copy(deep=True)
+    return O4O2O3Preparation(
+        context=context_snapshot,
+        materialization=materialization.model_copy(deep=True),
+    )
+
+
+def complete_o4_o2_o3_orchestration(
+    *,
+    preparation: O4O2O3Preparation,
+    analytics: tuple[AuthorizedScenarioAnalytics, ...] = (),
+) -> O4O2O3OrchestrationResult:
+    """Stage 2: invoke O3 only after exact complete analytical association."""
+    preparation_snapshot = preparation.model_copy(deep=True)
+    analytics_snapshot = tuple(item.model_copy(deep=True) for item in analytics)
 
     valid_scenarios = tuple(
         scenario
-        for scenario in materialization_snapshot.scenarios
+        for scenario in preparation_snapshot.materialization.scenarios
         if scenario.status == ScenarioStatus.VALID
     )
     supplied_ids = tuple(item.scenario_id for item in analytics_snapshot)
@@ -121,7 +155,7 @@ def run_o4_o2_o3_orchestration(
         evaluations.append(
             evaluate_scenario(
                 scenario.model_copy(deep=True),
-                context_snapshot.model_copy(deep=True),
+                preparation_snapshot.context.model_copy(deep=True),
                 assessments=deepcopy(tuple(analytical_input.assessments)),
                 viability_result=deepcopy(analytical_input.viability_result),
                 limitations=tuple(analytical_input.limitations),
@@ -132,13 +166,15 @@ def run_o4_o2_o3_orchestration(
         )
 
     return O4O2O3OrchestrationResult(
-        materialization=materialization_snapshot,
+        preparation=preparation_snapshot,
         evaluations=tuple(evaluations),
     )
 
 
 __all__ = [
     "AuthorizedScenarioAnalytics",
+    "O4O2O3Preparation",
     "O4O2O3OrchestrationResult",
-    "run_o4_o2_o3_orchestration",
+    "prepare_o4_o2_o3_orchestration",
+    "complete_o4_o2_o3_orchestration",
 ]
