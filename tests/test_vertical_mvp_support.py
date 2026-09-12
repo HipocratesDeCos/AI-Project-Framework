@@ -170,8 +170,10 @@ def test_vertical_service_signature_has_no_detached_opaque_results():
     parameters = signature(mvp.run_vertical_mvp_support).parameters
 
     assert "quality_result" not in parameters
+    assert "price_result" not in parameters
     assert "decision_twin_result" not in parameters
     assert "quality_invoker" in parameters
+    assert "price_invoker" in parameters
     assert "decision_twin_invoker" in parameters
 
 

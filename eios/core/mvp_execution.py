@@ -10,13 +10,11 @@ from collections.abc import Callable
 from copy import deepcopy
 from typing import Any
 
-from eios.pricing.models import PriceIntelligenceResult
 from eios.tco.models import TCOResult
 
 from .capability_adapters import (
     adapt_ni,
     adapt_nl,
-    adapt_price,
     adapt_tco,
 )
 from .execution_boundary import ExecutionOutcome, ExecutionPlan, execute_plan
@@ -52,22 +50,6 @@ def _snapshot_invoker(result: Any, adapter: Callable[[Any], CapabilityExecution]
         return adapter(deepcopy(snapshot))
 
     return invoke
-
-
-def _validate_price_result_context(
-    result: PriceIntelligenceResult,
-    context: DecisionContext,
-) -> None:
-    mismatches = tuple(
-        field
-        for field in ("decision_id", "scenario_id", "data_snapshot_id")
-        if getattr(result, field) != getattr(context, field)
-    )
-    if mismatches:
-        raise ValueError(
-            "PriceIntelligenceResult no coincide con DecisionContext: "
-            + ", ".join(mismatches)
-        )
 
 
 def _validate_tco_result_context(
@@ -145,8 +127,8 @@ def run_mvp_execution(
     context: DecisionContext,
     policy_version: str,
     quality_invoker: CapabilityInvoker | None = None,
+    price_invoker: CapabilityInvoker | None = None,
     rules_invoker: CapabilityInvoker | None = None,
-    price_result: PriceIntelligenceResult | None = None,
     tco_result: TCOResult | None = None,
     decision_twin_invoker: CapabilityInvoker | None = None,
     scenario_coordination_result: O2SupportPackage | None = None,
@@ -155,18 +137,17 @@ def run_mvp_execution(
 ) -> ExecutionOutcome:
     """Execute supplied MVP capabilities through the controlled boundary.
 
-    Opaque QTG and Decision Twin outputs must arrive through explicit invokers;
+    QTG, PRICE and Decision Twin outputs must arrive through explicit invokers;
     this service never re-labels detached raw results into the current context.
-    Context-verifiable result objects are validated and snapshotted when the
-    execution catalog is built.
+    Remaining context-verifiable result objects are validated and snapshotted
+    when the execution catalog is built.
     """
     invokers: dict[str, CapabilityInvoker] = {}
 
     if quality_invoker is not None:
         invokers["QTG"] = quality_invoker
-    if price_result is not None:
-        _validate_price_result_context(price_result, context)
-        invokers["PRICE"] = _snapshot_invoker(price_result, adapt_price)
+    if price_invoker is not None:
+        invokers["PRICE"] = price_invoker
     if tco_result is not None:
         _validate_tco_result_context(tco_result, context)
         invokers["TCO"] = _snapshot_invoker(tco_result, adapt_tco)

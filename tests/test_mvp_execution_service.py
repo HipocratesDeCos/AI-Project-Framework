@@ -139,8 +139,10 @@ def test_mvp_execution_public_signature_has_no_detached_opaque_results():
     parameters = signature(run_mvp_execution).parameters
 
     assert "quality_result" not in parameters
+    assert "price_result" not in parameters
     assert "decision_twin_result" not in parameters
     assert "quality_invoker" in parameters
+    assert "price_invoker" in parameters
     assert "decision_twin_invoker" in parameters
 
 
