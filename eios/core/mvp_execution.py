@@ -74,6 +74,22 @@ def _validate_price_result_context(
         )
 
 
+def _validate_tco_result_context(
+    result: TCOResult,
+    context: DecisionContext,
+) -> None:
+    mismatches = tuple(
+        field
+        for field in ("decision_id", "scenario_id")
+        if getattr(result, field) != getattr(context, field)
+    )
+    if mismatches:
+        raise ValueError(
+            "TCOResult no coincide con DecisionContext: "
+            + ", ".join(mismatches)
+        )
+
+
 def _validate_negotiation_intelligence_context(
     result: NegotiationIntelligenceResult,
     context: DecisionContext,
@@ -155,6 +171,7 @@ def run_mvp_execution(
         _validate_price_result_context(price_result, context)
         invokers["PRICE"] = _snapshot_invoker(price_result, adapt_price)
     if tco_result is not None:
+        _validate_tco_result_context(tco_result, context)
         invokers["TCO"] = _snapshot_invoker(tco_result, adapt_tco)
     if rules_invoker is not None:
         invokers["C0"] = rules_invoker
