@@ -1,6 +1,6 @@
 # EIOS — Assessment + Trace Provenance Integration Contract v0.1
 
-**Estado:** DEPURADO TRAS AUDITORÍA 1 — APTO PARA IMPLEMENTACIÓN  
+**Estado:** AUDITORÍA 2 SUPERADA — PENDIENTE CI  
 **Baseline:** `main @ f021e3725b6c9bc22f494b93077252dad00d7dd6`  
 **Ámbito:** cerrar la brecha de procedencia de Assessments ya producidos antes de reutilizarlos en Rules/CRC/O1 o en integraciones posteriores.
 
@@ -12,11 +12,11 @@ Las rutas actuales que reciben un `Assessment` separado y generan un `Trace` pos
 
 ## 2. Hallazgo de Auditoría 1
 
-El diseño inicial `Assessment + Trace` seguía siendo insuficiente: el `Trace` físico vigente vincula `rule_id`, status, outcome, evidencias, contexto e input, pero no `Assessment.reason`.
+El diseño inicial `Assessment + Trace` seguía siendo insuficiente: el `Trace` físico vigente vinculaba `rule_id`, status, outcome, evidencias, contexto e input, pero no `Assessment.reason`.
 
-CRC sí consume `Assessment.reason` como explicación/dominant reason. Por tanto, un `Assessment` podría cambiar su `reason` después de producirse y conservar un Trace aparentemente válido.
+CRC sí consume `Assessment.reason` como explicación/dominant reason. Por tanto, un `Assessment` podía cambiar su `reason` después de producirse y conservar un Trace aparentemente válido.
 
-Esto es una contradicción objetiva de reproducibilidad y justifica reabrir únicamente la superficie técnica de `Trace`/fingerprint C0.
+Esto constituye una contradicción objetiva de reproducibilidad y justifica reabrir únicamente la superficie técnica de `Trace`/fingerprint C0.
 
 ## 3. Refuerzo mínimo de Trace
 
@@ -42,7 +42,7 @@ El payload canónico incluye exhaustivamente el `Assessment` físico:
 - `evidence_ids` en su orden contractual;
 - `reason`.
 
-La canonicalización ordena claves JSON, no reordena la lista `evidence_ids` ni introduce semántica empresarial.
+La canonicalización ordena claves JSON, no reordena `evidence_ids` ni introduce semántica empresarial.
 
 El fingerprint del Assessment se incorpora al material determinista de `trace_id`. Cambiar cualquier campo material del Assessment, incluido `reason`, cambia el fingerprint y el `trace_id`.
 
@@ -165,3 +165,21 @@ Bindings, Assessments y Traces se copian profundamente antes de usarse. La ejecu
 **Depuración:** fingerprint exhaustivo del Assessment + inclusión del hash en `trace_id` + ruta segura que exige dicho fingerprint. Se conserva compatibilidad de lectura/construcción de Trace legacy mediante campo opcional, pero legacy no se considera prueba suficiente de procedencia.
 
 **DICTAMEN TRAS DEPURACIÓN:** APTO PARA IMPLEMENTACIÓN.
+
+## 16. Auditoría 2
+
+Se ha verificado el diff completo frente al baseline:
+
+- no se modifica ninguna regla específica ni sus condiciones empresariales;
+- no se modifica CRC, O1, O2, O3, Viability Frontier ni presentación;
+- `Assessment` permanece sin contexto adicional;
+- `Trace` solo incorpora un campo técnico opcional de reproducibilidad;
+- las trazas nuevas C0 quedan ligadas al Assessment completo;
+- las trazas legacy siguen siendo construibles, pero no son aceptadas como prueba de procedencia por la nueva ruta;
+- la API legacy permanece disponible y separada;
+- la API provenance-safe se expone explícitamente;
+- los tests cubren `reason`, fingerprint, `trace_id`, contexto extranjero, fingerprint de input, legacy, incoherencias status/outcome/evidence, regla no catalogada, duplicados, NOT_EVALUABLE, inmutabilidad e invoker E2E;
+- no aparece score, ranking, recomendación, selección, aprobación, rechazo ni autoridad decisional.
+
+**DICTAMEN AUDITORÍA 2:** SUPERADA — SIN BLOQUEADORES DE DISEÑO.  
+**Cierre técnico definitivo:** condicionado a CI completa sobre el head exacto de la PR y posterior CI de `main`.
