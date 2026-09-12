@@ -1,6 +1,6 @@
 # EIOS — Viability Frontier → Scenario Analytics Integration Contract v0.1
 
-**Estado:** DISEÑO PARA AUDITORÍA  
+**Estado:** DEPURADO TRAS AUDITORÍA 1 — APTO PARA IMPLEMENTACIÓN  
 **Baseline:** `main @ 592144e96014cff2137667d1648a9601c00b768c`  
 **Ámbito:** vinculación tipada y fail-closed de un `ViabilityResult` ya producido con un `ScenarioVersion VALID` materializado en `O4O2O3Preparation`, antes de construir `AuthorizedScenarioAnalytics`.
 
@@ -10,7 +10,7 @@ Cerrar una brecha de procedencia existente entre Viability Frontier y la orquest
 
 `AuthorizedScenarioAnalytics` conserva deliberadamente `viability_result: Any`; por ello, la orquestación cerrada puede comprobar la identidad del paquete analítico, pero no puede demostrar que un objeto real de Viability Frontier contenido en ese paquete pertenezca a la misma decisión, escenario, versiones y snapshot.
 
-Esta integración añade una frontera opcional y tipada para construir el paquete a partir de un `ViabilityResult` real cuya procedencia haya sido validada.
+Esta integración añade una frontera opcional y tipada que recibe un `ViabilityResult` real, valida su procedencia y solo después construye el paquete analítico autorizado.
 
 ## 2. Entradas
 
@@ -66,19 +66,44 @@ Esta unidad no intenta reinterpretar ni volver a calcular Assessment.
 
 Solo exige que `assessments` sea explícito y no vacío, igual que el contrato cerrado de `AuthorizedScenarioAnalytics`. La procedencia interna de cada tipo de Assessment sigue perteneciendo a su autoridad productora y queda fuera de esta integración específica VF→Scenario Analytics.
 
-## 7. Trazabilidad
+## 7. Representación canónica de VF
 
-El `ViabilityResult` se conserva íntegro y sin reinterpretación dentro del paquete analítico.
+### Hallazgo de Auditoría 1
 
-Las `trace_references` del paquete siguen siendo una entrada explícita. Esta integración no fusiona, inventa ni deduplica trazas de VF con trazas O3, porque hacerlo introduciría una política adicional no autorizada.
+Conservar el dataclass `ViabilityResult` directamente dentro del campo `Any` haría depender las capas O3→O2→presentación de serialización implícita de un tipo externo a sus contratos.
 
-## 8. Inmutabilidad
+### Depuración
+
+La frontera valida primero el objeto tipado `ViabilityResult` y, solo después de superar toda la vinculación contextual, materializa un payload canónico JSON-compatible que contiene exactamente:
+
+- `decision_id`;
+- `scenario_id`;
+- `status` como literal de `ViabilityStatus.value`;
+- `assessment_ids`;
+- `rule_ids`;
+- `trace_references`;
+- `rules_version`;
+- `parameters_version`;
+- `data_snapshot_id`;
+- `limitation`.
+
+No se descarta ni inventa ningún campo de `ViabilityResult`. La conversión es representacional, no analítica.
+
+Esto preserva la procedencia validada y evita introducir dependencia implícita de serialización en O3/O2/UI.
+
+## 8. Trazabilidad
+
+El payload canónico conserva íntegramente `assessment_ids`, `rule_ids`, `trace_references` y `limitation` del resultado VF.
+
+Las `trace_references` propias del paquete `AuthorizedScenarioAnalytics` siguen siendo una entrada explícita. Esta integración no fusiona, inventa ni deduplica las trazas VF con las trazas O3, porque hacerlo introduciría una política adicional no autorizada.
+
+## 9. Inmutabilidad
 
 Preparación, Assessment, ViabilityResult, limitaciones y trazas se copian antes de construir la salida.
 
-La operación no modifica ninguna entrada.
+La operación no modifica ninguna entrada. La representación canónica se construye en una estructura nueva.
 
-## 9. Fail-closed
+## 10. Fail-closed
 
 Se rechaza explícitamente:
 
@@ -94,7 +119,7 @@ Se rechaza explícitamente:
 
 Ningún error se convierte en `NOT_VIABLE`, `NOT_EVALUABLE`, recomendación o decisión.
 
-## 10. Salida
+## 11. Salida
 
 Salida exacta: `AuthorizedScenarioAnalytics`.
 
@@ -102,10 +127,10 @@ La salida conserva:
 
 - `scenario_id` validado;
 - Assessment suministrados;
-- el objeto `ViabilityResult` tipado y validado;
+- payload canónico del `ViabilityResult` ya validado;
 - estado técnico, limitaciones, trazas y causa de fallo suministrados.
 
-## 11. Fuera de alcance
+## 12. Fuera de alcance
 
 - ejecutar `evaluate_viability`;
 - derivar consecuencias H/K/U/S;
@@ -116,12 +141,12 @@ La salida conserva:
 - score, ranking, optimización, selección, recomendación, aprobación o rechazo empresarial;
 - persistencia, SQL, API o UI.
 
-## 12. Criterios de aceptación
+## 13. Criterios de aceptación
 
 Las pruebas deben demostrar:
 
 1. VF del contexto exacto produce `AuthorizedScenarioAnalytics` válido;
-2. objeto VF se conserva semánticamente íntegro;
+2. payload VF conserva semánticamente todos los campos del resultado tipado;
 3. rechazo de decisión ajena;
 4. rechazo de escenario ajeno;
 5. rechazo de `rules_version` ajena o ausente;
@@ -132,6 +157,15 @@ Las pruebas deben demostrar:
 10. no mapping automático entre `ViabilityStatus` y estado O3;
 11. inmutabilidad;
 12. integración posterior mediante `complete_o4_o2_o3_orchestration` sin reejecutar VF;
-13. ausencia de autoridad decisional.
+13. serialización JSON-compatible a través de O3→O2/presentación;
+14. ausencia de autoridad decisional.
 
-**DICTAMEN DE DISEÑO:** pendiente de Auditoría 1.
+## 14. Auditoría 1
+
+**Hallazgo:** transportar directamente el dataclass tipado dentro de `Any` añadía una dependencia de serialización no expresada por los contratos cerrados posteriores.
+
+**Corrección:** validar el tipo real y convertir, después de la validación contextual, a una representación canónica exhaustiva y JSON-compatible.
+
+No se detectan responsabilidades implícitas adicionales, mappings de estado ni ampliación de autoridad.
+
+**DICTAMEN TRAS DEPURACIÓN:** APTO PARA IMPLEMENTACIÓN.
