@@ -39,19 +39,22 @@ La verificación mantiene la invariante cerrada de PR #99:
 - no se fabrican artefactos ausentes;
 - no se deriva `NOT_EVALUABLE` o `FAILED` para suplir análisis faltante.
 
-## 5. Estados
+## 5. Estados y agregación
 
-La conformidad debe demostrar continuidad literal para:
+La conformidad debe demostrar continuidad semántica para:
 
 - `COMPLETED`;
-- `NOT_EVALUABLE`;
+- `NOT_EVALUABLE` local;
 - `FAILED` técnico.
 
-En particular:
+La continuidad de estado no exige igualdad literal entre el estado de una capacidad y el estado agregado del límite Vertical. Se preserva la autoridad cerrada de `ExecutionOutcome`:
 
-- `NOT_EVALUABLE` no se transforma en `FALSE`, no viable ni rechazo;
-- `FAILED` no se transforma en rechazo empresarial;
-- las limitaciones/unresolved y `failure_reason` correspondientes se conservan hasta presentación.
+- una evaluación/registro `NOT_EVALUABLE` permanece `NOT_EVALUABLE` en O3, O2 Support y `SCENARIO_COORDINATION`;
+- como `ExecutionOutcome` síncrono no admite `NOT_EVALUABLE` como terminal, una capacidad `NOT_EVALUABLE` produce `BoundaryStatus.PARTIALLY_COMPLETED` en el agregado Vertical;
+- esa agregación no convierte el resultado local en `FALSE`, no viable, rechazo ni decisión;
+- `FAILED` técnico sí produce `BoundaryStatus.FAILED` conforme al límite cerrado.
+
+Las limitaciones/unresolved y `failure_reason` correspondientes deben conservarse hasta presentación.
 
 ## 6. Trazabilidad y contenido
 
@@ -119,7 +122,7 @@ La suite E2E debe cubrir, como mínimo:
 2. preservación de decisión/versiones/snapshot;
 3. preservación de `scenario_id`, Assessment, Viability y trazas;
 4. varios escenarios con orden determinista;
-5. `NOT_EVALUABLE` íntegro hasta view-model;
+5. `NOT_EVALUABLE` íntegro en registro y `SCENARIO_COORDINATION`, con agregado Vertical `PARTIALLY_COMPLETED` y unresolved preservados;
 6. `FAILED` técnico íntegro hasta view-model;
 7. `rules_available=False` y `scenario_support_available=True`;
 8. única capacidad `SCENARIO_COORDINATION`;
@@ -127,4 +130,4 @@ La suite E2E debe cubrir, como mínimo:
 10. inmutabilidad y salida desacoplada;
 11. repetibilidad determinista de la cadena.
 
-**DICTAMEN DE DISEÑO:** APTO. La unidad verifica composición de contratos cerrados y no amplía la semántica ni la superficie productiva de EIOS.
+**DICTAMEN DE DEPURACIÓN:** APTO. Se distingue explícitamente estado local de capacidad/escenario y estado agregado del límite Vertical, sin modificar ninguna semántica productiva cerrada.
