@@ -7,7 +7,6 @@ from eios.core.execution_boundary import BoundaryStatus
 from eios.core.models import DecisionContext, PurchaseOperation
 from eios.core.mvp_execution import run_mvp_execution
 from eios.core.orchestration import CapabilityExecution, O1ExecutionStatus
-from eios.tco.models import TCOResult
 
 
 def _context() -> DecisionContext:
@@ -58,6 +57,13 @@ def test_mvp_execution_runs_available_capabilities_in_canonical_order_and_contex
         )
         return _completed("QTG", "trace-qtg")
 
+    def tco_invoker(received_purchase, received_context):
+        seen["TCO"] = (
+            received_purchase.model_dump(mode="python"),
+            received_context.model_dump(mode="python"),
+        )
+        return _completed("TCO", "trace-tco")
+
     def decision_twin_invoker(received_purchase, received_context):
         seen["DECISION_TWIN"] = (
             received_purchase.model_dump(mode="python"),
@@ -65,22 +71,12 @@ def test_mvp_execution_runs_available_capabilities_in_canonical_order_and_contex
         )
         return _completed("DECISION_TWIN", "trace-twin")
 
-    tco = TCOResult(
-        decision_id="D-MVP",
-        scenario_id="S-MVP",
-        currency="EUR",
-        value=Decimal("55"),
-        contributing_components=("purchase",),
-        unresolved_components=(),
-        limitations=(),
-    )
-
     outcome = run_mvp_execution(
         purchase=purchase,
         context=context,
         policy_version="MVP-E2E-1",
         quality_invoker=quality_invoker,
-        tco_result=tco,
+        tco_invoker=tco_invoker,
         rules_invoker=_completed_c0,
         decision_twin_invoker=decision_twin_invoker,
     )
@@ -97,25 +93,27 @@ def test_mvp_execution_runs_available_capabilities_in_canonical_order_and_contex
         purchase.model_dump(mode="python"),
         context.model_dump(mode="python"),
     )
-    assert seen == {"QTG": expected, "DECISION_TWIN": expected}
+    assert seen == {
+        "QTG": expected,
+        "TCO": expected,
+        "DECISION_TWIN": expected,
+    }
 
 
 def test_mvp_execution_preserves_partial_tco_state():
-    tco = TCOResult(
-        decision_id="D-MVP",
-        scenario_id="S-MVP",
-        currency="EUR",
-        value=None,
-        contributing_components=("purchase",),
-        unresolved_components=("TRANSPORT",),
-        limitations=("TRANSPORT_NOT_EVIDENCED",),
-    )
+    def tco_invoker(*_):
+        return CapabilityExecution(
+            capability="TCO",
+            status=O1ExecutionStatus.PARTIALLY_COMPLETED,
+            result_available=False,
+            unresolved_items=("TRANSPORT",),
+        )
 
     outcome = run_mvp_execution(
         purchase=_purchase(),
         context=_context(),
         policy_version="MVP-E2E-1",
-        tco_result=tco,
+        tco_invoker=tco_invoker,
     )
 
     assert outcome.status == BoundaryStatus.PARTIALLY_COMPLETED
@@ -140,9 +138,11 @@ def test_mvp_execution_public_signature_has_no_detached_opaque_results():
 
     assert "quality_result" not in parameters
     assert "price_result" not in parameters
+    assert "tco_result" not in parameters
     assert "decision_twin_result" not in parameters
     assert "quality_invoker" in parameters
     assert "price_invoker" in parameters
+    assert "tco_invoker" in parameters
     assert "decision_twin_invoker" in parameters
 
 
