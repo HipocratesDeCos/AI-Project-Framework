@@ -1,11 +1,15 @@
+from datetime import date
 from decimal import Decimal
+from inspect import signature
 
 import pytest
 
 from eios.core.models import DecisionContext, PurchaseOperation
 from eios.core.mvp_execution import run_mvp_execution
-from eios.core.orchestration import CapabilityExecution, O1ExecutionStatus
-from eios.pricing.models import PriceCounts, PriceIntelligenceResult
+from eios.core.orchestration import O1ExecutionStatus
+from eios.core.price_integration import build_provenanced_price_invoker
+from eios.pricing.models import PriceIntelligenceAssessmentContext, PriceIntelligenceInput
+from eios.pricing.sufficiency import SufficiencyObservation
 
 
 def _context() -> DecisionContext:
@@ -27,51 +31,48 @@ def _purchase() -> PurchaseOperation:
         quantity=Decimal("10"),
         unit_price=Decimal("5"),
         currency="EUR",
-        operation_date="2026-09-12",
+        operation_date=date(2026, 9, 12),
     )
 
 
-def _price_result() -> PriceIntelligenceResult:
-    return PriceIntelligenceResult(
-        decision_id="D-PRICE-CTX",
-        scenario_id="S-PRICE-CTX",
-        data_snapshot_id="snapshot-v1",
+def _payload() -> PriceIntelligenceInput:
+    return PriceIntelligenceInput(
+        decision_context=_context(),
+        purchase_operation=_purchase(),
+        references=(),
+        evidence_validations=(),
+        normalization_basis=None,
+        economic_basis_evidence=(),
         methodology_version="price-v1",
-        pr_value=Decimal("5.0000"),
-        currency="EUR",
-        sufficiency_status="SUFFICIENT",
-        pr_status="PR_AVAILABLE",
-        pr_limitations=(),
-        reference_set=("REF-1", "REF-2"),
-        counts=PriceCounts(
-            n_raw=2,
-            n_unique=2,
-            n_comparable=2,
-            n_representative=2,
-            n_selected=2,
-        ),
-        aggregation_method="MEDIAN_UNWEIGHTED",
-        trace_references=("trace-price",),
     )
 
 
-def test_matching_price_context_executes_without_mutation():
-    context = _context()
-    result = _price_result()
-    context_before = context.model_dump()
-    result_before = result.model_dump()
+def _assessment_context() -> PriceIntelligenceAssessmentContext:
+    return PriceIntelligenceAssessmentContext(
+        sufficiency=SufficiencyObservation(),
+    )
 
+
+def _invoker():
+    return build_provenanced_price_invoker(
+        payload=_payload(),
+        assessment_context=_assessment_context(),
+    )
+
+
+def test_matching_full_price_input_executes_through_invoker() -> None:
     outcome = run_mvp_execution(
         purchase=_purchase(),
-        context=context,
+        context=_context(),
         policy_version="MVP-PRICE-CTX-1",
-        price_result=result,
+        price_invoker=_invoker(),
     )
 
-    assert tuple(item.capability for item in outcome.capability_results) == ("PRICE",)
-    assert outcome.capability_results[0].result_available is True
-    assert context.model_dump() == context_before
-    assert result.model_dump() == result_before
+    capability = outcome.capability_results[0]
+    assert capability.capability == "PRICE"
+    assert capability.status == O1ExecutionStatus.NOT_EVALUABLE
+    assert capability.result_available is False
+    assert capability.unresolved_items == ("PRICE_NOT_JUSTIFIABLE",)
 
 
 @pytest.mark.parametrize(
@@ -79,51 +80,83 @@ def test_matching_price_context_executes_without_mutation():
     (
         ("decision_id", "D-OTHER"),
         ("scenario_id", "S-OTHER"),
+        ("rules_version", "rules-other"),
+        ("parameters_version", "params-other"),
         ("data_snapshot_id", "snapshot-other"),
     ),
 )
-def test_price_context_mismatch_is_rejected(field: str, value: str):
-    result = _price_result().model_copy(update={field: value})
+def test_price_invoker_rejects_any_foreign_decision_context_field(
+    field: str,
+    value: str,
+) -> None:
+    foreign = _context().model_copy(update={field: value})
 
     with pytest.raises(ValueError, match=field):
-        run_mvp_execution(
-            purchase=_purchase(),
-            context=_context(),
-            policy_version="MVP-PRICE-CTX-1",
-            price_result=result,
-        )
+        _invoker()(_purchase(), foreign)
 
 
-def test_price_context_mismatch_fails_before_any_capability_runs():
-    calls: list[str] = []
+@pytest.mark.parametrize(
+    ("field", "value"),
+    (
+        ("article_id", "ART-OTHER"),
+        ("supplier_id", "SUP-OTHER"),
+        ("quantity", Decimal("11")),
+        ("unit_price", Decimal("6")),
+        ("operation_date", date(2026, 9, 11)),
+    ),
+)
+def test_price_invoker_rejects_foreign_purchase_even_when_ids_match(
+    field: str,
+    value,
+) -> None:
+    foreign = _purchase().model_copy(update={field: value})
 
-    def c0_invoker(*_):
-        calls.append("C0")
-        return CapabilityExecution(
-            capability="C0",
-            status=O1ExecutionStatus.COMPLETED,
-            result_available=True,
-        )
+    with pytest.raises(ValueError, match=field):
+        _invoker()(foreign, _context())
 
-    result = _price_result().model_copy(
-        update={
-            "decision_id": "D-OTHER",
-            "scenario_id": "S-OTHER",
-            "data_snapshot_id": "snapshot-other",
-        }
+
+def test_price_invoker_freezes_complete_input_snapshot() -> None:
+    payload = _payload()
+    invoker = build_provenanced_price_invoker(
+        payload=payload,
+        assessment_context=_assessment_context(),
     )
 
-    with pytest.raises(ValueError) as exc_info:
+    payload.purchase_operation.article_id = "MUTATED-LATER"
+    payload.decision_context.parameters_version = "MUTATED-LATER"
+
+    capability = invoker(_purchase(), _context())
+
+    assert capability.capability == "PRICE"
+    assert capability.status == O1ExecutionStatus.NOT_EVALUABLE
+
+
+def test_price_builder_requires_typed_physical_inputs() -> None:
+    with pytest.raises(TypeError, match="PriceIntelligenceInput"):
+        build_provenanced_price_invoker(
+            payload=object(),
+            assessment_context=_assessment_context(),
+        )
+
+    with pytest.raises(TypeError, match="PriceIntelligenceAssessmentContext"):
+        build_provenanced_price_invoker(
+            payload=_payload(),
+            assessment_context=object(),
+        )
+
+
+def test_mvp_execution_public_signature_has_no_detached_price_result() -> None:
+    parameters = signature(run_mvp_execution).parameters
+
+    assert "price_result" not in parameters
+    assert "price_invoker" in parameters
+
+
+def test_old_price_result_keyword_is_rejected() -> None:
+    with pytest.raises(TypeError, match="price_result"):
         run_mvp_execution(
             purchase=_purchase(),
             context=_context(),
             policy_version="MVP-PRICE-CTX-1",
-            price_result=result,
-            rules_invoker=c0_invoker,
+            price_result=object(),
         )
-
-    message = str(exc_info.value)
-    assert "decision_id" in message
-    assert "scenario_id" in message
-    assert "data_snapshot_id" in message
-    assert calls == []
