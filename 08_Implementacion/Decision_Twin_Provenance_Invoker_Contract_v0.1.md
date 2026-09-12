@@ -2,7 +2,7 @@
 
 ## Estado
 
-DISEÑADO → AUDITADO → DEPURADO. Pendiente de materialización, Auditoría 2 y CI.
+DISEÑADO → AUDITADO → DEPURADO → AUDITORÍA 2 SUPERADA → MATERIALIZADO. Pendiente de CI e integración.
 
 ## 1. Propósito
 
@@ -88,7 +88,7 @@ Los estados de VF se transportan literalmente:
 
 La comparación se ejecuta mediante el motor cerrado `compare_alternatives(...)` y se adapta al boundary O1 mediante `adapt_twin(...)`.
 
-El invocador público debe tener la forma:
+El invocador público tiene la forma:
 
 `(PurchaseOperation, DecisionContext) -> CapabilityExecution`.
 
@@ -120,12 +120,33 @@ Esta unidad no:
 - selecciona, recomienda, aprueba o rechaza alternativas;
 - modifica `run_mvp_execution`, que ya exige un invocador explícito desde PR #113.
 
-## 10. Criterio de cierre
+## 10. Auditoría 2
 
-La unidad solo podrá declararse cerrada cuando:
+Resultado: SUPERADA — SIN BLOQUEADORES.
 
-1. implementación y tests respeten este contrato;
-2. Auditoría 2 no encuentre rutas de re-etiquetado ni autoridad nueva;
-3. CI de PR sea satisfactoria sobre el head exacto;
-4. el merge se realice sobre ese head;
-5. CI post-merge resulte satisfactoria.
+Comprobado contra:
+
+- `Decision_Twin_Implementation_Contract.md`;
+- `viability_frontier.py` y `viability_scenario_integration.py`;
+- `scenario_integration.py` y Stage-2 provenance-safe;
+- `decision_twin.py` y `decision_twin_engine.py`;
+- `capability_adapters.py`;
+- `mvp_execution.py` tras PR #113.
+
+Hallazgos de cierre:
+
+- no existe entrada pública de comparación/alternativa opaca en esta integración;
+- `scenario_id` no se deriva como `representation_ref`;
+- la viabilidad se transporta literalmente y `NOT_EVALUABLE` permanece intacto;
+- el contexto raíz se valida antes de Stage-2;
+- Stage-2 vuelve a probar Assessment+Trace y VF antes de O3;
+- no se crean condiciones, consecuencias, riesgos, ranking, selección ni decisión;
+- el core cerrado no se modifica.
+
+## 11. Criterio de cierre
+
+La implementación y Auditoría 2 quedan cerradas en rama. La unidad no se considera integrada hasta completar:
+
+1. CI de PR satisfactoria sobre el head exacto;
+2. merge de ese mismo head;
+3. CI post-merge satisfactoria.
