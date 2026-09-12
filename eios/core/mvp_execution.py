@@ -27,7 +27,12 @@ from .execution_boundary import ExecutionOutcome, ExecutionPlan, execute_plan
 from .models import DecisionContext, PurchaseOperation
 from .negotiation_intelligence import NegotiationIntelligenceResult
 from .negotiation_ladder import NegotiationLadderResult
+from .o2 import O2SupportPackage
 from .orchestration import CapabilityExecution
+from .scenario_coordination_adapter import (
+    adapt_scenario_coordination,
+    validate_scenario_coordination_context,
+)
 
 
 CapabilityInvoker = Callable[[PurchaseOperation, DecisionContext], CapabilityExecution]
@@ -38,6 +43,7 @@ MVP_CAPABILITY_ORDER = (
     "TCO",
     "C0",
     "DECISION_TWIN",
+    "SCENARIO_COORDINATION",
     "NEGOTIATION_INTELLIGENCE",
     "NEGOTIATION_LADDER",
 )
@@ -62,6 +68,7 @@ def run_mvp_execution(
     tco_result: TCOResult | None = None,
     quality_result: QualityTrustResult | None = None,
     decision_twin_result: DecisionTwinComparison | None = None,
+    scenario_coordination_result: O2SupportPackage | None = None,
     negotiation_intelligence_result: NegotiationIntelligenceResult | None = None,
     negotiation_ladder_result: NegotiationLadderResult | None = None,
 ) -> ExecutionOutcome:
@@ -84,6 +91,11 @@ def run_mvp_execution(
     if decision_twin_result is not None:
         invokers["DECISION_TWIN"] = _snapshot_invoker(
             decision_twin_result, adapt_twin
+        )
+    if scenario_coordination_result is not None:
+        validate_scenario_coordination_context(scenario_coordination_result, context)
+        invokers["SCENARIO_COORDINATION"] = _snapshot_invoker(
+            scenario_coordination_result, adapt_scenario_coordination
         )
     if negotiation_intelligence_result is not None:
         invokers["NEGOTIATION_INTELLIGENCE"] = _snapshot_invoker(
