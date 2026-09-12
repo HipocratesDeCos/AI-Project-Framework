@@ -11,11 +11,10 @@ from eios.parameters.center import Configuration, ParameterConfigurationError
 from eios.rules import (
     FINANCE_BASIC_EVIDENCE_SOURCE_TYPE,
     PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE,
-    RuleAssessmentBinding,
     evaluate_r_fin_001,
     finance_basic_result_ref,
-    run_assessment_set_vertical,
 )
+from eios.rules.runtime import RuleAssessmentBinding, run_assessment_set_vertical
 
 
 AS_OF = date(2026, 9, 11)
