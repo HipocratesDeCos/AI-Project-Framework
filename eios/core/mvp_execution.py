@@ -58,6 +58,22 @@ def _snapshot_invoker(result: Any, adapter: Callable[[Any], CapabilityExecution]
     return invoke
 
 
+def _validate_price_result_context(
+    result: PriceIntelligenceResult,
+    context: DecisionContext,
+) -> None:
+    mismatches = tuple(
+        field
+        for field in ("decision_id", "scenario_id", "data_snapshot_id")
+        if getattr(result, field) != getattr(context, field)
+    )
+    if mismatches:
+        raise ValueError(
+            "PriceIntelligenceResult no coincide con DecisionContext: "
+            + ", ".join(mismatches)
+        )
+
+
 def run_mvp_execution(
     *,
     purchase: PurchaseOperation,
@@ -83,6 +99,7 @@ def run_mvp_execution(
     if quality_result is not None:
         invokers["QTG"] = _snapshot_invoker(quality_result, adapt_qtg)
     if price_result is not None:
+        _validate_price_result_context(price_result, context)
         invokers["PRICE"] = _snapshot_invoker(price_result, adapt_price)
     if tco_result is not None:
         invokers["TCO"] = _snapshot_invoker(tco_result, adapt_tco)
