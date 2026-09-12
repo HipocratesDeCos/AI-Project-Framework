@@ -6,7 +6,7 @@ capabilities beyond the supplied domain-rule bridges.
 """
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 
 from pydantic import BaseModel, ConfigDict
 
@@ -16,7 +16,10 @@ from eios.core.models import DecisionContext, PurchaseOperation
 from eios.core.mvp_execution import run_mvp_execution
 from eios.core.negotiation_intelligence import NegotiationIntelligenceResult
 from eios.core.negotiation_ladder import NegotiationLadderResult
+from eios.core.o2 import O2SupportPackage
+from eios.core.o2_o3_integration import build_o2_support_from_o3
 from eios.core.orchestration import CapabilityExecution
+from eios.core.scenario_evaluation import ScenarioEvaluationResult
 from eios.pricing.models import PriceIntelligenceResult
 from eios.quality.gate import QualityTrustResult
 from eios.rules.orchestrator import (
@@ -34,12 +37,13 @@ from eios.tco.models import TCOResult
 
 
 class VerticalMVPSupportResult(BaseModel):
-    """Application-level output preserving E2E and Rules/CRC detail."""
+    """Application output preserving E2E, Rules/CRC and scenario support detail."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     execution: ExecutionOutcome
     rules: DecisionRuleExecutionResult | None = None
+    scenario_support: O2SupportPackage | None = None
 
     @property
     def status(self):
@@ -89,14 +93,16 @@ def run_vertical_mvp_support(
     tco_result: TCOResult | None = None,
     quality_result: QualityTrustResult | None = None,
     decision_twin_result: DecisionTwinComparison | None = None,
+    scenario_evaluation_results: Sequence[ScenarioEvaluationResult] = (),
     negotiation_intelligence_result: NegotiationIntelligenceResult | None = None,
     negotiation_ladder_result: NegotiationLadderResult | None = None,
 ) -> VerticalMVPSupportResult:
-    """Run supplied Vertical MVP capabilities and preserve detailed rule output.
+    """Run supplied Vertical MVP capabilities and preserve detailed outputs.
 
-    Rule bridges are evaluated once. Their C0 capability is snapshotted for the
-    E2E boundary, while the complete Rules/CRC result remains available to the
-    caller. Missing capabilities are omitted rather than inferred.
+    Rule bridges are evaluated once. Scenario evaluation results are not
+    recalculated: when supplied, they are coordinated through the validated
+    O3→O2 bridge and represented as one SCENARIO_COORDINATION capability.
+    Missing capabilities are omitted rather than inferred.
     """
     rule_bundles_present = any(
         item is not None
@@ -126,6 +132,15 @@ def run_vertical_mvp_support(
         )
         rules_invoker = _capability_snapshot_invoker(rules_result.c0_capability)
 
+    scenario_results = tuple(scenario_evaluation_results)
+    scenario_support = None
+    if scenario_results:
+        scenario_support = build_o2_support_from_o3(
+            purchase,
+            context,
+            scenario_results,
+        )
+
     execution = run_mvp_execution(
         purchase=purchase,
         context=context,
@@ -135,12 +150,14 @@ def run_vertical_mvp_support(
         tco_result=tco_result,
         quality_result=quality_result,
         decision_twin_result=decision_twin_result,
+        scenario_coordination_result=scenario_support,
         negotiation_intelligence_result=negotiation_intelligence_result,
         negotiation_ladder_result=negotiation_ladder_result,
     )
     return VerticalMVPSupportResult(
         execution=execution,
         rules=rules_result,
+        scenario_support=scenario_support,
     )
 
 
