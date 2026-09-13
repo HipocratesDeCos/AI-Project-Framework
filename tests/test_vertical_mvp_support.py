@@ -77,6 +77,18 @@ def _decision_twin_invoker(purchase: PurchaseOperation, context: DecisionContext
     )
 
 
+def _scenario_coordination_invoker(
+    purchase: PurchaseOperation, context: DecisionContext
+):
+    _assert_runtime_context(purchase, context)
+    return CapabilityExecution(
+        capability="SCENARIO_COORDINATION",
+        status=O1ExecutionStatus.COMPLETED,
+        result_available=True,
+        trace_references=("trace-scenario",),
+    )
+
+
 def _ni_invoker(purchase: PurchaseOperation, context: DecisionContext):
     _assert_runtime_context(purchase, context)
     return CapabilityExecution(
@@ -141,6 +153,7 @@ def test_vertical_service_runs_non_rule_capabilities_directly():
         quality_invoker=_quality_invoker,
         tco_invoker=_tco_invoker,
         decision_twin_invoker=_decision_twin_invoker,
+        scenario_coordination_invoker=_scenario_coordination_invoker,
         negotiation_intelligence_invoker=_ni_invoker,
         negotiation_ladder_invoker=_ladder_invoker,
     )
@@ -148,10 +161,12 @@ def test_vertical_service_runs_non_rule_capabilities_directly():
     assert result.status == BoundaryStatus.COMPLETED
     assert result.rules is None
     assert result.crc_result is None
+    assert result.scenario_support is None
     assert tuple(item.capability for item in result.capability_results) == (
         "QTG",
         "TCO",
         "DECISION_TWIN",
+        "SCENARIO_COORDINATION",
         "NEGOTIATION_INTELLIGENCE",
         "NEGOTIATION_LADDER",
     )
@@ -197,6 +212,8 @@ def test_vertical_service_signature_has_no_detached_opaque_results():
         "price_result",
         "tco_result",
         "decision_twin_result",
+        "scenario_coordination_result",
+        "scenario_evaluation_results",
         "negotiation_intelligence_result",
         "negotiation_ladder_result",
     ):
@@ -207,6 +224,7 @@ def test_vertical_service_signature_has_no_detached_opaque_results():
         "price_invoker",
         "tco_invoker",
         "decision_twin_invoker",
+        "scenario_coordination_invoker",
         "negotiation_intelligence_invoker",
         "negotiation_ladder_invoker",
     ):

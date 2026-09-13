@@ -7,17 +7,10 @@ decision, or add capability authority.
 from __future__ import annotations
 
 from collections.abc import Callable
-from copy import deepcopy
-from typing import Any
 
 from .execution_boundary import ExecutionOutcome, ExecutionPlan, execute_plan
 from .models import DecisionContext, PurchaseOperation
-from .o2 import O2SupportPackage
 from .orchestration import CapabilityExecution
-from .scenario_coordination_adapter import (
-    adapt_scenario_coordination,
-    validate_scenario_coordination_context,
-)
 
 
 CapabilityInvoker = Callable[[PurchaseOperation, DecisionContext], CapabilityExecution]
@@ -34,15 +27,6 @@ MVP_CAPABILITY_ORDER = (
 )
 
 
-def _snapshot_invoker(result: Any, adapter: Callable[[Any], CapabilityExecution]) -> CapabilityInvoker:
-    snapshot = deepcopy(result)
-
-    def invoke(_: PurchaseOperation, __: DecisionContext) -> CapabilityExecution:
-        return adapter(deepcopy(snapshot))
-
-    return invoke
-
-
 def run_mvp_execution(
     *,
     purchase: PurchaseOperation,
@@ -53,17 +37,16 @@ def run_mvp_execution(
     tco_invoker: CapabilityInvoker | None = None,
     rules_invoker: CapabilityInvoker | None = None,
     decision_twin_invoker: CapabilityInvoker | None = None,
-    scenario_coordination_result: O2SupportPackage | None = None,
+    scenario_coordination_invoker: CapabilityInvoker | None = None,
     negotiation_intelligence_invoker: CapabilityInvoker | None = None,
     negotiation_ladder_invoker: CapabilityInvoker | None = None,
 ) -> ExecutionOutcome:
     """Execute supplied MVP capabilities through the controlled boundary.
 
-    QTG, PRICE, TCO, Decision Twin, Negotiation Intelligence and Negotiation
-    Ladder must arrive through explicit invokers; this service never re-labels
-    detached raw results for those capabilities into the current context.
-    Scenario Coordination remains a context-verifiable support result and is
-    validated before its snapshot invoker is built.
+    QTG, PRICE, TCO, Decision Twin, Scenario Coordination, Negotiation
+    Intelligence and Negotiation Ladder must arrive through explicit invokers;
+    this service never re-labels detached raw results for those capabilities
+    into the current context. Invoker presence alone is not provenance proof.
     """
     invokers: dict[str, CapabilityInvoker] = {}
 
@@ -77,11 +60,8 @@ def run_mvp_execution(
         invokers["C0"] = rules_invoker
     if decision_twin_invoker is not None:
         invokers["DECISION_TWIN"] = decision_twin_invoker
-    if scenario_coordination_result is not None:
-        validate_scenario_coordination_context(scenario_coordination_result, context)
-        invokers["SCENARIO_COORDINATION"] = _snapshot_invoker(
-            scenario_coordination_result, adapt_scenario_coordination
-        )
+    if scenario_coordination_invoker is not None:
+        invokers["SCENARIO_COORDINATION"] = scenario_coordination_invoker
     if negotiation_intelligence_invoker is not None:
         invokers["NEGOTIATION_INTELLIGENCE"] = negotiation_intelligence_invoker
     if negotiation_ladder_invoker is not None:

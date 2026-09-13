@@ -1,5 +1,6 @@
 from datetime import date
 from decimal import Decimal
+from inspect import signature
 
 import pytest
 
@@ -9,7 +10,6 @@ from eios.core.models import DecisionContext, PurchaseOperation
 from eios.core.mvp_execution import MVP_CAPABILITY_ORDER, run_mvp_execution
 from eios.core.o2 import O2ScenarioResult, O2ScenarioStatus, build_support_package
 from eios.core.scenario_coordination_adapter import adapt_scenario_coordination
-from eios.core.scenario_evaluation import ScenarioEvaluationResult, ScenarioEvaluationStatus
 
 
 def _context() -> DecisionContext:
@@ -37,20 +37,6 @@ def _purchase() -> PurchaseOperation:
 
 def _o2_package(*scenarios: O2ScenarioResult):
     return build_support_package(_purchase(), _context(), scenarios)
-
-
-def _completed_o3(scenario_id: str) -> ScenarioEvaluationResult:
-    return ScenarioEvaluationResult(
-        scenario_id=scenario_id,
-        decision_id="D-SC-VERTICAL",
-        rules_version="R1",
-        parameters_version="P1",
-        data_snapshot_id="SNAP1",
-        status=ScenarioEvaluationStatus.COMPLETED,
-        assessments=(f"assessment-{scenario_id}",),
-        viability_result={"scenario": scenario_id, "status": "AVAILABLE"},
-        trace_references=(f"trace-{scenario_id}",),
-    )
 
 
 def test_scenario_coordination_capability_is_canonically_between_twin_and_negotiation():
@@ -147,109 +133,64 @@ def test_adapter_failed_state_names_failed_scenarios_without_business_rejection(
     assert "rejection" not in capability.failure_reason.lower()
 
 
-def test_execution_service_accepts_scenario_coordination_as_a_vertical_capability():
+def test_execution_service_accepts_explicit_scenario_coordination_invoker():
     package = _o2_package(
         O2ScenarioResult(scenario_id="ALT-A", status=O2ScenarioStatus.COMPLETED),
         O2ScenarioResult(scenario_id="ALT-B", status=O2ScenarioStatus.COMPLETED),
     )
+    purchase = _purchase()
+    context = _context()
+    seen = {}
+
+    def scenario_invoker(received_purchase, received_context):
+        seen["purchase"] = received_purchase
+        seen["context"] = received_context
+        return adapt_scenario_coordination(package)
 
     outcome = run_mvp_execution(
-        purchase=_purchase(),
-        context=_context(),
+        purchase=purchase,
+        context=context,
         policy_version="MVP-E2E-SCENARIO-1",
-        scenario_coordination_result=package,
+        scenario_coordination_invoker=scenario_invoker,
     )
 
     assert outcome.status == BoundaryStatus.COMPLETED
     assert tuple(item.capability for item in outcome.capability_results) == (
         "SCENARIO_COORDINATION",
     )
+    assert seen == {"purchase": purchase, "context": context}
 
 
-def test_execution_service_rejects_scenario_package_from_foreign_context():
-    foreign_context = _context().model_copy(update={"rules_version": "R2"})
-    package = build_support_package(
-        _purchase(),
-        foreign_context,
-        (O2ScenarioResult(scenario_id="ALT-A", status=O2ScenarioStatus.COMPLETED),),
+def test_vertical_generic_facade_passes_invoker_without_manufacturing_support():
+    package = _o2_package(
+        O2ScenarioResult(scenario_id="ALT-A", status=O2ScenarioStatus.COMPLETED),
     )
 
-    with pytest.raises(ValueError, match="rules_version"):
-        run_mvp_execution(
-            purchase=_purchase(),
-            context=_context(),
-            policy_version="MVP-E2E-SCENARIO-1",
-            scenario_coordination_result=package,
-        )
-
-
-def test_vertical_facade_builds_o2_from_o3_and_preserves_full_support_package():
-    a = _completed_o3("ALT-A")
-    b = _completed_o3("ALT-B")
+    def scenario_invoker(_purchase, _context):
+        return adapt_scenario_coordination(package)
 
     result = mvp.run_vertical_mvp_support(
         purchase=_purchase(),
         context=_context(),
         policy_version="MVP-E2E-SCENARIO-1",
         base_result="COMPRAR",
-        scenario_evaluation_results=(b, a),
+        scenario_coordination_invoker=scenario_invoker,
     )
 
     assert result.status == BoundaryStatus.COMPLETED
     assert result.rules is None
-    assert result.scenario_support is not None
-    assert tuple(item.scenario_id for item in result.scenario_support.scenarios) == (
-        "ALT-A",
-        "ALT-B",
-    )
+    assert result.scenario_support is None
     assert tuple(item.capability for item in result.capability_results) == (
         "SCENARIO_COORDINATION",
     )
-    assert result.scenario_support.scenarios[0].values["assessments"] == a.assessments
-    assert result.scenario_support.scenarios[0].values["viability_result"] == a.viability_result
 
 
-def test_vertical_scenario_support_is_order_independent():
-    a = _completed_o3("ALT-A")
-    b = _completed_o3("ALT-B")
+def test_vertical_generic_signature_has_no_detached_scenario_results():
+    parameters = signature(mvp.run_vertical_mvp_support).parameters
 
-    first = mvp.run_vertical_mvp_support(
-        purchase=_purchase(),
-        context=_context(),
-        policy_version="MVP-E2E-SCENARIO-1",
-        base_result="COMPRAR",
-        scenario_evaluation_results=(b, a),
-    )
-    second = mvp.run_vertical_mvp_support(
-        purchase=_purchase(),
-        context=_context(),
-        policy_version="MVP-E2E-SCENARIO-1",
-        base_result="COMPRAR",
-        scenario_evaluation_results=(a, b),
-    )
-
-    assert first.scenario_support == second.scenario_support
-    assert first.capability_results == second.capability_results
-
-
-def test_not_started_o3_still_fails_closed_through_vertical_facade():
-    not_started = ScenarioEvaluationResult(
-        scenario_id="ALT-A",
-        decision_id="D-SC-VERTICAL",
-        rules_version="R1",
-        parameters_version="P1",
-        data_snapshot_id="SNAP1",
-        status=ScenarioEvaluationStatus.NOT_STARTED,
-    )
-
-    with pytest.raises(ValueError, match="no tiene equivalencia O2 literal"):
-        mvp.run_vertical_mvp_support(
-            purchase=_purchase(),
-            context=_context(),
-            policy_version="MVP-E2E-SCENARIO-1",
-            base_result="COMPRAR",
-            scenario_evaluation_results=(not_started,),
-        )
+    assert "scenario_evaluation_results" not in parameters
+    assert "scenario_coordination_result" not in parameters
+    assert "scenario_coordination_invoker" in parameters
 
 
 def test_absent_scenarios_do_not_create_synthetic_capability(monkeypatch):
@@ -269,4 +210,4 @@ def test_absent_scenarios_do_not_create_synthetic_capability(monkeypatch):
             base_result="COMPRAR",
         )
 
-    assert captured["scenario_coordination_result"] is None
+    assert captured["scenario_coordination_invoker"] is None

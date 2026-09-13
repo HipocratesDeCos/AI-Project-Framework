@@ -68,6 +68,9 @@ def test_mvp_execution_runs_available_capabilities_in_canonical_order_and_contex
         tco_invoker=recording_invoker("TCO", "trace-tco"),
         rules_invoker=_completed_c0,
         decision_twin_invoker=recording_invoker("DECISION_TWIN", "trace-twin"),
+        scenario_coordination_invoker=recording_invoker(
+            "SCENARIO_COORDINATION", "trace-scenario"
+        ),
         negotiation_intelligence_invoker=recording_invoker(
             "NEGOTIATION_INTELLIGENCE", "trace-ni"
         ),
@@ -82,6 +85,7 @@ def test_mvp_execution_runs_available_capabilities_in_canonical_order_and_contex
         "TCO",
         "C0",
         "DECISION_TWIN",
+        "SCENARIO_COORDINATION",
         "NEGOTIATION_INTELLIGENCE",
         "NEGOTIATION_LADDER",
     )
@@ -94,6 +98,7 @@ def test_mvp_execution_runs_available_capabilities_in_canonical_order_and_contex
         "QTG": expected,
         "TCO": expected,
         "DECISION_TWIN": expected,
+        "SCENARIO_COORDINATION": expected,
         "NEGOTIATION_INTELLIGENCE": expected,
         "NEGOTIATION_LADDER": expected,
     }
@@ -140,6 +145,7 @@ def test_mvp_execution_public_signature_has_no_detached_opaque_results():
         "price_result",
         "tco_result",
         "decision_twin_result",
+        "scenario_coordination_result",
         "negotiation_intelligence_result",
         "negotiation_ladder_result",
     ):
@@ -150,6 +156,7 @@ def test_mvp_execution_public_signature_has_no_detached_opaque_results():
         "price_invoker",
         "tco_invoker",
         "decision_twin_invoker",
+        "scenario_coordination_invoker",
         "negotiation_intelligence_invoker",
         "negotiation_ladder_invoker",
     ):
