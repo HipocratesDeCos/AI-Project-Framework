@@ -6,7 +6,7 @@ capabilities beyond the supplied domain-rule bridges.
 """
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 
 from pydantic import BaseModel, ConfigDict
 
@@ -14,9 +14,7 @@ from eios.core.execution_boundary import ExecutionOutcome
 from eios.core.models import DecisionContext, PurchaseOperation
 from eios.core.mvp_execution import CapabilityInvoker, run_mvp_execution
 from eios.core.o2 import O2SupportPackage
-from eios.core.o2_o3_integration import build_o2_support_from_o3
 from eios.core.orchestration import CapabilityExecution
-from eios.core.scenario_evaluation import ScenarioEvaluationResult
 from eios.rules.orchestrator import (
     DecisionRuleExecutionResult,
     DeliveryRuleInputs,
@@ -87,18 +85,18 @@ def run_vertical_mvp_support(
     price_invoker: CapabilityInvoker | None = None,
     tco_invoker: CapabilityInvoker | None = None,
     decision_twin_invoker: CapabilityInvoker | None = None,
-    scenario_evaluation_results: Sequence[ScenarioEvaluationResult] = (),
+    scenario_coordination_invoker: CapabilityInvoker | None = None,
     negotiation_intelligence_invoker: CapabilityInvoker | None = None,
     negotiation_ladder_invoker: CapabilityInvoker | None = None,
 ) -> VerticalMVPSupportResult:
     """Run supplied Vertical MVP capabilities and preserve detailed outputs.
 
-    Rule bridges are evaluated once. QTG, PRICE, TCO, Decision Twin,
-    Negotiation Intelligence and Negotiation Ladder must be supplied through
-    explicit invokers rather than detached raw results. Scenario evaluation
-    results are not recalculated: when supplied, they are coordinated through
-    the validated O3→O2 bridge and represented as one SCENARIO_COORDINATION
-    capability. Missing capabilities are omitted rather than inferred.
+    Rule bridges are evaluated once. QTG, PRICE, TCO, Decision Twin, Scenario
+    Coordination, Negotiation Intelligence and Negotiation Ladder must be
+    supplied through explicit invokers rather than detached raw results.
+    The generic facade does not manufacture detailed scenario support from O3
+    results; the specialized orchestration facade owns that presentation path.
+    Missing capabilities are omitted rather than inferred.
     """
     rule_bundles_present = any(
         item is not None
@@ -128,15 +126,6 @@ def run_vertical_mvp_support(
         )
         rules_invoker = _capability_snapshot_invoker(rules_result.c0_capability)
 
-    scenario_results = tuple(scenario_evaluation_results)
-    scenario_support = None
-    if scenario_results:
-        scenario_support = build_o2_support_from_o3(
-            purchase,
-            context,
-            scenario_results,
-        )
-
     execution = run_mvp_execution(
         purchase=purchase,
         context=context,
@@ -146,14 +135,14 @@ def run_vertical_mvp_support(
         tco_invoker=tco_invoker,
         rules_invoker=rules_invoker,
         decision_twin_invoker=decision_twin_invoker,
-        scenario_coordination_result=scenario_support,
+        scenario_coordination_invoker=scenario_coordination_invoker,
         negotiation_intelligence_invoker=negotiation_intelligence_invoker,
         negotiation_ladder_invoker=negotiation_ladder_invoker,
     )
     return VerticalMVPSupportResult(
         execution=execution,
         rules=rules_result,
-        scenario_support=scenario_support,
+        scenario_support=None,
     )
 
 
