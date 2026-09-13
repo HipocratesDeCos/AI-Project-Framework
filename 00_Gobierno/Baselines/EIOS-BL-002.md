@@ -1,11 +1,12 @@
 # EIOS-BL-002 — Baseline de continuidad post-8.5
 
-**Estado:** VALIDADO DOCUMENTALMENTE — PENDIENTE DE CI DEL ARTEFACTO  
+**Estado:** ESTABLECIDO E INTEGRADO — CI PRE/POST SUCCESS  
 **Fecha:** 2026-09-13  
 **Repositorio:** `HipocratesDeCos/AI-Project-Framework`  
 **Rama de referencia:** `main`  
 **SHA de referencia:** `1ada9415d0ef885f55419e4775c5976d3e75d08e`  
-**Baseline anterior:** `EIOS-BL-001 @ 59daf6d2fbb70e9aebde98190f04a86a59cd3b14`
+**Baseline anterior:** `EIOS-BL-001 @ 59daf6d2fbb70e9aebde98190f04a86a59cd3b14`  
+**Reconciliación postintegración:** `EIOS-CHG-002`
 
 ---
 
@@ -14,6 +15,8 @@
 Establecer un punto formal de continuidad tras el avance acumulado posterior a `EIOS-BL-001`, sin declarar finalizado el Vertical MVP ni convertir este documento en una nueva fuente de autoridad funcional.
 
 Este Baseline registra un estado ya materializado y validado del repositorio. La autoridad sobre cada dominio permanece en los documentos especializados definidos por `00_Gobierno/Matriz_Autoridad_Documental.md`.
+
+La actualización `EIOS-CHG-002` no modifica el contenido ni el SHA de referencia del Baseline: reconcilia exclusivamente el estado de integración del propio artefacto después de haberse completado los gates que figuraban como pendientes en su materialización inicial.
 
 ---
 
@@ -94,6 +97,18 @@ El SHA de referencia de BL-002 es precisamente el `main` validado por CI #736:
 ```text
 1ada9415d0ef885f55419e4775c5976d3e75d08e
 ```
+
+### Gate del artefacto BL-002
+
+La materialización del propio Baseline completó posteriormente sus gates de integración:
+
+- PR #125 — `docs(governance): establish EIOS-BL-002 continuity baseline`;
+- HEAD de PR: `2996c1b90fcd26bb676f07b2069b6d7aec93ee1d`;
+- CI #737 — SUCCESS sobre el HEAD exacto de la PR;
+- merge protegido de PR #125 → `87d357fc487c450df796c51a303122bcb8d93700`;
+- CI #738 — SUCCESS postintegración sobre ese SHA exacto de `main`.
+
+Estos gates cierran la integración del artefacto documental; **no cambian el SHA de referencia del Baseline**, que continúa siendo `1ada9415...`.
 
 ---
 
@@ -182,25 +197,47 @@ Artefacto:
 00_Gobierno/Baselines/EIOS-BL-002.md
 ```
 
-### CI — ⏳
+### CI — ✅
 
-Pendiente CI del HEAD exacto de la rama, reconciliación pre-merge y CI postintegración sobre el SHA exacto resultante de `main`.
+Completado para el artefacto documental:
+
+- CI #737 — SUCCESS en el HEAD exacto de PR #125;
+- reconciliación pre-merge compatible;
+- merge protegido → `87d357fc487c450df796c51a303122bcb8d93700`;
+- CI #738 — SUCCESS postintegración.
 
 ---
 
 ## 9. Criterio de validez
 
-`EIOS-BL-002` queda asociado al estado técnico y documental:
+`EIOS-BL-002` queda asociado permanentemente al estado técnico y documental:
 
 ```text
 main @ 1ada9415d0ef885f55419e4775c5976d3e75d08e
 ```
 
-Su materialización solo podrá considerarse completamente cerrada después de:
+Los gates de establecimiento e integración del artefacto se completaron satisfactoriamente mediante PR #125, CI #737 y CI postintegración #738.
 
-1. CI SUCCESS en el HEAD exacto de la PR del Baseline;
-2. comprobación de que `main` no ha avanzado de forma incompatible;
-3. merge protegido por HEAD;
-4. CI postintegración SUCCESS.
+Por tanto:
 
-Hasta entonces el SHA de referencia permanece válido como estado auditado, pero el artefacto BL-002 no se considera todavía integrado.
+- el artefacto `EIOS-BL-002.md` está integrado;
+- el Baseline está formalmente establecido;
+- su SHA de referencia no cambia por esta reconciliación;
+- los avances posteriores de `main` no modifican retroactivamente el estado fijado por BL-002;
+- para continuidad operativa actual debe consultarse además `00_Gobierno/Project_Context.md` y verificarse el `main` vivo.
+
+---
+
+## 10. Reconciliación postintegración — EIOS-CHG-002
+
+Esta sección documenta exclusivamente el cierre del estado de integración que había quedado pendiente en la versión inicial del artefacto.
+
+**Cambio:** `PENDIENTE DE CI DEL ARTEFACTO` → `ESTABLECIDO E INTEGRADO — CI PRE/POST SUCCESS`.
+
+**Evidencia:** PR #125, CI #737, merge `87d357fc487c450df796c51a303122bcb8d93700`, CI #738.
+
+**Impacto funcional:** ninguno.
+
+**Impacto sobre autoridad:** ninguno.
+
+**Impacto sobre el SHA de referencia:** ninguno.
