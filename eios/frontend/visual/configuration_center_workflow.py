@@ -180,6 +180,13 @@ class ConfigurationCenterSelectedWorkflow:
                 raise ConfigurationWorkflowError(
                     "APPLIED cannot update an absent detail snapshot"
                 )
+            if (
+                result.configuration.company_id != previous_detail.company_id
+                or result.configuration.parameter_id != previous_detail.parameter_id
+            ):
+                raise ConfigurationWorkflowError(
+                    "APPLIED configuration does not match selected context"
+                )
             self._detail = replace(
                 previous_detail, configuration=result.configuration
             )
