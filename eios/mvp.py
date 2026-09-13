@@ -81,7 +81,7 @@ def run_vertical_mvp_support(
     stock_excess: StockExcessRuleInputs | None = None,
     stock_absorption: StockAbsorptionRuleInputs | None = None,
     finance_capacity: FinanceCapacityRuleInputs | None = None,
-    finance_safety_margin: FinanceSafetyRuleInputs | None = None,
+    finance_safety_margin: FinanceSafetyMarginRuleInputs | None = None,
     history_sufficiency: HistorySufficiencyRuleInputs | None = None,
     quality_invoker: CapabilityInvoker | None = None,
     price_invoker: CapabilityInvoker | None = None,
