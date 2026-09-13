@@ -80,7 +80,8 @@ EIOS debe ayudar a determinar si una compra propuesta:
 - debe realizarse;
 - debe negociarse;
 - puede realizarse condicionadamente;
-- o no debe realizarse.
+- no debe realizarse;
+- o debe declararse como información insuficiente cuando no exista base fiable para recomendar.
 
 La decisión debe considerar tanto la operación individual como su impacto sobre la situación económica, financiera y operativa de la empresa.
 
@@ -207,12 +208,13 @@ RECOMENDACIÓN
 DECISOR
 ```
 
-Las posibles respuestas principales son:
+Los cinco resultados oficiales consolidados por la CRC son:
 
 - 🟢 COMPRAR
 - 🟡 NEGOCIAR
 - 🔵 COMPRAR CONDICIONADO
 - 🔴 NO COMPRAR
+- ⚪ INFORMACIÓN INSUFICIENTE
 
 La recomendación de EIOS no constituye automáticamente una orden de compra.
 
@@ -424,7 +426,7 @@ Las reglas deben poder adaptarse, dentro de la autoridad y parametrización apro
 - criterios de riesgo;
 - estrategia de compras.
 
-No deben quedar rígidamente redefinidas fuera de sus fuentes oficiales.
+No deben quedar rígidamente codificadas ni redefinidas fuera de sus fuentes oficiales.
 
 La definición oficial de las reglas corresponde a:
 
@@ -501,7 +503,7 @@ Cualquier ampliación de la CRC requiere autoridad y ciclo documental propios; e
 
 # 18. COMPRA CONDICIONADA
 
-Se ha incorporado una cuarta posibilidad de decisión:
+Entre los cinco resultados oficiales se incluye:
 
 ### COMPRAR CONDICIONADO
 
@@ -558,6 +560,8 @@ Debe permitir gobernar, dentro del alcance autorizado, elementos como:
 - prioridades;
 - excepciones;
 - políticas de empresa.
+
+Debe partir de valores estándar editables. La existencia y los valores concretos de esos estándares corresponden a las fuentes de parametrización; este documento no los crea.
 
 La definición de qué parámetros existen corresponde al:
 
