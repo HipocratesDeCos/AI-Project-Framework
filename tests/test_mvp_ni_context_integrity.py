@@ -1,14 +1,8 @@
 from decimal import Decimal
-
-import pytest
+from inspect import signature
 
 from eios.core.models import DecisionContext, PurchaseOperation
 from eios.core.mvp_execution import run_mvp_execution
-from eios.core.negotiation_intelligence import (
-    NIContextReferences,
-    NegotiationContent,
-    NegotiationIntelligenceResult,
-)
 from eios.core.orchestration import CapabilityExecution, O1ExecutionStatus
 
 
@@ -35,136 +29,44 @@ def _purchase() -> PurchaseOperation:
     )
 
 
-def _ni_result(**reference_overrides) -> NegotiationIntelligenceResult:
-    references = {
-        "decision_id": "D-NI-CTX",
-        "scenario_id": "S-NI-CTX",
-        "rules_version": "rules-v1",
-        "parameters_version": "params-v1",
-        "data_snapshot_id": "snapshot-v1",
-        "viability_reference": "VF-1",
-        "decision_twin_reference": "DT-1",
-        "evidence_references": ("E-1",),
-    }
-    references.update(reference_overrides)
-    return NegotiationIntelligenceResult(
-        negotiation_result_id="NI-CTX-1",
-        context_references=NIContextReferences(**references),
-        negotiation_content=NegotiationContent(
-            objective="Preserve authorized negotiation content"
-        ),
-        traceability_references=("TRACE-NI-1",),
-    )
-
-
-def test_matching_ni_context_executes_without_mutation():
+def test_ni_invoker_receives_current_purchase_and_context_without_mutation():
+    purchase = _purchase()
     context = _context()
-    result = _ni_result()
-    context_before = context.model_dump()
-    result_before = result.model_dump()
+    purchase_before = purchase.model_dump(mode="python")
+    context_before = context.model_dump(mode="python")
+    seen: list[tuple[dict, dict]] = []
+
+    def ni_invoker(received_purchase, received_context):
+        seen.append(
+            (
+                received_purchase.model_dump(mode="python"),
+                received_context.model_dump(mode="python"),
+            )
+        )
+        return CapabilityExecution(
+            capability="NEGOTIATION_INTELLIGENCE",
+            status=O1ExecutionStatus.COMPLETED,
+            result_available=True,
+            trace_references=("TRACE-NI-1",),
+        )
 
     outcome = run_mvp_execution(
-        purchase=_purchase(),
+        purchase=purchase,
         context=context,
-        policy_version="MVP-NI-CTX-1",
-        negotiation_intelligence_result=result,
+        policy_version="MVP-NI-QUARANTINE-1",
+        negotiation_intelligence_invoker=ni_invoker,
     )
 
     assert tuple(item.capability for item in outcome.capability_results) == (
         "NEGOTIATION_INTELLIGENCE",
     )
-    assert outcome.capability_results[0].result_available is True
-    assert context.model_dump() == context_before
-    assert result.model_dump() == result_before
+    assert seen == [(purchase_before, context_before)]
+    assert purchase.model_dump(mode="python") == purchase_before
+    assert context.model_dump(mode="python") == context_before
 
 
-def test_optional_ni_context_references_may_be_absent():
-    result = _ni_result(
-        scenario_id=None,
-        rules_version=None,
-        parameters_version=None,
-        data_snapshot_id=None,
-    )
+def test_ni_raw_result_is_not_a_public_composition_parameter():
+    parameters = signature(run_mvp_execution).parameters
 
-    outcome = run_mvp_execution(
-        purchase=_purchase(),
-        context=_context(),
-        policy_version="MVP-NI-CTX-1",
-        negotiation_intelligence_result=result,
-    )
-
-    assert outcome.capability_results[0].capability == "NEGOTIATION_INTELLIGENCE"
-    assert outcome.capability_results[0].result_available is True
-
-
-@pytest.mark.parametrize(
-    ("field", "value"),
-    (
-        ("decision_id", "D-OTHER"),
-        ("scenario_id", "S-OTHER"),
-        ("rules_version", "rules-other"),
-        ("parameters_version", "params-other"),
-        ("data_snapshot_id", "snapshot-other"),
-    ),
-)
-def test_ni_context_mismatch_is_rejected(field: str, value: str):
-    result = _ni_result(**{field: value})
-
-    with pytest.raises(ValueError, match=field):
-        run_mvp_execution(
-            purchase=_purchase(),
-            context=_context(),
-            policy_version="MVP-NI-CTX-1",
-            negotiation_intelligence_result=result,
-        )
-
-
-def test_ni_context_mismatch_reports_all_incompatible_references():
-    result = _ni_result(
-        decision_id="D-OTHER",
-        scenario_id="S-OTHER",
-        rules_version="rules-other",
-        parameters_version="params-other",
-        data_snapshot_id="snapshot-other",
-    )
-
-    with pytest.raises(ValueError) as exc_info:
-        run_mvp_execution(
-            purchase=_purchase(),
-            context=_context(),
-            policy_version="MVP-NI-CTX-1",
-            negotiation_intelligence_result=result,
-        )
-
-    message = str(exc_info.value)
-    for field in (
-        "decision_id",
-        "scenario_id",
-        "rules_version",
-        "parameters_version",
-        "data_snapshot_id",
-    ):
-        assert field in message
-
-
-def test_ni_context_mismatch_fails_before_any_capability_runs():
-    calls: list[str] = []
-
-    def c0_invoker(*_):
-        calls.append("C0")
-        return CapabilityExecution(
-            capability="C0",
-            status=O1ExecutionStatus.COMPLETED,
-            result_available=True,
-        )
-
-    with pytest.raises(ValueError, match="decision_id"):
-        run_mvp_execution(
-            purchase=_purchase(),
-            context=_context(),
-            policy_version="MVP-NI-CTX-1",
-            rules_invoker=c0_invoker,
-            negotiation_intelligence_result=_ni_result(decision_id="D-OTHER"),
-        )
-
-    assert calls == []
+    assert "negotiation_intelligence_result" not in parameters
+    assert "negotiation_intelligence_invoker" in parameters
