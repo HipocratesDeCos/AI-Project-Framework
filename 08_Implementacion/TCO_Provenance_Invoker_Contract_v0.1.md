@@ -2,7 +2,7 @@
 
 ## Estado
 
-DISEÑADO → AUDITADO → DEPURADO. Pendiente de materialización, Auditoría 2 y CI.
+DISEÑADO → AUDITADO → DEPURADO → AUDITORÍA 2 SUPERADA → MATERIALIZADO. Pendiente de CI e integración.
 
 ## 1. Propósito
 
@@ -39,7 +39,7 @@ El invocador público tiene forma:
 
 `(PurchaseOperation, DecisionContext) -> CapabilityExecution`.
 
-Antes de calcular debe exigir:
+Antes de calcular exige:
 
 1. igualdad exacta, campo por campo, entre la `PurchaseOperation` actual y `payload.purchase_operation`;
 2. `DecisionContext.decision_id == PurchaseOperation.decision_id`;
@@ -56,6 +56,8 @@ Tras superar las validaciones, el invocador ejecuta:
 sobre una copia profunda congelada y adapta el resultado mediante `adapt_tco(...)`.
 
 No se modifica la semántica de ausencia, moneda, aplicabilidad, determinabilidad ni GAP-TCO-01/GAP-TCO-02.
+
+La garantía de esta frontera es de procedencia de ejecución respecto del `TCOInput` congelado; no añade una autoridad de trazabilidad distinta de la ya definida por TCO Core.
 
 ## 6. Snapshot
 
@@ -91,12 +93,34 @@ Debe fallar antes del cálculo si:
 - cualquier campo de la compra actual difiere de la compra congelada;
 - la identidad decision/scenario entre compra y contexto no coincide.
 
-## 10. Criterio de cierre
+## 10. Auditoría 2
 
-La unidad solo se considera integrada cuando:
+Resultado: **SUPERADA — SIN BLOQUEADORES**.
 
-1. implementación y tests respetan este contrato;
-2. Auditoría 2 no detecta rutas de `tco_result` desprendido en las dos fronteras Vertical públicas;
-3. CI de PR es satisfactoria sobre el head exacto;
-4. se integra ese mismo head;
-5. CI post-merge es satisfactoria.
+Comprobado contra:
+
+- `08_Implementacion/TCO_Core_Implementation_Contract.md`;
+- `eios/tco/models.py`;
+- `eios/tco/engine.py`;
+- `eios/core/capability_adapters.py`;
+- `eios/core/mvp_execution.py`;
+- `eios/mvp.py`;
+- tests específicos de frontera TCO.
+
+Hallazgos de cierre:
+
+- `calculate_tco`, `TCOInput`, `TCOResult` y `adapt_tco` permanecen intactos;
+- la compra se valida campo a campo contra el `TCOInput` congelado;
+- los costes atribuibles permanecen congelados dentro del payload y se recalculan mediante el motor cerrado;
+- `tco_result` desaparece de las dos APIs Vertical públicas;
+- no existe fallback de resultado desprendido;
+- TCO parcial conserva `value = None` y sus componentes no resueltos;
+- no se introduce FX, estimación, autoridad decisional ni extensión de GAP-TCO-01/GAP-TCO-02.
+
+## 11. Criterio de cierre
+
+Implementación y Auditoría 2 quedan cerradas en rama. La unidad no se considera integrada hasta completar:
+
+1. CI de PR satisfactoria sobre el head exacto;
+2. merge de ese mismo head;
+3. CI post-merge satisfactoria.
