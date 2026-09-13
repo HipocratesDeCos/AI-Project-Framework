@@ -11,7 +11,7 @@ Orquestar el flujo de interacción del Configuration Center para un contexto emp
 
 ## 2. Alcance
 
-El workflow puede cargar detalle + histórico; mantener snapshot presentacional; representar edición local; preparar un cambio mediante Slice 1; conservar propuesta únicamente cuando estado y pending real sean coherentes; representar confirmación mediante Slice 2; cancelar; confirmar/aplicar; actualizar detalle exclusivamente desde la `Configuration` devuelta por backend; marcar histórico stale tras apply; y refrescar cuando no exista pending.
+El workflow puede cargar detalle + histórico; mantener snapshot presentacional; representar edición local; preparar un cambio mediante Slice 1; conservar propuesta únicamente cuando estado y pending real sean coherentes; representar confirmación mediante Slice 2; cancelar; confirmar/aplicar; actualizar detalle exclusivamente desde la `Configuration` devuelta por backend; marcar histórico stale tras apply; y refrescar cuando no exista edición ni confirmación activa.
 
 ## 3. Exclusiones
 
@@ -45,7 +45,7 @@ Carrier inmutable `ConfigurationWorkflowSnapshot`:
 
 `refresh()`:
 
-1. falla cerrado si existe confirmación pendiente;
+1. falla cerrado si existe confirmación pendiente o formulario/borrador local activo;
 2. invalida cualquier snapshot previo que no pueda demostrarse actual durante esta carga;
 3. llama a `controller.load_detail()`;
 4. si falla detalle: establece detalle e histórico locales a `None`, `data_ready=False`, no llama histórico y representa estado/error de Slice 1;
@@ -53,18 +53,28 @@ Carrier inmutable `ConfigurationWorkflowSnapshot`:
 6. si histórico falla: sustituye cualquier histórico previo por `None`, conserva el nuevo detalle, `data_ready=False` y representa estado/error de Slice 1;
 7. si ambos son válidos: reemplaza ambos snapshots, `data_ready=True`, `history_stale=False`, estado `VIEWING`.
 
-`history=()` es una carga válida.
+`history=()` es carga válida. Para refrescar durante una edición local debe ejecutarse antes `cancel()` para descartar explícitamente el borrador.
 
 ## 7. Edición local
 
-`edit(form)` exige `data_ready=True`, no llama backend, conserva el formulario exacto, produce estado visible `EDITING` y no crea propuesta ni confirmación.
+`edit(form)`:
+
+- exige `data_ready=True`;
+- exige que no exista confirmación pendiente en Slice 1;
+- no llama al backend;
+- conserva el formulario exacto;
+- sustituye, cuando proceda, otro borrador local todavía no preparado;
+- produce estado visible `EDITING`;
+- no crea propuesta ni confirmación.
 
 ## 8. Preparación y coherencia de pending
 
 `prepare(form)`:
 
 - exige `data_ready=True`;
+- exige que no exista pending previo en Slice 1;
 - crea una `ChangeProposal` exacta desde el formulario;
+- conserva el formulario como entrada visible;
 - delega en `controller.prepare_change(...)`;
 - si `result.state == "AWAITING_CONFIRMATION"`, exige también `controller.has_pending_confirmation is True`; solo entonces conserva propuesta y genera confirmación;
 - si el resultado no es `AWAITING_CONFIRMATION`, exige `controller.has_pending_confirmation is False`, descarta propuesta y representa estado/error recibido;
@@ -109,19 +119,19 @@ En resultado distinto de `APPLIED`:
 
 ## 10. Cancelación
 
-`cancel()`:
+`cancel()` es la operación explícita para abandonar tanto un borrador local como una confirmación pendiente:
 
 - si existe pending en Slice 1, delega en `controller.cancel_pending_change()`;
-- limpia propuesta y formulario;
+- limpia propuesta y formulario locales;
 - verifica que el pending haya quedado consumido;
-- vuelve a `VIEWING` con snapshot vigente;
+- vuelve a `VIEWING` cuando existe snapshot válido; si aún no hay datos válidos conserva un estado técnico no operativo sin inventar datos;
 - no accede al backend directamente.
 
-## 11. Regla anti-refresh durante confirmación
+## 11. Regla anti-refresh durante edición/confirmación
 
-Mientras `controller.has_pending_confirmation=True`, `refresh()` falla mediante `ConfigurationWorkflowError` sin alterar pending ni snapshots.
+Mientras exista `controller.has_pending_confirmation=True` **o** un `ConfigurationChangeForm` local activo, `refresh()` falla mediante `ConfigurationWorkflowError` sin alterar pending, borrador ni snapshots.
 
-Esto impide que una lectura cambie el estado observable de Slice 1 ocultando visualmente una propuesta todavía aplicable.
+Esto impide que una lectura o un cambio de snapshot oculte una propuesta todavía aplicable o deje un borrador construido contra datos sustituidos.
 
 ## 12. Error técnico de workflow
 
@@ -130,8 +140,9 @@ Las precondiciones/incoherencias internas usan `ConfigurationWorkflowError(Runti
 Casos mínimos:
 
 - editar/preparar antes de carga válida;
+- editar/preparar mientras existe pending;
 - confirmar sin propuesta/pending coherentes;
-- refrescar durante pending;
+- refrescar durante borrador/pending;
 - divergencia estado ↔ pending tras prepare;
 - pending no consumido tras confirm/cancel;
 - `APPLIED` sin `Configuration`.
@@ -143,16 +154,18 @@ Casos mínimos:
 - histórico fallido conserva nuevo detalle, invalida histórico previo y `data_ready=False`;
 - histórico vacío es válido;
 - edit no llama controlador de cambios;
+- edit/prepare con pending previo fallan cerrado;
+- refresh con borrador activo falla sin perder el borrador;
 - prepare conserva propuesta solo con `AWAITING_CONFIRMATION` + pending real;
 - divergencias estado/pending fallan cerrado;
 - prepare fallido no crea confirmación;
 - refresh durante pending falla sin mutar pending/snapshots;
-- cancel limpia pending local/controlador;
+- cancel limpia borrador/pending local/controlador;
 - confirm delega una sola vez y exige pending consumido;
 - `APPLIED` sin configuración falla cerrado;
 - `APPLIED` válido actualiza detalle solo desde configuración devuelta;
 - `APPLIED` marca histórico stale sin alterarlo;
-- refresh posterior limpia stale;
+- refresh posterior a `APPLIED` limpia stale;
 - confirm fallido no altera snapshots y obliga a nueva preparación;
 - workflow no accede a catalogue/repository/authorization/SQL.
 
@@ -162,9 +175,9 @@ Casos mínimos:
 **CCUIS3-I02:** semántica funcional delegada a Slice 1.  
 **CCUIS3-I03:** composición visual delegada a Slice 2.  
 **CCUIS3-I04:** estado de confirmación y pending deben ser coherentes.  
-**CCUIS3-I05:** refresh prohibido durante pending.  
-**CCUIS3-I06:** `APPLIED` exige configuración real y pending consumido.  
-**CCUIS3-I07:** histórico no se inventa; tras apply queda stale.  
-**CCUIS3-I08:** refresh fallido no conserva datos previos como actuales.  
-**CCUIS3-I09:** fallo funcional no muta snapshots; incoherencias usan error técnico.  
+**CCUIS3-I05:** refresh prohibido durante borrador o pending.  
+**CCUIS3-I06:** nueva edición/preparación prohibida durante pending.  
+**CCUIS3-I07:** `APPLIED` exige configuración real y pending consumido.  
+**CCUIS3-I08:** histórico no se inventa; tras apply queda stale.  
+**CCUIS3-I09:** refresh fallido no conserva datos previos como actuales; errores internos no se disfrazan de dominio.  
 **CCUIS3-I10:** no decisión de compra.
