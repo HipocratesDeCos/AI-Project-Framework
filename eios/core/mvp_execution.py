@@ -10,14 +10,8 @@ from collections.abc import Callable
 from copy import deepcopy
 from typing import Any
 
-from .capability_adapters import (
-    adapt_ni,
-    adapt_nl,
-)
 from .execution_boundary import ExecutionOutcome, ExecutionPlan, execute_plan
 from .models import DecisionContext, PurchaseOperation
-from .negotiation_intelligence import NegotiationIntelligenceResult
-from .negotiation_ladder import NegotiationLadderResult
 from .o2 import O2SupportPackage
 from .orchestration import CapabilityExecution
 from .scenario_coordination_adapter import (
@@ -49,59 +43,6 @@ def _snapshot_invoker(result: Any, adapter: Callable[[Any], CapabilityExecution]
     return invoke
 
 
-def _validate_negotiation_intelligence_context(
-    result: NegotiationIntelligenceResult,
-    context: DecisionContext,
-) -> None:
-    refs = result.context_references
-    mismatches: list[str] = []
-
-    if refs.decision_id != context.decision_id:
-        mismatches.append("decision_id")
-
-    for field in (
-        "scenario_id",
-        "rules_version",
-        "parameters_version",
-        "data_snapshot_id",
-    ):
-        value = getattr(refs, field)
-        if value is not None and value != getattr(context, field):
-            mismatches.append(field)
-
-    if mismatches:
-        raise ValueError(
-            "NegotiationIntelligenceResult no coincide con DecisionContext: "
-            + ", ".join(mismatches)
-        )
-
-
-def _validate_negotiation_ladder_context(
-    result: NegotiationLadderResult,
-    context: DecisionContext,
-    negotiation_intelligence_result: NegotiationIntelligenceResult | None,
-) -> None:
-    refs = result.context_references
-    mismatches: list[str] = []
-
-    if refs.decision_id != context.decision_id:
-        mismatches.append("decision_id")
-    if refs.scenario_id is not None and refs.scenario_id != context.scenario_id:
-        mismatches.append("scenario_id")
-    if (
-        negotiation_intelligence_result is not None
-        and refs.negotiation_result_id
-        != negotiation_intelligence_result.negotiation_result_id
-    ):
-        mismatches.append("negotiation_result_id")
-
-    if mismatches:
-        raise ValueError(
-            "NegotiationLadderResult no coincide con su contexto autorizado: "
-            + ", ".join(mismatches)
-        )
-
-
 def run_mvp_execution(
     *,
     purchase: PurchaseOperation,
@@ -113,15 +54,16 @@ def run_mvp_execution(
     rules_invoker: CapabilityInvoker | None = None,
     decision_twin_invoker: CapabilityInvoker | None = None,
     scenario_coordination_result: O2SupportPackage | None = None,
-    negotiation_intelligence_result: NegotiationIntelligenceResult | None = None,
-    negotiation_ladder_result: NegotiationLadderResult | None = None,
+    negotiation_intelligence_invoker: CapabilityInvoker | None = None,
+    negotiation_ladder_invoker: CapabilityInvoker | None = None,
 ) -> ExecutionOutcome:
     """Execute supplied MVP capabilities through the controlled boundary.
 
-    QTG, PRICE, TCO and Decision Twin outputs must arrive through explicit
-    invokers; this service never re-labels detached raw results into the current
-    context. Remaining context-verifiable result objects are validated and
-    snapshotted when the execution catalog is built.
+    QTG, PRICE, TCO, Decision Twin, Negotiation Intelligence and Negotiation
+    Ladder must arrive through explicit invokers; this service never re-labels
+    detached raw results for those capabilities into the current context.
+    Scenario Coordination remains a context-verifiable support result and is
+    validated before its snapshot invoker is built.
     """
     invokers: dict[str, CapabilityInvoker] = {}
 
@@ -140,22 +82,10 @@ def run_mvp_execution(
         invokers["SCENARIO_COORDINATION"] = _snapshot_invoker(
             scenario_coordination_result, adapt_scenario_coordination
         )
-    if negotiation_intelligence_result is not None:
-        _validate_negotiation_intelligence_context(
-            negotiation_intelligence_result, context
-        )
-        invokers["NEGOTIATION_INTELLIGENCE"] = _snapshot_invoker(
-            negotiation_intelligence_result, adapt_ni
-        )
-    if negotiation_ladder_result is not None:
-        _validate_negotiation_ladder_context(
-            negotiation_ladder_result,
-            context,
-            negotiation_intelligence_result,
-        )
-        invokers["NEGOTIATION_LADDER"] = _snapshot_invoker(
-            negotiation_ladder_result, adapt_nl
-        )
+    if negotiation_intelligence_invoker is not None:
+        invokers["NEGOTIATION_INTELLIGENCE"] = negotiation_intelligence_invoker
+    if negotiation_ladder_invoker is not None:
+        invokers["NEGOTIATION_LADDER"] = negotiation_ladder_invoker
 
     if not invokers:
         raise ValueError("run_mvp_execution requiere al menos una capacidad")
