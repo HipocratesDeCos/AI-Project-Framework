@@ -2,9 +2,9 @@
 
 ## Índice Maestro del Framework
 
-**Versión:** 3.2
-**Estado:** APROBADO — reconciliación post-Viability Frontier
-**Función:** Índice maestro de la estructura documental EIOS
+**Versión:** 3.3.1  
+**Estado:** APROBADO — reconciliación estructural post-EIOS-BL-002, corrección CI  
+**Función:** Índice maestro de navegación de la estructura documental y técnica EIOS  
 **Ubicación:** `03_Arquitectura/Framework_Map.md`
 
 ---
@@ -13,21 +13,79 @@
 
 Este documento constituye el mapa maestro de navegación del Framework EIOS.
 
-Su función es identificar la estructura documental oficial del proyecto y facilitar la localización de cada dominio.
+Su función es responder principalmente a:
 
-No desarrolla conceptos, reglas ni especificaciones.
+> **¿Dónde está cada dominio y dónde debo buscar su documentación o materialización vigente?**
+
+No desarrolla conceptos, reglas, metodologías ni especificaciones funcionales.
+
+No sustituye a:
+
+- `00_Gobierno/Matriz_Autoridad_Documental.md`;
+- `03_Arquitectura/Master_Project_Map.md`;
+- las fuentes especializadas de cada dominio.
 
 ---
 
-# 2. ESTRUCTURA OFICIAL
+# 2. REGLA DE INVENTARIO
+
+EIOS contiene dominios de alta evolución documental. Por ello, este mapa **no pretende enumerar todos los archivos existentes**.
+
+La regla de navegación es:
+
+```text
+FRAMEWORK MAP
+      ↓
+identifica dominio / carpeta / anclas
+      ↓
+ÁRBOL FÍSICO DE LA CARPETA
+      ↓
+inventario exhaustivo vigente
+      ↓
+MATRIZ DE AUTORIDAD
+      ↓
+fuente oficial aplicable
+```
+
+Las listas de este documento son **anclas de navegación**, no inventarios exhaustivos ni una segunda fuente de autoridad.
+
+La interfaz documental estable de este mapa conserva secciones `## 00 — …` a `## 08 — …`. Esta estructura permite que las verificaciones automáticas comprueben que las anclas declaradas existen físicamente sin obligar a convertir el mapa en un catálogo exhaustivo.
+
+---
+
+# 3. MAPA FÍSICO OPERATIVO
+
+```text
+AI-Project-Framework/
+│
+├── 00_Gobierno/        Gobierno, autoridad, continuidad y Baselines
+├── 01_Modelo/          Metodología y modelo funcional especializado
+├── 02_Parametros/      Parámetros y parametrización
+├── 03_App/             Contratos y especificaciones de interfaz/aplicación
+├── 03_Arquitectura/    Arquitectura y mapas del sistema
+├── 04_Reglas/          Reglas, evidencia, dependencias y CRC
+├── 05_Motor/           Viabilidad, escenarios, Twin, negociación y versionado
+├── 06_SQL/             Modelos y migraciones SQL
+├── 07_Pruebas/         Auditorías, pruebas, cierres y reconciliaciones
+├── 08_Implementacion/  Contratos y gobierno de implementación técnica
+├── 99_Archivo/         Histórico / obsoleto
+│
+├── eios/               Implementación ejecutable
+├── tests/              Suite automatizada
+└── .github/            CI y validaciones automatizadas
+```
+
+Otros directorios auxiliares pueden existir en el repositorio. Su presencia física no les concede autoridad funcional.
+
+---
 
 ## 00 — GOBIERNO
 
 `00_Gobierno/`
 
-Documentación correspondiente a gobierno, autoridad, contexto, control, trazabilidad y salvaguarda del proyecto.
+Gobierno, identidad, contexto, autoridad, trazabilidad y salvaguarda del proyecto.
 
-### Documentos actuales
+### Anclas verificables
 
 - `Project_Charter.md`
 - `Project_Context.md`
@@ -37,57 +95,115 @@ Documentación correspondiente a gobierno, autoridad, contexto, control, trazabi
 - `EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md`
 - `Especificacion_Evidencia_Trazabilidad_F3.md`
 - `Registro_Evidencias_Trazabilidad_F3.md`
+- `Baselines/EIOS-BL-001.md`
+- `Baselines/EIOS-BL-002.md`
+
+Los Baselines fijan puntos formales de continuidad asociados a SHAs concretos. No sustituyen la autoridad especializada de los componentes que resumen.
 
 ## 01 — MODELO
 
 `01_Modelo/`
 
-### Documentos actuales
+Dominio metodológico y funcional especializado.
+
+Incluye, entre otras familias vigentes o históricamente trazables dentro del árbol físico:
+
+- Price Intelligence;
+- Stock / Demand;
+- Delivery Stockout;
+- Finance Basic;
+- Supplier Evidence / Supplier Risk;
+- Rotation;
+- Viability Frontier;
+- especificación funcional general.
+
+### Anclas verificables
 
 - `Especificacion_funcional.md`
+- `Price_Intelligence_Methodological_Matrix.md`
 - `Stock_Demand_Methodological_Matrix.md`
+- `Delivery_Stockout_Methodological_Closure_v0.3.md`
+- `Finance_Basic_Methodological_Closure_v0.3.md`
+- `Supplier_Evidence_Core_Methodological_Closure_v0.3.md`
+- `Rotation_Track_A_Methodological_Closure_v0.1.md`
+- `Viability_Frontier_Methodological_Matrix.md`
+
+El estado y autoridad de cada familia debe resolverse en sus documentos especializados; aparecer en este mapa no implica que una unidad esté implementada ni desbloqueada.
 
 ## 02 — PARÁMETROS
 
 `02_Parametros/`
 
-### Documentos actuales
+Parámetros, configuración y trazabilidad de cambios parametrizables.
+
+### Anclas verificables
 
 - `Catalogo_Parametros_MVP_v0.3.md`
 - `Centro_Parametrizacion.md`
 - `Decision_Log_Parametros_MVP.md`
 - `Matriz_Parametros_Reglas_MVP.md`
 
+La autoridad exacta de parámetros/configuración se determina mediante `00_Gobierno/Matriz_Autoridad_Documental.md`.
+
 ## 03 — ARQUITECTURA
 
 `03_Arquitectura/`
 
-### Documentos actuales
+Arquitectura lógica, estructura global y mapas de navegación.
+
+### Anclas verificables
 
 - `Architecture_Blueprint.md`
 - `DSS_Functional_Architecture.md`
 - `Framework_Map.md`
 - `Master_Project_Map.md`
 
+| Documento | Función |
+|---|---|
+| `Framework_Map.md` | ¿Dónde está cada dominio/documento? |
+| `Master_Project_Map.md` | ¿Cómo se organiza EIOS como sistema/proyecto? |
+| `Architecture_Blueprint.md` | Arquitectura lógica/técnica autorizada |
+
+### Aplicación e interfaz — `03_App/`
+
+`03_App/` es un dominio físico adicional de aplicación/interfaz que no se confunde con `03_Arquitectura/`.
+
+Contiene ciclos documentales para arquitectura de UI, inventario/registro de campos, mapping campo ↔ componente, interacción y especificación visual.
+
+Anclas de navegación de aplicación:
+
+- UI visual: `UI_EIOS_Visual_Specification_v0.1.md`
+- arquitectura UI: `UI_Architecture_Contract_v0.1.md`
+- registro de campos: `UI_Field_Registry_v0.1.md`
+- mapping: `UI_Field_Component_Mapping_v0.2.md`
+- interacción: `UI_Interaction_Functional_Contract_v0.1.md`
+
+Las auditorías, depuraciones y cierres asociados se consultan físicamente en `03_App/` cuando se evalúe una unidad concreta.
+
 ## 04 — REGLAS
 
 `04_Reglas/`
 
-### Documentos actuales
+Reglas, evidencia, dependencias y resolución de conflictos.
 
-- `Capa_resolucion_conflictos.md`
-- `Evidence_Contract.md`
-- `Especificacion_Reglas_Configuracion_Pagos_MVP.md`
-- `Especificacion_Reglas_Historico_MVP.md`
+### Anclas verificables
+
 - `Matriz_Reglas_MVP.md`
-- `Reglas_MVP.md`
+- `Evidence_Contract.md`
 - `Rule_Dependency_Matrix.md`
+- `Capa_resolucion_conflictos.md`
+
+Las especificaciones especializadas de reglas presentes en el árbol físico desarrollan relaciones concretas sin crear por ello una segunda autoridad transversal.
+
+`Reglas_MVP.md` puede conservar función histórica/de referencia según el gobierno vigente; no sustituye a la Matriz de Reglas como fuente oficial cuando exista discrepancia.
 
 ## 05 — MOTOR
 
 `05_Motor/`
 
-### Documentos actuales
+Componentes especializados del procesamiento decisional y representacional.
+
+### Anclas verificables
 
 - `Modelo_Empresarial_Decision.md`
 - `Viability_Frontier.md`
@@ -97,134 +213,201 @@ Documentación correspondiente a gobierno, autoridad, contexto, control, trazabi
 - `Negotiation_Intelligence.md`
 - `Negotiation_Ladder.md`
 
+Estas fuentes no convierten EIOS en decisor empresarial automático. La frontera humana permanece vigente.
+
 ## 06 — SQL
 
 `06_SQL/`
 
-### Documentos actuales
+Persistencia y materialización SQL.
+
+### Anclas verificables
 
 - `06_LEEME_SQL.md`
 - `Modelo_Fisico_SQL_Server_C0.md`
 - `Decision_Versioning_Physical_Model.md`
-
-### Migraciones SQL actuales
-
 - `001_C0_Schema.sql`
 - `002_Decision_Versioning_Schema.sql`
 - `003_Centro_Parametrizacion_Schema.sql`
+
+El inventario exhaustivo debe consultarse en la carpeta física.
 
 ## 07 — PRUEBAS
 
 `07_Pruebas/`
 
-### Documentos actuales
+Concentra evidencia documental de diseño de pruebas, auditorías 1/2, depuraciones, cierres, gates, reconciliaciones postintegración y trazabilidad ejecutable.
+
+### Anclas verificables
 
 - `Plan_Pruebas_MVP.md`
 - `Matriz_Trazabilidad_Ejecutable.md`
-- `O1_Cierre_Materializacion.md`
-- `O2_Cierre_Materializacion.md`
-- `O3_Cierre.md`
-- `O3_Cierre_PostMerge.md`
-- `O3_Auditoria2_Implementacion_Corregida.md`
-- `O4_Cierre_Materializacion.md`
-- `O4_Auditoria2_Implementacion.md`
-- `Reconciliacion_Decision_Versioning_NI_NL.md`
-- `U1_Cierre_Materializacion.md`
-- `U1_1_Cierre_Materializacion.md`
-- `U1_1_Reconciliacion_PostIntegracion.md`
-- `E2E_Diseno_Execution_Boundary.md`
-- `E2E_Auditoria_Execution_Boundary.md`
-- `E2E_Auditoria2_Execution_Boundary.md`
-- `E2E_Auditoria_Implementacion_Execution_Boundary.md`
-- `E2E_Auditoria2_Implementacion_Execution_Boundary.md`
-- `E2E_Cierre_Execution_Boundary.md`
-- `E2E_Cierre_Implementacion_Execution_Boundary.md`
-- `E2E_Reconciliacion_PostIntegracion.md`
-- `VF_Auditoria1_Contrato_Tecnico.md`
-- `VF_Auditoria2_Contrato_Tecnico.md`
-- `VF_Cierre_Contrato_Tecnico.md`
-- `VF_Auditoria1_Implementacion.md`
-- `VF_Auditoria2_Implementacion.md`
-- `VF_Cierre_Implementacion.md`
-- `VF_Reconciliacion_PostIntegracion.md`
+- `Framework_Map_Structural_Reconciliation_Audit_v0.1.md`
 
-Estos documentos registran pruebas, auditorías, cierres y reconciliaciones materializadas. No crean una autoridad funcional paralela.
+Los numerosos artefactos de auditoría/cierre se consultan mediante el inventario físico del directorio para evitar que este mapa quede obsoleto con cada unidad cerrada.
+
+`07_Pruebas/` verifica; no crea por sí misma autoridad funcional paralela.
 
 ## 08 — IMPLEMENTACIÓN
 
 `08_Implementacion/`
 
-### Contratos actuales
+Contratos, auditorías, cierres y reconciliaciones de materialización técnica.
 
-1. `Assessment_Individual_Result_Contract.md`
-2. `C0_CI_Verification.md`
-3. `CRC_MVP_Implementation_Contract.md`
-4. `Centro_Parametrizacion_Implementation_Contract.md`
-5. `Decision_Twin_Comparison_Contract.md`
-6. `Decision_Twin_Implementation_Contract.md`
-7. `Decision_Versioning_Implementation_Contract.md`
-8. `Negotiation_Intelligence_Implementation_Contract.md`
-9. `Negotiation_Ladder_Implementation_Contract.md`
-10. `O4_Controlled_Scenario_Generation_Implementation_Contract.md`
-11. `Price_Intelligence_Implementation_Contract.md`
-12. `Quality_Trust_Implementation_Contract.md`
-13. `Scenario_Evaluation_Implementation_Contract.md`
-14. `TCO_Core_CI_Verification.md`
-15. `TCO_Core_Implementation_Contract.md`
-16. `U1_Frontend_Implementation_Contract.md`
-17. `U1_1_Visual_Frontend_Implementation_Contract.md`
-18. `Viability_Frontier_Design_Audit.md`
-19. `E2E_Execution_Boundary_Implementation_Contract.md`
-20. `Viability_Frontier_Implementation_Contract.md`
+### Anclas verificables
 
-La implementación ejecutable se encuentra materializada adicionalmente en `eios/` y verificada mediante `tests/`.
+- `Price_Intelligence_Implementation_Contract.md`
+- `Quality_Trust_Implementation_Contract.md`
+- `TCO_Core_Implementation_Contract.md`
+- `Viability_Frontier_Implementation_Contract.md`
+- `E2E_Execution_Boundary_Implementation_Contract.md`
+
+El dominio incluye además familias de Assessment/provenance, C0/Rules, Parameter Configuration, STK, Delivery Stockout, Finance Basic, Supplier Evidence Core, Scenario/O2–O4, Decision Twin, Negotiation Intelligence/Ladder, CRC, Decision Versioning, UI/U1/U1.1 y reconciliaciones de provenance/postintegración.
+
+No se mantiene aquí una enumeración exhaustiva de contratos, porque su inventario canónico operativo es el árbol físico de `08_Implementacion/`.
+
+La existencia de un archivo en esta carpeta no implica por sí sola que esté cerrado; debe consultarse su estado y ciclo documental concreto.
 
 ## 99 — ARCHIVO
 
 `99_Archivo/`
 
-Repositorio histórico de documentación sustituida, obsoleta o conservada por trazabilidad.
+Material histórico, sustituido u obsoleto conservado por trazabilidad.
 
-El contenido histórico se mantiene fuera del Framework operativo y no constituye autoridad sobre el diseño vigente de EIOS.
+El contenido archivado no constituye autoridad sobre el diseño vigente salvo decisión expresa de gobierno.
 
 ---
 
-# 3. NODO DE GOBIERNO ACTIVO
+# 4. IMPLEMENTACIÓN EJECUTABLE
 
-El nodo de Gobierno constituye actualmente el nivel superior de control documental del proyecto.
+`eios/`
 
-Su estructura de autoridad se encuentra definida por:
+Código ejecutable materializado conforme a contratos autorizados.
+
+Regla:
+
+> El código implementa autoridad existente; no crea silenciosamente autoridad empresarial nueva.
+
+Para determinar la legitimidad de una capacidad debe trazarse:
+
+```text
+fuente funcional / metodológica
+        ↓
+contrato de implementación
+        ↓
+código
+        ↓
+pruebas
+        ↓
+CI / reconciliación
+```
+
+---
+
+# 5. TESTS AUTOMATIZADOS
+
+`tests/`
+
+Suite automatizada que verifica comportamiento y regresiones.
+
+No sustituye a `07_Pruebas/`: ambos cumplen funciones complementarias.
+
+```text
+07_Pruebas/ → evidencia documental de verificación
+ tests/      → verificación automatizada ejecutable
+```
+
+Un test puede demostrar conformidad, pero no redefinir la especificación que prueba.
+
+---
+
+# 6. CI Y VALIDACIONES
+
+`.github/`
+
+Materializa automatización de integración continua y validaciones técnicas.
+
+Rutas relevantes:
+
+- workflow: `.github/workflows/tests.yml`
+- validaciones SQL: `.github/sql/`
+
+La CI es un gate técnico. Un `SUCCESS` no sustituye a la autoridad metodológica, funcional o documental que deba existir antes de implementar.
+
+---
+
+# 7. SUBÁRBOLES Y COPIAS AUXILIARES
+
+La presencia de un subárbol, copia, exportación o material auxiliar dentro del repositorio no lo convierte automáticamente en fuente oficial.
+
+En particular, ante cualquier duplicación aparente debe aplicarse:
+
+```text
+Matriz_Autoridad_Documental.md
+        ↓
+fuente oficial vigente
+        ↓
+documento especializado
+```
+
+No debe resolverse autoridad por similitud de nombres ni por la fecha más reciente de una copia auxiliar.
+
+---
+
+# 8. NODO DE GOBIERNO ACTIVO
+
+La autoridad y precedencia documental se determinan mediante:
 
 `00_Gobierno/Matriz_Autoridad_Documental.md`
 
-La Salvaguarda oficial vigente del EIOS Vertical MVP es:
+La Salvaguarda vigente del Vertical MVP es:
 
 `00_Gobierno/EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md`
 
----
+El punto formal de continuidad más reciente es:
 
-# 4. REGLA DE NAVEGACIÓN
+`00_Gobierno/Baselines/EIOS-BL-002.md`
 
-La estructura numérica de carpetas establece la organización documental del Framework.
-
-La autoridad de cada documento no viene determinada únicamente por su posición en la estructura.
-
-La autoridad documental se determina mediante:
-
-`00_Gobierno/Matriz_Autoridad_Documental.md`
+El Baseline no sustituye a las fuentes especializadas.
 
 ---
 
-# 5. ESTADO DEL FRAMEWORK
+# 9. REGLA DE NAVEGACIÓN Y AUTORIDAD
 
-**Framework:** EIOS
-**Baseline vigente:** EIOS Vertical MVP
-**Estado:** En desarrollo
-**Gobierno:** Activo
-**Salvaguarda Vertical MVP:** Vigente
+La estructura de carpetas permite localizar conocimiento y materialización.
+
+La autoridad **no** se deriva únicamente de ubicación, antigüedad, nombre del archivo, existencia de código, existencia de tests o CI verde.
+
+La autoridad se resuelve mediante el gobierno documental y las fuentes especializadas aplicables.
 
 ---
 
-# 6. REGLA DEL FRAMEWORK MAP
+# 10. MANTENIMIENTO DEL MAPA
 
-Este documento tiene carácter exclusivamente estructural y de navegación.
+Framework Map debe actualizarse cuando cambie de forma relevante:
+
+- la estructura de dominios;
+- una ruta de navegación principal;
+- una fuente/ancla estructural;
+- la ubicación de una capacidad principal.
+
+No debe actualizarse por cada nuevo artefacto de auditoría, cierre, reconciliación o test si la ruta de dominio permanece estable.
+
+Esta regla evita convertir el mapa en un inventario manual frágil.
+
+---
+
+# 11. ESTADO DEL FRAMEWORK
+
+**Framework:** EIOS  
+**Baseline de continuidad vigente:** EIOS-BL-002  
+**Estado:** En desarrollo  
+**Gobierno:** Activo  
+**Salvaguarda Vertical MVP:** Vigente  
+**Versión del mapa:** 3.3.1
+
+---
+
+# 12. PRINCIPIO FINAL
+
+> **Framework Map indica dónde buscar. La Matriz de Autoridad determina qué fuente manda. Los documentos especializados definen el contenido. El código y las pruebas materializan y verifican lo autorizado.**
