@@ -49,8 +49,8 @@ def test_m07_preserves_catalog_and_human_authority_boundaries():
     assert "STK-M07 — Exceso — CERRADO" in matrix
     assert "10 % de `STK-005` permanece pendiente de validación" in authority
     assert "90 días de `STK-004` permanecen pendientes de validación" in authority
-    assert "| STK-004 | Cobertura máxima | 90 | días | Exceso de stock | Pendiente de validación |" in catalog
-    assert "| STK-005 | Tolerancia de exceso | 10 | % | Alerta | Pendiente de validación |" in catalog
+    assert "| P-STK-004 | Cobertura máxima | 90 | días | Exceso de stock | Pendiente de validación |" in catalog
+    assert "| P-STK-005 | Tolerancia de exceso | 10 | % | Alerta | Pendiente de validación |" in catalog
     assert "No autoriza automáticamente cancelaciones" in authority
     assert "`STK-M08…M10` permanecen pendientes" in authority
     assert "**Estado actual:** APTO PARA DISEÑO DE CONTRATO TÉCNICO STK." in matrix

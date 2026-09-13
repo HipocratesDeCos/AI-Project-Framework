@@ -61,13 +61,13 @@ def test_catalog_initial_values_remain_pending_not_normative_defaults():
     catalog = CATALOG.read_text(encoding="utf-8")
     authority = AUTHORITY.read_text(encoding="utf-8")
     for row in (
-        "| STK-002 | Stock de seguridad | 15 | % del consumo | Riesgo | Pendiente de validación |",
-        "| STK-003 | Cobertura mínima | 30 | días | Compras | Pendiente de validación |",
-        "| STK-004 | Cobertura máxima | 90 | días | Exceso de stock | Pendiente de validación |",
-        "| STK-005 | Tolerancia de exceso | 10 | % | Alerta | Pendiente de validación |",
-        "| STK-006 | Periodo para calcular consumo | 12 | meses | Proyección | Pendiente de validación |",
-        "| PYE-001 | Horizonte de proyección | 90 | días | Pendiente de validación |",
-        "| PYE-006 | Umbral de riesgo de rotura | 15 | días | Pendiente de validación |",
+        "| P-STK-002 | Stock de seguridad | 15 | % del consumo | Riesgo | Pendiente de validación |",
+        "| P-STK-003 | Cobertura mínima | 30 | días | Compras | Pendiente de validación |",
+        "| P-STK-004 | Cobertura máxima | 90 | días | Exceso de stock | Pendiente de validación |",
+        "| P-STK-005 | Tolerancia de exceso | 10 | % | Alerta | Pendiente de validación |",
+        "| P-STK-006 | Periodo para calcular consumo | 12 | meses | Proyección | Pendiente de validación |",
+        "| P-PYE-001 | Horizonte de proyección | 90 | días | Pendiente de validación |",
+        "| P-PYE-006 | Umbral de riesgo de rotura | 15 | días | Pendiente de validación |",
     ):
         assert row in catalog
     assert "no valida los valores iniciales del catálogo" in authority

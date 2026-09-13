@@ -44,8 +44,8 @@ def test_m06_preserves_parameter_and_human_authority_boundaries():
     catalog = CATALOG.read_text(encoding="utf-8")
     assert "STK-M06 — Pedidos pendientes y tránsito — CERRADO" in matrix
     assert "no valida los valores iniciales “Sí” de `PYE-002` y `PYE-003`" in authority
-    assert "| PYE-002 | Considerar pedidos pendientes | Sí | Sí/No | Pendiente de validación |" in catalog
-    assert "| PYE-003 | Considerar compras en tránsito | Sí | Sí/No | Pendiente de validación |" in catalog
+    assert "| P-PYE-002 | Considerar pedidos pendientes | Sí | Sí/No | Pendiente de validación |" in catalog
+    assert "| P-PYE-003 | Considerar compras en tránsito | Sí | Sí/No | Pendiente de validación |" in catalog
     assert "No constituye por sí mismo autorización de compra" in authority
     assert "`STK-M07…M10` permanecen pendientes" in authority
     assert "**Estado actual:** APTO PARA DISEÑO DE CONTRATO TÉCNICO STK." in matrix
