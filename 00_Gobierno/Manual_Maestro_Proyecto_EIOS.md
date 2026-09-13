@@ -195,7 +195,7 @@ La autoridad real de cálculo se distribuye entre dominios especializados, por e
 
 Cada componente debe conservar trazabilidad, contexto, evidencia y límites de autoridad.
 
-Conceptos históricos o ilustrativos como PMR, CEA, RFP u otras denominaciones antiguas **no adquieren vigencia por aparecer en versiones anteriores de este Manual**. Su validez debe demostrarse en la fuente especializada actual antes de utilizarse.
+Denominaciones como PMR, CEA, RFP u otros conceptos mencionados en documentos del proyecto **no adquieren autoridad por aparecer en este Manual**. Su definición, vigencia, metodología y uso deben resolverse siempre en la fuente especializada que tenga autoridad sobre el concepto correspondiente.
 
 ---
 
