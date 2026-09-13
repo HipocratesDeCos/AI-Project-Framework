@@ -2,10 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.7
-**Estado:** APROBADO — C-07 / GAP-HIS-01 / GAP-HIS-02 CERRADOS
+**Versión:** 0.8
+**Estado:** APROBADO — C-07 / GAP-HIS-01 / GAP-HIS-02 / GAP-ID-01 CERRADOS
 **Baseline:** EIOS Vertical MVP
-**Fecha:** 22/08/2026
+**Fecha:** 13/09/2026
 
 ---
 
@@ -37,7 +37,7 @@ Se mantienen las decisiones D-01 a D-08 de la versión anterior, salvo las preci
 | C-07 | Plazos de pago | Se distinguen `P-PAG-001` como parámetro de plazo mínimo deseado y `P-PAG-002` como parámetro de plazo objetivo. Las relaciones funcionales con `R-PAG-*` quedan establecidas mediante `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` v1.0, incorporadas a `04_Reglas/Matriz_Reglas_MVP.md` v2.1 y reflejadas en `02_Parametros/Matriz_Parametros_Reglas_MVP.md` v0.7. | CERRADO — EVIDENCIA DOCUMENTAL |
 | **GAP-HIS-01** | `PRE-003 / DAT-002 → R-HIS-001` | `P-DAT-002` es el parámetro configurable efectivo de `R-HIS-001`. `P-PRE-003` queda como criterio/metodología histórica, no como parámetro directo. No existe relación maestro → derivado documentada entre ambos. | **CERRADO — EVIDENCIA DOCUMENTAL** |
 | **GAP-HIS-02** | `PRE-006 / DAT-003 → R-HIS-002` | `P-PRE-006` es el parámetro configurable efectivo de `R-HIS-002`. `P-DAT-003` representa un criterio distinto de disponibilidad/registro histórico y no sustituye a `P-PRE-006`. No existe relación maestro → derivado documentada entre ambos. | **CERRADO — EVIDENCIA DOCUMENTAL** |
-| GAP-ID-01 | Convención de IDs | Se mantiene la convención ya establecida: `P-*` para parámetros y `R-*` para reglas. Los documentos que aún utilicen IDs sin prefijo requieren migración controlada. | ABIERTO — MIGRACIÓN |
+| GAP-ID-01 | Convención de IDs | Se materializa la convención establecida: `P-*` para parámetros y `R-*` para reglas. El Catálogo conserva la numeración funcional y normaliza sus 49 identificadores oficiales con prefijo `P-`; la Matriz P→R y la Matriz de Reglas ya utilizaban la convención canónica. | **CERRADO — MIGRACIÓN DOCUMENTAL** |
 
 ---
 
@@ -140,9 +140,9 @@ La creación de parámetros `HIS-*` queda expresamente descartada.
 
 # 8. DOCUMENTOS AFECTADOS
 
-- `02_Parametros/Catalogo_Parametros_MVP_v0.3.md`: migración de IDs a `P-*` cuando corresponda.
-- `02_Parametros/Matriz_Parametros_Reglas_MVP.md`: migración de IDs de parámetros y referencias a reglas a `P-*` / `R-*`; C-07 y GAP-HIS-01/02 incorporados.
-- `04_Reglas/Matriz_Reglas_MVP.md`: migración de IDs de reglas a `R-*` cuando corresponda; C-07 ya incorporado.
+- `02_Parametros/Catalogo_Parametros_MVP_v0.3.md`: migración de IDs a `P-*` completada para los 49 identificadores oficiales.
+- `02_Parametros/Matriz_Parametros_Reglas_MVP.md`: convención `P-*` / `R-*` ya materializada; C-07 y GAP-HIS-01/02 incorporados.
+- `04_Reglas/Matriz_Reglas_MVP.md`: convención `R-*` ya materializada; C-07 incorporado.
 - `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md`: evidencia especializada de C-07.
 - `04_Reglas/Especificacion_Reglas_Historico_MVP.md`: evidencia especializada de GAP-HIS-01/02.
 - `04_Reglas/Reglas_MVP.md`: mantener bajo revisión por coexistencia documental hasta resolver su papel respecto a la matriz oficial.
@@ -170,7 +170,7 @@ Los GAPs funcionales quedan cerrados cuando la decisión está registrada y los 
 
 Los GAPs de migración documental permanecen abiertos hasta completar la actualización controlada y su posterior auditoría.
 
-`C-07`, `GAP-HIS-01` y `GAP-HIS-02` quedan cerrados funcional y documentalmente para sus respectivas relaciones.
+`C-07`, `GAP-HIS-01`, `GAP-HIS-02` y `GAP-ID-01` quedan cerrados para sus respectivos alcances. El cierre de `GAP-ID-01` es exclusivamente documental y no altera semántica funcional.
 
 ---
 
@@ -200,6 +200,6 @@ El identificador histórico `EVID-HIS-004` se conserva únicamente como rastro d
 
 # 12. ESTADO
 
-**Versión:** 0.7
-**Estado:** APROBADO — C-07 / GAP-HIS-01 / GAP-HIS-02 CERRADOS; EVID-HIS-004 RECLASIFICADO
+**Versión:** 0.8
+**Estado:** APROBADO — C-07 / GAP-HIS-01 / GAP-HIS-02 / GAP-ID-01 CERRADOS; EVID-HIS-004 RECLASIFICADO
 **Baseline:** EIOS Vertical MVP
