@@ -61,10 +61,14 @@ class RecordingCenter:
         self.validate_calls: list[ChangeRequest] = []
         self.apply_calls: list[ChangeRequest] = []
         self.fail_on_validate_call: dict[int, ParameterConfigurationError] = {}
+        self.get_parameter_error: ParameterConfigurationError | None = None
+        self.history_error: ParameterConfigurationError | None = None
         self.apply_error: ParameterConfigurationError | None = None
 
     def get_parameter(self, parameter_id: str) -> ParameterDefinition:
         assert parameter_id == "P-001"
+        if self.get_parameter_error is not None:
+            raise self.get_parameter_error
         return self.definition
 
     def get_current_configuration(
@@ -77,6 +81,8 @@ class RecordingCenter:
         self, company_id: str, parameter_id: str
     ) -> tuple[HistoryEntry, ...]:
         assert (company_id, parameter_id) == ("COMP-1", "P-001")
+        if self.history_error is not None:
+            raise self.history_error
         return self.history
 
     def validate_change(self, request: ChangeRequest) -> None:
@@ -92,7 +98,9 @@ class RecordingCenter:
         return replace(self.current, value=request.value, updated_at=NOW)
 
 
-def _controller(center: RecordingCenter | None = None) -> tuple[ConfigurationCenterUIController, RecordingCenter]:
+def _controller(
+    center: RecordingCenter | None = None,
+) -> tuple[ConfigurationCenterUIController, RecordingCenter]:
     recorded = center or RecordingCenter()
     context = AuthorizedConfigurationUIContext(
         company_id="COMP-1", parameter_id="P-001", actor="actor-1"
@@ -113,6 +121,7 @@ def test_detail_preserves_authoritative_identity_type_unit_and_configuration() -
 
     detail = controller.load_detail()
 
+    assert detail is not None
     assert detail.company_id == "COMP-1"
     assert detail.parameter_id == "P-001"
     assert detail.actor == "actor-1"
@@ -120,6 +129,22 @@ def test_detail_preserves_authoritative_identity_type_unit_and_configuration() -
     assert detail.unit == "days"
     assert detail.restricted is False
     assert detail.configuration is center.current
+    assert controller.state == "VIEWING"
+    assert controller.error_code is None
+
+
+def test_detail_read_error_is_explicit_and_preserves_backend_code() -> None:
+    center = RecordingCenter()
+    center.get_parameter_error = ParameterConfigurationError(
+        "PARAMETER_NOT_FOUND", "missing"
+    )
+    controller, _ = _controller(center)
+
+    detail = controller.load_detail()
+
+    assert detail is None
+    assert controller.state == "ERROR"
+    assert controller.error_code == "PARAMETER_NOT_FOUND"
 
 
 def test_history_is_read_only_projection_of_backend_history() -> None:
@@ -127,6 +152,7 @@ def test_history_is_read_only_projection_of_backend_history() -> None:
 
     history = controller.load_history()
 
+    assert history is not None
     assert len(history) == 1
     item = history[0]
     assert item.company_id == "COMP-1"
@@ -135,6 +161,21 @@ def test_history_is_read_only_projection_of_backend_history() -> None:
     assert item.new_value == "10"
     assert item.changed_by == "actor-1"
     assert item.change_reason == "approved change"
+    assert controller.state == "VIEWING"
+
+
+def test_history_read_error_is_explicit_and_preserves_backend_code() -> None:
+    center = RecordingCenter()
+    center.history_error = ParameterConfigurationError(
+        "INVALID_COMPANY_SCOPE", "invalid scope"
+    )
+    controller, _ = _controller(center)
+
+    history = controller.load_history()
+
+    assert history is None
+    assert controller.state == "ERROR"
+    assert controller.error_code == "INVALID_COMPANY_SCOPE"
 
 
 def test_failed_initial_validation_never_creates_pending_confirmation() -> None:
@@ -150,6 +191,8 @@ def test_failed_initial_validation_never_creates_pending_confirmation() -> None:
 
     assert result.state == "VALIDATION_FAILED"
     assert result.error_code == "INVALID_VALUE"
+    assert controller.state == "VALIDATION_FAILED"
+    assert controller.error_code == "INVALID_VALUE"
     assert controller.has_pending_confirmation is False
     assert center.apply_calls == []
 
@@ -161,6 +204,8 @@ def test_apply_without_pending_confirmation_fails_closed() -> None:
 
     assert result.state == "ERROR"
     assert result.error_code == "NO_PENDING_CHANGE"
+    assert controller.state == "ERROR"
+    assert controller.error_code == "NO_PENDING_CHANGE"
     assert center.validate_calls == []
     assert center.apply_calls == []
 
@@ -175,6 +220,8 @@ def test_confirm_revalidates_and_binds_request_to_immutable_context() -> None:
 
     assert prepared.state == "AWAITING_CONFIRMATION"
     assert applied.state == "APPLIED"
+    assert controller.state == "APPLIED"
+    assert controller.error_code is None
     assert len(center.validate_calls) == 2
     assert len(center.apply_calls) == 1
     for request in (*center.validate_calls, *center.apply_calls):
@@ -203,6 +250,7 @@ def test_revoked_authorization_between_validation_and_confirmation_blocks_write(
 
     assert result.state == "FORBIDDEN"
     assert result.error_code == "UNAUTHORIZED_CHANGE"
+    assert controller.state == "FORBIDDEN"
     assert center.apply_calls == []
     assert controller.has_pending_confirmation is False
 
@@ -221,6 +269,7 @@ def test_conflict_appearing_before_confirmation_blocks_write() -> None:
 
     assert result.state == "CONFLICT"
     assert result.error_code == "CONFLICTING_ACTIVE_CONFIGURATION"
+    assert controller.state == "CONFLICT"
     assert center.apply_calls == []
 
 
@@ -239,6 +288,7 @@ def test_apply_error_never_becomes_applied() -> None:
     assert result.state == "CONFLICT"
     assert result.error_code == "CONFLICTING_ACTIVE_CONFIGURATION"
     assert result.configuration is None
+    assert controller.state == "CONFLICT"
     assert controller.has_pending_confirmation is False
 
 
@@ -253,4 +303,5 @@ def test_cancel_consumes_pending_proposal_and_prevents_apply() -> None:
 
     assert cancelled.state == "VIEWING"
     assert result.error_code == "NO_PENDING_CHANGE"
+    assert controller.state == "ERROR"
     assert center.apply_calls == []
