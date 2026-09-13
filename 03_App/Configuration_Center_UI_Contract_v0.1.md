@@ -1,6 +1,6 @@
 # EIOS — Configuration Center UI Contract v0.1
 
-**Estado:** DISEÑO  
+**Estado:** DEPURADO — PENDIENTE DE AUDITORÍA 2  
 **Fecha:** 2026-09-13  
 **Baseline físico:** `main @ 409d3a19d3cfcb217db431465189671b50c42dbc`  
 **Autoridad funcional:** `02_Parametros/Centro_Parametrizacion.md`  
@@ -20,7 +20,7 @@ La UI administra y representa configuración autorizada. No interpreta reglas ni
 
 La interfaz permite:
 
-- seleccionar el ámbito empresarial disponible para el usuario;
+- seleccionar únicamente ámbitos empresariales que la frontera autorizada entregue como accesibles;
 - listar y buscar parámetros autorizados;
 - filtrar por categoría cuando dicha clasificación esté disponible desde fuentes autorizadas;
 - consultar identificador, nombre, descripción, valor actual, tipo/unidad, vigencia y restricciones disponibles;
@@ -30,6 +30,7 @@ La interfaz permite:
 - solicitar validación al servicio autorizado;
 - mostrar valor anterior y nuevo antes de aplicar;
 - requerir confirmación humana antes de ejecutar el cambio;
+- revalidar contra el estado vigente inmediatamente antes de aplicar;
 - aplicar el cambio mediante la frontera autorizada;
 - mostrar resultado técnico, trazabilidad y estado final de la operación.
 
@@ -37,8 +38,7 @@ La interfaz permite:
 
 Esta UI no autoriza ni implementa:
 
-- creación de parámetros;
-- eliminación de parámetros;
+- creación o eliminación de parámetros;
 - creación o modificación estructural de reglas;
 - activación/desactivación de reglas salvo futura autoridad explícita;
 - edición de prioridades CRC;
@@ -47,6 +47,8 @@ Esta UI no autoriza ni implementa:
 - simulación de impacto avanzado;
 - cálculo retrospectivo o prospectivo del efecto decisional de un cambio;
 - autenticación o política corporativa de identidad;
+- elección libre o suplantación del actor de auditoría;
+- introducción libre de `company_id` fuera de ámbitos autorizados;
 - escritura directa en SQL;
 - acceso directo desde Presentation a código de dominio;
 - recomendación de compra ni decisión empresarial.
@@ -69,11 +71,11 @@ La Presentation no accede directamente a SQL, Catálogo, Rules ni CRC.
 
 El Controller coordina estado de interacción y no reimplementa `validate_change(...)` ni `apply_change(...)`.
 
-## 5. Pantallas / vistas MVP
+## 5. Vistas MVP
 
 ### 5.1 Lista de parámetros
 
-Debe mostrar como mínimo, cuando estén disponibles desde la autoridad:
+Debe mostrar, cuando la autoridad los proporcione:
 
 - `parameter_id`;
 - nombre;
@@ -89,11 +91,10 @@ Debe permitir búsqueda por identificador/nombre y filtrado por categorías disp
 
 Debe mostrar:
 
-- identidad del parámetro;
-- descripción autorizada;
+- identidad y descripción autorizadas;
 - valor vigente;
 - unidad/tipo;
-- valor estándar cuando exista en la autoridad;
+- valor estándar cuando exista;
 - vigencia;
 - explicación funcional disponible;
 - histórico accesible;
@@ -101,48 +102,38 @@ Debe mostrar:
 
 ### 5.3 Edición
 
-La edición debe mostrar:
+Debe mostrar:
 
 - valor actual;
-- campo para nuevo valor compatible con el tipo autorizado;
+- nuevo valor compatible con el tipo autorizado;
 - vigencia cuando la operación lo admita;
 - motivo del cambio;
 - advertencias o restricciones devueltas por el servicio.
 
-La UI puede aplicar validaciones sintácticas básicas de entrada, pero la validez funcional definitiva corresponde al servicio autorizado.
+La UI puede realizar validación sintáctica de entrada, pero la validez funcional definitiva corresponde al servicio autorizado.
 
 ### 5.4 Confirmación
 
-Antes de aplicar un cambio se debe mostrar, como mínimo:
+Antes de aplicar un cambio se muestra, como mínimo:
 
 - parámetro;
-- empresa/ámbito;
+- empresa/ámbito autorizado;
 - valor anterior;
 - nuevo valor;
 - vigencia;
 - motivo;
-- advertencias/restricciones recibidas;
-- identidad del actor cuando la frontera la proporcione.
+- advertencias/restricciones;
+- actor únicamente como identidad obtenida de la frontera autorizada, nunca como dato libre editable.
 
-El usuario debe confirmar explícitamente la operación.
+La confirmación humana no sustituye la autorización del servicio.
+
+Tras la confirmación y antes de aplicar, el Controller solicita una revalidación contra el estado vigente. Si el servicio informa conflicto o invalidez, la operación no se aplica.
 
 ### 5.5 Histórico
 
-Debe permitir consultar entradas de histórico disponibles con:
-
-- valor anterior;
-- nuevo valor;
-- actor;
-- instante;
-- motivo;
-- ámbito empresarial;
-- vigencia/estado cuando estén disponibles.
-
-La UI es de solo lectura sobre el histórico.
+Debe permitir consultar entradas disponibles con valor anterior/nuevo, actor, instante, motivo, ámbito y vigencia/estado cuando existan. El histórico es de solo lectura.
 
 ## 6. Estados de interacción
-
-Estados mínimos de UI:
 
 ```text
 LOADING
@@ -152,82 +143,56 @@ EDITING
 VALIDATING
 VALIDATION_FAILED
 AWAITING_CONFIRMATION
+REVALIDATING
 APPLYING
 APPLIED
 FORBIDDEN
+CONFLICT
 ERROR
 ```
 
-Estos estados son efímeros de interfaz y no crean estados de dominio.
+Son estados efímeros de UI y no crean estados de dominio.
 
-## 7. Regla de autorización
+## 7. Autorización, actor y empresa
 
-La UI no decide qué usuario puede cambiar qué parámetro.
+La UI no decide permisos, no autentica al actor y no concede ámbitos empresariales.
 
-La capacidad de editar/aplicar debe provenir de la frontera autorizada. Ante ausencia de autorización demostrada:
-
-```text
-FAIL CLOSED → solo lectura / FORBIDDEN
-```
+- los ámbitos empresariales seleccionables proceden de la frontera autorizada;
+- el actor de cambio procede del contexto confiable de dicha frontera o de una futura frontera de identidad autorizada;
+- la UI no permite introducir ni sustituir libremente esos identificadores;
+- ante ausencia de autorización demostrada: `FAIL CLOSED → solo lectura / FORBIDDEN`.
 
 Un parámetro restringido no puede rebajarse a ordinario por lógica visual.
 
-## 8. Regla de impacto previsto
+## 8. Explicación frente a simulación
 
-`Centro_Parametrizacion.md` requiere explicar el impacto de modificar un parámetro, pero la simulación avanzada queda fuera del MVP.
+La UI puede explicar qué controla un parámetro y mostrar advertencias semánticas existentes.
 
-Por tanto la UI puede mostrar:
+No puede afirmar qué operaciones históricas cambiarían de resultado, predecir nuevas recomendaciones, recalcular decisiones ni cuantificar impacto futuro sin un productor autorizado específico.
 
-- explicación descriptiva autorizada del parámetro;
-- advertencias estáticas o semánticas existentes;
-- restricciones comunicadas por el servicio.
+La explicación descriptiva no equivale a simulación. Si no existe productor de impacto autorizado, la interfaz debe comunicar que el impacto cuantitativo no está disponible en este alcance.
 
-No puede fabricar una predicción cuantitativa, recálculo histórico ni impacto sobre decisiones si no existe un productor autorizado específico.
+## 9. Vigencia y concurrencia
 
-Cuando ese productor no exista, deberá mostrarse una formulación equivalente a `impacto cuantitativo no disponible en este alcance`.
+La UI preserva la semántica de vigencia existente y no inventa una taxonomía paralela.
 
-## 9. Vigencia
-
-La UI debe preservar la semántica de vigencia de la frontera existente y no inventar una taxonomía paralela.
-
-No debe permitir intervalos inválidos ni configuraciones activas incompatibles si el servicio las rechaza.
+No define locking ni versionado nuevos. Para evitar aplicar sobre estado obsoleto, exige revalidación inmediata previa a `apply_change(...)` y respeta cualquier `CONFLICTING_ACTIVE_CONFIGURATION` u otra respuesta de conflicto del servicio.
 
 ## 10. Tipado y unidades
 
-La UI debe seleccionar el control de entrada a partir del tipo/unidad autorizados cuando estén disponibles.
-
-La elección visual del control no altera la semántica del valor.
+El control visual puede derivarse del tipo/unidad autorizados cuando estén disponibles. La elección del control no altera semántica ni convierte silenciosamente unidades.
 
 La validación funcional definitiva corresponde al Centro materializado.
 
 ## 11. Errores
 
-La UI debe distinguir al menos las semánticas existentes:
+La UI distingue las semánticas existentes: `PARAMETER_NOT_FOUND`, `INVALID_VALUE`, `INVALID_TYPE`, `INVALID_VALIDITY`, `UNAUTHORIZED_CHANGE`, `CONFLICTING_ACTIVE_CONFIGURATION`, `RESTRICTED_PARAMETER`, `INVALID_COMPANY_SCOPE` y fallos técnicos no clasificados.
 
-- `PARAMETER_NOT_FOUND`;
-- `INVALID_VALUE`;
-- `INVALID_TYPE`;
-- `INVALID_VALIDITY`;
-- `UNAUTHORIZED_CHANGE`;
-- `CONFLICTING_ACTIVE_CONFIGURATION`;
-- `RESTRICTED_PARAMETER`;
-- `INVALID_COMPANY_SCOPE`;
-- fallo técnico no clasificado.
-
-Ningún error técnico o de autorización puede transformarse en una modificación aplicada.
+Ningún error, conflicto o ausencia de autorización puede transformarse en modificación aplicada.
 
 ## 12. Trazabilidad
 
-Después de un cambio aplicado, la UI debe mostrar o conservar referencias suficientes para relacionar la operación con:
-
-- parámetro;
-- empresa;
-- actor;
-- instante;
-- valor anterior/nuevo;
-- motivo;
-- vigencia;
-- identificador o referencia técnica de trazabilidad cuando exista.
+Después de un cambio aplicado, la UI debe representar referencias suficientes para relacionar la operación con parámetro, empresa, actor, instante, valores anterior/nuevo, motivo, vigencia y referencia técnica de trazabilidad cuando exista.
 
 La UI no reescribe histórico.
 
@@ -235,32 +200,27 @@ La UI no reescribe histórico.
 
 - no depender exclusivamente de color;
 - etiquetas persistentes;
-- errores asociados al control afectado cuando sea posible;
+- errores asociados al control cuando sea posible;
 - navegación por teclado en controles principales;
 - separación clara entre consulta, edición y confirmación;
-- categorías y búsqueda para evitar mostrar todos los parámetros simultáneamente;
+- categorías y búsqueda;
 - advertencias críticas visibles antes de confirmar.
 
 ## 14. Invariantes de interfaz
 
 **CCUI-I01 — No autoridad nueva:** la UI no crea parámetros, reglas ni política.  
-**CCUI-I02 — Service boundary:** toda lectura/escritura funcional pasa por la frontera autorizada.  
+**CCUI-I02 — Service boundary:** toda operación funcional pasa por la frontera autorizada.  
 **CCUI-I03 — Fail closed:** sin autorización demostrada no hay edición.  
 **CCUI-I04 — Human confirmation:** ningún cambio se aplica sin confirmación humana explícita.  
-**CCUI-I05 — History immutable:** el histórico es representado, no reescrito.  
-**CCUI-I06 — No simulation inference:** no se inventa impacto cuantitativo.  
-**CCUI-I07 — Company isolation:** la UI no mezcla ámbitos empresariales.  
-**CCUI-I08 — Type integrity:** no se convierte silenciosamente tipo/unidad.  
-**CCUI-I09 — Error integrity:** un error nunca equivale a cambio aplicado.  
-**CCUI-I10 — No decision:** la UI no produce resultados de compra.
+**CCUI-I05 — Trusted actor:** el actor no es un dato libre editable por Presentation.  
+**CCUI-I06 — Authorized company scope:** la empresa no es un ámbito libre inventado por UI.  
+**CCUI-I07 — Revalidation:** todo cambio se revalida contra estado vigente antes de aplicar.  
+**CCUI-I08 — History immutable:** el histórico es representado, no reescrito.  
+**CCUI-I09 — No simulation inference:** explicación no se convierte en simulación.  
+**CCUI-I10 — Type integrity:** no se convierte silenciosamente tipo/unidad.  
+**CCUI-I11 — Error integrity:** error/conflicto nunca equivale a cambio aplicado.  
+**CCUI-I12 — No decision:** la UI no produce resultados de compra.
 
 ## 15. Criterio de cierre de diseño
 
-El diseño podrá cerrarse si una segunda auditoría demuestra que:
-
-1. todas las interacciones tienen autoridad identificable;
-2. no se crea semántica de reglas, parámetros, permisos o simulación;
-3. la arquitectura respeta Presentation → Controller → Service;
-4. el flujo de edición es fail-closed;
-5. la trazabilidad e histórico permanecen no destructivos;
-6. la UI puede implementarse sin modificar componentes decisionales cerrados.
+El diseño podrá cerrarse si Audit 2 demuestra que todas las interacciones tienen autoridad identificable, no aparece semántica paralela, la arquitectura respeta Presentation → Controller → Service, edición y ámbitos son fail-closed, actor/empresa no son suplantables desde UI, existe revalidación previa a escritura y no se reabren componentes decisionales cerrados.
