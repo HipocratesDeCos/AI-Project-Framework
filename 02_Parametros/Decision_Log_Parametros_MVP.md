@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.8
+**Versión:** 0.9
 **Estado:** APROBADO — C-07 / GAP-HIS-01 / GAP-HIS-02 / GAP-ID-01 CERRADOS
 **Baseline:** EIOS Vertical MVP
 **Fecha:** 13/09/2026
@@ -145,9 +145,9 @@ La creación de parámetros `HIS-*` queda expresamente descartada.
 - `04_Reglas/Matriz_Reglas_MVP.md`: convención `R-*` ya materializada; C-07 incorporado.
 - `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md`: evidencia especializada de C-07.
 - `04_Reglas/Especificacion_Reglas_Historico_MVP.md`: evidencia especializada de GAP-HIS-01/02.
-- `04_Reglas/Reglas_MVP.md`: mantener bajo revisión por coexistencia documental hasta resolver su papel respecto a la matriz oficial.
-- `00_Gobierno/Registro_Evidencias_Trazabilidad_F3.md`: requiere actualización en el paso específico de F3.
-- `00_Gobierno/Especificacion_Evidencia_Trazabilidad_F3.md`: requiere actualización en el paso específico de F3.
+- `04_Reglas/Reglas_MVP.md`: papel resuelto como documento legado / referencia de migración; la fuente normativa vigente y única para reglas es `04_Reglas/Matriz_Reglas_MVP.md`.
+- `00_Gobierno/Registro_Evidencias_Trazabilidad_F3.md`: actualizado y activo; C-07 e históricos se encuentran materializados en el registro canónico F3.
+- `00_Gobierno/Especificacion_Evidencia_Trazabilidad_F3.md`: actualizada; define el modelo de evidencia F3 y mantiene GAP-HIS-01/02 cerrados.
 - `05_Motor`: no modificar todavía.
 - `06_SQL`: no modificar todavía.
 - `07_Pruebas`: no modificar todavía.
@@ -200,6 +200,6 @@ El identificador histórico `EVID-HIS-004` se conserva únicamente como rastro d
 
 # 12. ESTADO
 
-**Versión:** 0.8
+**Versión:** 0.9
 **Estado:** APROBADO — C-07 / GAP-HIS-01 / GAP-HIS-02 / GAP-ID-01 CERRADOS; EVID-HIS-004 RECLASIFICADO
 **Baseline:** EIOS Vertical MVP
