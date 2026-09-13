@@ -2,9 +2,9 @@
 
 > **Documento de recuperación y continuidad del proyecto**
 >
-> **Versión:** 2.1
-> **Estado:** APROBADO
-> **Última actualización:** 29/08/2026
+> **Versión:** 2.2
+> **Estado:** APROBADO — reconciliación de estado vigente
+> **Última actualización:** 13/09/2026
 > **Proyecto:** EIOS — Enterprise Intelligent Operations System
 
 ---
@@ -30,6 +30,16 @@ La autoridad sobre precedencia documental corresponde a:
 El marco congelado del EIOS Vertical MVP está definido por:
 
 `00_Gobierno/EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md`
+
+El mapa estructural y de navegación vigente corresponde a:
+
+`03_Arquitectura/Framework_Map.md`
+
+El punto formal de recuperación más reciente es:
+
+`00_Gobierno/Baselines/EIOS-BL-002.md`
+
+Un Baseline es un punto formal de recuperación asociado a un SHA concreto; no sustituye el estado posterior de `main` ni las fuentes especializadas vigentes.
 
 ---
 
@@ -70,7 +80,8 @@ EIOS debe ayudar a determinar si una compra propuesta:
 - debe realizarse;
 - debe negociarse;
 - puede realizarse condicionadamente;
-- o no debe realizarse.
+- no debe realizarse;
+- o debe declararse como información insuficiente cuando no exista base fiable para recomendar.
 
 La decisión debe considerar tanto la operación individual como su impacto sobre la situación económica, financiera y operativa de la empresa.
 
@@ -197,12 +208,13 @@ RECOMENDACIÓN
 DECISOR
 ```
 
-Las posibles respuestas principales son:
+Los cinco resultados oficiales consolidados por la CRC son:
 
 - 🟢 COMPRAR
 - 🟡 NEGOCIAR
 - 🔵 COMPRAR CONDICIONADO
 - 🔴 NO COMPRAR
+- ⚪ INFORMACIÓN INSUFICIENTE
 
 La recomendación de EIOS no constituye automáticamente una orden de compra.
 
@@ -255,6 +267,8 @@ Entre las variables consideradas están:
 - margen porcentual;
 - margen mínimo objetivo.
 
+La presencia de estas variables en el contexto no autoriza por sí sola fórmulas, denominadores, transformaciones ni umbrales. La semántica cuantitativa debe provenir de su autoridad especializada.
+
 ## Finanzas
 
 - tesorería;
@@ -306,13 +320,11 @@ Una aplicación importante es detectar posibles roturas de stock antes de que oc
 
 # 11. REFERENCE & CALCULATION FRAMEWORK
 
-Se ha identificado como área de diseño el:
+El **Reference & Calculation Framework (RCF)** se conserva como marco conceptual transversal para explicar cómo EIOS transforma datos en información utilizable para la decisión.
 
-**Reference & Calculation Framework (RCF)**
+No debe interpretarse como un único componente monolítico pendiente de implementación.
 
-Su función será definir cómo EIOS transforma datos en información válida para la decisión.
-
-Para cada cálculo deberá poder determinarse, cuando corresponda:
+Su función se materializa mediante autoridades y componentes especializados que definen, según el dominio:
 
 - periodo de referencia;
 - fecha;
@@ -324,13 +336,15 @@ Para cada cálculo deberá poder determinarse, cuando corresponda:
 - excepciones;
 - calidad o fiabilidad de la referencia.
 
+Price Intelligence, TCO, Stock/STK, Delivery Stockout, Finance Basic y las demás capacidades especializadas conservan su propia autoridad; este Project Context no redefine sus cálculos.
+
 No debe utilizarse automáticamente un precio medio histórico de muchos años si puede resultar poco representativo por inflación, evolución del mercado u otros factores.
 
 ---
 
 # 12. REFERENCIAS TEMPORALES
 
-Los criterios deberán poder utilizar ventanas temporales configurables.
+Los criterios deberán poder utilizar ventanas temporales configurables cuando la autoridad especializada lo contemple.
 
 Ejemplos:
 
@@ -374,6 +388,8 @@ Precio ofertado: 18,50 €
 
 La información detallada debe estar disponible sin saturar la pantalla principal.
 
+Los ejemplos de este documento son ilustrativos y no sustituyen las metodologías vigentes de Price Intelligence ni las autoridades especializadas.
+
 ---
 
 # 14. FIABILIDAD DE LAS REFERENCIAS
@@ -382,26 +398,26 @@ Cuando sea relevante, EIOS deberá poder valorar la calidad de la referencia.
 
 Ejemplo:
 
-🟢 Alta
+🟢 Alta  
 Existen varias operaciones recientes y comparables.
 
-🟠 Media
+🟠 Media  
 Existen pocas operaciones o presentan diferencias relevantes.
 
-🔴 Baja
+🔴 Baja  
 Los datos son escasos, antiguos o poco comparables.
 
 EIOS debe evitar transmitir una falsa sensación de precisión.
 
-La suficiencia y calidad de la evidencia deberán alinearse con el `Evidence_Contract.md`.
+La suficiencia y calidad de la evidencia deberán alinearse con el `Evidence_Contract.md` y con las fuentes especializadas aplicables.
 
 ---
 
 # 15. MOTOR DE REGLAS
 
-El sistema debe disponer de un motor de reglas configurable.
+EIOS dispone de un alcance materializado del motor de reglas y de sus fronteras de ejecución/provenance.
 
-Las reglas deben poder adaptarse a:
+Las reglas deben poder adaptarse, dentro de la autoridad y parametrización aprobadas, a:
 
 - empresa;
 - momento;
@@ -410,17 +426,23 @@ Las reglas deben poder adaptarse a:
 - criterios de riesgo;
 - estrategia de compras.
 
-No deben quedar rígidamente codificadas.
+No deben quedar rígidamente codificadas ni redefinidas fuera de sus fuentes oficiales.
 
 La definición oficial de las reglas corresponde a:
 
 `04_Reglas/Matriz_Reglas_MVP.md`
 
+Las dependencias canónicas corresponden a:
+
+`04_Reglas/Rule_Dependency_Matrix.md`
+
+La existencia de código no autoriza por sí sola nuevas reglas, parámetros o política empresarial.
+
 ---
 
 # 16. TIPOS DE REGLAS
 
-Se han identificado inicialmente tres categorías:
+Se han identificado inicialmente tres categorías conceptuales:
 
 ### Reglas de bloqueo
 
@@ -446,19 +468,19 @@ Ejemplo:
 
 Stock elevado + pedido de cliente confirmado → reducir riesgo de sobrestock.
 
-La clasificación definitiva y su comportamiento corresponden a la documentación oficial del motor de reglas.
+La clasificación definitiva y el comportamiento de cada regla corresponden a la documentación oficial de reglas y no a estos ejemplos conceptuales.
 
 ---
 
 # 17. PRIORIDAD Y CONFLICTO ENTRE REGLAS
 
-La prioridad y resolución de conflictos entre reglas constituye un área formal del diseño de EIOS.
+La prioridad y resolución de conflictos entre reglas está formalizada en el alcance autorizado de la **CRC-MVP**.
 
 No debe utilizarse una simple suma de reglas verdes y rojas.
 
 Una regla financiera crítica, por ejemplo, no debe quedar anulada simplemente porque existan varias condiciones favorables.
 
-Debe existir una jerarquía formal que contemple:
+La resolución formal contempla, conforme a su autoridad especializada:
 
 - prioridad;
 - severidad;
@@ -469,15 +491,19 @@ Debe existir una jerarquía formal que contemple:
 - conflictos;
 - resultado consolidado.
 
-La resolución formal de conflictos corresponde a:
+La autoridad funcional de resolución de conflictos corresponde a:
 
 `04_Reglas/Capa_resolucion_conflictos.md`
+
+La materialización técnica del alcance CRC-MVP se encuentra en `08_Implementacion/` y `eios/core/crc_mvp.py`.
+
+Cualquier ampliación de la CRC requiere autoridad y ciclo documental propios; el cierre actual no autoriza semántica nueva por inferencia.
 
 ---
 
 # 18. COMPRA CONDICIONADA
 
-Se ha incorporado una cuarta posibilidad de decisión:
+Entre los cinco resultados oficiales se incluye:
 
 ### COMPRAR CONDICIONADO
 
@@ -491,7 +517,7 @@ Ejemplos:
 
 EIOS no debe limitarse a diagnosticar un problema.
 
-Cuando sea posible, debe ayudar a identificar condiciones que hagan viable la operación.
+Cuando sea posible y exista autoridad suficiente, debe ayudar a identificar condiciones que hagan viable la operación.
 
 La condición debe quedar explícita y ser trazable.
 
@@ -518,15 +544,11 @@ EIOS debe presentarlas como posibles vías de actuación para valoración humana
 
 # 20. CONFIGURATION CENTER
 
-El:
+El **EIOS Configuration Center** es un componente transversal del sistema.
 
-**EIOS Configuration Center**
+La parametrización dispone de fuentes oficiales y materialización técnica para su alcance autorizado. La interfaz definitiva del Configuration Center continúa siendo una evolución separada y no debe inferirse de la mera existencia del backend de parametrización.
 
-es un componente transversal del sistema.
-
-Será el centro de parametrización del sistema.
-
-Debe permitir configurar, entre otros:
+Debe permitir gobernar, dentro del alcance autorizado, elementos como:
 
 - valores de referencia;
 - periodos;
@@ -539,7 +561,7 @@ Debe permitir configurar, entre otros:
 - excepciones;
 - políticas de empresa.
 
-Debe partir de valores estándar editables.
+Debe partir de valores estándar editables. La existencia y los valores concretos de esos estándares corresponden a las fuentes de parametrización; este documento no los crea.
 
 La definición de qué parámetros existen corresponde al:
 
@@ -548,6 +570,8 @@ La definición de qué parámetros existen corresponde al:
 La configuración y gobierno de sus valores corresponde al:
 
 `02_Parametros/Centro_Parametrizacion.md`
+
+Las relaciones parámetro ↔ regla y las dependencias transversales deben consultarse en sus matrices oficiales.
 
 ---
 
@@ -562,6 +586,8 @@ Ejemplo:
 ⓘ Determina hasta qué antigüedad EIOS considera válida una compra histórica para comparar el precio actual. Reducir este valor prioriza referencias más recientes, pero puede reducir el número de operaciones comparables.
 
 El usuario debe comprender qué efecto produce modificar un parámetro.
+
+Los ejemplos no crean parámetros ni valores autorizados; la autoridad corresponde al Catálogo y al Centro de Parametrización.
 
 ---
 
@@ -578,6 +604,8 @@ El motor puede ser común, mientras que cada empresa puede tener:
 - diferentes criterios financieros;
 - diferentes prioridades;
 - diferentes reglas.
+
+Toda diferencia empresarial debe respetar el gobierno de parámetros, reglas y autoridad documental vigente.
 
 ---
 
@@ -602,6 +630,8 @@ EIOS debe poder conocer qué configuración estaba vigente cuando se produjo una
 La trazabilidad temporal de las decisiones deberá alinearse con:
 
 `05_Motor/Decision_Versioning.md`
+
+Los valores del ejemplo son ilustrativos y no constituyen configuración vigente.
 
 ---
 
@@ -646,6 +676,8 @@ El objetivo es que EIOS pueda explicar:
 
 > "He llegado a esta recomendación por estas razones."
 
+La trazabilidad no convierte una recomendación de EIOS en una decisión humana ni autoriza reconstrucciones de provenance no demostradas.
+
 ---
 
 # 26. ASSURANCE Y SALVAGUARDAS
@@ -662,7 +694,7 @@ Las decisiones deberán respetar:
 - auditabilidad;
 - control de regresiones.
 
-Assurance permanece como principio transversal. No existe actualmente un documento independiente con ese nombre; la autoridad aplicable se determina mediante la Salvaguarda, la Matriz de Autoridad Documental y la fuente especializada vigente de cada control.
+Assurance permanece como principio transversal. No existe actualmente un documento independiente único que autorice por sí solo toda la capa de Assurance; la autoridad aplicable se determina mediante la Salvaguarda, la Matriz de Autoridad Documental y la fuente especializada vigente de cada control.
 
 El marco congelado del EIOS Vertical MVP corresponde a:
 
@@ -670,59 +702,82 @@ El marco congelado del EIOS Vertical MVP corresponde a:
 
 Ningún componente especializado puede contradecir una restricción expresamente congelada por la Salvaguarda.
 
+**Shadow Mode / piloto no está autorizado para materialización decisional completa** mientras no exista una fuente gobernada de decisión humana de referencia y su correspondiente modelo de comparación/override.
+
 ---
 
 # 27. ESTADO ACTUAL DEL PROYECTO
 
-## 🟢 Definido
+## Estado de continuidad reconciliado — 13/09/2026
 
-- Identidad EIOS.
-- Propósito general.
-- Alcance del Vertical MVP.
-- Decisión de compras como núcleo.
-- Negociación como parte del Vertical.
-- Usuarios iniciales.
-- Ruta inicial de datos.
-- Principios de diseño.
-- Variables principales.
-- Simulación temporal.
-- Stock proyectado como concepto.
-- Cuatro tipos de resultado.
-- Necesidad de motor de reglas.
-- Necesidad de parametrización.
-- Configuration Center como componente transversal.
-- Arquitectura conceptual Core + Vertical.
-- Salvaguarda del Vertical MVP.
-- Autoridad documental.
+Este apartado resume el estado para recuperación rápida. No sustituye a los documentos especializados de diseño, auditoría, cierre, implementación y reconciliación.
 
-## 🟡 En desarrollo / formalización
+### 🔒 Cerrado / materializado en su alcance autorizado
 
-- Reference & Calculation Framework.
-- Criterios temporales.
-- Métodos de comparación de precios.
-- Fiabilidad de referencias.
-- Motor de prioridades.
-- Resolución de conflictos entre reglas.
-- Sistema de excepciones.
-- Parámetros iniciales.
-- Componentes especializados del Motor.
+El estado integrado y documentado contiene, entre otras, las siguientes capacidades o fronteras cerradas:
 
-## ⚪ Pendiente
+- C0 / motor de reglas en su alcance cerrado y sus fronteras de provenance;
+- Assessment y fronteras de provenance asociadas;
+- Price Intelligence;
+- TCO Core;
+- Stock / STK ejecutable en su alcance autorizado;
+- Delivery Stockout Analyzer;
+- Finance Basic;
+- Supplier Evidence Core como núcleo factual;
+- Viability Frontier;
+- Scenario Engine y coordinación de escenarios en sus fronteras cerradas;
+- Decision Twin y comparación;
+- Negotiation Intelligence;
+- Negotiation Ladder;
+- CRC-MVP;
+- Decision Versioning;
+- E2E Execution Boundary;
+- UI / Visual Frontend U1.1 en su alcance exclusivamente representacional;
+- migración documental de identificadores `P-*` / `R-*` y reconciliaciones postintegración asociadas.
 
-- Arquitectura técnica definitiva.
-- Modelo de datos definitivo.
-- Integración automática con ERP.
-- Implementación completa del motor de reglas.
-- Interfaz definitiva del Configuration Center.
-- Desarrollo completo del MVP.
+“Cerrado” significa cerrado únicamente en el alcance expresamente autorizado por su fuente especializada. No autoriza ampliar semántica, reglas, scoring, política empresarial ni ejecución automática.
 
-El estado detallado de cada componente debe determinarse mediante su documentación oficial y no mediante este documento cuando exista discrepancia.
+### ⛔ Bloqueado por autoridad, evidencia o dependencia no demostrada
+
+- **Quality & Trust Gate:** existe contrato/capacidad técnica, pero no se ha demostrado un productor físico provenance-safe de `Decision Input Package` agregado, trazable y autorizado que permita cerrar la frontera end-to-end.
+- **Supplier Risk cuantitativo/valorativo:** `Supplier Evidence Core` está cerrado como núcleo factual; scoring, ranking, pesos, umbrales y política decisional continúan sin autoridad aprobada.
+- **Rotation:** Track A conserva su cierre metodológico factual, pero el contrato técnico sigue bloqueado mientras falten `ROT-G01` y `ROT-G04-A`; cualquier Track B mantiene además sus propias dependencias de fórmula/umbral y reglas.
+- **Assurance / Shadow Mode / piloto:** bloqueado para comparación decisional real mientras no exista una fuente autorizada de decisión humana de referencia y su gobierno.
+- **Profitability / MGE:** la metodología propuesta permanece fuera de `main` como trabajo no autorizado para cierre/implementación hasta aprobación humana explícita de la política correspondiente; una instrucción genérica de continuar no constituye esa aprobación.
+
+### 🟡 En evolución del sistema, sin declarar cerrado el Vertical MVP completo
+
+- integración automática con ERP;
+- interfaz definitiva del Configuration Center;
+- evolución del modelo de datos empresarial más allá de los modelos físicos ya materializados;
+- ampliaciones de dominios y capacidades que requieran nueva autoridad;
+- cierre integral del Vertical MVP una vez resueltos sus frentes bloqueados y gates pendientes.
+
+### Regla de interpretación
+
+No debe inferirse que una capacidad está abierta solo porque un documento histórico diga “pendiente”, ni que está cerrada solo porque exista código.
+
+Para resolver el estado real:
+
+```text
+Matriz de Autoridad Documental
+        ↓
+fuente especializada vigente
+        ↓
+auditoría / cierre
+        ↓
+implementación
+        ↓
+reconciliación / CI
+```
+
+El Baseline `EIOS-BL-002` es el punto formal de recuperación más reciente, pero el repositorio puede haber avanzado después de su SHA. Para trabajo operativo debe verificarse siempre el `main` vivo antes de actuar.
 
 ---
 
 # 28. AUTORIDAD Y NAVEGACIÓN DOCUMENTAL
 
-Este documento es un documento de contexto y continuidad.
+Este documento es la fuente oficial de contexto y continuidad conforme a `00_Gobierno/Matriz_Autoridad_Documental.md`.
 
 No redefine conceptos cuya autoridad corresponda a documentos especializados.
 
@@ -735,7 +790,7 @@ determina la fuente oficial
           ↓
 documento especializado
           ↓
-implementación
+implementación / pruebas / CI
 ```
 
 Documentos fundamentales de referencia:
@@ -746,34 +801,52 @@ Documentos fundamentales de referencia:
 ├── Project_Context.md
 ├── Project_Governance.md
 ├── Matriz_Autoridad_Documental.md
-└── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
+├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
+└── Baselines/EIOS-BL-002.md
+
+03_Arquitectura/
+└── Framework_Map.md
 ```
+
+`Framework_Map.md` indica dónde buscar; la Matriz de Autoridad determina qué fuente manda; los documentos especializados definen el contenido.
+
+Las copias o subárboles auxiliares no adquieren autoridad por similitud de nombre.
 
 ---
 
 # 29. REGLA DE TRABAJO DEL PROYECTO
 
-EIOS se desarrollará mediante:
+El trabajo conceptual continúa siguiendo el principio de definir, cuestionar, contrastar, mejorar, simplificar, validar, documentar e implementar.
+
+Para cualquier unidad técnica o documental sometida a cierre operativo se aplica el ciclo obligatorio:
 
 ```text
-DEFINIR
+DISEÑAR
    ↓
-CUESTIONAR
+AUDITAR
    ↓
-CONTRASTAR
+DEPURAR
    ↓
-MEJORAR
+AUDITAR 2
    ↓
-SIMPLIFICAR
+CERRAR
    ↓
-VALIDAR
+MATERIALIZAR
    ↓
-DOCUMENTAR
-   ↓
-IMPLEMENTAR
+CI
 ```
 
-No se debe programar una pieza importante antes de haber definido suficientemente su lógica de negocio.
+Reglas de continuidad:
+
+- verificar el estado físico del repositorio antes de actuar;
+- no inventar alcance, autoridad, fórmulas, parámetros, umbrales o datos;
+- no reabrir componentes cerrados sin contradicción objetiva;
+- no convertir resultados opacos o desacoplados en provenance demostrada;
+- si falta autoridad material, bloquear/fail closed en lugar de fabricar una decisión;
+- preservar la autoridad decisional humana;
+- verificar CI y reconciliación postintegración sobre los SHAs exactos cuando corresponda.
+
+No se debe programar una pieza importante antes de haber definido suficientemente su lógica de negocio y su autoridad.
 
 Las decisiones congeladas por la Salvaguarda no deben modificarse silenciosamente.
 
