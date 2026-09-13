@@ -1,6 +1,6 @@
 # EIOS — Configuration Center UI Slice 3 — Selected Context Workflow Contract v0.1
 
-**Estado:** DISEÑO  
+**Estado:** DEPURADO — PENDIENTE DE AUDITORÍA 2  
 **Fecha:** 2026-09-13  
 **Baseline:** `main @ 92695ad866bf72575f01ac7c203394315418dd27`  
 **Dependencias cerradas:** Slice 1 + Slice 2 del Configuration Center UI
@@ -11,35 +11,11 @@ Orquestar el flujo de interacción del Configuration Center para un contexto emp
 
 ## 2. Alcance
 
-El workflow puede:
-
-- cargar detalle + histórico del contexto seleccionado;
-- mantener un snapshot presentacional de esos datos;
-- representar edición local mediante `ConfigurationChangeForm`;
-- preparar un cambio delegándolo en `ConfigurationCenterUIController.prepare_change(...)`;
-- conservar una `ChangeProposal` únicamente si Slice 1 devuelve `AWAITING_CONFIRMATION`;
-- representar confirmación mediante Slice 2;
-- cancelar una propuesta pendiente;
-- confirmar/aplicar mediante `ConfigurationCenterUIController.confirm_and_apply()`;
-- actualizar el detalle local exclusivamente con la `Configuration` realmente devuelta por el backend tras `APPLIED`;
-- marcar el histórico como `stale` tras una aplicación hasta un refresh explícito;
-- refrescar detalle e histórico cuando no exista confirmación pendiente.
+El workflow puede cargar detalle + histórico; mantener snapshot presentacional; representar edición local; preparar un cambio mediante Slice 1; conservar propuesta únicamente cuando estado y pending real sean coherentes; representar confirmación mediante Slice 2; cancelar; confirmar/aplicar; actualizar detalle exclusivamente desde la `Configuration` devuelta por backend; marcar histórico stale tras apply; y refrescar cuando no exista pending.
 
 ## 3. Exclusiones
 
-Slice 3 no:
-
-- autentica ni resuelve identidad;
-- selecciona o enumera empresas;
-- lista/busca parámetros globalmente;
-- crea contexto autorizado;
-- accede directamente a backend de parametrización;
-- valida funcionalmente valores;
-- escribe en persistencia;
-- inventa histórico tras un cambio;
-- genera Rules/CRC/excepciones;
-- simula impacto;
-- produce decisiones de compra.
+Slice 3 no autentica, resuelve identidad, selecciona/enumera empresas, lista/busca parámetros globalmente, crea contexto autorizado, accede directamente al backend de parametrización, valida funcionalmente valores, escribe persistencia, inventa histórico, genera Rules/CRC/excepciones, simula impacto ni produce decisiones de compra.
 
 ## 4. Dependencias obligatorias
 
@@ -53,124 +29,130 @@ ConfigurationCenterSelectedWorkflow  (Slice 3)
 build_configuration_center_screen (Slice 2)
 ```
 
-Slice 3 no reemplaza ninguna responsabilidad de Slice 1 o Slice 2.
+Slice 3 no reemplaza responsabilidades de Slice 1 o Slice 2.
 
 ## 5. Snapshot de workflow
 
-El workflow expondrá un carrier inmutable `ConfigurationWorkflowSnapshot` con:
+Carrier inmutable `ConfigurationWorkflowSnapshot`:
 
 - `screen: ConfigurationCenterScreen`;
 - `data_ready: bool`;
 - `history_stale: bool`.
 
-`history_stale` es metadato técnico de frescura local, no inferencia de negocio.
+`history_stale` expresa frescura técnica local, no inferencia de negocio.
 
 ## 6. Carga inicial / refresh
 
 `refresh()`:
 
 1. falla cerrado si existe confirmación pendiente;
-2. llama a `controller.load_detail()`;
-3. si falla el detalle, no llama al histórico, deja `data_ready=False` y representa el estado/error de Slice 1;
-4. si detalle existe, llama a `controller.load_history()`;
-5. si histórico falla, conserva el detalle, representa histórico no disponible, `data_ready=False` y estado/error de Slice 1;
-6. si ambos son válidos, `data_ready=True`, `history_stale=False` y estado `VIEWING`.
+2. invalida cualquier snapshot previo que no pueda demostrarse actual durante esta carga;
+3. llama a `controller.load_detail()`;
+4. si falla detalle: establece detalle e histórico locales a `None`, `data_ready=False`, no llama histórico y representa estado/error de Slice 1;
+5. si detalle existe, lo conserva como detalle de esta carga y llama a `controller.load_history()`;
+6. si histórico falla: sustituye cualquier histórico previo por `None`, conserva el nuevo detalle, `data_ready=False` y representa estado/error de Slice 1;
+7. si ambos son válidos: reemplaza ambos snapshots, `data_ready=True`, `history_stale=False`, estado `VIEWING`.
 
-Un histórico vacío `()` sigue siendo carga válida.
+`history=()` es una carga válida.
 
 ## 7. Edición local
 
-`edit(form)`:
+`edit(form)` exige `data_ready=True`, no llama backend, conserva el formulario exacto, produce estado visible `EDITING` y no crea propuesta ni confirmación.
 
-- exige `data_ready=True`;
-- no llama al backend;
-- conserva el formulario exacto;
-- produce estado visible `EDITING`;
-- no crea propuesta ni confirmación.
-
-## 8. Preparación
+## 8. Preparación y coherencia de pending
 
 `prepare(form)`:
 
 - exige `data_ready=True`;
-- crea una `ChangeProposal` exactamente con los campos del formulario;
-- delega validación a `controller.prepare_change(...)`;
-- solo conserva la propuesta si el resultado es `AWAITING_CONFIRMATION`;
-- en fallo descarta cualquier propuesta anterior y representa el código/estado devuelto;
+- crea una `ChangeProposal` exacta desde el formulario;
+- delega en `controller.prepare_change(...)`;
+- si `result.state == "AWAITING_CONFIRMATION"`, exige también `controller.has_pending_confirmation is True`; solo entonces conserva propuesta y genera confirmación;
+- si el resultado no es `AWAITING_CONFIRMATION`, exige `controller.has_pending_confirmation is False`, descarta propuesta y representa estado/error recibido;
+- cualquier divergencia estado ↔ pending produce `ConfigurationWorkflowError` y no genera confirmación visual;
 - no altera actor, empresa ni parámetro.
 
-La propuesta retenida por Slice 3 es una copia presentacional exacta de los mismos valores enviados a Slice 1; no constituye autorización propia.
+La propuesta local es copia presentacional exacta de los valores enviados a Slice 1 y no constituye autorización propia.
 
-## 9. Confirmación
+## 9. Confirmación y coherencia post-confirm
 
 `confirm()`:
 
-- exige propuesta retenida y `controller.has_pending_confirmation=True`;
+- exige propuesta local y `controller.has_pending_confirmation=True`;
 - delega exclusivamente en `controller.confirm_and_apply()`;
 - consume la propuesta local cualquiera que sea el resultado;
+- exige que, tras la llamada, `controller.has_pending_confirmation=False`; si no, produce `ConfigurationWorkflowError`;
 - nunca vuelve a presentar confirmación tras fallo sin nueva preparación.
 
 ### 9.1 Resultado `APPLIED`
 
-Si Slice 1 devuelve `APPLIED` con `Configuration`:
+`APPLIED` solo es coherente si `result.configuration is not None` y el pending ha sido consumido.
 
-- el detalle local sustituye únicamente su campo `configuration` por esa instancia realmente devuelta;
+Entonces:
+
+- el detalle local sustituye únicamente `configuration` por la instancia realmente devuelta;
 - el formulario se limpia;
-- el histórico existente no se modifica ni se inventa una entrada;
-- `history_stale=True` hasta `refresh()` satisfactorio;
-- el estado visible permanece `APPLIED` aunque el histórico local sea anterior al cambio.
+- el histórico existente no se altera ni se inventa una entrada;
+- `history_stale=True` hasta refresh satisfactorio;
+- el estado visible permanece `APPLIED`.
+
+Un `APPLIED` sin `Configuration` produce `ConfigurationWorkflowError` y no actualiza snapshot.
 
 ### 9.2 Resultado de fallo
 
-En fallo:
+En resultado distinto de `APPLIED`:
 
 - no se modifica detalle ni histórico;
-- se conserva el formulario como entrada editable para una futura corrección;
+- se conserva formulario como entrada editable;
 - no existe panel de confirmación;
-- estado/error proceden literalmente del resultado de Slice 1.
+- estado/error proceden literalmente del resultado de Slice 1;
+- `result.configuration`, si apareciera de forma incoherente en un estado no `APPLIED`, no se usa para mutar snapshot.
 
 ## 10. Cancelación
 
 `cancel()`:
 
 - si existe pending en Slice 1, delega en `controller.cancel_pending_change()`;
-- limpia propuesta y formulario locales;
-- vuelve a `VIEWING` utilizando el snapshot de datos vigente;
-- no llama a backend de parametrización directamente.
+- limpia propuesta y formulario;
+- verifica que el pending haya quedado consumido;
+- vuelve a `VIEWING` con snapshot vigente;
+- no accede al backend directamente.
 
 ## 11. Regla anti-refresh durante confirmación
 
-Mientras exista `controller.has_pending_confirmation=True`, `refresh()` debe fallar cerrado mediante error técnico de workflow.
+Mientras `controller.has_pending_confirmation=True`, `refresh()` falla mediante `ConfigurationWorkflowError` sin alterar pending ni snapshots.
 
-Motivo: los métodos de lectura de Slice 1 actualizan su estado observable; refrescar durante confirmación podría ocultar visualmente `AWAITING_CONFIRMATION` dejando una propuesta pendiente activa.
-
-El usuario/integrador debe cancelar o confirmar antes de refrescar.
+Esto impide que una lectura cambie el estado observable de Slice 1 ocultando visualmente una propuesta todavía aplicable.
 
 ## 12. Error técnico de workflow
 
-Las precondiciones internas se expresarán mediante `ConfigurationWorkflowError(RuntimeError)` y no mediante códigos de dominio inventados.
+Las precondiciones/incoherencias internas usan `ConfigurationWorkflowError(RuntimeError)`, nunca códigos de dominio inventados.
 
-Ejemplos:
+Casos mínimos:
 
 - editar/preparar antes de carga válida;
-- confirmar sin propuesta pendiente coherente;
-- refrescar durante confirmación pendiente.
+- confirmar sin propuesta/pending coherentes;
+- refrescar durante pending;
+- divergencia estado ↔ pending tras prepare;
+- pending no consumido tras confirm/cancel;
+- `APPLIED` sin `Configuration`.
 
 ## 13. Tests obligatorios
 
 - refresh exitoso conserva detalle/histórico y marca datos listos;
-- detalle fallido corta el histórico;
-- histórico fallido conserva detalle pero `data_ready=False`;
+- detalle fallido invalida detalle/histórico previos y corta lectura de histórico;
+- histórico fallido conserva nuevo detalle, invalida histórico previo y `data_ready=False`;
 - histórico vacío es válido;
 - edit no llama controlador de cambios;
-- prepare conserva propuesta solo en `AWAITING_CONFIRMATION`;
+- prepare conserva propuesta solo con `AWAITING_CONFIRMATION` + pending real;
+- divergencias estado/pending fallan cerrado;
 - prepare fallido no crea confirmación;
-- refresh durante pending falla sin mutar pending;
+- refresh durante pending falla sin mutar pending/snapshots;
 - cancel limpia pending local/controlador;
-- confirm delega una sola vez;
-- `APPLIED` actualiza detalle solo desde configuración devuelta;
-- `APPLIED` marca histórico stale y no lo altera;
-- refresh posterior a `APPLIED` limpia stale;
+- confirm delega una sola vez y exige pending consumido;
+- `APPLIED` sin configuración falla cerrado;
+- `APPLIED` válido actualiza detalle solo desde configuración devuelta;
+- `APPLIED` marca histórico stale sin alterarlo;
+- refresh posterior limpia stale;
 - confirm fallido no altera snapshots y obliga a nueva preparación;
 - workflow no accede a catalogue/repository/authorization/SQL.
 
@@ -179,10 +161,10 @@ Ejemplos:
 **CCUIS3-I01:** selected context únicamente; no crea selección.  
 **CCUIS3-I02:** semántica funcional delegada a Slice 1.  
 **CCUIS3-I03:** composición visual delegada a Slice 2.  
-**CCUIS3-I04:** pending local solo existe si Slice 1 está `AWAITING_CONFIRMATION`.  
+**CCUIS3-I04:** estado de confirmación y pending deben ser coherentes.  
 **CCUIS3-I05:** refresh prohibido durante pending.  
-**CCUIS3-I06:** `APPLIED` exige configuración real del backend.  
+**CCUIS3-I06:** `APPLIED` exige configuración real y pending consumido.  
 **CCUIS3-I07:** histórico no se inventa; tras apply queda stale.  
-**CCUIS3-I08:** fallo no muta snapshots funcionales.  
-**CCUIS3-I09:** errores de precondición del workflow no se disfrazan de dominio.  
+**CCUIS3-I08:** refresh fallido no conserva datos previos como actuales.  
+**CCUIS3-I09:** fallo funcional no muta snapshots; incoherencias usan error técnico.  
 **CCUIS3-I10:** no decisión de compra.
