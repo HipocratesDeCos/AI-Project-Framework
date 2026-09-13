@@ -42,8 +42,8 @@ def test_m04_does_not_validate_catalog_thresholds_or_automate_decision():
     catalog = CATALOG.read_text(encoding="utf-8")
     assert "STK-M04 — Cobertura — CERRADO" in matrix
     assert "30 y 90 días consignados en el catálogo continúan pendientes de validación" in authority
-    assert "| STK-003 | Cobertura mínima | 30 | días | Compras | Pendiente de validación |" in catalog
-    assert "| STK-004 | Cobertura máxima | 90 | días | Exceso de stock | Pendiente de validación |" in catalog
+    assert "| P-STK-003 | Cobertura mínima | 30 | días | Compras | Pendiente de validación |" in catalog
+    assert "| P-STK-004 | Cobertura máxima | 90 | días | Exceso de stock | Pendiente de validación |" in catalog
     assert "no constituye por sí misma una decisión automática" in authority
     assert "`STK-M05…M10` permanecen pendientes" in authority
     assert "**Estado actual:** APTO PARA DISEÑO DE CONTRATO TÉCNICO STK." in matrix
