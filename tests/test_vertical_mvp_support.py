@@ -41,11 +41,15 @@ def _purchase() -> PurchaseOperation:
     )
 
 
-def _quality_invoker(purchase: PurchaseOperation, context: DecisionContext):
+def _assert_runtime_context(purchase: PurchaseOperation, context: DecisionContext) -> None:
     assert purchase.decision_id == "D-MVP-SVC"
     assert purchase.scenario_id == "S-MVP-SVC"
     assert context.decision_id == "D-MVP-SVC"
     assert context.scenario_id == "S-MVP-SVC"
+
+
+def _quality_invoker(purchase: PurchaseOperation, context: DecisionContext):
+    _assert_runtime_context(purchase, context)
     return CapabilityExecution(
         capability="QTG",
         status=O1ExecutionStatus.COMPLETED,
@@ -55,10 +59,7 @@ def _quality_invoker(purchase: PurchaseOperation, context: DecisionContext):
 
 
 def _tco_invoker(purchase: PurchaseOperation, context: DecisionContext):
-    assert purchase.decision_id == "D-MVP-SVC"
-    assert purchase.scenario_id == "S-MVP-SVC"
-    assert context.decision_id == "D-MVP-SVC"
-    assert context.scenario_id == "S-MVP-SVC"
+    _assert_runtime_context(purchase, context)
     return CapabilityExecution(
         capability="TCO",
         status=O1ExecutionStatus.COMPLETED,
@@ -67,13 +68,32 @@ def _tco_invoker(purchase: PurchaseOperation, context: DecisionContext):
 
 
 def _decision_twin_invoker(purchase: PurchaseOperation, context: DecisionContext):
-    assert purchase.decision_id == "D-MVP-SVC"
-    assert context.decision_id == "D-MVP-SVC"
+    _assert_runtime_context(purchase, context)
     return CapabilityExecution(
         capability="DECISION_TWIN",
         status=O1ExecutionStatus.COMPLETED,
         result_available=True,
         trace_references=("trace-twin",),
+    )
+
+
+def _ni_invoker(purchase: PurchaseOperation, context: DecisionContext):
+    _assert_runtime_context(purchase, context)
+    return CapabilityExecution(
+        capability="NEGOTIATION_INTELLIGENCE",
+        status=O1ExecutionStatus.COMPLETED,
+        result_available=True,
+        trace_references=("trace-ni",),
+    )
+
+
+def _ladder_invoker(purchase: PurchaseOperation, context: DecisionContext):
+    _assert_runtime_context(purchase, context)
+    return CapabilityExecution(
+        capability="NEGOTIATION_LADDER",
+        status=O1ExecutionStatus.COMPLETED,
+        result_available=True,
+        trace_references=("trace-ladder",),
     )
 
 
@@ -121,6 +141,8 @@ def test_vertical_service_runs_non_rule_capabilities_directly():
         quality_invoker=_quality_invoker,
         tco_invoker=_tco_invoker,
         decision_twin_invoker=_decision_twin_invoker,
+        negotiation_intelligence_invoker=_ni_invoker,
+        negotiation_ladder_invoker=_ladder_invoker,
     )
 
     assert result.status == BoundaryStatus.COMPLETED
@@ -130,6 +152,8 @@ def test_vertical_service_runs_non_rule_capabilities_directly():
         "QTG",
         "TCO",
         "DECISION_TWIN",
+        "NEGOTIATION_INTELLIGENCE",
+        "NEGOTIATION_LADDER",
     )
 
 
@@ -168,14 +192,25 @@ def test_vertical_service_exposes_rules_crc_and_e2e_in_same_result(monkeypatch):
 def test_vertical_service_signature_has_no_detached_opaque_results():
     parameters = signature(mvp.run_vertical_mvp_support).parameters
 
-    assert "quality_result" not in parameters
-    assert "price_result" not in parameters
-    assert "tco_result" not in parameters
-    assert "decision_twin_result" not in parameters
-    assert "quality_invoker" in parameters
-    assert "price_invoker" in parameters
-    assert "tco_invoker" in parameters
-    assert "decision_twin_invoker" in parameters
+    for raw_result in (
+        "quality_result",
+        "price_result",
+        "tco_result",
+        "decision_twin_result",
+        "negotiation_intelligence_result",
+        "negotiation_ladder_result",
+    ):
+        assert raw_result not in parameters
+
+    for invoker in (
+        "quality_invoker",
+        "price_invoker",
+        "tco_invoker",
+        "decision_twin_invoker",
+        "negotiation_intelligence_invoker",
+        "negotiation_ladder_invoker",
+    ):
+        assert invoker in parameters
 
 
 def test_vertical_service_requires_at_least_one_supplied_capability():
