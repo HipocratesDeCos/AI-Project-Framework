@@ -2,52 +2,58 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Documento:** Manual Maestro del Proyecto EIOS (MMP-EIOS)
-**Versión:** 2.0
-**Estado:** APROBADO
-**Fecha:** 19/08/2026
+**Documento:** Manual Maestro del Proyecto EIOS (MMP-EIOS)  
+**Versión:** 2.1  
+**Estado:** APROBADO — reconciliación de continuidad vigente  
+**Fecha:** 13/09/2026  
 **Ubicación oficial:** `00_Gobierno/Manual_Maestro_Proyecto_EIOS.md`
 
 ---
 
 # 1. FUNCIÓN DEL MANUAL
 
-El Manual Maestro del Proyecto EIOS (MMP-EIOS) es el **documento maestro de orientación, navegación y continuidad del proyecto**.
+El Manual Maestro del Proyecto EIOS es el documento de **orientación, navegación y continuidad** del proyecto.
 
-Su función es permitir que una persona o una IA pueda recuperar rápidamente:
+Debe permitir responder rápidamente:
 
-- qué es EIOS;
-- cuál es su propósito;
-- cuál es el alcance actual;
-- cómo se organiza la documentación;
-- dónde se encuentra la autoridad de cada materia;
-- cuáles son los principales componentes del sistema;
-- cuál es el estado general del proyecto;
-- dónde debe continuar el trabajo.
+1. qué es EIOS;
+2. qué Vertical se está construyendo;
+3. cómo se organiza el proyecto;
+4. dónde está la fuente oficial de cada materia;
+5. cuál es el estado general;
+6. dónde puede continuar el trabajo sin inventar autoridad.
 
-El Manual Maestro **no sustituye** a los documentos que poseen autoridad específica.
+El Manual Maestro **no es una segunda fuente normativa** y no debe reproducir íntegramente la lógica de los documentos especializados.
 
-No debe utilizarse como segunda fuente normativa ni como repositorio paralelo de toda la lógica funcional del sistema.
+Cuando exista discrepancia, prevalece la fuente definida por `00_Gobierno/Matriz_Autoridad_Documental.md`.
 
 ---
 
-# 2. AUTORIDAD DEL MANUAL
+# 2. IDENTIDAD Y FRONTERA DECISIONAL
 
-El Manual Maestro es un documento de **continuidad y navegación**.
+**EIOS — Enterprise Intelligent Operations System** es un sistema inteligente de apoyo a la decisión empresarial basado en datos.
 
-Su autoridad está subordinada a la:
+La arquitectura conceptual se estructura como:
 
-`00_Gobierno/Matriz_Autoridad_Documental.md`
+**CORE + VERTICAL**
 
-Cuando exista una discrepancia entre este documento y un documento con mayor autoridad, prevalece el documento de mayor autoridad.
+El Vertical MVP vigente se centra en:
 
-El Manual puede resumir conceptos de otros documentos, pero no puede redefinirlos.
+**Intelligent Procurement Decision & Negotiation**
+
+EIOS puede analizar, evaluar, simular, explicar y recomendar.
+
+La decisión empresarial final corresponde al usuario autorizado.
+
+> **EIOS analiza, evalúa, simula, explica y recomienda. El decisor decide.**
+
+EIOS no sustituye al ERP, a la contabilidad ni al decisor humano y no debe ejecutar unilateralmente una compra como consecuencia de una recomendación.
 
 ---
 
-# 3. DOCUMENTOS FUNDAMENTALES
+# 3. DOCUMENTOS FUNDAMENTALES DE RECUPERACIÓN
 
-La estructura de gobierno de EIOS se apoya principalmente en:
+La recuperación del proyecto debe comenzar por estas fuentes:
 
 ```text
 00_Gobierno/
@@ -56,71 +62,38 @@ La estructura de gobierno de EIOS se apoya principalmente en:
 ├── Project_Governance.md
 ├── Matriz_Autoridad_Documental.md
 ├── Manual_Maestro_Proyecto_EIOS.md
-└── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
+├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
+└── Baselines/
+    └── EIOS-BL-002.md
+
+03_Arquitectura/
+├── Framework_Map.md
+└── Master_Project_Map.md
 ```
 
-### Project Charter
+Funciones principales:
 
-Define la identidad, propósito, visión, alcance y límites fundamentales del proyecto.
+- `Project_Charter.md` → identidad, propósito, visión, alcance y límites.
+- `Project_Context.md` → estado y continuidad vigente.
+- `Project_Governance.md` → gobierno y evolución controlada.
+- `Matriz_Autoridad_Documental.md` → precedencia y fuente oficial por dominio.
+- Salvaguarda Vertical MVP → marco congelado, restricciones y no regresión.
+- `EIOS-BL-002.md` → punto formal de recuperación asociado a un SHA concreto.
+- `Framework_Map.md` → dónde buscar documentación y materialización.
+- `Master_Project_Map.md` → cómo se organiza EIOS como sistema/proyecto.
 
-### Project Context
-
-Conserva el contexto esencial para recuperar la continuidad del proyecto.
-
-### Project Governance
-
-Define las reglas de gobierno del proyecto y de su documentación.
-
-### Matriz de Autoridad Documental
-
-Determina qué documento prevalece cuando existe una discrepancia.
-
-### Manual Maestro
-
-Orienta y conecta la documentación del proyecto.
-
-### Salvaguarda Vertical MVP
-
-Define las restricciones y decisiones congeladas aplicables al Vertical MVP.
-
-### Assurance transversal
-
-Assurance permanece como principio transversal de EIOS. No existe actualmente un documento independiente de Assurance; sus controles aplicables se determinan mediante la Salvaguarda, la Matriz de Autoridad y los contratos especializados vigentes de cada dominio.
+Un Baseline no sustituye el estado posterior de `main`; para trabajo operativo debe verificarse siempre el repositorio vivo.
 
 ---
 
-# 4. IDENTIDAD EIOS
+# 4. ALCANCE ACTUAL DEL VERTICAL MVP
 
-**EIOS — Enterprise Intelligent Operations System**
-
-EIOS es un sistema inteligente de apoyo a la decisión empresarial basado en datos.
-
-La arquitectura conceptual se estructura como:
-
-**CORE + VERTICAL**
-
-El Vertical MVP actual se centra en:
-
-**Intelligent Procurement Decision & Negotiation**
-
-El objetivo es ayudar al CEO y al responsable de compras a evaluar, simular, negociar y tomar mejores decisiones de adquisición.
-
-La decisión final corresponde al usuario autorizado.
-
-> **EIOS analiza, evalúa, simula, explica y recomienda. El decisor decide.**
-
----
-
-# 5. ALCANCE ACTUAL DEL VERTICAL MVP
-
-El núcleo actual comprende:
+El núcleo actual comprende, entre otras áreas:
 
 - decisión de compras;
-- evaluación financiera;
-- evaluación operativa;
-- evaluación de proveedores;
-- reglas;
-- evidencia;
+- evaluación financiera y operativa;
+- evaluación factual de proveedores;
+- reglas y evidencia;
 - viabilidad;
 - escenarios;
 - Decision Twin;
@@ -128,19 +101,43 @@ El núcleo actual comprende:
 - Negotiation Ladder;
 - resolución de conflictos;
 - recomendación explicable;
-- trazabilidad de decisiones.
+- trazabilidad y versionado.
 
-La funcionalidad relacionada con ventas para comerciales permanece actualmente:
+La funcionalidad de ventas para comerciales permanece **EN STANDBY** y cualquier ampliación futura requiere su propio gobierno documental.
 
-**EN STANDBY**
+---
 
-Su eventual incorporación deberá seguir el gobierno documental correspondiente.
+# 5. ORGANIZACIÓN DEL FRAMEWORK
+
+La estructura física principal es:
+
+```text
+00_Gobierno/        Gobierno, autoridad, continuidad y Baselines
+01_Modelo/          Metodología y modelo funcional especializado
+02_Parametros/      Parámetros y parametrización
+03_Arquitectura/    Arquitectura y mapas del sistema
+03_App/             Especificación de aplicación e interfaz
+04_Reglas/          Reglas, evidencia, dependencias y CRC
+05_Motor/           Viabilidad, escenarios, Twin, negociación y versionado
+06_SQL/             Persistencia y modelos SQL
+07_Pruebas/         Auditorías, pruebas, cierres y reconciliaciones
+08_Implementacion/  Contratos y gobierno de implementación técnica
+99_Archivo/         Histórico / obsoleto
+
+eios/               Código ejecutable
+tests/              Verificación automatizada
+.github/             CI y validaciones técnicas
+```
+
+La ubicación física no concede autoridad funcional. La autoridad se resuelve mediante la Matriz de Autoridad y las fuentes especializadas.
+
+`03_App/` gobierna representación e interacción dentro del alcance autorizado; no crea reglas ni decisiones empresariales nuevas.
 
 ---
 
 # 6. MODELO GENERAL DE DECISIÓN
 
-El flujo conceptual actual es:
+El flujo conceptual de referencia es:
 
 ```text
 DATOS
@@ -166,668 +163,309 @@ RECOMENDACIÓN
 DECISOR
 ```
 
-Las decisiones empresariales principales del Vertical son:
+La CRC vigente reconoce cinco resultados consolidados:
 
 - 🟢 **COMPRAR**
 - 🟡 **NEGOCIAR**
 - 🔵 **COMPRAR CONDICIONADO**
 - 🔴 **NO COMPRAR**
+- ⚪ **INFORMACIÓN INSUFICIENTE**
 
-La definición formal y el comportamiento de estas decisiones corresponden a la documentación funcional y al motor de reglas.
+La autoridad funcional de estos resultados corresponde a `04_Reglas/Capa_resolucion_conflictos.md` y a las fuentes especializadas relacionadas.
 
-**Información insuficiente** no se considera aquí una quinta decisión empresarial oficial. La insuficiencia de evidencia debe gestionarse mediante los mecanismos de evidencia, confianza, validación y reglas que correspondan.
-
----
-
-# 7. PRINCIPALES ÁREAS FUNCIONALES
-
-El proyecto contiene o prevé áreas especializadas para:
-
-## Datos
-
-Origen, estructura, calidad, transformación y disponibilidad de los datos.
-
-## Evidencia
-
-Determinación de la suficiencia, calidad, antigüedad y fiabilidad de las referencias utilizadas por EIOS.
-
-## Reglas
-
-Criterios empresariales que permiten evaluar una operación.
-
-## Motor
-
-Procesamiento de datos, reglas, cálculos, escenarios y decisiones.
-
-## Resolución de conflictos
-
-Tratamiento de situaciones en las que diferentes reglas o criterios producen resultados incompatibles.
-
-## Parámetros
-
-Valores configurables que modifican el comportamiento del sistema sin necesidad de alterar el código.
-
-## Negociación
-
-Generación y evaluación de condiciones de negociación.
-
-## Decision Twin
-
-Simulación de diferentes condiciones para estudiar sus consecuencias antes de decidir.
-
-## Assurance
-
-Control transversal de integridad, trazabilidad, explicabilidad y cumplimiento de las salvaguardas.
+Ningún resultado constituye automáticamente una orden de compra.
 
 ---
 
-# 8. REFERENCE & CALCULATION FRAMEWORK
+# 7. CÁLCULOS, REFERENCIAS Y EVIDENCIA
 
-El proyecto contempla el:
+El **Reference & Calculation Framework (RCF)** se conserva como marco conceptual transversal para describir cómo EIOS transforma datos y referencias en información utilizable para la decisión.
 
-**Reference & Calculation Framework (RCF)**
+No debe interpretarse como un único componente monolítico pendiente de implementación.
 
-Su función es establecer cómo EIOS transforma datos y referencias en información válida para la decisión.
+La autoridad real de cálculo se distribuye entre dominios especializados, por ejemplo:
 
-Entre sus aspectos relevantes:
+- Price Intelligence;
+- TCO Core;
+- Stock / STK;
+- Delivery Stockout;
+- Finance Basic;
+- Viability Frontier;
+- otras capacidades formalmente autorizadas.
 
-- periodo de referencia;
-- fecha;
-- antigüedad;
-- comparabilidad;
-- método de cálculo;
-- ponderación;
-- límites;
-- excepciones;
-- calidad de la referencia.
+Cada componente debe conservar trazabilidad, contexto, evidencia y límites de autoridad.
 
-El RCF debe evitar referencias históricas poco representativas y mantener la trazabilidad del origen de los cálculos.
-
-La definición normativa del RCF corresponde al documento especializado que le sea asignado.
+Conceptos históricos o ilustrativos como PMR, CEA, RFP u otras denominaciones antiguas **no adquieren vigencia por aparecer en versiones anteriores de este Manual**. Su validez debe demostrarse en la fuente especializada actual antes de utilizarse.
 
 ---
 
-# 9. PRODUCTOS Y COMPARABILIDAD
+# 8. REGLAS, DEPENDENCIAS Y CRC
 
-EIOS debe distinguir entre:
+La definición oficial de reglas corresponde a:
 
-- producto;
-- denominación comercial;
-- referencia;
-- producto comparable;
-- categoría funcional.
+`04_Reglas/Matriz_Reglas_MVP.md`
 
-El concepto:
+Las dependencias canónicas corresponden a:
 
-**RFP — Referencia Funcional de Producto**
+`04_Reglas/Rule_Dependency_Matrix.md`
 
-puede utilizarse para agrupar productos que cumplen una función similar o constituyen referencias comparables.
+El contrato general de evidencia corresponde a:
 
-Una RFP no implica que dos productos sean idénticos.
+`04_Reglas/Evidence_Contract.md`
 
-La comparabilidad puede considerar, entre otros:
+La resolución de conflictos corresponde a:
 
-- funcionalidad;
-- características técnicas;
-- presentación;
-- calidad;
-- cantidad;
-- marca;
-- condiciones comerciales;
-- utilización empresarial.
+`04_Reglas/Capa_resolucion_conflictos.md`
 
-La relación de comparabilidad debe conservar trazabilidad y, cuando corresponda, permitir validación humana.
+Principios que deben preservarse:
 
-La definición funcional definitiva pertenece a la documentación especializada correspondiente.
+- no compensar automáticamente salvaguardas críticas mediante señales favorables;
+- no transformar ausencia de evidencia en certeza;
+- no crear reglas desde el código o desde la interfaz;
+- no fabricar dependencias, parámetros o excepciones no autorizados;
+- mantener explícita la insuficiencia de información cuando corresponda.
 
 ---
 
-# 10. REFERENCIAS Y PRECIOS
+# 9. COMPONENTES CERRADOS / MATERIALIZADOS EN SU ALCANCE AUTORIZADO
 
-EIOS puede trabajar con:
+El estado integrado contiene, entre otras, las siguientes capacidades o fronteras cerradas:
 
-- compras recientes;
-- histórico de compras;
-- productos comparables;
-- proveedores alternativos;
-- precios ponderados;
-- descuentos;
-- rappels;
-- condiciones de pago;
-- margen;
-- precio de venta;
-- estrategia empresarial.
+- C0 / motor de reglas en su alcance cerrado;
+- Assessment y fronteras de provenance asociadas;
+- Price Intelligence;
+- TCO Core;
+- Stock / STK ejecutable en su alcance autorizado;
+- Delivery Stockout Analyzer;
+- Finance Basic;
+- Supplier Evidence Core como núcleo factual;
+- Viability Frontier;
+- Scenario Engine y coordinación de escenarios en sus fronteras cerradas;
+- Decision Twin y comparación;
+- Negotiation Intelligence;
+- Negotiation Ladder;
+- CRC-MVP;
+- Decision Versioning;
+- E2E Execution Boundary;
+- UI / Visual Frontend U1.1 en su alcance representacional;
+- reconciliaciones de provenance e integración asociadas.
 
-La antigüedad de una referencia debe tenerse en cuenta.
+“Cerrado” significa únicamente cerrado dentro del alcance expresamente autorizado por su contrato o fuente especializada. No autoriza ampliaciones semánticas por inferencia.
 
-Las referencias deben poder clasificarse según su fiabilidad cuando la decisión lo requiera.
-
-El sistema debe evitar presentar una falsa precisión.
-
-Los cálculos específicos de precio y coste corresponden al marco funcional especializado.
-
----
-
-# 11. PRECIO Y COSTE EFECTIVO
-
-Entre los conceptos funcionales del proyecto se encuentran:
-
-**PMR — Precio Máximo Recomendado**
-
-y
-
-**CEA — Coste Efectivo de Adquisición**
-
-El PMR permite establecer un umbral de referencia para la negociación o decisión.
-
-El CEA permite valorar el coste económico efectivo considerando, cuando proceda:
-
-- precio;
-- descuentos;
-- rappels;
-- condiciones de pago;
-- otras variables económicas.
-
-La metodología formal de cálculo debe mantenerse en la documentación especializada correspondiente.
+Para el estado exacto debe consultarse `00_Gobierno/Project_Context.md` y, después, la documentación especializada correspondiente.
 
 ---
 
-# 12. NEGOCIACIÓN DINÁMICA
+# 10. FRENTES BLOQUEADOS O NO AUTORIZADOS
 
-EIOS debe poder analizar cambios de condiciones durante una negociación.
+Los siguientes frentes no deben cerrarse por inferencia:
 
-Ejemplo conceptual:
+### Quality & Trust Gate
+
+No está demostrado un productor físico de `Decision Input Package` agregado, trazable y autorizado que permita declarar cerrada una frontera provenance-safe end-to-end.
+
+### Supplier Risk cuantitativo / valorativo
+
+`Supplier Evidence Core` está cerrado como núcleo factual, pero scoring, ranking, pesos, umbrales y política decisional no disponen de autoridad aprobada.
+
+### Rotation
+
+El cierre metodológico factual existente no autoriza contrato técnico mientras continúen sin resolver las dependencias/autoridades expresamente identificadas por sus documentos especializados, incluyendo `ROT-G01` y `ROT-G04-A`.
+
+### Assurance / Shadow Mode / piloto
+
+No puede materializarse una comparación decisional real mientras no exista una fuente gobernada de decisión humana de referencia y el modelo autorizado para su comparación/override.
+
+### Profitability / MGE
+
+La propuesta `MGE-AUTH v0.1` continúa **NO AUTORIZADA**. Una instrucción genérica de “continuar”, “proseguir” o equivalente no constituye aprobación empresarial de esa política.
+
+El trabajo sobre cualquiera de estos frentes debe fallar cerrado ante ausencia de autoridad material.
+
+---
+
+# 11. PARAMETRIZACIÓN Y CONFIGURATION CENTER
+
+La definición de qué parámetros existen corresponde a:
+
+`02_Parametros/Catalogo_Parametros_MVP_v0.3.md`
+
+La configuración y gobierno de sus valores corresponde a:
+
+`02_Parametros/Centro_Parametrizacion.md`
+
+Las relaciones parámetro ↔ regla deben consultarse en las matrices oficiales correspondientes.
+
+Existe materialización técnica del alcance autorizado de parametrización, pero la interfaz definitiva del Configuration Center continúa siendo una evolución separada.
+
+La existencia de backend, SQL o UI no permite crear silenciosamente nuevos parámetros ni valores empresariales.
+
+---
+
+# 12. ESCENARIOS, DECISION TWIN Y NEGOCIACIÓN
+
+EIOS puede analizar alternativas y consecuencias mediante los componentes especializados autorizados de escenarios, Decision Twin y negociación.
+
+Estos componentes deben mantener separadas:
+
+- evaluación técnica;
+- representación de alternativas;
+- recomendación de EIOS;
+- decisión empresarial humana.
+
+Negotiation Intelligence y Negotiation Ladder no transfieren autoridad decisional al sistema y deben respetar sus fronteras de provenance.
+
+---
+
+# 13. INTERFAZ Y EXPERIENCIA DEL DECISOR
+
+La interfaz debe priorizar información útil para decidir sin saturar al usuario.
+
+Principio de representación:
+
+> **La interfaz muestra lo autorizado; no crea autoridad nueva.**
+
+U1.1 Visual Frontend está cerrado en su alcance exclusivamente representacional.
+
+Los contratos de UI, registro de campos, mapping e interacción se localizan en `03_App/`.
+
+La interfaz no puede convertir un estado técnico, escenario o recomendación en una decisión humana implícita.
+
+---
+
+# 14. RUTA DE DATOS Y ERP
+
+La ruta histórica de trabajo:
 
 ```text
-Oferta inicial
-      ↓
-Cambio de precio
-      ↓
-Descuento
-      ↓
-Rappel
-      ↓
-Plazo de pago
-      ↓
-Recalculo
-      ↓
-Nueva recomendación
+ERP → Excel → Power BI → SQL Server
 ```
 
-El sistema debe poder recalcular, cuando corresponda:
+representa un origen/ruta inicial de datos, no la arquitectura conceptual oficial de EIOS.
 
-- coste efectivo;
-- margen;
-- referencia histórica;
-- PMR;
-- impacto financiero;
-- recomendación.
+EIOS no debe quedar limitado a SAGE ni a un proveedor concreto de ERP.
 
-La lógica detallada pertenece al componente especializado de negociación.
+La integración automática con ERP permanece como evolución futura hasta que exista diseño y materialización autorizados.
 
 ---
 
-# 13. STOCK Y SIMULACIÓN TEMPORAL
+# 15. ASSURANCE Y SALVAGUARDAS
 
-La fecha de propuesta de compra es relevante.
-
-EIOS debe poder estudiar la evolución futura considerando, cuando existan datos suficientes:
-
-- stock actual;
-- demanda;
-- ventas;
-- entradas previstas;
-- pedidos pendientes;
-- compras en tránsito;
-- fecha de entrega;
-- plazo de entrega;
-- cantidad comprada.
-
-Conceptualmente:
-
-```text
-Stock proyectado =
-Stock actual
-+ entradas previstas
-- salidas previstas
-```
-
-El objetivo es detectar, entre otros:
-
-- posibles roturas de stock;
-- exceso de stock;
-- necesidades futuras;
-- impacto de una compra.
-
----
-
-# 14. VIABILIDAD FINANCIERA
-
-La evaluación puede considerar:
-
-- liquidez;
-- tesorería;
-- pagos previstos;
-- fondo de maniobra;
-- impacto financiero;
-- plazo de pago;
-- condiciones comerciales.
-
-Cuando una operación sea inicialmente desfavorable pero pueda hacerse viable mediante determinadas condiciones, EIOS puede presentar:
-
-**COMPRAR CONDICIONADO**
-
-Las alternativas propuestas por EIOS no constituyen órdenes automáticas de actuación.
-
----
-
-# 15. CONFIGURATION CENTER
-
-El:
-
-**EIOS Configuration Center**
-
-es un componente transversal de parametrización.
-
-Puede centralizar valores como:
-
-- periodos;
-- límites;
-- tolerancias;
-- criterios;
-- reglas;
-- prioridades;
-- excepciones;
-- políticas empresariales.
-
-Debe permitir adaptar EIOS a diferentes empresas sin modificar necesariamente el código.
-
-Los parámetros oficiales deben definirse en el catálogo de parámetros correspondiente.
-
----
-
-# 16. VERSIONADO DE CONFIGURACIÓN
-
-Los cambios de configuración relevantes deben conservar historial.
-
-Debe ser posible conocer qué configuración estaba vigente cuando se produjo una determinada decisión.
-
-Ejemplo conceptual:
-
-```text
-Parámetro
-   ↓
-Versión de configuración
-   ↓
-Regla
-   ↓
-Decisión
-```
-
-La implementación detallada corresponde a la documentación especializada de parametrización y versionado.
-
----
-
-# 17. MOTOR DE REGLAS
-
-El motor de reglas debe ser configurable.
-
-Las reglas pueden incluir:
-
-### Reglas de bloqueo
-
-Pueden impedir una recomendación de compra.
-
-### Reglas de recomendación
-
-Pueden modificar o condicionar la recomendación.
-
-### Reglas de excepción
-
-Pueden modificar el efecto de otras reglas bajo determinadas condiciones.
-
-La prioridad, severidad y resolución de conflictos deben estar formalmente definidas.
-
-La autoridad corresponde a la documentación del motor y de resolución de conflictos.
-
----
-
-# 18. RESOLUCIÓN DE CONFLICTOS
-
-EIOS no debe resolver conflictos mediante una simple suma de señales favorables y desfavorables.
-
-Debe poder considerar:
-
-- prioridad;
-- severidad;
-- bloqueos;
-- excepciones;
-- dependencias;
-- condiciones;
-- conflictos;
-- resultado consolidado.
-
-Una regla crítica no debe quedar anulada simplemente por la existencia de varias condiciones favorables.
-
-La definición formal corresponde a la documentación especializada de resolución de conflictos.
-
----
-
-# 19. EVIDENCIA Y EXPLICABILIDAD
-
-Una recomendación debe poder explicar:
-
-- qué datos se utilizaron;
-- qué referencias se utilizaron;
-- qué parámetros estaban vigentes;
-- qué reglas se activaron;
-- qué excepciones se aplicaron;
-- qué escenarios se evaluaron;
-- qué resultado produjo el motor.
-
-La información debe presentarse de forma clara y proporcional.
-
-El detalle técnico no debe saturar al CEO.
-
-La definición formal de evidencia corresponde al documento especializado que la Matriz de Autoridad Documental establezca como fuente oficial.
-
----
-
-# 20. DECISION TWIN
-
-El Decision Twin permite estudiar escenarios antes de tomar una decisión.
-
-Puede utilizar variables como:
-
-- precio;
-- cantidad;
-- descuento;
-- rappel;
-- plazo de pago;
-- fecha de entrega;
-- demanda;
-- stock;
-- margen;
-- liquidez.
-
-Su objetivo es responder preguntas como:
-
-> ¿Qué ocurre si modificamos esta condición?
-
-y:
-
-> ¿Qué combinación de condiciones hace viable la operación?
-
-La definición funcional detallada pertenece al documento especializado correspondiente.
-
----
-
-# 21. NEGOTIATION LADDER
-
-La Negotiation Ladder representa una posible secuencia de negociación.
-
-Conceptualmente:
-
-```text
-CONDICIÓN ACTUAL
-      ↓
-OBJETIVO
-      ↓
-PRIMERA PROPUESTA
-      ↓
-CONCESIONES CONTROLADAS
-      ↓
-LÍMITE
-      ↓
-ALTERNATIVA
-```
-
-La finalidad es proporcionar al decisor una estructura de negociación coherente con la recomendación de EIOS.
-
-La lógica detallada corresponde al dominio de negociación.
-
----
-
-# 22. ASSURANCE Y SALVAGUARDAS
-
-Assurance actúa transversalmente sobre EIOS.
-
-Debe contribuir a garantizar:
+Assurance actúa transversalmente sobre EIOS mediante controles de:
 
 - integridad;
 - trazabilidad;
 - explicabilidad;
 - coherencia;
 - auditabilidad;
-- control de regresiones.
+- no regresión;
+- respeto de fronteras de autoridad.
 
-El Vertical MVP está además sujeto a:
+No existe una fuente especializada única que autorice inventar una capa completa de Assurance más allá de los controles formalizados.
 
-`EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md`
+La Salvaguarda vigente del Vertical MVP es:
 
-Las restricciones congeladas de la Salvaguarda no pueden modificarse silenciosamente.
+`00_Gobierno/EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md`
+
+Las restricciones congeladas por la Salvaguarda no pueden modificarse silenciosamente.
 
 ---
 
-# 23. RUTA INICIAL DE DATOS
+# 16. MÉTODO OBLIGATORIO DE TRABAJO
 
-La ruta:
+Para cualquier unidad técnica o documental sometida a cierre operativo se aplica:
 
 ```text
-ERP → Excel → Power BI → SQL Server
+DISEÑAR
+   ↓
+AUDITAR
+   ↓
+DEPURAR
+   ↓
+AUDITAR 2
+   ↓
+CERRAR
+   ↓
+MATERIALIZAR
+   ↓
+CI
 ```
 
-corresponde a una ruta inicial de trabajo y origen de datos.
+Reglas de continuidad:
 
-No constituye por sí misma la arquitectura técnica definitiva de EIOS.
-
-Actualmente se trabaja habitualmente con SAGE, pero EIOS no debe quedar limitado exclusivamente a SAGE.
-
-La integración automática con ERP queda como evolución futura.
-
----
-
-# 24. ARQUITECTURA CONCEPTUAL
-
-La arquitectura conceptual de EIOS se estructura como:
-
-```text
-EIOS
-├── CORE
-└── VERTICAL
-    └── Intelligent Procurement Decision & Negotiation
-```
-
-El CORE contiene capacidades comunes.
-
-El Vertical contiene capacidades específicas del dominio de compras.
-
-Esta separación permite que futuras capacidades verticales puedan incorporarse sin reconstruir el núcleo común.
-
-La arquitectura técnica definitiva debe consultarse en la documentación especializada de arquitectura.
+- verificar el `main` vivo antes de actuar;
+- contrastar siempre la autoridad documental aplicable;
+- no inventar alcance, datos, fórmulas, parámetros, umbrales o política empresarial;
+- no reabrir componentes cerrados sin contradicción objetiva;
+- no convertir resultados desacoplados en provenance demostrada;
+- ante falta de autoridad material, bloquear / fail closed;
+- preservar siempre la autoridad decisional humana;
+- verificar CI en el HEAD exacto de la PR y tras la integración cuando corresponda.
 
 ---
 
-# 25. INTERFAZ Y EXPERIENCIA DEL DECISOR
+# 17. CÓMO RECUPERAR EL PROYECTO EN UN NUEVO CHAT O ENTORNO
 
-La interfaz debe priorizar:
+Secuencia mínima:
 
-1. decisión;
-2. motivos principales;
-3. riesgos;
-4. condiciones de negociación;
-5. margen;
-6. stock;
-7. fiabilidad;
-8. referencias relevantes.
+1. leer `Project_Charter.md`;
+2. leer `Project_Context.md`;
+3. leer `Project_Governance.md`;
+4. leer `Matriz_Autoridad_Documental.md`;
+5. leer la Salvaguarda Vertical MVP;
+6. consultar `Framework_Map.md` y `Master_Project_Map.md`;
+7. consultar `EIOS-BL-002.md` como punto formal de recuperación;
+8. verificar el SHA actual de `main`;
+9. identificar la unidad realmente abierta y su autoridad especializada;
+10. continuar únicamente dentro del alcance autorizado.
 
-La información secundaria debe estar disponible bajo demanda.
-
-Principio:
-
-> **Complejidad en el motor; simplicidad en la decisión.**
+No debe reconstruirse el estado del proyecto exclusivamente desde conversaciones anteriores.
 
 ---
 
-# 26. ESTADO GENERAL DEL PROYECTO
+# 18. REGLA DE NO DUPLICACIÓN Y ACTUALIZACIÓN
 
-### 🟢 Definido
-
-- identidad EIOS;
-- propósito;
-- alcance del Vertical MVP;
-- CORE + VERTICAL;
-- decisión de compras;
-- negociación;
-- variables principales;
-- necesidad de parametrización;
-- Configuration Center;
-- motor de reglas;
-- resolución de conflictos;
-- Decision Twin;
-- Assurance;
-- Salvaguarda Vertical MVP;
-- autoridad documental.
-
-### 🟡 En desarrollo / formalización
-
-- Reference & Calculation Framework;
-- criterios temporales;
-- métodos de comparación;
-- fiabilidad de referencias;
-- prioridad de reglas;
-- resolución de conflictos;
-- excepciones;
-- parámetros;
-- componentes especializados del motor.
-
-### ⚪ Evolución futura
-
-- integración automática con ERP;
-- arquitectura técnica definitiva;
-- desarrollo completo del MVP;
-- ampliaciones verticales.
-
-El estado detallado debe consultarse en los documentos especializados.
-
----
-
-# 27. CÓMO UTILIZAR ESTE MANUAL
-
-Cuando una persona o IA se incorpore al proyecto:
-
-### Paso 1
-Leer `Project_Charter.md` para conocer qué es EIOS.
-
-### Paso 2
-Leer `Project_Context.md` para recuperar el contexto actual.
-
-### Paso 3
-Leer `Project_Governance.md` para conocer las reglas de gobierno.
-
-### Paso 4
-Leer `Matriz_Autoridad_Documental.md` para conocer qué documentos tienen autoridad.
-
-### Paso 5
-Leer `EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md` para conocer las restricciones congeladas del Vertical MVP.
-
-### Paso 6
-Utilizar este Manual como mapa para localizar la documentación especializada necesaria.
-
----
-
-# 28. REGLA DE CONTINUIDAD
-
-El proyecto debe poder recuperarse sin depender del historial de una conversación.
-
-Por tanto:
-
-```text
-CONVERSACIÓN
-     ↓
-TRABAJO
-     ↓
-DECISIÓN
-     ↓
-DOCUMENTACIÓN
-     ↓
-GITHUB
-     ↓
-CONTINUIDAD
-```
-
-La conversación es espacio de trabajo.
-
-La documentación oficial es la memoria estructurada del proyecto.
-
----
-
-# 29. REGLA DE NO DUPLICACIÓN
-
-Si una materia dispone de un documento especializado con autoridad:
-
-**no debe reproducirse íntegramente en este Manual.**
-
-Este Manual debe:
+Si una materia dispone de una fuente especializada con autoridad, este Manual debe limitarse a:
 
 - identificarla;
-- resumirla;
+- resumir su función;
 - señalar dónde encontrarla;
-- mantener el contexto necesario.
+- conservar el contexto mínimo necesario.
 
-La lógica detallada debe permanecer en su fuente oficial.
+El Manual debe actualizarse cuando cambie de forma relevante:
 
-Esto evita:
+- el alcance;
+- la estructura del proyecto;
+- la arquitectura conceptual;
+- el gobierno documental;
+- los componentes principales;
+- el estado general;
+- las rutas de navegación.
 
-- contradicciones;
-- duplicación;
-- divergencias de versiones;
-- mantenimiento innecesario.
+No debe actualizarse por cada cambio menor de regla, parámetro, test o implementación especializada.
 
----
-
-# 30. REGLA DE ACTUALIZACIÓN DEL MANUAL
-
-El Manual debe actualizarse cuando exista un cambio suficientemente relevante en:
-
-- estructura del proyecto;
-- alcance;
-- arquitectura conceptual;
-- gobierno documental;
-- componentes principales;
-- estado general;
-- rutas de navegación.
-
-No debe actualizarse por cada cambio menor de una regla o parámetro.
-
-Los cambios especializados deben permanecer en sus documentos correspondientes.
+GitHub conserva el historial; las versiones antiguas del Manual no deben utilizarse como autoridad sobre el estado vigente.
 
 ---
 
-# 31. CRITERIO FINAL
+# 19. ESTADO DE CONTINUIDAD
 
-El Manual Maestro debe responder rápidamente a cinco preguntas:
+**Framework:** EIOS  
+**Vertical:** Intelligent Procurement Decision & Negotiation  
+**Baseline formal más reciente:** EIOS-BL-002  
+**Estado general:** En desarrollo  
+**Gobierno:** Activo  
+**Salvaguarda Vertical MVP:** Vigente  
+**Manual:** v2.1 — reconciliado 13/09/2026
 
-```text
-1. ¿QUÉ ES EIOS?
-        ↓
-2. ¿QUÉ ESTAMOS CONSTRUYENDO?
-        ↓
-3. ¿CÓMO ESTÁ ORGANIZADO?
-        ↓
-4. ¿DÓNDE ESTÁ LA INFORMACIÓN OFICIAL?
-        ↓
-5. ¿DÓNDE CONTINUAR EL TRABAJO?
-```
+El Vertical MVP completo **no está declarado cerrado**.
 
-Si una información no ayuda a responder alguna de estas preguntas o a navegar hacia su fuente oficial, debe evaluarse si realmente pertenece al Manual Maestro.
+Los componentes cerrados y los bloqueos vigentes deben resolverse desde `Project_Context.md` y sus fuentes especializadas, no desde estados históricos de este Manual.
 
 ---
 
-# 32. PRINCIPIO FUNDAMENTAL
+# 20. PRINCIPIO FINAL
 
 > **El Manual Maestro no debe contener todo EIOS.**
 >
-> **Debe permitir encontrar y comprender EIOS sin perderse.**
-
-Su valor no está en acumular información, sino en proporcionar **continuidad, orientación, navegación y contexto fiable**.
+> **Debe permitir encontrar, comprender y continuar EIOS sin perderse y sin crear autoridad nueva.**
