@@ -2,8 +2,8 @@
 
 ## Mapa Maestro del Proyecto y de la Arquitectura
 
-**Versión:** 2.1
-**Estado:** APROBADO
+**Versión:** 2.2
+**Estado:** APROBADO — reconciliación estructural de aplicación/interfaz
 **Función:** Mapa global de estructura y relaciones del sistema EIOS
 **Ubicación:** `03_Arquitectura/Master_Project_Map.md`
 
@@ -58,12 +58,15 @@ No sustituye a la documentación especializada de cada dominio.
                                │
                                ▼
                     ┌─────────────────────┐
-                    │ 03 — ARQUITECTURA  │
+                    │ 03 — ARQUITECTURA   │
                     │                     │
                     │ Estructura          │
                     │ Componentes         │
                     │ Relaciones          │
                     └──────────┬──────────┘
+                               │
+                               ├──────────────► 03_App — APLICACIÓN / INTERFAZ
+                               │                Especificación · campos · interacción · visual
                                │
                                ▼
                     ┌─────────────────────┐
@@ -119,6 +122,8 @@ No sustituye a la documentación especializada de cada dominio.
                     └─────────────────────┘
 ```
 
+`03_App/` aparece como dominio físico especializado de aplicación/interfaz. Su inclusión en este mapa no lo convierte en fuente de autoridad empresarial ni altera el flujo decisional del motor.
+
 ---
 
 # 3. RELACIÓN FUNCIONAL ENTRE DOMINIOS
@@ -155,6 +160,8 @@ IMPLEMENTACIÓN
 
 Esta secuencia representa una relación de dependencia conceptual y no implica que todos los dominios deban ejecutarse secuencialmente en tiempo de ejecución.
 
+La aplicación/interfaz (`03_App/`) consume y representa estructuras y resultados autorizados, pero no constituye un paso adicional de decisión ni puede crear reglas, parámetros, recomendaciones o autoridad funcional por sí misma.
+
 ---
 
 # 4. GOBIERNO
@@ -180,6 +187,10 @@ La autoridad documental está determinada por:
 La salvaguarda oficial vigente es:
 
 `00_Gobierno/EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md`
+
+El contexto de continuidad vigente se consulta en:
+
+`00_Gobierno/Project_Context.md`
 
 ---
 
@@ -226,9 +237,27 @@ Incluye los mapas y documentos que describen:
 - estructura;
 - organización global.
 
-El `Framework_Map.md` actúa como índice documental.
+El `Framework_Map.md` actúa como índice maestro de navegación estructural y documental.
 
 Este `Master_Project_Map.md` actúa como mapa global del sistema/proyecto.
+
+## 7.1 APLICACIÓN E INTERFAZ
+
+`03_App/`
+
+Constituye el dominio físico especializado de especificación de aplicación/interfaz.
+
+Incluye, entre otros, contratos y cierres relativos a:
+
+- arquitectura UI;
+- registro de campos;
+- mapping campo ↔ componente;
+- interacción;
+- especificación visual.
+
+`03_App/` no sustituye a `03_Arquitectura/` ni a `08_Implementacion/`.
+
+Su función es describir y gobernar la representación e interacción dentro del alcance autorizado. La aplicación no puede convertir una salida representacional en una decisión empresarial automática ni redefinir la autoridad de los componentes que representa.
 
 ---
 
@@ -307,7 +336,17 @@ Representa la capa de materialización técnica controlada de los contratos y di
 
 Incluye los contratos de implementación, registros de verificación y documentación necesaria para conectar diseño, persistencia, código y CI sin crear autoridad funcional paralela.
 
-La implementación ejecutable puede encontrarse adicionalmente en `eios/` y sus verificaciones en `tests/`.
+La relación con la aplicación/interfaz se mantiene separada:
+
+```text
+03_App/            → especificación y gobierno de representación/interacción
+08_Implementacion/ → contratos y gobierno de materialización técnica
+ eios/              → código ejecutable
+ tests/             → verificación automatizada
+ .github/           → CI y validaciones técnicas
+```
+
+Ninguna de estas capas adquiere autoridad empresarial por el mero hecho de estar implementada o superar CI.
 
 ---
 
@@ -342,6 +381,7 @@ DOMINIOS EIOS
       ├── Modelo
       ├── Parámetros
       ├── Arquitectura
+      ├── Aplicación / interfaz
       ├── Reglas
       ├── Motor
       ├── SQL
@@ -351,6 +391,8 @@ DOMINIOS EIOS
 
 La Salvaguarda establece las restricciones y principios que deben respetarse durante la evolución del Vertical MVP.
 
+La presencia de un dominio en este mapa no implica que todas sus capacidades estén cerradas ni autoriza a resolver por inferencia bloqueos de autoridad, evidencia o dependencia.
+
 ---
 
 # 15. RELACIÓN CON FRAMEWORK MAP
@@ -359,12 +401,12 @@ Los dos documentos cumplen funciones diferentes:
 
 | Documento | Función |
 |---|---|
-| `Framework_Map.md` | Índice maestro de documentación |
+| `Framework_Map.md` | Índice maestro de navegación estructural y documental |
 | `Master_Project_Map.md` | Mapa global del sistema y sus relaciones |
 
 El `Framework_Map.md` responde principalmente a:
 
-> **¿Dónde está cada documento?**
+> **¿Dónde está cada dominio y dónde debo buscar su documentación o materialización vigente?**
 
 El `Master_Project_Map.md` responde principalmente a:
 
@@ -380,19 +422,25 @@ Cuando exista una contradicción documental, se deberá consultar:
 
 `00_Gobierno/Matriz_Autoridad_Documental.md`
 
+Para conocer el estado operativo y de continuidad vigente se deberá consultar:
+
+`00_Gobierno/Project_Context.md`
+
+El punto formal de recuperación más reciente se identifica mediante los Baselines de `00_Gobierno/Baselines/`, sin sustituir el estado posterior de `main`.
+
 ---
 
 # 17. ESTADO
 
-**Framework:** EIOS
-**Baseline:** EIOS Vertical MVP
-**Estado:** En desarrollo
-**Gobierno:** Activo
-**Salvaguarda Vertical MVP:** Vigente
-**Versión del mapa:** 2.1
+**Framework:** EIOS  
+**Baseline de continuidad vigente:** EIOS-BL-002  
+**Estado:** En desarrollo  
+**Gobierno:** Activo  
+**Salvaguarda Vertical MVP:** Vigente  
+**Versión del mapa:** 2.2
 
 ---
 
 # 18. PRINCIPIO FINAL
 
-> El Master Project Map muestra cómo se estructura EIOS; los documentos especializados definen cada dominio.
+> El Master Project Map muestra cómo se estructura EIOS; los documentos especializados definen cada dominio. La aplicación representa lo autorizado, no crea autoridad decisional nueva.
