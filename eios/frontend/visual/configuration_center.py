@@ -1,10 +1,10 @@
 """Provenance-safe UI slice for the EIOS Configuration Center.
 
-This module is deliberately narrow.  It presents and coordinates an already
-selected company/parameter/actor context and delegates all configuration
-semantics to ``ParameterConfigurationCenter``.  It does not authenticate the
-actor, enumerate companies or parameters, access persistence directly, or
-make business decisions.
+This module is deliberately narrow. It coordinates an already selected
+company/parameter/actor context and delegates configuration semantics to
+``ParameterConfigurationCenter``. It does not authenticate the actor,
+enumerate companies or parameters, access persistence directly, or make
+business decisions.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from eios.parameters.center import (
 class AuthorizedConfigurationUIContext:
     """Immutable carrier supplied by a trusted upstream integration boundary.
 
-    The type is not an authenticator or credential.  Its provenance must be
+    The type is not an authenticator or credential. Its provenance must be
     established outside this UI slice; the configuration center still performs
     the authoritative modification check.
     """
@@ -84,8 +84,8 @@ class ConfigurationUIResult:
 class ConfigurationCenterUIController:
     """Coordinates one authorized configuration selection.
 
-    Company, parameter and actor are bound to the immutable context.  Change
-    proposals cannot replace them.  Functional validation and writes always go
+    Company, parameter and actor are bound to the immutable context. Change
+    proposals cannot replace them. Functional validation and writes always go
     through ``ParameterConfigurationCenter``.
     """
 
@@ -97,21 +97,36 @@ class ConfigurationCenterUIController:
         self._center = center
         self._context = context
         self._pending: ChangeProposal | None = None
+        self._state = "READY"
+        self._error_code: str | None = None
 
     @property
     def context(self) -> AuthorizedConfigurationUIContext:
         return self._context
 
     @property
+    def state(self) -> str:
+        return self._state
+
+    @property
+    def error_code(self) -> str | None:
+        return self._error_code
+
+    @property
     def has_pending_confirmation(self) -> bool:
         return self._pending is not None
 
-    def load_detail(self) -> ConfigurationDetailViewModel:
-        definition = self._center.get_parameter(self._context.parameter_id)
-        current = self._center.get_current_configuration(
-            self._context.company_id, self._context.parameter_id
-        )
-        return ConfigurationDetailViewModel(
+    def load_detail(self) -> ConfigurationDetailViewModel | None:
+        try:
+            definition = self._center.get_parameter(self._context.parameter_id)
+            current = self._center.get_current_configuration(
+                self._context.company_id, self._context.parameter_id
+            )
+        except ParameterConfigurationError as exc:
+            self._record_failure("ERROR", exc.code)
+            return None
+
+        detail = ConfigurationDetailViewModel(
             company_id=self._context.company_id,
             parameter_id=definition.parameter_id,
             actor=self._context.actor,
@@ -120,12 +135,19 @@ class ConfigurationCenterUIController:
             restricted=definition.restricted,
             configuration=current,
         )
+        self._record_success("VIEWING")
+        return detail
 
-    def load_history(self) -> tuple[ConfigurationHistoryItemViewModel, ...]:
-        history = self._center.get_parameter_history(
-            self._context.company_id, self._context.parameter_id
-        )
-        return tuple(
+    def load_history(self) -> tuple[ConfigurationHistoryItemViewModel, ...] | None:
+        try:
+            history = self._center.get_parameter_history(
+                self._context.company_id, self._context.parameter_id
+            )
+        except ParameterConfigurationError as exc:
+            self._record_failure("ERROR", exc.code)
+            return None
+
+        projected = tuple(
             ConfigurationHistoryItemViewModel(
                 configuration_id=item.configuration_id,
                 parameter_id=item.parameter_id,
@@ -138,6 +160,8 @@ class ConfigurationCenterUIController:
             )
             for item in history
         )
+        self._record_success("VIEWING")
+        return projected
 
     def prepare_change(
         self,
@@ -154,41 +178,50 @@ class ConfigurationCenterUIController:
             reason=reason,
         )
         request = self._request_from(proposal)
+        self._state = "VALIDATING"
+        self._error_code = None
         try:
             self._center.validate_change(request)
         except ParameterConfigurationError as exc:
             self._pending = None
-            return ConfigurationUIResult(
-                state=_state_for_error(exc.code), error_code=exc.code
-            )
+            state = _state_for_error(exc.code)
+            self._record_failure(state, exc.code)
+            return ConfigurationUIResult(state=state, error_code=exc.code)
+
         self._pending = proposal
+        self._record_success("AWAITING_CONFIRMATION")
         return ConfigurationUIResult(state="AWAITING_CONFIRMATION")
 
     def cancel_pending_change(self) -> ConfigurationUIResult:
         self._pending = None
+        self._record_success("VIEWING")
         return ConfigurationUIResult(state="VIEWING")
 
     def confirm_and_apply(self) -> ConfigurationUIResult:
         proposal = self._pending
         if proposal is None:
+            self._record_failure("ERROR", "NO_PENDING_CHANGE")
             return ConfigurationUIResult(state="ERROR", error_code="NO_PENDING_CHANGE")
 
-        # Consume the pending proposal before any write attempt.  A failure must
+        # Consume the pending proposal before any write attempt. A failure must
         # require a new validation and a new explicit confirmation.
         self._pending = None
         request = self._request_from(proposal)
+        self._state = "REVALIDATING"
+        self._error_code = None
         try:
-            # UI anti-stale revalidation.  apply_change() intentionally validates
+            # UI anti-stale revalidation. apply_change() intentionally validates
             # again and the repository closes the validate/write race atomically.
             self._center.validate_change(request)
+            self._state = "APPLYING"
             configuration = self._center.apply_change(request)
         except ParameterConfigurationError as exc:
-            return ConfigurationUIResult(
-                state=_state_for_error(exc.code), error_code=exc.code
-            )
-        return ConfigurationUIResult(
-            state="APPLIED", configuration=configuration
-        )
+            state = _state_for_error(exc.code)
+            self._record_failure(state, exc.code)
+            return ConfigurationUIResult(state=state, error_code=exc.code)
+
+        self._record_success("APPLIED")
+        return ConfigurationUIResult(state="APPLIED", configuration=configuration)
 
     def _request_from(self, proposal: ChangeProposal) -> ChangeRequest:
         return ChangeRequest(
@@ -200,6 +233,14 @@ class ConfigurationCenterUIController:
             actor=self._context.actor,
             reason=proposal.reason,
         )
+
+    def _record_success(self, state: str) -> None:
+        self._state = state
+        self._error_code = None
+
+    def _record_failure(self, state: str, code: str) -> None:
+        self._state = state
+        self._error_code = code
 
 
 def _state_for_error(code: str) -> str:
