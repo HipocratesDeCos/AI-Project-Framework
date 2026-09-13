@@ -81,7 +81,7 @@ def run_vertical_mvp_support(
     stock_excess: StockExcessRuleInputs | None = None,
     stock_absorption: StockAbsorptionRuleInputs | None = None,
     finance_capacity: FinanceCapacityRuleInputs | None = None,
-    finance_safety_margin: FinanceSafetyMarginRuleInputs | None = None,
+    finance_safety_margin: FinanceSafetyRuleInputs | None = None,
     history_sufficiency: HistorySufficiencyRuleInputs | None = None,
     quality_invoker: CapabilityInvoker | None = None,
     price_invoker: CapabilityInvoker | None = None,
@@ -114,7 +114,7 @@ def run_vertical_mvp_support(
 
     rules_result: DecisionRuleExecutionResult | None = None
     rules_invoker = None
-n    if rule_bundles_present:
+    if rule_bundles_present:
         rules_result = run_domain_rules(
             purchase=purchase,
             context=context,
