@@ -50,35 +50,30 @@ def test_mvp_execution_runs_available_capabilities_in_canonical_order_and_contex
     context = _context()
     seen: dict[str, tuple[dict, dict]] = {}
 
-    def quality_invoker(received_purchase, received_context):
-        seen["QTG"] = (
-            received_purchase.model_dump(mode="python"),
-            received_context.model_dump(mode="python"),
-        )
-        return _completed("QTG", "trace-qtg")
+    def recording_invoker(capability: str, trace_reference: str):
+        def invoke(received_purchase, received_context):
+            seen[capability] = (
+                received_purchase.model_dump(mode="python"),
+                received_context.model_dump(mode="python"),
+            )
+            return _completed(capability, trace_reference)
 
-    def tco_invoker(received_purchase, received_context):
-        seen["TCO"] = (
-            received_purchase.model_dump(mode="python"),
-            received_context.model_dump(mode="python"),
-        )
-        return _completed("TCO", "trace-tco")
-
-    def decision_twin_invoker(received_purchase, received_context):
-        seen["DECISION_TWIN"] = (
-            received_purchase.model_dump(mode="python"),
-            received_context.model_dump(mode="python"),
-        )
-        return _completed("DECISION_TWIN", "trace-twin")
+        return invoke
 
     outcome = run_mvp_execution(
         purchase=purchase,
         context=context,
         policy_version="MVP-E2E-1",
-        quality_invoker=quality_invoker,
-        tco_invoker=tco_invoker,
+        quality_invoker=recording_invoker("QTG", "trace-qtg"),
+        tco_invoker=recording_invoker("TCO", "trace-tco"),
         rules_invoker=_completed_c0,
-        decision_twin_invoker=decision_twin_invoker,
+        decision_twin_invoker=recording_invoker("DECISION_TWIN", "trace-twin"),
+        negotiation_intelligence_invoker=recording_invoker(
+            "NEGOTIATION_INTELLIGENCE", "trace-ni"
+        ),
+        negotiation_ladder_invoker=recording_invoker(
+            "NEGOTIATION_LADDER", "trace-ladder"
+        ),
     )
 
     assert outcome.status == BoundaryStatus.COMPLETED
@@ -87,6 +82,8 @@ def test_mvp_execution_runs_available_capabilities_in_canonical_order_and_contex
         "TCO",
         "C0",
         "DECISION_TWIN",
+        "NEGOTIATION_INTELLIGENCE",
+        "NEGOTIATION_LADDER",
     )
     assert all(item.result_available for item in outcome.capability_results)
     expected = (
@@ -97,6 +94,8 @@ def test_mvp_execution_runs_available_capabilities_in_canonical_order_and_contex
         "QTG": expected,
         "TCO": expected,
         "DECISION_TWIN": expected,
+        "NEGOTIATION_INTELLIGENCE": expected,
+        "NEGOTIATION_LADDER": expected,
     }
 
 
@@ -136,14 +135,25 @@ def test_mvp_execution_accepts_other_capabilities_without_opaque_invokers():
 def test_mvp_execution_public_signature_has_no_detached_opaque_results():
     parameters = signature(run_mvp_execution).parameters
 
-    assert "quality_result" not in parameters
-    assert "price_result" not in parameters
-    assert "tco_result" not in parameters
-    assert "decision_twin_result" not in parameters
-    assert "quality_invoker" in parameters
-    assert "price_invoker" in parameters
-    assert "tco_invoker" in parameters
-    assert "decision_twin_invoker" in parameters
+    for raw_result in (
+        "quality_result",
+        "price_result",
+        "tco_result",
+        "decision_twin_result",
+        "negotiation_intelligence_result",
+        "negotiation_ladder_result",
+    ):
+        assert raw_result not in parameters
+
+    for invoker in (
+        "quality_invoker",
+        "price_invoker",
+        "tco_invoker",
+        "decision_twin_invoker",
+        "negotiation_intelligence_invoker",
+        "negotiation_ladder_invoker",
+    ):
+        assert invoker in parameters
 
 
 def test_mvp_execution_requires_at_least_one_capability():
