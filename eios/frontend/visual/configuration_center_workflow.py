@@ -81,8 +81,6 @@ class ConfigurationCenterSelectedWorkflow:
         if self._form is not None:
             raise ConfigurationWorkflowError("cannot refresh while a draft is active")
 
-        # A refresh replaces the previously demonstrated read snapshot. Never
-        # leave old values visible as though they belonged to the new read.
         self._detail = None
         self._history = None
         self._data_ready = False
@@ -142,11 +140,13 @@ class ConfigurationCenterSelectedWorkflow:
         pending = self._controller.has_pending_confirmation
         if result.state == "AWAITING_CONFIRMATION":
             if not pending:
+                self._record_internal_error()
                 raise ConfigurationWorkflowError(
                     "controller reported awaiting confirmation without pending change"
                 )
             self._proposal = proposal
         elif pending:
+            self._record_internal_error()
             raise ConfigurationWorkflowError(
                 "controller retained a hidden pending change"
             )
@@ -164,19 +164,24 @@ class ConfigurationCenterSelectedWorkflow:
         previous_detail = self._detail
         previous_history = self._history
         result = self._controller.confirm_and_apply()
-        self._proposal = None
 
         if self._controller.has_pending_confirmation:
+            # Keep the local proposal: the controller still exposes a real
+            # pending change, so hiding it would create a dangerous mismatch.
             raise ConfigurationWorkflowError(
                 "controller did not consume pending change after confirmation"
             )
 
+        self._proposal = None
+
         if result.state == "APPLIED":
             if result.configuration is None:
+                self._record_internal_error()
                 raise ConfigurationWorkflowError(
                     "controller reported APPLIED without configuration"
                 )
             if previous_detail is None:
+                self._record_internal_error()
                 raise ConfigurationWorkflowError(
                     "APPLIED cannot update an absent detail snapshot"
                 )
@@ -184,6 +189,7 @@ class ConfigurationCenterSelectedWorkflow:
                 result.configuration.company_id != previous_detail.company_id
                 or result.configuration.parameter_id != previous_detail.parameter_id
             ):
+                self._record_internal_error()
                 raise ConfigurationWorkflowError(
                     "APPLIED configuration does not match selected context"
                 )
@@ -197,9 +203,6 @@ class ConfigurationCenterSelectedWorkflow:
             self._error_code = None
             return self.snapshot()
 
-        # A functional failure consumes confirmation but must not change the
-        # previously read configuration/history. Keep the draft available so it
-        # can be corrected and explicitly prepared again.
         self._detail = previous_detail
         self._history = previous_history
         self._state = result.state
@@ -229,6 +232,10 @@ class ConfigurationCenterSelectedWorkflow:
     def _require_no_pending(self, message: str) -> None:
         if self._controller.has_pending_confirmation:
             raise ConfigurationWorkflowError(message)
+
+    def _record_internal_error(self) -> None:
+        self._state = "ERROR"
+        self._error_code = None
 
 
 __all__ = [
