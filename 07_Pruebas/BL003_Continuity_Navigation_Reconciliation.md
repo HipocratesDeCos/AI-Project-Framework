@@ -1,37 +1,39 @@
 # EIOS — BL-003 Continuity Navigation Reconciliation
 
-**Estado:** AUDIT 1 SUPERADA — PENDIENTE DE DEPURACIÓN  
+**Estado:** 🔒 CERRADA — MATERIALIZADA — PENDIENTE DE CI  
 **Fecha:** 2026-09-14  
 **Baseline de partida:** `main @ 562769d4c3938a95b4874cee9804c898ab16d7a3`  
 **Baseline formal vigente:** `EIOS-BL-003` — referencia histórica `b10c4cde6c4f52af04de0794493432961b745dca`
 
 ## 1. Objeto
 
-Reconciliar exclusivamente las referencias de Baseline vigente en los dos mapas de navegación que todavía declaran `EIOS-BL-002`, después del establecimiento e integración de `EIOS-BL-003`.
+Reconciliar exclusivamente las referencias de Baseline vigente en los dos mapas de navegación que todavía declaraban `EIOS-BL-002`, después del establecimiento e integración de `EIOS-BL-003`.
 
-## 2. Archivos autorizados para modificación
+## 2. Archivos autorizados y materializados
 
 - `03_Arquitectura/Framework_Map.md`
 - `03_Arquitectura/Master_Project_Map.md`
 - este registro de reconciliación en `07_Pruebas/`
 
-No se autoriza modificar otros documentos en esta unidad.
+No se modifica ningún otro documento en esta unidad.
 
-## 3. Diseño propuesto
+## 3. Diseño y depuración materializados
 
 ### Framework Map
 
 - versión `3.3.1 → 3.3.2`;
-- estado documental: reconciliación de continuidad post-BL-003;
-- añadir `Baselines/EIOS-BL-003.md` a las anclas de Gobierno;
-- cambiar “punto formal de continuidad más reciente” de BL-002 a BL-003;
-- cambiar “Baseline de continuidad vigente” de BL-002 a BL-003.
+- estado documental reconciliado post-BL-003;
+- añadida `Baselines/EIOS-BL-003.md` a las anclas de Gobierno;
+- “punto formal de continuidad más reciente” actualizado a BL-003;
+- “Baseline de continuidad vigente” actualizado a BL-003;
+- preservada íntegramente la interfaz estable `## 00 — …` a `## 08 — …`.
 
 ### Master Project Map
 
 - versión `2.2 → 2.3`;
-- estado documental: reconciliación de continuidad post-BL-003;
-- cambiar el estado final `Baseline de continuidad vigente: EIOS-BL-002` a `EIOS-BL-003`.
+- estado documental reconciliado post-BL-003;
+- `Baseline de continuidad vigente` actualizado a `EIOS-BL-003`;
+- arquitectura, dominios y relaciones preservados.
 
 ## 4. Audit 1
 
@@ -47,24 +49,41 @@ No se autoriza modificar otros documentos en esta unidad.
 
 ### Hallazgos
 
-**A1 — Framework Map:** se verifican cuatro superficies de continuidad desactualizadas respecto a BL-003:
+**A1 — Framework Map:** cuatro superficies de continuidad desactualizadas: cabecera, ancla de Baseline, nodo activo y estado final.
 
-1. cabecera/estado todavía referida a reconciliación post-BL-002;
-2. lista de anclas de Gobierno contiene BL-001/BL-002 pero no BL-003;
-3. nodo de gobierno activo declara BL-002 como punto formal más reciente;
-4. estado final declara BL-002 como Baseline vigente.
+**A2 — Master Project Map:** mapa arquitectónico válido; obsolescencia limitada a cabecera/versionado y campo final de Baseline vigente.
 
-**A2 — Master Project Map:** el mapa arquitectónico permanece válido; la obsolescencia está limitada a la cabecera/versionado de reconciliación y al campo final `Baseline de continuidad vigente: EIOS-BL-002`.
+**A3 — Project Context:** divergencias ya documentadas por BL-003 y su addendum; permanece fuera de esta unidad para evitar una reescritura masiva innecesaria.
 
-**A3 — Project Context:** conserva divergencias ya documentadas por BL-003 y su addendum. Modificarlo queda explícitamente fuera de esta unidad para evitar una reescritura masiva innecesaria del documento de autoridad de continuidad.
+**Audit 1: SUPERADA — 0 bloqueadores.**
 
-### Dictamen Audit 1
+## 5. Depuración
 
-**SUPERADA — 0 bloqueadores.**
+Se aplicó exclusivamente A1–A2. A3 permanece como exclusión deliberada.
 
-La depuración debe reducirse a referencias/versionado de continuidad, sin alterar estructura, dominios, autoridad, arquitectura, reglas de navegación ni semántica funcional.
+No se alteró:
 
-## 5. Exclusiones congeladas
+- estructura de dominios;
+- arquitectura;
+- autoridad documental;
+- reglas de navegación;
+- semántica funcional;
+- código, SQL, reglas o parámetros.
+
+## 6. Audit 2
+
+Comparación física contra `main @ 562769d4c3938a95b4874cee9804c898ab16d7a3`:
+
+- rama `ahead=4`, `behind=0` antes del cierre de este registro;
+- `Framework_Map.md`: `+7 / -6` — 13 líneas de delta;
+- `Master_Project_Map.md`: `+4 / -4` — 8 líneas de delta;
+- único archivo adicional: este registro documental.
+
+La magnitud y localización del delta son coherentes con la depuración autorizada. No existe evidencia de pérdida estructural ni de ampliación de alcance.
+
+**Audit 2: SUPERADA — 0 bloqueadores.**
+
+## 7. Exclusiones congeladas
 
 No se modifica:
 
@@ -75,14 +94,20 @@ No se modifica:
 - contratos UI;
 - código, tests ejecutables, SQL, reglas o parámetros.
 
-## 6. Método
+## 8. Método
 
 ```text
 DISEÑAR       ✅
-AUDITAR       ✅ — A1–A3, 0 bloqueadores
-DEPURAR       ⏳
-AUDITAR 2     ⏳
-CERRAR        ⏳
-MATERIALIZAR  ⏳
-CI            ⏳
+AUDITAR       ✅ — A1–A3
+DEPURAR       ✅ — A1–A2 materializados; A3 excluido deliberadamente
+AUDITAR 2     ✅ — delta mínimo, behind=0, 0 bloqueadores
+CERRAR        ✅
+MATERIALIZAR  ✅ — Framework Map v3.3.2 + Master Project Map v2.3
+CI            ⏳ — pendiente de gates pre/post integración
 ```
+
+## 9. Dictamen
+
+**RECONCILIACIÓN DE NAVEGACIÓN BL-003 CERRADA Y MATERIALIZADA.**
+
+La unidad solo podrá considerarse físicamente integrada tras CI pre-merge SUCCESS, reconciliación compatible con `main`, merge protegido por SHA y CI postintegración SUCCESS.
