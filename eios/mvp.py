@@ -81,7 +81,6 @@ def run_vertical_mvp_support(
     finance_capacity: FinanceCapacityRuleInputs | None = None,
     finance_safety_margin: FinanceSafetyMarginRuleInputs | None = None,
     history_sufficiency: HistorySufficiencyRuleInputs | None = None,
-    quality_invoker: CapabilityInvoker | None = None,
     price_invoker: CapabilityInvoker | None = None,
     tco_invoker: CapabilityInvoker | None = None,
     decision_twin_invoker: CapabilityInvoker | None = None,
@@ -91,12 +90,14 @@ def run_vertical_mvp_support(
 ) -> VerticalMVPSupportResult:
     """Run supplied Vertical MVP capabilities and preserve detailed outputs.
 
-    Rule bridges are evaluated once. QTG, PRICE, TCO, Decision Twin, Scenario
-    Coordination, Negotiation Intelligence and Negotiation Ladder must be
-    supplied through explicit invokers rather than detached raw results.
-    The generic facade does not manufacture detailed scenario support from O3
-    results; the specialized orchestration facade owns that presentation path.
-    Missing capabilities are omitted rather than inferred.
+    PRICE, TCO, Decision Twin, Scenario Coordination, Negotiation Intelligence
+    and Negotiation Ladder must be supplied through explicit authorized
+    invokers rather than detached raw results. QTG is deliberately not accepted
+    by this generic facade until a provenance-safe producer from the authorized
+    Decision Input Package exists. The generic facade does not manufacture
+    detailed scenario support from O3 results; the specialized orchestration
+    facade owns that presentation path. Missing capabilities are omitted rather
+    than inferred.
     """
     rule_bundles_present = any(
         item is not None
@@ -130,7 +131,6 @@ def run_vertical_mvp_support(
         purchase=purchase,
         context=context,
         policy_version=policy_version,
-        quality_invoker=quality_invoker,
         price_invoker=price_invoker,
         tco_invoker=tco_invoker,
         rules_invoker=rules_invoker,

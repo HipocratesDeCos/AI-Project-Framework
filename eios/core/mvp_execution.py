@@ -32,7 +32,6 @@ def run_mvp_execution(
     purchase: PurchaseOperation,
     context: DecisionContext,
     policy_version: str,
-    quality_invoker: CapabilityInvoker | None = None,
     price_invoker: CapabilityInvoker | None = None,
     tco_invoker: CapabilityInvoker | None = None,
     rules_invoker: CapabilityInvoker | None = None,
@@ -43,15 +42,16 @@ def run_mvp_execution(
 ) -> ExecutionOutcome:
     """Execute supplied MVP capabilities through the controlled boundary.
 
-    QTG, PRICE, TCO, Decision Twin, Scenario Coordination, Negotiation
-    Intelligence and Negotiation Ladder must arrive through explicit invokers;
-    this service never re-labels detached raw results for those capabilities
-    into the current context. Invoker presence alone is not provenance proof.
+    PRICE, TCO, Decision Twin, Scenario Coordination, Negotiation Intelligence
+    and Negotiation Ladder must arrive through explicit provenance-safe
+    invokers; this service never re-labels detached raw results for those
+    capabilities into the current context. QTG remains in the canonical
+    architecture order but is deliberately not accepted by this generic
+    boundary until a provenance-safe producer from the authorized Decision
+    Input Package exists.
     """
     invokers: dict[str, CapabilityInvoker] = {}
 
-    if quality_invoker is not None:
-        invokers["QTG"] = quality_invoker
     if price_invoker is not None:
         invokers["PRICE"] = price_invoker
     if tco_invoker is not None:
