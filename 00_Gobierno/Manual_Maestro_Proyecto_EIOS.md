@@ -3,8 +3,8 @@
 ## EIOS — Enterprise Intelligent Operations System
 
 **Documento:** Manual Maestro del Proyecto EIOS (MMP-EIOS)  
-**Versión:** 2.2  
-**Estado:** APROBADO — reconciliación de continuidad BL-003  
+**Versión:** 2.3  
+**Estado:** APROBADO — reconciliación de continuidad BL-004  
 **Fecha:** 14/09/2026  
 **Ubicación oficial:** `00_Gobierno/Manual_Maestro_Proyecto_EIOS.md`
 
@@ -64,7 +64,7 @@ La recuperación del proyecto debe comenzar por estas fuentes:
 ├── Manual_Maestro_Proyecto_EIOS.md
 ├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
 └── Baselines/
-    └── EIOS-BL-003.md
+    └── EIOS-BL-004.md
 
 03_Arquitectura/
 ├── Framework_Map.md
@@ -78,7 +78,7 @@ Funciones principales:
 - `Project_Governance.md` → gobierno y evolución controlada.
 - `Matriz_Autoridad_Documental.md` → precedencia y fuente oficial por dominio.
 - Salvaguarda Vertical MVP → marco congelado, restricciones y no regresión.
-- `EIOS-BL-003.md` → punto formal de recuperación asociado a un SHA concreto.
+- `EIOS-BL-004.md` → punto formal de recuperación `d3c462a2536ee20204b9d5c9dce1024e1ca7d31c`.
 - `Framework_Map.md` → dónde buscar documentación y materialización.
 - `Master_Project_Map.md` → cómo se organiza EIOS como sistema/proyecto.
 
@@ -415,7 +415,7 @@ Secuencia mínima:
 4. leer `Matriz_Autoridad_Documental.md`;
 5. leer la Salvaguarda Vertical MVP;
 6. consultar `Framework_Map.md` y `Master_Project_Map.md`;
-7. consultar `EIOS-BL-003.md` como punto formal de recuperación;
+7. consultar `EIOS-BL-004.md` como punto formal de recuperación;
 8. verificar el SHA actual de `main`;
 9. identificar la unidad realmente abierta y su autoridad especializada;
 10. continuar únicamente dentro del alcance autorizado.
@@ -453,15 +453,15 @@ GitHub conserva el historial; las versiones antiguas del Manual no deben utiliza
 
 **Framework:** EIOS  
 **Vertical:** Intelligent Procurement Decision & Negotiation  
-**Baseline formal más reciente:** EIOS-BL-003  
+**Baseline formal más reciente:** EIOS-BL-004 @ `d3c462a2536ee20204b9d5c9dce1024e1ca7d31c`  
 **Estado general:** En desarrollo  
 **Gobierno:** Activo  
 **Salvaguarda Vertical MVP:** Vigente  
-**Manual:** v2.2 — reconciliado 14/09/2026
+**Manual:** v2.3 — reconciliado 14/09/2026
 
 El Vertical MVP completo **no está declarado cerrado**.
 
-Los componentes cerrados y los bloqueos vigentes deben resolverse desde `Project_Context.md` y sus fuentes especializadas, no desde estados históricos de este Manual.
+Los componentes cerrados y los bloqueos vigentes deben resolverse desde `Project_Context.md`, `EIOS-BL-004.md` y sus fuentes especializadas, no desde estados históricos de este Manual.
 
 ---
 
