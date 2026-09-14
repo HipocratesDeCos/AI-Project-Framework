@@ -2,9 +2,9 @@
 
 > **Documento de recuperación y continuidad del proyecto**
 >
-> **Versión:** 2.2
-> **Estado:** APROBADO — reconciliación de estado vigente
-> **Última actualización:** 13/09/2026
+> **Versión:** 2.3
+> **Estado:** APROBADO — reconciliación de continuidad BL-003
+> **Última actualización:** 14/09/2026
 > **Proyecto:** EIOS — Enterprise Intelligent Operations System
 
 ---
@@ -37,7 +37,7 @@ El mapa estructural y de navegación vigente corresponde a:
 
 El punto formal de recuperación más reciente es:
 
-`00_Gobierno/Baselines/EIOS-BL-002.md`
+`00_Gobierno/Baselines/EIOS-BL-003.md`
 
 Un Baseline es un punto formal de recuperación asociado a un SHA concreto; no sustituye el estado posterior de `main` ni las fuentes especializadas vigentes.
 
@@ -546,7 +546,7 @@ EIOS debe presentarlas como posibles vías de actuación para valoración humana
 
 El **EIOS Configuration Center** es un componente transversal del sistema.
 
-La parametrización dispone de fuentes oficiales y materialización técnica para su alcance autorizado. La interfaz definitiva del Configuration Center continúa siendo una evolución separada y no debe inferirse de la mera existencia del backend de parametrización.
+La parametrización dispone de fuentes oficiales y materialización técnica para su alcance autorizado. El Configuration Center dispone además de contrato UI cerrado y de un subconjunto ejecutable **selected-context** materializado y validado mediante Slices 1–4 y conformidad E2E. Este estado no equivale a una interfaz completa ni autoriza por inferencia autenticación/resolución de identidad, enumeración de empresas autorizadas o descubrimiento global de parámetros sin productor físico autorizado.
 
 Debe permitir gobernar, dentro del alcance autorizado, elementos como:
 
@@ -708,7 +708,7 @@ Ningún componente especializado puede contradecir una restricción expresamente
 
 # 27. ESTADO ACTUAL DEL PROYECTO
 
-## Estado de continuidad reconciliado — 13/09/2026
+## Estado de continuidad reconciliado — 14/09/2026
 
 Este apartado resume el estado para recuperación rápida. No sustituye a los documentos especializados de diseño, auditoría, cierre, implementación y reconciliación.
 
@@ -733,6 +733,7 @@ El estado integrado y documentado contiene, entre otras, las siguientes capacida
 - Decision Versioning;
 - E2E Execution Boundary;
 - UI / Visual Frontend U1.1 en su alcance exclusivamente representacional;
+- Configuration Center UI: contrato cerrado y Slices 1–4 + conformidad selected-context E2E en el alcance ejecutable demostrado;
 - migración documental de identificadores `P-*` / `R-*` y reconciliaciones postintegración asociadas.
 
 “Cerrado” significa cerrado únicamente en el alcance expresamente autorizado por su fuente especializada. No autoriza ampliar semántica, reglas, scoring, política empresarial ni ejecución automática.
@@ -748,7 +749,7 @@ El estado integrado y documentado contiene, entre otras, las siguientes capacida
 ### 🟡 En evolución del sistema, sin declarar cerrado el Vertical MVP completo
 
 - integración automática con ERP;
-- interfaz definitiva del Configuration Center;
+- ampliación del Configuration Center más allá del selected-context demostrado, especialmente identidad/autenticación, enumeración de empresas y descubrimiento global de parámetros;
 - evolución del modelo de datos empresarial más allá de los modelos físicos ya materializados;
 - ampliaciones de dominios y capacidades que requieran nueva autoridad;
 - cierre integral del Vertical MVP una vez resueltos sus frentes bloqueados y gates pendientes.
@@ -771,7 +772,7 @@ implementación
 reconciliación / CI
 ```
 
-El Baseline `EIOS-BL-002` es el punto formal de recuperación más reciente, pero el repositorio puede haber avanzado después de su SHA. Para trabajo operativo debe verificarse siempre el `main` vivo antes de actuar.
+El Baseline `EIOS-BL-003` es el punto formal de recuperación más reciente, pero el repositorio puede haber avanzado después de su SHA. Para trabajo operativo debe verificarse siempre el `main` vivo antes de actuar.
 
 ---
 
@@ -802,7 +803,7 @@ Documentos fundamentales de referencia:
 ├── Project_Governance.md
 ├── Matriz_Autoridad_Documental.md
 ├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
-└── Baselines/EIOS-BL-002.md
+└── Baselines/EIOS-BL-003.md
 
 03_Arquitectura/
 └── Framework_Map.md

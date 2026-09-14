@@ -1,10 +1,11 @@
 # EIOS — Project Context Reconciliation — 2026-09-14
 
-**Estado:** RECONCILIACIÓN DOCUMENTAL PROPUESTA  
+**Estado:** RECONCILIACIÓN DOCUMENTAL HISTÓRICA — INTEGRADA  
 **Fecha:** 2026-09-14  
 **Repositorio:** `HipocratesDeCos/AI-Project-Framework`  
 **Baseline operativo verificado:** `main @ 135d6e78edeeae212c01e560a9fe734403a95bd6`  
-**CI postintegración asociada:** #762 — SUCCESS
+**CI postintegración asociada al estado operativo:** #762 — SUCCESS  
+**Estado posterior de integración del artefacto:** PR #136 · CI #763/#764 SUCCESS · merge `b10c4cde6c4f52af04de0794493432961b745dca`
 
 ---
 
@@ -22,13 +23,13 @@ Esta reconciliación es descriptiva. No sustituye:
 
 ## 2. Divergencia detectada
 
-La sección **20. CONFIGURATION CENTER** de `Project_Context.md` contiene todavía la formulación equivalente a que la interfaz definitiva del Configuration Center continúa siendo una evolución separada.
+La sección **20. CONFIGURATION CENTER** de `Project_Context.md` contenía todavía la formulación equivalente a que la interfaz definitiva del Configuration Center continuaba siendo una evolución separada.
 
-Esa formulación ya no describe completamente el estado físico vigente del repositorio.
+Esa formulación ya no describía completamente el estado físico vigente del repositorio en el momento de esta reconciliación.
 
-## 3. Estado físico vigente del Configuration Center
+## 3. Estado físico vigente del Configuration Center en el baseline de esta reconciliación
 
-A `main @ 135d6e78edeeae212c01e560a9fe734403a95bd6` están cerrados e integrados:
+A `main @ 135d6e78edeeae212c01e560a9fe734403a95bd6` estaban cerrados e integrados:
 
 ### 3.1 Contrato UI
 
@@ -83,7 +84,7 @@ Orquesta Slice 1 + Slice 2 para un contexto ya seleccionado, preservando:
 - histórico no inventado y marcado `stale` tras aplicación hasta refresh real;
 - errores técnicos del workflow separados de errores de dominio.
 
-## 4. Gates de integración
+## 4. Gates de integración conocidos al redactarse
 
 ### Contrato UI
 
@@ -136,15 +137,17 @@ Esta reconciliación no desbloquea:
 - Assurance / Shadow Mode sin referencia humana autorizada;
 - Profitability / MGE donde falte autoridad cuantitativa especializada.
 
-## 7. Efecto sobre Project Context
+## 7. Efecto histórico sobre Project Context
 
-Hasta que `Project_Context.md` pueda reconciliarse mediante una edición completa segura, debe interpretarse su sección 20 junto con este documento y con el `main` vivo.
+En el momento de redactarse este artefacto, `Project_Context.md` debía interpretarse en su sección 20 junto con este documento y con el `main` vivo.
 
-La formulación correcta del estado es:
+La formulación correcta del estado en ese momento era:
 
 > El Configuration Center dispone de backend materializado, contrato UI cerrado y tres slices ejecutables cerrados para un contexto previamente seleccionado. Continúan pendientes las capacidades cuya fuente autorizada todavía no existe, especialmente identidad/autenticación, enumeración de empresas y descubrimiento global de parámetros.
 
-## 8. Método
+La reconciliación posterior de `Project_Context.md` v2.3 absorbe ya esta divergencia en el cuerpo de la fuente oficial de continuidad. Este documento se conserva como evidencia histórica del estado y del razonamiento que motivaron la corrección.
+
+## 8. Método original
 
 ```text
 DISEÑAR       ✅ — reconciliación descriptiva y no funcional
@@ -153,11 +156,23 @@ DEPURAR       ✅ — eliminada cualquier formulación de “UI completa” o au
 AUDITAR 2     ✅ — bloqueos y límites preservados
 CERRAR        ✅ — autorizado solo este registro de reconciliación
 MATERIALIZAR  ✅ — este documento
-CI            ⏳ — pendiente de gate pre/post integración del artefacto
+CI            ⏳ — pendiente de gate pre/post integración del artefacto en el momento de redactarse
 ```
+
+### 8.1 Evidencia posterior de integración
+
+Después de la redacción del dictamen temporal anterior, el artefacto quedó físicamente integrado mediante:
+
+- PR #136;
+- HEAD pre-merge `8d03482c52fca686378015921641741fab0b7cac`;
+- CI #763 pre-merge — SUCCESS;
+- merge protegido `b10c4cde6c4f52af04de0794493432961b745dca`;
+- CI #764 postintegración — SUCCESS.
+
+Esta evidencia posterior no modifica retroactivamente el baseline ni el estado temporal que el documento describía al redactarse.
 
 ## 9. Dictamen
 
 **RECONCILIACIÓN DOCUMENTAL LIMPIA — 0 BLOQUEADORES FUNCIONALES.**
 
-El artefacto solo registra el estado demostrado del repositorio y no modifica ninguna frontera funcional.
+El artefacto registró el estado demostrado del repositorio sin modificar ninguna frontera funcional. Su integración posterior quedó completada por PR #136 y CI #763/#764.
