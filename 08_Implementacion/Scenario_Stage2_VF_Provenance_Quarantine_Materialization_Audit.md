@@ -1,6 +1,6 @@
 # EIOS — Scenario Stage 2 VF Provenance Quarantine — Materialization Audit
 
-**Estado:** MATERIALIZACIÓN AUDITADA — PENDIENTE CI  
+**Estado:** MATERIALIZACIÓN AUDITADA — PENDIENTE CI FINAL  
 **Baseline:** `main @ 9a762927a536d36db3ab852127318ec6628fc216`
 
 ## 1. Artefactos materializados
@@ -17,39 +17,52 @@ Documentación:
 Código:
 
 - `eios/rules/scenario_integration.py` queda como módulo de cuarentena sin API pública Stage 2;
-- `eios/rules/__init__.py` deja de exportar los tres símbolos inseguros;
+- `eios/rules/decision_twin_integration.py` queda como módulo de cuarentena sin wrapper público provenance-safe dependiente de Stage 2;
+- `eios/rules/__init__.py` deja de exportar los tres símbolos inseguros Stage 2 y los cuatro símbolos Decision Twin dependientes;
 - `eios/core/viability_scenario_integration.py` reclasifica el bridge como helper interno context-bound y lo retira de `__all__`.
 
 Tests:
 
 - `tests/test_scenario_stage2_provenance_boundary.py` verifica la cuarentena y preservación de C0 provenance;
+- `tests/test_decision_twin_provenance_integration.py` verifica la cuarentena del wrapper dependiente y la disponibilidad del comparador core;
 - `tests/test_vertical_mvp_scenario_e2e_conformance.py` deja de fabricar VF para simular E2E provenance-safe;
 - `tests/test_viability_scenario_integration.py` queda limitado a coherencia contextual del helper interno.
 
-## 2. Invariantes verificadas por inspección
+## 2. Hallazgo de la primera CI y corrección
+
+La primera CI pre-merge detectó un import roto en `eios.rules.decision_twin_integration`: el wrapper todavía importaba símbolos Stage 2 retirados. La inspección confirmó además que su test construía manualmente `ViabilityResult` y elevaba esa ruta a provenance-safe.
+
+La corrección no restaura Stage 2. Extiende el mismo fail-closed únicamente al wrapper dependiente de Decision Twin y mantiene intactos `eios.core.decision_twin` y `eios.core.decision_twin_engine`.
+
+Este hallazgo queda absorbido en Audit 1, Audit 2, contrato, reconciliación y cierre antes de la CI final.
+
+## 3. Invariantes verificadas por inspección
 
 - no existe API pública que acepte `ViabilityResult` y proclame Stage 2 provenance-safe;
+- no existe wrapper Decision Twin público que pueda heredar esa afirmación;
 - no existe alias legacy;
 - no existe productor VF inventado;
 - no se ejecuta `evaluate_viability(...)` desde la frontera de cuarentena;
 - no se modifica `viability_frontier.py`;
 - no se modifica O4/O2/O3;
 - no se modifica C0/Rules provenance;
+- no se modifica Decision Twin core/comparator;
 - no se modifica Vertical MVP ni presentación;
 - no se introduce autoridad decisional ni estado de negocio nuevo.
 
-## 3. Deuda explícitamente preservada
+## 4. Deuda explícitamente preservada
 
 La integración positiva VF→Stage 2 continúa bloqueada. Esta no es una omisión de la materialización sino el estado correcto mientras falte el productor físico de consecuencias VF autorizadas.
 
-El bridge interno puede validar contexto, pero no debe volver a exponerse como prueba de procedencia.
+El bridge interno puede validar contexto, pero no debe volver a exponerse como prueba de procedencia. Tampoco puede hacerlo ningún wrapper aguas abajo por mera composición.
 
-## 4. Gate de CI
+## 5. Gate de CI
 
-La inspección estática no sustituye la suite completa. CI deberá detectar, entre otros posibles defectos:
+La inspección estática no sustituye la suite completa. La CI final debe verificar, entre otros posibles defectos:
 
 - consumidores físicos residuales de los símbolos retirados;
 - imports rotos;
+- regresiones en Decision Twin core;
 - regresiones en tests no identificados durante la auditoría;
 - validaciones SQL/documentales globales.
 
