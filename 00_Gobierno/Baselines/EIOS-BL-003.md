@@ -1,6 +1,6 @@
 # EIOS-BL-003 — Baseline de continuidad Configuration Center UI
 
-**Estado:** DISEÑO — PENDIENTE DE AUDITORÍA  
+**Estado:** DEPURADO — PENDIENTE DE AUDITORÍA 2  
 **Fecha:** 2026-09-14  
 **Repositorio:** `HipocratesDeCos/AI-Project-Framework`  
 **Rama de referencia:** `main`  
@@ -11,13 +11,13 @@
 
 ## 1. Objeto
 
-Establecer un nuevo punto formal de recuperación después del avance acumulado desde EIOS-BL-002, con foco en la reconciliación de gobierno y en la materialización del Configuration Center UI.
+Establecer un nuevo punto formal de recuperación después del avance acumulado desde EIOS-BL-002, con foco en reconciliación de gobierno y en el **subconjunto ejecutable selected-context** del Configuration Center UI.
 
 Este Baseline registra estado ya demostrado. No crea autoridad funcional, no declara finalizado el Vertical MVP y no sustituye contratos ni fuentes especializadas.
 
 ## 2. Magnitud del delta desde BL-002
 
-Comparación física propuesta:
+Comparación física:
 
 ```text
 1ada9415d0ef885f55419e4775c5976d3e75d08e
@@ -32,9 +32,9 @@ Resultado verificado:
 - reconciliaciones de Framework Map, Master Project Map, Project Context y Manual Maestro;
 - cierre/reconciliación del propio BL-002;
 - contrato UI del Configuration Center;
-- tres slices ejecutables del Configuration Center UI;
+- tres slices ejecutables selected-context;
 - pruebas automatizadas asociadas;
-- reconciliación de Project Context con el nuevo estado físico.
+- reconciliación adicional que registra la divergencia residual del cuerpo de `Project_Context.md`.
 
 ## 3. Estado relevante incorporado
 
@@ -49,17 +49,22 @@ El estado referenciado contiene reconciliaciones posteriores a BL-002 para:
 - `EIOS-BL-002.md` postintegración;
 - `Project_Context_Reconciliation_2026-09-14.md`.
 
+**Precisión de continuidad:** `Project_Context.md` sigue conservando en su sección 20 una formulación anterior al cierre de los tres slices. El estado vigente debe interpretarse junto con `Project_Context_Reconciliation_2026-09-14.md` y con el `main` vivo. BL-003 no afirma que el cuerpo completo de `Project_Context.md` haya sido reescrito después de Slice 1–3.
+
+El documento de reconciliación fue redactado antes de completar sus propios gates y conserva internamente un marcador histórico de CI pendiente. El estado físico real posterior queda demostrado por PR #136, CI #763 pre-merge y CI #764 postintegración.
+
 ### 3.2 Configuration Center UI Contract
 
 Queda cerrado e integrado `03_App/Configuration_Center_UI_Contract_v0.1.md`.
 
-Su alcance autoriza representación y gestión UI de configuración ya autorizada, pero no crea parámetros, reglas, excepciones, identidad, empresas, simulación ni decisión de compra.
+El contrato define una superficie UI más amplia que la materializada actualmente. Su cierre documental **no equivale a afirmar que todas sus vistas/capacidades tengan ya productor ejecutable**.
+
+No autoriza autenticación, creación/eliminación de parámetros, edición estructural de reglas, prioridades CRC, excepciones, simulación decisional ni decisión de compra.
 
 ### 3.3 Slice 1 — provenance-safe controller
 
-Queda integrado `eios/frontend/visual/configuration_center.py` con:
+Queda integrado `eios/frontend/visual/configuration_center.py` para un contexto empresa/parámetro/actor ya suministrado aguas arriba, con:
 
-- contexto empresa/parámetro/actor suministrado aguas arriba;
 - detalle e histórico;
 - propuesta de cambio;
 - validación;
@@ -67,6 +72,8 @@ Queda integrado `eios/frontend/visual/configuration_center.py` con:
 - revalidación previa a escritura;
 - aplicación exclusiva mediante `ParameterConfigurationCenter`;
 - fail-closed y conservación de errores.
+
+No enumera empresas ni descubre globalmente parámetros.
 
 ### 3.4 Slice 2 — presentación pura
 
@@ -87,6 +94,8 @@ Queda integrado `eios/frontend/visual/configuration_center_workflow.py` con:
 - histórico no inventado y marcado `stale` tras aplicación;
 - errores técnicos de workflow separados de errores de dominio.
 
+Slices 1–3 constituyen el **subconjunto ejecutable selected-context** actualmente demostrado del contrato UI.
+
 ## 4. Gates recientes
 
 - PR #132 — Configuration Center UI Contract — CI pre/post SUCCESS;
@@ -103,7 +112,7 @@ b10c4cde6c4f52af04de0794493432961b745dca
 
 ## 5. Capacidades que este Baseline NO declara cerradas
 
-Configuration Center UI no demuestra todavía:
+El Configuration Center UI ejecutable no demuestra todavía:
 
 - autenticación o resolución confiable de identidad;
 - enumeración de empresas autorizadas;
@@ -114,7 +123,15 @@ Configuration Center UI no demuestra todavía:
 - simulación cuantitativa del impacto de un parámetro;
 - ejecución automática de una decisión empresarial.
 
-## 6. Bloqueos transversales preservados
+## 6. Autoridad preservada
+
+Conforme a `00_Gobierno/Matriz_Autoridad_Documental.md`:
+
+- `02_Parametros/Catalogo_Parametros_MVP_v0.3.md` conserva autoridad sobre qué parámetros existen y qué representan;
+- `02_Parametros/Centro_Parametrizacion.md` conserva autoridad sobre valores, vigencia, edición, permisos y gobierno de configuración;
+- `08_Implementacion/` implementa dichas autoridades y no puede ampliarlas silenciosamente.
+
+## 7. Bloqueos transversales preservados
 
 BL-003 no resuelve por inferencia:
 
@@ -124,11 +141,12 @@ BL-003 no resuelve por inferencia:
 - Assurance / Shadow Mode sin una fuente autorizada de decisión humana de referencia y su gobierno;
 - Profitability / MGE allí donde la semántica cuantitativa especializada siga sin autoridad suficiente.
 
-## 7. Límites
+## 8. Límites
 
 Este Baseline:
 
 - no declara terminado el MVP;
+- no presenta los tres slices como implementación completa del contrato UI;
 - no convierte la UI en autenticador;
 - no autoriza un selector libre de empresa;
 - no crea catálogo ejecutable de parámetros;
@@ -139,25 +157,26 @@ Este Baseline:
 
 La decisión empresarial final permanece humana.
 
-## 8. Método de establecimiento
+## 9. Método de establecimiento
 
 ```text
-DISEÑAR       ✅ — este artefacto inicial
-AUDITAR       ⏳
-DEPURAR       ⏳
+DISEÑAR       ✅
+AUDITAR       ✅ — `07_Pruebas/EIOS_BL_003_Audit_1.md`
+DEPURAR       ✅ — incorporadas A1–A3
 AUDITAR 2     ⏳
 CERRAR        ⏳
 MATERIALIZAR  ⏳
 CI            ⏳
 ```
 
-## 9. Criterio de validez propuesto
+## 10. Criterio de validez
 
-BL-003 solo podrá cerrarse si la auditoría demuestra que:
+BL-003 solo podrá cerrarse si Audit 2 confirma que:
 
-1. `b10c4cde...` está realmente validado por CI postintegración;
+1. `b10c4cde...` está realmente validado por CI postintegración #764;
 2. el delta desde BL-002 es físicamente `ahead=60`, `behind=0`;
-3. no se presenta Configuration Center UI como una UI completa con productores aún inexistentes;
-4. se conservan todos los bloqueos relevantes;
-5. no se introduce autoridad funcional nueva;
-6. el artefacto supera CI pre-merge, reconciliación de `main`, merge protegido y CI postintegración.
+3. Slices 1–3 se describen como subconjunto selected-context y no como UI completa;
+4. la divergencia residual de `Project_Context.md` queda explícita y no ocultada;
+5. se conservan todos los bloqueos relevantes;
+6. no se introduce autoridad funcional nueva;
+7. el artefacto supera CI pre-merge, reconciliación de `main`, merge protegido y CI postintegración.
