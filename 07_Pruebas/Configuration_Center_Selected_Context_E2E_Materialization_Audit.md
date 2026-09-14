@@ -3,7 +3,8 @@
 **Fecha:** 2026-09-14  
 **Baseline funcional:** `main @ 4399f22c605c057690e643e3429ef016c74049c4`  
 **Materialización auditada:** `b4d9ee642598296acfda6b59168cd0a931f427a8`  
-**Dictamen:** CONFORME — PENDIENTE DE CI
+**Dictamen original:** CONFORME — PENDIENTE DE CI  
+**Estado posterior de integración:** PR #140 · CI #771/#772 SUCCESS · merge `4ca4b1e9bf029b5a138b11c9b16d1188582a4231`
 
 ## 1. Objeto materializado
 
@@ -78,7 +79,7 @@ El test prepara sin conflicto, inyecta una única configuración externa solapad
 
 La escritura externa simulada queda diferenciada de la escritura EIOS rechazada.
 
-## 6. Integridad de rama
+## 6. Integridad de rama auditada en materialización
 
 Comparación posterior a la materialización contra el baseline:
 
@@ -88,12 +89,24 @@ Comparación posterior a la materialización contra el baseline:
 - cambios funcionales: únicamente nuevo test E2E;
 - resto de cambios: documentación de contrato/auditoría/cierre.
 
+Estos valores describen la rama en el momento de esta auditoría y se conservan como evidencia histórica.
+
 ## 7. Compatibilidad con CI
 
-La CI vigente ejecuta Python 3.12, instala `.[test]`, corre `python -m pytest -q` y valida los esquemas SQL existentes. La materialización no modifica dependencias, workflow ni SQL.
+La CI vigente ejecutaba Python 3.12, instalaba `.[test]`, corría `python -m pytest -q` y validaba los esquemas SQL existentes. La materialización no modificó dependencias, workflow ni SQL.
 
-## 8. Dictamen
+## 8. Dictamen y estado posterior
 
-**MATERIALIZACIÓN CONFORME — PENDIENTE DE CI.**
+**DICTAMEN ORIGINAL:** MATERIALIZACIÓN CONFORME — PENDIENTE DE CI.
 
-No se detecta contradicción que exija reabrir Slices 1–4 o el backend. El siguiente gate obligatorio es reconciliar rama, abrir PR y obtener CI pre-merge `SUCCESS` sobre su HEAD exacto.
+Ese dictamen correspondía correctamente al instante previo a abrir/completar los gates del PR. Posteriormente:
+
+- PR #140 se abrió sobre HEAD `1636da9d3f51f2ea3f81baf158acf9f901969a5d`;
+- CI pre-merge #771 terminó `SUCCESS`;
+- la rama se reconcilió con `behind=0`;
+- el merge protegido produjo `4ca4b1e9bf029b5a138b11c9b16d1188582a4231`;
+- CI post-merge #772 terminó `SUCCESS` sobre ese merge SHA.
+
+**ESTADO POSTERIOR:** MATERIALIZACIÓN VALIDADA E INTEGRADA — CI PRE/POST SUCCESS.
+
+No se detectó contradicción que exigiera reabrir Slices 1–4 o el backend.

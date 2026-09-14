@@ -1,12 +1,15 @@
 # EIOS — Configuration Center UI Contract v0.1
 
-**Estado:** DEPURADO — PENDIENTE DE AUDITORÍA 2  
+**Estado:** 🔒 CERRADO — DISEÑO UI MVP  
 **Fecha:** 2026-09-13  
 **Baseline físico:** `main @ 409d3a19d3cfcb217db431465189671b50c42dbc`  
+**Estado posterior de integración:** PR #132 · CI #752/#753 SUCCESS · merge `6206df223f2f952977802300b2579f1e51e491d5`  
 **Autoridad funcional:** `02_Parametros/Centro_Parametrizacion.md`  
 **Autoridad de parámetros:** `02_Parametros/Catalogo_Parametros_MVP_v0.3.md`  
 **Frontera técnica existente:** `08_Implementacion/Centro_Parametrizacion_Implementation_Contract.md`  
 **Arquitectura UI:** `03_App/UI_Architecture_Contract_v0.1.md`
+
+> **Precisión de estado:** este documento cierra el **diseño UI MVP**. No declara que toda la superficie aquí definida esté materializada ejecutablemente. El runtime demostrado actualmente permanece limitado al subconjunto **selected-context** cerrado en Slices 1–4 y su conformidad E2E.
 
 ---
 
@@ -224,3 +227,5 @@ La UI no reescribe histórico.
 ## 15. Criterio de cierre de diseño
 
 El diseño podrá cerrarse si Audit 2 demuestra que todas las interacciones tienen autoridad identificable, no aparece semántica paralela, la arquitectura respeta Presentation → Controller → Service, edición y ámbitos son fail-closed, actor/empresa no son suplantables desde UI, existe revalidación previa a escritura y no se reabren componentes decisionales cerrados.
+
+**Estado reconciliado:** este criterio fue satisfecho por Audit 2 y el cierre documental; PR #132 quedó integrado con CI #752/#753 en SUCCESS. Esta constatación no amplía la cobertura ejecutable más allá de lo demostrado posteriormente por las unidades selected-context.
