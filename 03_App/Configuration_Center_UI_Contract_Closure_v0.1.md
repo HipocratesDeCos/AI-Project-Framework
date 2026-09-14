@@ -2,7 +2,8 @@
 
 **Fecha:** 2026-09-13  
 **Estado:** 🔒 CERRADO — DISEÑO UI MVP  
-**Audit 2:** SUPERADA — SIN BLOQUEADORES
+**Audit 2:** SUPERADA — SIN BLOQUEADORES  
+**Estado posterior de integración:** PR #132 · CI #752/#753 SUCCESS · merge `6206df223f2f952977802300b2579f1e51e491d5`
 
 ## 1. Unidad cerrada
 
@@ -24,6 +25,8 @@ Define la frontera de interfaz MVP para consultar y modificar configuración aut
 - fail-closed de autorización;
 - preservación de tipo/unidad;
 - tratamiento explícito de errores/conflictos.
+
+Este alcance corresponde al **diseño UI MVP cerrado**. No implica que todas estas capacidades dispongan ya de productor ejecutable. La implementación demostrada posteriormente permanece limitada al subconjunto **selected-context** materializado y validado.
 
 ## 3. Límites congelados
 
@@ -53,11 +56,15 @@ DEPURAR       ✅
 AUDITAR 2     ✅
 CERRAR        ✅
 MATERIALIZAR  ✅ documentación
-CI            ⏳ pendiente sobre HEAD exacto
+CI            ✅ PR #132 · #752/#753 SUCCESS
 ```
 
-## 6. Siguiente frontera autorizada
+## 6. Estado posterior y frontera ejecutable
 
-Tras integrar este cierre con CI pre/post satisfactoria, la siguiente unidad podrá ser la **implementación ejecutable del Configuration Center UI**, limitada estrictamente por este contrato y por la arquitectura UI vigente.
+La integración documental de esta unidad quedó completada mediante PR #132, con CI pre-merge #752 y CI post-merge #753 en `SUCCESS`.
 
-No se autoriza implementación antes de completar el gate CI e integración de esta unidad documental.
+Después de este cierre se materializaron unidades ejecutables selected-context separadas. Esa evolución respeta este contrato, pero **no convierte el cierre del diseño en prueba de implementación completa** de lista/búsqueda global, enumeración de empresas, autenticación/identidad u otras capacidades sin productor físico autorizado.
+
+Cualquier ampliación futura continúa obligada a ejecutar su propio ciclo:
+
+`DISEÑAR → AUDITAR → DEPURAR → AUDITAR 2 → CERRAR → MATERIALIZAR → CI`.
