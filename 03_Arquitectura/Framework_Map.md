@@ -2,8 +2,8 @@
 
 ## Índice Maestro del Framework
 
-**Versión:** 3.3.2  
-**Estado:** APROBADO — reconciliación de continuidad post-EIOS-BL-003  
+**Versión:** 3.3.3  
+**Estado:** APROBADO — reconciliación de continuidad post-EIOS-BL-004  
 **Función:** Índice maestro de navegación de la estructura documental y técnica EIOS  
 **Ubicación:** `03_Arquitectura/Framework_Map.md`
 
@@ -98,6 +98,7 @@ Gobierno, identidad, contexto, autoridad, trazabilidad y salvaguarda del proyect
 - `Baselines/EIOS-BL-001.md`
 - `Baselines/EIOS-BL-002.md`
 - `Baselines/EIOS-BL-003.md`
+- `Baselines/EIOS-BL-004.md`
 
 Los Baselines fijan puntos formales de continuidad asociados a SHAs concretos. No sustituyen la autoridad especializada de los componentes que resumen.
 
@@ -367,7 +368,7 @@ La Salvaguarda vigente del Vertical MVP es:
 
 El punto formal de continuidad más reciente es:
 
-`00_Gobierno/Baselines/EIOS-BL-003.md`
+`00_Gobierno/Baselines/EIOS-BL-004.md` — `d3c462a2536ee20204b9d5c9dce1024e1ca7d31c`
 
 El Baseline no sustituye a las fuentes especializadas.
 
@@ -401,11 +402,11 @@ Esta regla evita convertir el mapa en un inventario manual frágil.
 # 11. ESTADO DEL FRAMEWORK
 
 **Framework:** EIOS  
-**Baseline de continuidad vigente:** EIOS-BL-003  
+**Baseline de continuidad vigente:** EIOS-BL-004 @ `d3c462a2536ee20204b9d5c9dce1024e1ca7d31c`  
 **Estado:** En desarrollo  
 **Gobierno:** Activo  
 **Salvaguarda Vertical MVP:** Vigente  
-**Versión del mapa:** 3.3.2
+**Versión del mapa:** 3.3.3
 
 ---
 
