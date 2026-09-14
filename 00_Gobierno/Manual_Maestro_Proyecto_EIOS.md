@@ -3,9 +3,9 @@
 ## EIOS — Enterprise Intelligent Operations System
 
 **Documento:** Manual Maestro del Proyecto EIOS (MMP-EIOS)  
-**Versión:** 2.1  
-**Estado:** APROBADO — reconciliación de continuidad vigente  
-**Fecha:** 13/09/2026  
+**Versión:** 2.2  
+**Estado:** APROBADO — reconciliación de continuidad BL-003  
+**Fecha:** 14/09/2026  
 **Ubicación oficial:** `00_Gobierno/Manual_Maestro_Proyecto_EIOS.md`
 
 ---
@@ -64,7 +64,7 @@ La recuperación del proyecto debe comenzar por estas fuentes:
 ├── Manual_Maestro_Proyecto_EIOS.md
 ├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
 └── Baselines/
-    └── EIOS-BL-002.md
+    └── EIOS-BL-003.md
 
 03_Arquitectura/
 ├── Framework_Map.md
@@ -78,7 +78,7 @@ Funciones principales:
 - `Project_Governance.md` → gobierno y evolución controlada.
 - `Matriz_Autoridad_Documental.md` → precedencia y fuente oficial por dominio.
 - Salvaguarda Vertical MVP → marco congelado, restricciones y no regresión.
-- `EIOS-BL-002.md` → punto formal de recuperación asociado a un SHA concreto.
+- `EIOS-BL-003.md` → punto formal de recuperación asociado a un SHA concreto.
 - `Framework_Map.md` → dónde buscar documentación y materialización.
 - `Master_Project_Map.md` → cómo se organiza EIOS como sistema/proyecto.
 
@@ -248,6 +248,7 @@ El estado integrado contiene, entre otras, las siguientes capacidades o frontera
 - Decision Versioning;
 - E2E Execution Boundary;
 - UI / Visual Frontend U1.1 en su alcance representacional;
+- Configuration Center UI en su subconjunto selected-context demostrado;
 - reconciliaciones de provenance e integración asociadas.
 
 “Cerrado” significa únicamente cerrado dentro del alcance expresamente autorizado por su contrato o fuente especializada. No autoriza ampliaciones semánticas por inferencia.
@@ -296,7 +297,7 @@ La configuración y gobierno de sus valores corresponde a:
 
 Las relaciones parámetro ↔ regla deben consultarse en las matrices oficiales correspondientes.
 
-Existe materialización técnica del alcance autorizado de parametrización, pero la interfaz definitiva del Configuration Center continúa siendo una evolución separada.
+El Configuration Center dispone de backend materializado, contrato UI cerrado y un subconjunto ejecutable **selected-context** validado mediante Slices 1–4 y conformidad E2E. No se considera demostrada una UI completa: autenticación/resolución de identidad, enumeración de empresas autorizadas y descubrimiento global de parámetros continúan requiriendo productores propios antes de materializarse.
 
 La existencia de backend, SQL o UI no permite crear silenciosamente nuevos parámetros ni valores empresariales.
 
@@ -414,7 +415,7 @@ Secuencia mínima:
 4. leer `Matriz_Autoridad_Documental.md`;
 5. leer la Salvaguarda Vertical MVP;
 6. consultar `Framework_Map.md` y `Master_Project_Map.md`;
-7. consultar `EIOS-BL-002.md` como punto formal de recuperación;
+7. consultar `EIOS-BL-003.md` como punto formal de recuperación;
 8. verificar el SHA actual de `main`;
 9. identificar la unidad realmente abierta y su autoridad especializada;
 10. continuar únicamente dentro del alcance autorizado.
@@ -452,11 +453,11 @@ GitHub conserva el historial; las versiones antiguas del Manual no deben utiliza
 
 **Framework:** EIOS  
 **Vertical:** Intelligent Procurement Decision & Negotiation  
-**Baseline formal más reciente:** EIOS-BL-002  
+**Baseline formal más reciente:** EIOS-BL-003  
 **Estado general:** En desarrollo  
 **Gobierno:** Activo  
 **Salvaguarda Vertical MVP:** Vigente  
-**Manual:** v2.1 — reconciliado 13/09/2026
+**Manual:** v2.2 — reconciliado 14/09/2026
 
 El Vertical MVP completo **no está declarado cerrado**.
 
