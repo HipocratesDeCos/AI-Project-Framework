@@ -8,11 +8,14 @@
 Se contrastaron físicamente:
 
 - `eios/rules/scenario_integration.py`;
+- `eios/rules/decision_twin_integration.py`;
 - `eios/rules/__init__.py`;
 - `eios/core/viability_scenario_integration.py`;
 - `eios/core/viability_frontier.py`;
 - `eios/core/o4_o2_o3_orchestration.py`;
+- `eios/core/decision_twin.py` y `eios/core/decision_twin_engine.py` como frontera preservada;
 - `tests/test_scenario_stage2_provenance_boundary.py`;
+- `tests/test_decision_twin_provenance_integration.py`;
 - `tests/test_vertical_mvp_scenario_e2e_conformance.py`;
 - `tests/test_viability_scenario_integration.py`;
 - `08_Implementacion/Scenario_Stage2_Provenance_Boundary_Contract_v0.1.md`;
@@ -69,7 +72,15 @@ El precedente QTG elimina la vía insegura de la firma/API y no crea estados art
 
 **Depuración:** aplicar retirada explícita de los símbolos públicos Stage 2 inseguros; no crear un `VF_BLOCKED` ni una excepción de negocio permanente.
 
-## 8. Resultado de Audit 1
+## 8. Hallazgo A7 — consumidor aguas abajo Decision Twin
+
+La primera CI de la materialización detectó que `eios.rules.decision_twin_integration` seguía importando `ProvenancedScenarioAnalyticsInput` y `complete_provenanced_o4_o2_o3_orchestration`, ambos retirados por la cuarentena Stage 2. Además, ese wrapper se denominaba explícitamente provenance-safe y su test fabricaba manualmente `ViabilityResult`.
+
+**Clasificación:** BLOQUEADOR de integración y propagación directa de la misma contradicción de procedencia, no defecto del Decision Twin core.
+
+**Depuración:** extender la cuarentena exclusivamente al wrapper público `eios.rules.decision_twin_integration` y a sus cuatro exports; sustituir su test positivo sintético por prueba de no exposición; preservar `eios.core.decision_twin`, `eios.core.decision_twin_engine` y `compare_alternatives(...)`.
+
+## 9. Resultado de Audit 1
 
 El diseño queda depurado con estas restricciones obligatorias:
 
@@ -78,7 +89,8 @@ El diseño queda depurado con estas restricciones obligatorias:
 3. ningún `FrontierAssessment` arbitrario puede elevarse a input provenance-safe por simple recálculo;
 4. C0+Trace permanece cerrado e intacto;
 5. O4/O2/O3 y VF permanecen funcionalmente intactos;
-6. los tests de conformidad deberán reflejar el bloqueo real;
-7. una reapertura futura exige productor físico y auditable de consecuencias VF.
+6. todo wrapper público aguas abajo que dependa de la afirmación Stage 2 provenance-safe debe quedar bloqueado, sin reabrir su core;
+7. los tests de conformidad deberán reflejar el bloqueo real;
+8. una reapertura futura exige productor físico y auditable de consecuencias VF.
 
 Con estas depuraciones, la unidad puede pasar a materialización técnica y posteriormente a Audit 2.
