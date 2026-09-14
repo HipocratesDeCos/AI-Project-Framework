@@ -1,6 +1,6 @@
 # EIOS — Configuration Center Selected-Context E2E Conformance Contract v0.1
 
-**Estado:** DISEÑO  
+**Estado:** DEPURADO — PENDIENTE DE AUDITORÍA 2  
 **Fecha:** 2026-09-14  
 **Baseline:** `main @ 4399f22c605c057690e643e3429ef016c74049c4`  
 **Objeto:** verificación E2E sin nueva funcionalidad
@@ -37,7 +37,7 @@ Los únicos dobles permitidos son los tres puertos expresamente previstos por `e
 - autorización;
 - repositorio.
 
-No se mockean Slices 1–4 ni `ParameterConfigurationCenter`.
+No se mockean Slices 1–4 ni `ParameterConfigurationCenter`. No se monkeypatchan métodos privados o públicos de producción.
 
 ## 3. Contexto de prueba
 
@@ -71,9 +71,11 @@ La autorización de prueba debe ser **mutable** para simular:
 
 El test no interpreta por qué se revoca; solo demuestra que la revalidación de Slice 1 impide escritura posterior.
 
-## 6. Puerto de repositorio
+## 6. Puerto de repositorio E2E
 
-El repositorio de prueba implementará el protocolo real:
+Se implementará un repositorio local del propio test, independiente de `FakeRepository` y de constantes globales de otros tests.
+
+Debe implementar el protocolo real:
 
 - `get_current`;
 - `get_at`;
@@ -81,61 +83,84 @@ El repositorio de prueba implementará el protocolo real:
 - `has_overlapping_configuration`;
 - `apply_change_atomically`.
 
-Debe:
+Además debe:
 
+- recibir un `effective_now` explícito e inmutable por escenario;
+- usar ese instante para determinar configuración vigente y marcas temporales de las escrituras del escenario;
 - conservar aislamiento por empresa/parámetro;
 - preservar histórico;
 - repetir el control de conflicto dentro de `apply_change_atomically`;
-- permitir inyectar una configuración concurrente entre `prepare()` y `confirm()` para verificar conflicto anti-stale;
-- no implementar semántica adicional de cierre automático de configuraciones activas.
+- exponer `atomic_apply_calls` para demostrar si la escritura atómica llegó o no a invocarse;
+- disponer de `inject_external_configuration(...)` exclusivamente para simular una escritura concurrente externa entre `prepare()` y `confirm()`;
+- no añadir histórico EIOS por esa inyección externa;
+- no implementar cierre automático, sustitución implícita ni edición in-place de configuraciones vigentes.
+
+La inyección concurrente pertenece únicamente al doble de persistencia de prueba; no modifica ni sustituye comportamiento de producción.
 
 ## 7. Escenario E2E positivo
 
 Partida sin configuración ni histórico para `COMP-001 / PRE-001`.
 
+La creación positiva representa **la primera configuración** del contexto. No representa edición o sustitución de una configuración activa.
+
 Flujo:
 
-1. construir backend real + Slices 1–4;
-2. `workflow.refresh()`;
-3. comprobar `data_ready=True`, configuración actual `None`, histórico vacío y payload JSON-safe;
-4. preparar cambio con intervalo válido que empiece en el instante de referencia de prueba;
-5. comprobar `AWAITING_CONFIRMATION` y confirmación visible;
-6. `workflow.confirm()`;
-7. comprobar `APPLIED`, configuración real devuelta y `history_stale=True`;
-8. comprobar que el snapshot inmediatamente posterior no inventa histórico nuevo;
-9. `workflow.refresh()`;
-10. comprobar configuración vigente real, histórico con una entrada, actor/motivo/valor preservados y `history_stale=False`;
-11. serializar el payload final con `json.dumps(...)`.
+1. fijar un `effective_now` determinista;
+2. construir puertos de prueba + `ParameterConfigurationCenter` real + Slices 1–4 reales;
+3. `workflow.refresh()`;
+4. comprobar `data_ready=True`, configuración actual `None`, histórico válido vacío y payload JSON-safe;
+5. preparar cambio con `valid_from == effective_now` y `valid_to` futuro;
+6. comprobar `AWAITING_CONFIRMATION` y confirmación visible;
+7. `workflow.confirm()`;
+8. comprobar `APPLIED`, configuración real devuelta y `history_stale=True`;
+9. comprobar que el snapshot inmediatamente posterior conserva el histórico previo vacío y **no inventa** la entrada recién escrita;
+10. comprobar que `atomic_apply_calls == 1`;
+11. `workflow.refresh()`;
+12. comprobar configuración vigente real, histórico con una entrada, actor/motivo/valor preservados y `history_stale=False`;
+13. comprobar que empresa y parámetro permanecen `COMP-001 / PRE-001` en detalle, configuración e histórico;
+14. serializar el payload final con `json.dumps(...)`.
 
 ## 8. Revocación de autorización
 
 Flujo:
 
-1. carga válida;
-2. `prepare()` con autorización permitida;
-3. cambiar únicamente el puerto de autorización a denegado;
-4. `confirm()`;
-5. esperar `FORBIDDEN / UNAUTHORIZED_CHANGE`;
-6. confirmar que repositorio e histórico siguen sin escritura;
-7. confirmar que no existe panel de confirmación pendiente;
-8. confirmar que el formulario permanece disponible como borrador corregible;
-9. payload final JSON-safe.
+1. repositorio vacío y autorización permitida;
+2. `refresh()` válido;
+3. `prepare()` válido;
+4. cambiar únicamente el puerto de autorización a denegado;
+5. `confirm()`;
+6. esperar `FORBIDDEN / UNAUTHORIZED_CHANGE`;
+7. demostrar simultáneamente que no hubo escritura:
+   - `atomic_apply_calls == 0`;
+   - configuraciones del repositorio vacías;
+   - histórico vacío;
+8. comprobar `controller.has_pending_confirmation == False`;
+9. comprobar confirmación ausente;
+10. comprobar formulario retenido como borrador corregible;
+11. comprobar que contexto y payload siguen reflejando `COMP-001 / PRE-001 / USER-001`;
+12. serializar el payload final con `json.dumps(...)`.
 
-Este escenario demuestra que la validación inicial no se reutiliza como autorización permanente.
+Este escenario demuestra que la validación inicial no se reutiliza como autorización permanente y que el fallo visual corresponde a ausencia efectiva de persistencia.
 
 ## 9. Conflicto concurrente
 
 Flujo:
 
-1. carga válida;
-2. `prepare()` sobre repositorio sin conflicto;
-3. insertar directamente en el puerto de repositorio una configuración solapada antes de `confirm()` para simular escritura concurrente externa;
-4. `confirm()`;
-5. esperar `CONFLICT / CONFLICTING_ACTIVE_CONFIGURATION` antes de la escritura solicitada;
-6. comprobar que no se añade una segunda configuración/histórico por el cambio rechazado;
-7. confirmar que no queda pending oculto.
+1. repositorio inicialmente sin conflicto;
+2. `refresh()` válido;
+3. `prepare()` válido;
+4. registrar el valor de `atomic_apply_calls` tras `prepare()`;
+5. usar `inject_external_configuration(...)` para insertar una única configuración externa solapada antes de `confirm()`;
+6. `confirm()`;
+7. esperar `CONFLICT / CONFLICTING_ACTIVE_CONFIGURATION`;
+8. comprobar que la única configuración existente es la externa inyectada;
+9. comprobar que `atomic_apply_calls` **no aumenta** por la solicitud EIOS rechazada cuando la revalidación previa detecta el conflicto;
+10. comprobar que no se genera ninguna entrada de histórico atribuible a la solicitud EIOS rechazada;
+11. comprobar `controller.has_pending_confirmation == False` y confirmación ausente;
+12. comprobar formulario retenido como borrador corregible;
+13. serializar el payload final con `json.dumps(...)`.
 
-La inyección se realiza en el **doble de persistencia de prueba**, no en producción, y representa una carrera externa que el contrato debe detectar.
+El test distingue explícitamente la escritura externa simulada de una eventual escritura EIOS: la presencia de la configuración externa no puede interpretarse como éxito del cambio solicitado.
 
 ## 10. Aislamiento de contexto
 
@@ -144,8 +169,8 @@ Debe verificarse que a través de toda la cadena:
 - empresa sigue siendo `COMP-001`;
 - parámetro sigue siendo `PRE-001`;
 - actor de histórico sigue siendo `USER-001`;
-- ninguna operación acepta identificadores alternativos durante preparación/confirmación;
-- el payload de Slice 4 refleja esos mismos identificadores.
+- ninguna operación de preparación/confirmación admite identificadores alternativos, porque estos no forman parte del formulario/propuesta;
+- el payload de Slice 4 refleja los mismos identificadores cuando están presentes.
 
 No se probará selección libre de empresa/parámetro porque dicha capacidad no existe.
 
@@ -161,7 +186,9 @@ Esta unidad no prueba ni implementa:
 - reglas/CRC;
 - simulación de impacto;
 - QTG;
-- decisiones de compra.
+- decisiones de compra;
+- cierre automático de vigencias;
+- sustitución in-place de configuraciones activas.
 
 ## 12. Materialización autorizada
 
@@ -182,16 +209,18 @@ La conformidad puede cerrarse solo si:
 2. el backend usado es `ParameterConfigurationCenter` real;
 3. positivo, revocación y conflicto pasan;
 4. histórico/frescura se comportan según contratos cerrados;
-5. payload final es JSON-safe;
-6. no se modifica producción;
-7. suite completa CI queda verde.
+5. las dos rutas rechazadas demuestran ausencia efectiva de escritura EIOS;
+6. el conflicto distingue inequívocamente la configuración externa de la solicitud rechazada;
+7. payloads finales son JSON-safe;
+8. no se modifica producción;
+9. suite completa CI queda verde.
 
 ## 14. Método
 
 ```text
 DISEÑAR       ✅
-AUDITAR       ⏳
-DEPURAR       ⏳
+AUDITAR       ✅ Audit 1 — 4 precisiones, 0 bloqueos
+DEPURAR       ✅ A1–A4 incorporados
 AUDITAR 2     ⏳
 CERRAR        ⏳
 MATERIALIZAR  ⏳ tests solamente
