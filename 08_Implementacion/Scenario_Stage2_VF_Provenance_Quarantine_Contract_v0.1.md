@@ -1,6 +1,6 @@
 # EIOS — Scenario Stage 2 VF Provenance Quarantine Contract v0.1
 
-**Estado:** DISEÑADO — AUDIT 1 SUPERADA — PENDIENTE DE MATERIALIZACIÓN  
+**Estado:** 🔒 CERRADO — AUDITORÍA 2 SUPERADA — MATERIALIZADO — PENDIENTE CI  
 **Baseline:** `main @ 9a762927a536d36db3ab852127318ec6628fc216`  
 **Ámbito:** frontera pública Scenario Stage 2 ↔ Viability Frontier.
 
@@ -16,9 +16,9 @@ En el baseline indicado:
 
 - `ProvenancedScenarioAnalyticsInput` acepta `viability_result: ViabilityResult`;
 - `build_authorized_scenario_analytics_from_provenanced_assessments(...)` valida C0 `Assessment+Trace` con procedencia fuerte, pero para VF solo comprueba tipo, `decision_id`, `scenario_id` y versiones/snapshot;
-- `build_authorized_analytics_from_viability(...)` consume un `ViabilityResult` ya producido y transporta `status`, `assessment_ids`, `rule_ids`, `trace_references` y `limitation` suministrados por el caller;
+- el antiguo `build_authorized_analytics_from_viability(...)` consumía un `ViabilityResult` ya producido y transportaba `status`, `assessment_ids`, `rule_ids`, `trace_references` y `limitation` suministrados por el caller;
 - `ViabilityResult` es una dataclass públicamente construible;
-- los tests de Stage 2 y del E2E vertical construyen manualmente `ViabilityResult` y lo utilizan como prueba de conformidad;
+- los tests de Stage 2 y del E2E vertical construían manualmente `ViabilityResult` y lo utilizaban como prueba de conformidad;
 - el contrato de Stage 2 afirma, sin embargo, que un objeto Python construido por el caller no constituye por sí mismo prueba de procedencia.
 
 Existe por tanto una asimetría: C0 demuestra procedencia de `Assessment+Trace`, mientras VF solo demuestra coherencia contextual del resultado desprendido.
@@ -39,11 +39,11 @@ Mientras no exista productor VF provenance-safe:
 - `build_authorized_scenario_analytics_from_provenanced_assessments` deja de formar parte del API público;
 - `complete_provenanced_o4_o2_o3_orchestration` deja de formar parte del API público.
 
-No se conserva alias legacy ni compatibilidad silenciosa. Un consumidor que intente importar esos símbolos desde `eios.rules` recibirá el fallo visible nativo de Python.
+No se conserva alias legacy ni compatibilidad silenciosa. Un consumidor que intente importar esos símbolos desde `eios.rules` recibe el fallo visible nativo de Python.
 
 ### 4.2 Módulo `eios.rules.scenario_integration`
 
-La anterior frontera pública se pone en cuarentena. El módulo no debe seguir exportando símbolos que permitan afirmar una finalización Stage 2 provenance-safe basada en un `ViabilityResult` desprendido.
+La anterior frontera pública queda en cuarentena. El módulo no exporta símbolos que permitan afirmar una finalización Stage 2 provenance-safe basada en un `ViabilityResult` desprendido.
 
 No se sustituye por una función que siempre devuelva un estado artificial ni por una excepción de negocio nueva.
 
@@ -53,7 +53,7 @@ Se preservan:
 
 - `AuthorizedScenarioAnalytics` como transporte interno cuya construcción no prueba procedencia;
 - `_complete_o4_o2_o3_orchestration(...)` como función interna;
-- `build_authorized_analytics_from_viability(...)` únicamente como bridge context-bound interno, documentado expresamente como **no prueba de procedencia del productor VF**;
+- `_build_context_bound_analytics_from_viability(...)` como helper interno, fuera de `__all__`, que acredita únicamente coherencia contextual y **no procedencia del productor VF**;
 - `evaluate_viability(...)`, `FrontierAssessment`, `ViabilityResult` y todos los estados de VF.
 
 La existencia física de estas piezas internas no autoriza su exposición como frontera provenance-safe.
@@ -74,7 +74,7 @@ No se exige igualdad entre IDs de Assessment C0 y IDs de FrontierAssessment/VF: 
 
 ## 6. Tests exigidos
 
-La materialización deberá demostrar como mínimo:
+La materialización debe demostrar como mínimo:
 
 1. los tres símbolos inseguros ya no se exportan desde `eios.rules`;
 2. `eios.rules.scenario_integration.__all__` no publica una finalización Stage 2 provenance-safe;
@@ -83,6 +83,8 @@ La materialización deberá demostrar como mínimo:
 5. la procedencia C0+Trace permanece validada por sus tests específicos;
 6. la infraestructura interna O4/O2/O3 y VF continúa verde;
 7. la suite completa Python + validaciones SQL permanece verde.
+
+Los puntos 1–5 han sido verificados por inspección y tests materializados. Los puntos 6–7 quedan condicionados a CI completa.
 
 ## 7. Condición futura de reapertura
 
@@ -96,4 +98,4 @@ Scenario Stage 2 solo podrá volver a exponer una finalización provenance-safe 
 
 ## 8. Gate de cierre
 
-La unidad solo podrá cerrarse tras Audit 2, materialización, CI pre-merge sobre el HEAD exacto de la rama, reconciliación `behind=0`, merge protegido por SHA exacto y CI post-merge sobre el SHA integrado.
+Audit 2 ha sido superada y la materialización está auditada. El cierre físico final continúa condicionado a CI pre-merge sobre el HEAD exacto de la rama, reconciliación `behind=0`, merge protegido por SHA exacto y CI post-merge sobre el SHA integrado.
