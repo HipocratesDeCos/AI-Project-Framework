@@ -1,6 +1,6 @@
-# EIOS-BL-004 — Baseline de continuidad post-provenance quarantine
+# EIOS-BL-004 — Baseline de continuidad post-QTG/Stage2 quarantine
 
-**Estado:** DISEÑO — PENDIENTE DE AUDITORÍA  
+**Estado:** DEPURADO — PENDIENTE AUDIT 2  
 **Fecha:** 2026-09-14  
 **Repositorio:** `HipocratesDeCos/AI-Project-Framework`  
 **Rama de referencia:** `main`  
@@ -19,6 +19,8 @@ Establecer un nuevo punto formal de recuperación después del avance acumulado 
 - reconciliación de Gobierno a BL-003;
 - cuarentena de la finalización pública Scenario Stage 2 dependiente de un `ViabilityResult` desprendido;
 - cuarentena del wrapper público Decision Twin dependiente de esa frontera Stage 2.
+
+El título se refiere únicamente a estas cuarentenas concretas. BL-004 no pretende certificar ni reconciliar globalmente todas las fronteras provenance de EIOS.
 
 Este Baseline registra estado ya demostrado. No crea autoridad funcional, no declara finalizado el Vertical MVP y no sustituye contratos ni fuentes especializadas.
 
@@ -52,6 +54,8 @@ Desde el SHA histórico de BL-003 quedan integrados:
 - reconciliación final de `Project_Context.md` y Manual Maestro a BL-003.
 
 BL-004 no modifica retroactivamente el SHA ni el contenido histórico de BL-003.
+
+**Precisión de navegación:** en el estado candidato, `Project_Context.md` v2.3 sigue señalando correctamente BL-003 como punto formal de recuperación más reciente porque BL-004 todavía no está integrado. Si BL-004 supera sus gates y se integra, esa referencia quedará desfasada y deberá reconciliarse en una unidad documental posterior, separada y auditable. BL-004 no reescribe `Project_Context.md` dentro de su propia unidad.
 
 ### 3.2 Configuration Center — Slice 4 y selected-context E2E
 
@@ -88,7 +92,7 @@ Se preservan:
 
 No existe actualmente una finalización pública Stage 2 provenance-safe.
 
-### 3.5 Decision Twin
+### 3.5 Wrapper público Decision Twin dependiente de Stage 2
 
 El wrapper público `eios.rules.decision_twin_integration` queda en cuarentena por depender de la frontera Stage 2 bloqueada.
 
@@ -99,7 +103,7 @@ Se preservan sin reapertura:
 - el comparador descriptivo;
 - ausencia de winner, ranking o selección automática.
 
-La cuarentena del wrapper no debe describirse como defecto del Decision Twin core.
+La cuarentena se limita al wrapper público dependiente. No debe describirse como bloqueo o defecto general de Decision Twin ni como reapertura de su core cerrado.
 
 ## 4. Gates relevantes incorporados
 
@@ -128,9 +132,9 @@ BL-004 no resuelve por inferencia:
 
 - QTG mientras falte un `Decision Input Package` físico, agregado y trazable;
 - Scenario Stage 2 público mientras falte un productor VF provenance-safe;
-- Decision Twin integration mientras dependa de Stage 2 bloqueado;
+- el wrapper público Decision Twin dependiente mientras dependa de Stage 2 bloqueado;
 - Supplier Risk valorativo mientras falten autoridad y política cuantitativa;
-- Rotation mientras falten definición normativa, dependencias, fórmula o umbral autorizados;
+- Rotation mientras falten autoridad especializada, dependencias, fórmula o umbral autorizados;
 - Assurance / Shadow Mode sin fuente autorizada de decisión humana de referencia y su gobierno;
 - Profitability / MGE donde falte autoridad cuantitativa especializada;
 - autenticación/resolución confiable de identidad del Configuration Center;
@@ -139,9 +143,11 @@ BL-004 no resuelve por inferencia:
 
 ## 6. Precisión sobre Rotation
 
-El repositorio ya materializa datos y cálculos de Stock, incluida cobertura (`coverage_days`) y demanda diaria. Esa existencia no autoriza a reinterpretar cobertura como “Rotation” ni a crear un KPI de rotación por inferencia.
+El estado auditado materializa datos y cálculos de Stock, incluida cobertura (`coverage_days`) y demanda diaria. Esa existencia no autoriza a reinterpretar cobertura como “Rotation” ni a crear un KPI de rotación por inferencia.
 
-Mientras no exista autoridad especializada que defina semántica, fórmula, periodo, dependencias y, cuando aplique, umbral, Rotation continúa bloqueado.
+No se ha identificado en el estado auditado una autoridad especializada posterior a BL-003 que cierre los gaps ya preservados de Rotation. Mientras falten definición normativa, fórmula, periodo, dependencias y, cuando aplique, umbral autorizados, Rotation continúa bloqueado.
+
+Esta conclusión no convierte una búsqueda textual en autoridad; deriva de la combinación entre los bloqueos expresos de BL-003 y la ausencia de una autoridad posterior identificada que los cierre.
 
 ## 7. Autoridad preservada
 
@@ -175,16 +181,17 @@ Este Baseline:
 - no reabre componentes core cerrados;
 - no convierte evidencia en valoración;
 - no autoriza un decisor automático;
-- no sustituye contratos especializados.
+- no sustituye contratos especializados;
+- no corrige silenciosamente documentos de navegación cuya reconciliación corresponda a una unidad posterior.
 
 La decisión empresarial final permanece humana.
 
 ## 9. Método de establecimiento
 
 ```text
-DISEÑAR       ✅ — este artefacto inicial
-AUDITAR       ⏳
-DEPURAR       ⏳
+DISEÑAR       ✅
+AUDITAR       ✅ — `07_Pruebas/EIOS_BL_004_Audit_1.md` — 4 precisiones, 0 bloqueos
+DEPURAR       ✅ — incorporadas A1–A4
 AUDITAR 2     ⏳
 CERRAR        ⏳
 MATERIALIZAR  ⏳
@@ -193,13 +200,14 @@ CI            ⏳
 
 ## 10. Condición de cierre
 
-BL-004 solo podrá cerrarse si Audit 1 y Audit 2 confirman que:
+BL-004 solo podrá cerrarse si Audit 2 confirma que:
 
 1. el SHA candidato está realmente en `main` y validado por CI postintegración;
 2. el delta desde BL-003 está descrito sin alterar su historia;
-3. QTG y Stage 2/Decision Twin integration se presentan como cuarentenas/bloqueos, no como capacidades positivas cerradas;
+3. QTG, Scenario Stage 2 público y el wrapper público Decision Twin dependiente se presentan como cuarentenas/bloqueos, no como capacidades positivas cerradas;
 4. los cores preservados no se presentan como reabiertos;
 5. todos los bloqueos transversales relevantes permanecen visibles;
-6. no se introduce autoridad funcional nueva.
+6. la futura divergencia de navegación de `Project_Context.md` queda explícita y fuera del alcance de esta unidad;
+7. no se introduce autoridad funcional nueva.
 
 La integración del propio artefacto BL-004 requerirá además CI pre-merge sobre HEAD exacto, reconciliación `behind=0`, merge protegido por SHA exacto y CI postintegración sobre el SHA integrado.
