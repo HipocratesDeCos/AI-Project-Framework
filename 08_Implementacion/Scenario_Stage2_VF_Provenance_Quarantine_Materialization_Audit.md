@@ -25,21 +25,25 @@ Tests:
 
 - `tests/test_scenario_stage2_provenance_boundary.py` verifica la cuarentena y preservación de C0 provenance;
 - `tests/test_decision_twin_provenance_integration.py` verifica la cuarentena del wrapper dependiente y la disponibilidad del comparador core;
+- `tests/test_rules_public_provenance_boundary.py` mantiene las entradas C0 seguras y verifica que los siete símbolos Stage 2/Decision Twin dependientes no estén expuestos;
 - `tests/test_vertical_mvp_scenario_e2e_conformance.py` deja de fabricar VF para simular E2E provenance-safe;
 - `tests/test_viability_scenario_integration.py` queda limitado a coherencia contextual del helper interno.
 
-## 2. Hallazgo de la primera CI y corrección
+## 2. Hallazgos de CI y correcciones
 
 La primera CI pre-merge detectó un import roto en `eios.rules.decision_twin_integration`: el wrapper todavía importaba símbolos Stage 2 retirados. La inspección confirmó además que su test construía manualmente `ViabilityResult` y elevaba esa ruta a provenance-safe.
 
-La corrección no restaura Stage 2. Extiende el mismo fail-closed únicamente al wrapper dependiente de Decision Twin y mantiene intactos `eios.core.decision_twin` y `eios.core.decision_twin_engine`.
+La siguiente CI técnica reveló una segunda expectativa residual: `tests/test_rules_public_provenance_boundary.py` seguía exigiendo como pública y segura una función Stage 2 deliberadamente retirada.
 
-Este hallazgo queda absorbido en Audit 1, Audit 2, contrato, reconciliación y cierre antes de la CI final.
+Las correcciones no restauran Stage 2. Extienden el mismo fail-closed únicamente al wrapper dependiente de Decision Twin y reconcilian el test transversal del namespace público. Se mantienen intactos `eios.core.decision_twin`, `eios.core.decision_twin_engine` y las entradas C0 provenance-safe.
+
+Ambos hallazgos quedan absorbidos en Audit 1 y Audit 2 antes de la CI final.
 
 ## 3. Invariantes verificadas por inspección
 
 - no existe API pública que acepte `ViabilityResult` y proclame Stage 2 provenance-safe;
 - no existe wrapper Decision Twin público que pueda heredar esa afirmación;
+- el test transversal de `eios.rules` exige la ausencia de ambas fronteras en cuarentena;
 - no existe alias legacy;
 - no existe productor VF inventado;
 - no se ejecuta `evaluate_viability(...)` desde la frontera de cuarentena;
@@ -62,6 +66,7 @@ La inspección estática no sustituye la suite completa. La CI final debe verifi
 
 - consumidores físicos residuales de los símbolos retirados;
 - imports rotos;
+- expectativas históricas residuales del namespace público;
 - regresiones en Decision Twin core;
 - regresiones en tests no identificados durante la auditoría;
 - validaciones SQL/documentales globales.
