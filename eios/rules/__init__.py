@@ -1,12 +1,6 @@
 """EIOS rule-engine public components."""
 
 from .catalog import authorized_rule, authorized_rule_metadata, implemented_rule_ids
-from .decision_twin_integration import (
-    DecisionTwinInvoker,
-    ProvenancedDecisionTwinAlternativeInput,
-    build_provenanced_decision_twin_comparison,
-    build_provenanced_decision_twin_invoker,
-)
 from .delivery import (
     BASELINE_EVIDENCE_SOURCE_TYPE,
     DELIVERY_EVIDENCE_SOURCE_TYPE,
@@ -74,7 +68,6 @@ __all__ = [
     "ConsolidatedBaseResult",
     "DELIVERY_EVIDENCE_SOURCE_TYPE",
     "DecisionRuleExecutionResult",
-    "DecisionTwinInvoker",
     "DeliveryRuleInputs",
     "DomainRulesC0Invoker",
     "FINANCE_BASIC_EVIDENCE_SOURCE_TYPE",
@@ -86,7 +79,6 @@ __all__ = [
     "P_FIN_002",
     "P_FIN_004",
     "P_PRE_006",
-    "ProvenancedDecisionTwinAlternativeInput",
     "ProvenancedRulesC0Invoker",
     "R_ENT_001",
     "R_FIN_001",
@@ -108,8 +100,6 @@ __all__ = [
     "authorized_rule",
     "authorized_rule_metadata",
     "build_domain_rules_c0_invoker",
-    "build_provenanced_decision_twin_comparison",
-    "build_provenanced_decision_twin_invoker",
     "build_provenanced_rules_engine_c0_invoker",
     "build_rules_engine_c0_invoker",
     "evaluate_r_ent_001",
