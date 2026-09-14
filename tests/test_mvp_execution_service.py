@@ -5,7 +5,7 @@ import pytest
 
 from eios.core.execution_boundary import BoundaryStatus
 from eios.core.models import DecisionContext, PurchaseOperation
-from eios.core.mvp_execution import run_mvp_execution
+from eios.core.mvp_execution import MVP_CAPABILITY_ORDER, run_mvp_execution
 from eios.core.orchestration import CapabilityExecution, O1ExecutionStatus
 
 
@@ -64,7 +64,6 @@ def test_mvp_execution_runs_available_capabilities_in_canonical_order_and_contex
         purchase=purchase,
         context=context,
         policy_version="MVP-E2E-1",
-        quality_invoker=recording_invoker("QTG", "trace-qtg"),
         tco_invoker=recording_invoker("TCO", "trace-tco"),
         rules_invoker=_completed_c0,
         decision_twin_invoker=recording_invoker("DECISION_TWIN", "trace-twin"),
@@ -81,7 +80,6 @@ def test_mvp_execution_runs_available_capabilities_in_canonical_order_and_contex
 
     assert outcome.status == BoundaryStatus.COMPLETED
     assert tuple(item.capability for item in outcome.capability_results) == (
-        "QTG",
         "TCO",
         "C0",
         "DECISION_TWIN",
@@ -95,7 +93,6 @@ def test_mvp_execution_runs_available_capabilities_in_canonical_order_and_contex
         context.model_dump(mode="python"),
     )
     assert seen == {
-        "QTG": expected,
         "TCO": expected,
         "DECISION_TWIN": expected,
         "SCENARIO_COORDINATION": expected,
@@ -137,7 +134,7 @@ def test_mvp_execution_accepts_other_capabilities_without_opaque_invokers():
     assert tuple(item.capability for item in outcome.capability_results) == ("C0",)
 
 
-def test_mvp_execution_public_signature_has_no_detached_opaque_results():
+def test_mvp_execution_public_signature_quarantines_qtg_and_has_no_detached_results():
     parameters = signature(run_mvp_execution).parameters
 
     for raw_result in (
@@ -151,8 +148,9 @@ def test_mvp_execution_public_signature_has_no_detached_opaque_results():
     ):
         assert raw_result not in parameters
 
+    assert "quality_invoker" not in parameters
+
     for invoker in (
-        "quality_invoker",
         "price_invoker",
         "tco_invoker",
         "decision_twin_invoker",
@@ -161,6 +159,21 @@ def test_mvp_execution_public_signature_has_no_detached_opaque_results():
         "negotiation_ladder_invoker",
     ):
         assert invoker in parameters
+
+
+def test_mvp_execution_rejects_legacy_quality_invoker_keyword():
+    with pytest.raises(TypeError, match="quality_invoker"):
+        run_mvp_execution(
+            purchase=_purchase(),
+            context=_context(),
+            policy_version="MVP-E2E-1",
+            quality_invoker=lambda *_: _completed("QTG", "trace-qtg"),
+        )
+
+
+def test_mvp_execution_keeps_qtg_in_canonical_architecture_order():
+    assert MVP_CAPABILITY_ORDER[0] == "QTG"
+    assert MVP_CAPABILITY_ORDER.count("QTG") == 1
 
 
 def test_mvp_execution_requires_at_least_one_capability():
