@@ -1,6 +1,6 @@
 # EIOS — Scenario Stage 2 VF Provenance Quarantine — Audit 2
 
-**HEAD técnico auditado:** `482703af44b87ea30773a9e3a0f5c74133c9aaa1`  
+**HEAD técnico auditado:** `3b42487a9fc9a95fb3493788a18cb6a3baaa7a85`  
 **Baseline:** `main @ 9a762927a536d36db3ab852127318ec6628fc216`  
 **Dictamen:** SUPERADA — SIN BLOQUEADORES DE DISEÑO
 
@@ -13,7 +13,7 @@ El diff técnico/documental auditado queda limitado a:
 - `eios/rules/decision_twin_integration.py`, únicamente para retirar el wrapper público dependiente de Stage 2;
 - exports de `eios/rules/__init__.py`;
 - reclasificación interna de `eios/core/viability_scenario_integration.py`;
-- tests específicos Stage 2, VF→Scenario, E2E Scenario y frontera Decision Twin provenance.
+- tests específicos Stage 2, VF→Scenario, E2E Scenario, frontera Decision Twin provenance y namespace público de `eios.rules`.
 
 No existen cambios en O4, O2, O3, `viability_frontier.py`, C0 core, Rules Engine, CRC, Decision Twin core/comparator, Vertical MVP, presentación, SQL, parámetros ni reglas empresariales.
 
@@ -45,7 +45,20 @@ La depuración queda acotada a esa envoltura:
 
 Esto no reabre Decision Twin: elimina únicamente una frontera pública que dependía de una garantía Stage 2 ahora invalidada.
 
-## 4. Bridge VF interno
+## 4. Namespace público transversal reconciliado
+
+La segunda CI técnica reveló una expectativa histórica residual en `tests/test_rules_public_provenance_boundary.py`: el test aún exigía `build_authorized_scenario_analytics_from_provenanced_assessments` como entrada pública segura.
+
+Se ha reconciliado el test para que:
+
+- mantenga como públicas las entradas C0 provenance-safe existentes;
+- exija ausencia de los tres símbolos Stage 2 en cuarentena;
+- exija ausencia de los cuatro símbolos Decision Twin dependientes;
+- compruebe también que esos siete nombres no figuran en `rules.__all__`.
+
+No se ha añadido ningún comportamiento de producción para satisfacer el test; se corrige la expectativa para reflejar el contrato vigente.
+
+## 5. Bridge VF interno
 
 Verificado:
 
@@ -56,7 +69,7 @@ Verificado:
 - no ejecuta `evaluate_viability(...)` ni crea consecuencias H/K/U/S;
 - no se convierte en token de autorización.
 
-## 5. O4/O2/O3 preservado
+## 6. O4/O2/O3 preservado
 
 `AuthorizedScenarioAnalytics` y `_complete_o4_o2_o3_orchestration(...)` permanecen físicamente sin cambios.
 
@@ -68,7 +81,7 @@ Por tanto:
 - no se modifica el mapping de estados técnicos;
 - el transporte interno sigue sin proclamarse prueba de procedencia.
 
-## 6. VF preservado
+## 7. VF preservado
 
 `eios/core/viability_frontier.py` no se modifica.
 
@@ -83,7 +96,7 @@ Se preservan:
 
 No se inventa productor VF.
 
-## 7. C0 provenance preservado
+## 8. C0 provenance preservado
 
 La cuarentena no modifica `AssessmentTraceBinding`, `validate_assessment_trace_binding(...)`, construcción/reproducibilidad de Trace ni la frontera provenance-safe C0.
 
@@ -91,7 +104,7 @@ Los tests verifican expresamente que C0 provenance continúa exportado y disponi
 
 No se exige igualdad entre IDs C0 y VF.
 
-## 8. Tests de conformidad depurados
+## 9. Tests de conformidad depurados
 
 Se elimina de los tests de Stage 2, E2E y Decision Twin integration la construcción manual de `ViabilityResult` usada para afirmar procedencia pública.
 
@@ -100,13 +113,14 @@ El estado físico verdadero queda representado así:
 - O4→O2 Stage 1 sigue materializable;
 - la cadena no puede cruzar una finalización pública Stage 2 mientras VF carezca de productor provenance-safe;
 - ningún wrapper Decision Twin puede saltarse ese bloqueo heredando material Stage 2 no acreditado;
+- el test transversal del namespace público exige la ausencia de todas esas entradas en cuarentena;
 - C0 provenance permanece disponible;
 - Decision Twin core permanece disponible;
 - no se fabrica un resultado VF para simular que el blocker está resuelto.
 
 Los tests del bridge VF quedan identificados como tests internos de coherencia contextual y ya no como prueba E2E/provenance-safe.
 
-## 9. Autoridad y semántica
+## 10. Autoridad y semántica
 
 No se introducen:
 
@@ -123,15 +137,15 @@ No se introducen:
 
 La autoridad humana final y `NOT_EVALUABLE` permanecen intactos.
 
-## 10. Contratos históricos
+## 11. Contratos históricos
 
 Los contratos cerrados anteriores se conservan como evidencia histórica, pero la reconciliación nueva supersede exclusivamente su afirmación de que un `ViabilityResult` tipado/contextualmente consistente acredita procedencia VF suficiente para Stage 2 público y cualquier wrapper provenance-safe que dependa de esa afirmación.
 
 No se crea BL-004 ni se altera ningún SHA histórico.
 
-## 11. Dictamen
+## 12. Dictamen
 
-La corrección elimina la contradicción detectada y su consumidor aguas abajo sin desplazarla, sin inventar infraestructura ausente y sin reabrir componentes core cerrados.
+La corrección elimina la contradicción detectada, sus consumidores aguas abajo y las expectativas transversales desactualizadas sin desplazar el problema, sin inventar infraestructura ausente y sin reabrir componentes core cerrados.
 
 **AUDIT 2: SUPERADA — SIN BLOQUEADORES DE DISEÑO.**
 
