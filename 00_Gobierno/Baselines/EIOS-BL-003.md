@@ -1,11 +1,12 @@
 # EIOS-BL-003 — Baseline de continuidad Configuration Center UI
 
-**Estado:** CERRADO — MATERIALIZADO — PENDIENTE DE CI DEL ARTEFACTO  
+**Estado:** 🔒 CERRADO — MATERIALIZADO — INTEGRADO  
 **Fecha:** 2026-09-14  
 **Repositorio:** `HipocratesDeCos/AI-Project-Framework`  
 **Rama de referencia:** `main`  
 **SHA de referencia:** `b10c4cde6c4f52af04de0794493432961b745dca`  
-**Baseline anterior:** `EIOS-BL-002 @ 1ada9415d0ef885f55419e4775c5976d3e75d08e`
+**Baseline anterior:** `EIOS-BL-002 @ 1ada9415d0ef885f55419e4775c5976d3e75d08e`  
+**Estado posterior de integración del artefacto:** PR #137 · CI #765/#766 SUCCESS · merge `562769d4c3938a95b4874cee9804c898ab16d7a3`
 
 ---
 
@@ -94,11 +95,11 @@ Queda integrado `eios/frontend/visual/configuration_center_workflow.py` con:
 - histórico no inventado y marcado `stale` tras aplicación;
 - errores técnicos de workflow separados de errores de dominio.
 
-Slices 1–3 constituyen el **subconjunto ejecutable selected-context** actualmente demostrado del contrato UI.
+Slices 1–3 constituyen el **subconjunto ejecutable selected-context** actualmente demostrado del contrato UI en el SHA histórico de referencia de BL-003.
 
 ## 4. Gates recientes
 
-- PR #132 — Configuration Center UI Contract — CI pre/post SUCCESS;
+- PR #132 — Configuration Center UI Contract — CI #752 / #753 SUCCESS;
 - PR #133 — Slice 1 — CI #757 / #758 SUCCESS;
 - PR #134 — Slice 2 — CI #759 / #760 SUCCESS;
 - PR #135 — Slice 3 — CI #761 / #762 SUCCESS;
@@ -110,7 +111,15 @@ El SHA de referencia de BL-003 corresponde al `main` resultante tras PR #136 y v
 b10c4cde6c4f52af04de0794493432961b745dca
 ```
 
-Los futuros commits que integren el propio artefacto BL-003 no modificarán este SHA de referencia, del mismo modo que los gates de establecimiento de BL-002 no alteraron retroactivamente el estado que aquel Baseline fijó.
+La integración posterior del propio artefacto BL-003 se completó mediante:
+
+- PR #137;
+- HEAD `9dc741d6d2085175b62ae150a7ffef53d9d78aef`;
+- CI pre-merge #765: SUCCESS;
+- merge `562769d4c3938a95b4874cee9804c898ab16d7a3`;
+- CI postintegración #766: SUCCESS.
+
+Estos gates no modifican retroactivamente el SHA de referencia que BL-003 fija.
 
 ## 5. Capacidades que este Baseline NO declara cerradas
 
@@ -168,35 +177,35 @@ DEPURAR       ✅ — incorporadas A1–A3
 AUDITAR 2     ✅ — `07_Pruebas/EIOS_BL_003_Audit_2.md` — 0 bloqueadores
 CERRAR        ✅
 MATERIALIZAR  ✅ — `00_Gobierno/Baselines/EIOS-BL-003.md`
-CI            ⏳ — pendiente de gates del artefacto BL-003
+CI            ✅ — PR #137 · #765/#766 SUCCESS
 ```
 
 ## 10. Dictamen de cierre
 
-Audit 2 confirma que:
+Audit 2 confirmó que:
 
-1. `b10c4cde6c4f52af04de0794493432961b745dca` está validado por CI postintegración #764;
-2. el delta desde BL-002 es físicamente `ahead=60`, `behind=0`;
-3. Slices 1–3 se describen como subconjunto selected-context y no como UI completa;
-4. la divergencia residual de `Project_Context.md` queda explícita y no ocultada;
-5. se conservan todos los bloqueos relevantes;
-6. no se introduce autoridad funcional nueva.
+1. `b10c4cde6c4f52af04de0794493432961b745dca` estaba validado por CI postintegración #764;
+2. el delta desde BL-002 era físicamente `ahead=60`, `behind=0`;
+3. Slices 1–3 se describían como subconjunto selected-context y no como UI completa;
+4. la divergencia residual de `Project_Context.md` quedaba explícita y no ocultada;
+5. se conservaban todos los bloqueos relevantes;
+6. no se introducía autoridad funcional nueva.
 
-**DICTAMEN:** BL-003 queda cerrado y materializado como artefacto de continuidad, pendiente exclusivamente de sus gates de integración.
+**DICTAMEN:** BL-003 quedó cerrado y materializado como artefacto de continuidad. Su integración posterior se completó mediante PR #137, CI #765 pre-merge y CI #766 postintegración.
 
-## 11. Criterio de validez e integración
+## 11. Validez e integración
 
-El punto formal de recuperación fijado por este Baseline es permanentemente:
+El punto formal de recuperación fijado por este Baseline permanece permanentemente:
 
 ```text
 main @ b10c4cde6c4f52af04de0794493432961b745dca
 ```
 
-La integración del artefacto BL-003 solo quedará establecida después de:
+La integración del artefacto BL-003 quedó establecida después de satisfacer los gates definidos originalmente:
 
-- CI pre-merge SUCCESS sobre el HEAD exacto del PR;
+- CI pre-merge #765 SUCCESS sobre el HEAD exacto `9dc741d6d2085175b62ae150a7ffef53d9d78aef`;
 - reconciliación compatible con `main`;
-- merge protegido por SHA;
-- CI postintegración SUCCESS sobre el SHA exacto resultante de `main`.
+- merge protegido, resultando `562769d4c3938a95b4874cee9804c898ab16d7a3`;
+- CI postintegración #766 SUCCESS sobre ese SHA de `main`.
 
-Esos gates validarán la incorporación del documento al repositorio, pero no cambiarán el SHA de referencia que BL-003 fija.
+Estos gates validan la incorporación del documento al repositorio y **no cambian** el SHA histórico de referencia de BL-003.
