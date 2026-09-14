@@ -1,9 +1,10 @@
 # EIOS — Configuration Center Selected-Context E2E Conformance Contract v0.1
 
-**Estado:** DEPURADO — PENDIENTE DE AUDITORÍA 2  
+**Estado:** 🔒 CERRADO — MATERIALIZADO — CI VALIDADA  
 **Fecha:** 2026-09-14  
-**Baseline:** `main @ 4399f22c605c057690e643e3429ef016c74049c4`  
-**Objeto:** verificación E2E sin nueva funcionalidad
+**Baseline funcional:** `main @ 4399f22c605c057690e643e3429ef016c74049c4`  
+**Objeto:** verificación E2E sin nueva funcionalidad  
+**Estado posterior de integración:** PR #140 · CI #771/#772 SUCCESS · merge `4ca4b1e9bf029b5a138b11c9b16d1188582a4231`
 
 ## 1. Propósito
 
@@ -215,14 +216,18 @@ La conformidad puede cerrarse solo si:
 8. no se modifica producción;
 9. suite completa CI queda verde.
 
+**Estado reconciliado:** todos estos gates quedaron satisfechos por la materialización test-only, PR #140, CI pre-merge #771 y CI post-merge #772.
+
 ## 14. Método
 
 ```text
 DISEÑAR       ✅
 AUDITAR       ✅ Audit 1 — 4 precisiones, 0 bloqueos
 DEPURAR       ✅ A1–A4 incorporados
-AUDITAR 2     ⏳
-CERRAR        ⏳
-MATERIALIZAR  ⏳ tests solamente
-CI            ⏳
+AUDITAR 2     ✅ 0 bloqueos
+CERRAR        ✅
+MATERIALIZAR  ✅ tests solamente
+CI            ✅ PR #140 · #771/#772 SUCCESS
 ```
+
+La referencia funcional `main @ 4399f22c605c057690e643e3429ef016c74049c4` se conserva como baseline histórico de diseño de esta unidad; el merge posterior `4ca4b1e9bf029b5a138b11c9b16d1188582a4231` demuestra su integración, no reemplaza retroactivamente ese punto de partida.
