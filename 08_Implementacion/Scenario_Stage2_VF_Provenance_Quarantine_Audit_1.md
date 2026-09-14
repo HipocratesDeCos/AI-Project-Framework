@@ -15,6 +15,7 @@ Se contrastaron físicamente:
 - `eios/core/o4_o2_o3_orchestration.py`;
 - `eios/core/decision_twin.py` y `eios/core/decision_twin_engine.py` como frontera preservada;
 - `tests/test_scenario_stage2_provenance_boundary.py`;
+- `tests/test_assessment_scenario_integration.py`;
 - `tests/test_decision_twin_provenance_integration.py`;
 - `tests/test_rules_public_provenance_boundary.py`;
 - `tests/test_vertical_mvp_scenario_e2e_conformance.py`;
@@ -89,7 +90,15 @@ La siguiente CI técnica mostró que `tests/test_rules_public_provenance_boundar
 
 **Depuración:** retirar ese símbolo del conjunto de entradas seguras y verificar explícitamente la ausencia de los tres símbolos Stage 2 y de los cuatro wrappers Decision Twin dependientes, manteniendo intactas las entradas C0 provenance-safe.
 
-## 10. Resultado de Audit 1
+## 10. Hallazgo A9 — test legado de integración Assessment→Scenario
+
+La CI posterior falló durante la colección de pytest porque `tests/test_assessment_scenario_integration.py` seguía importando desde `eios.rules` los tres símbolos Stage 2 ya retirados. El archivo estaba construido alrededor de la antigua ruta pública positiva y fabricaba `ViabilityResult` para declarar procedencia y finalización Stage 2.
+
+**Clasificación:** BLOQUEADOR de CI por test histórico incompatible con la cuarentena; no defecto de O4/O2/O3 ni de C0.
+
+**Depuración:** sustituir el test positivo legado por pruebas de no exposición pública de los tres símbolos Stage 2 y de preservación explícita de `AssessmentTraceBinding`/`validate_assessment_trace_binding`. No trasladar esos tests al helper core para simular la antigua garantía.
+
+## 11. Resultado de Audit 1
 
 El diseño queda depurado con estas restricciones obligatorias:
 
@@ -99,7 +108,7 @@ El diseño queda depurado con estas restricciones obligatorias:
 4. C0+Trace permanece cerrado e intacto;
 5. O4/O2/O3 y VF permanecen funcionalmente intactos;
 6. todo wrapper público aguas abajo que dependa de la afirmación Stage 2 provenance-safe debe quedar bloqueado, sin reabrir su core;
-7. todos los tests transversales del namespace público deben reflejar la cuarentena real;
+7. todos los tests del antiguo límite público deben reflejar la cuarentena real y no recrear la vía positiva mediante helpers internos;
 8. una reapertura futura exige productor físico y auditable de consecuencias VF.
 
 Con estas depuraciones, la unidad puede pasar a materialización técnica y posteriormente a Audit 2.
