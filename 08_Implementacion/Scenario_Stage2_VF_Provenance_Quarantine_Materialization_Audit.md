@@ -24,6 +24,7 @@ Código:
 Tests:
 
 - `tests/test_scenario_stage2_provenance_boundary.py` verifica la cuarentena y preservación de C0 provenance;
+- `tests/test_assessment_scenario_integration.py` deja de probar la ruta pública positiva retirada y verifica cuarentena Stage 2 + preservación C0;
 - `tests/test_decision_twin_provenance_integration.py` verifica la cuarentena del wrapper dependiente y la disponibilidad del comparador core;
 - `tests/test_rules_public_provenance_boundary.py` mantiene las entradas C0 seguras y verifica que los siete símbolos Stage 2/Decision Twin dependientes no estén expuestos;
 - `tests/test_vertical_mvp_scenario_e2e_conformance.py` deja de fabricar VF para simular E2E provenance-safe;
@@ -35,14 +36,28 @@ La primera CI pre-merge detectó un import roto en `eios.rules.decision_twin_int
 
 La siguiente CI técnica reveló una segunda expectativa residual: `tests/test_rules_public_provenance_boundary.py` seguía exigiendo como pública y segura una función Stage 2 deliberadamente retirada.
 
-Las correcciones no restauran Stage 2. Extienden el mismo fail-closed únicamente al wrapper dependiente de Decision Twin y reconcilian el test transversal del namespace público. Se mantienen intactos `eios.core.decision_twin`, `eios.core.decision_twin_engine` y las entradas C0 provenance-safe.
+Una tercera CI falló durante la colección porque `tests/test_assessment_scenario_integration.py` seguía importando los tres símbolos Stage 2 retirados y estaba construido alrededor de la antigua ruta pública positiva, incluida la fabricación de `ViabilityResult`.
 
-Ambos hallazgos quedan absorbidos en Audit 1 y Audit 2 antes de la CI final.
+Las correcciones no restauran Stage 2. Extienden el mismo fail-closed únicamente al wrapper dependiente de Decision Twin, reconcilian el test transversal del namespace público y convierten el test legado Assessment→Scenario en prueba explícita de cuarentena y preservación de C0. Se mantienen intactos `eios.core.decision_twin`, `eios.core.decision_twin_engine`, O4/O2/O3 y las entradas C0 provenance-safe.
 
-## 3. Invariantes verificadas por inspección
+Los tres hallazgos quedan absorbidos en Audit 1 y Audit 2 antes de la CI final.
+
+## 3. Pasada preventiva posterior
+
+Tras la tercera depuración se revisaron las fronteras vecinas más próximas:
+
+- `tests/test_assessment_trace_provenance.py` continúa usando únicamente la frontera C0 provenance-safe;
+- `tests/test_vertical_mvp_scenario_coordination.py` consume Scenario Coordination/O2 core y su invoker propio;
+- `tests/test_vertical_mvp_scenario_support_presentation.py` consume soporte O2/presentación sin importar Stage 2 público;
+- `tests/test_vertical_mvp_from_orchestration.py` usa deliberadamente `_complete_o4_o2_o3_orchestration(...)` como helper core interno y no representa una finalización pública provenance-safe.
+
+No se identificó en esta pasada otro consumidor público obvio de los símbolos retirados. La CI completa sigue siendo el gate definitivo.
+
+## 4. Invariantes verificadas por inspección
 
 - no existe API pública que acepte `ViabilityResult` y proclame Stage 2 provenance-safe;
 - no existe wrapper Decision Twin público que pueda heredar esa afirmación;
+- los tests del antiguo límite público verifican la cuarentena en lugar de reconstruir la vía retirada;
 - el test transversal de `eios.rules` exige la ausencia de ambas fronteras en cuarentena;
 - no existe alias legacy;
 - no existe productor VF inventado;
@@ -54,13 +69,13 @@ Ambos hallazgos quedan absorbidos en Audit 1 y Audit 2 antes de la CI final.
 - no se modifica Vertical MVP ni presentación;
 - no se introduce autoridad decisional ni estado de negocio nuevo.
 
-## 4. Deuda explícitamente preservada
+## 5. Deuda explícitamente preservada
 
 La integración positiva VF→Stage 2 continúa bloqueada. Esta no es una omisión de la materialización sino el estado correcto mientras falte el productor físico de consecuencias VF autorizadas.
 
 El bridge interno puede validar contexto, pero no debe volver a exponerse como prueba de procedencia. Tampoco puede hacerlo ningún wrapper aguas abajo por mera composición.
 
-## 5. Gate de CI
+## 6. Gate de CI
 
 La inspección estática no sustituye la suite completa. La CI final debe verificar, entre otros posibles defectos:
 
