@@ -36,7 +36,7 @@ def _canonical_viability_payload(result: ViabilityResult) -> dict[str, Any]:
     }
 
 
-def build_authorized_analytics_from_viability(
+def _build_context_bound_analytics_from_viability(
     *,
     preparation: O4O2O3Preparation,
     scenario_id: str,
@@ -115,4 +115,5 @@ def build_authorized_analytics_from_viability(
     )
 
 
-__all__ = ["build_authorized_analytics_from_viability"]
+# Intentional quarantine: no public VF→Stage-2 bridge is exported.
+__all__: list[str] = []
