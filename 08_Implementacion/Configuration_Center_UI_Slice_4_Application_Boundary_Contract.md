@@ -1,6 +1,6 @@
 # EIOS — Configuration Center UI Slice 4 — Application Presentation Boundary Contract v0.1
 
-**Estado:** DISEÑO  
+**Estado:** DEPURADO — PENDIENTE DE AUDITORÍA 2  
 **Fecha:** 2026-09-14  
 **Baseline:** `main @ 480ff8cbe92b1604eddd4cfdcdc9da902f292b3e`  
 **Dependencias cerradas:** Configuration Center UI Slices 1–3  
@@ -8,7 +8,9 @@
 
 ## 1. Objeto
 
-Exponer un `ConfigurationWorkflowSnapshot` ya construido como `Mapping[str, Any]` JSON-safe para una futura capa de transporte o interfaz, sin ejecutar lógica de configuración, crear contexto autorizado ni elegir tecnología web.
+Exponer un `ConfigurationWorkflowSnapshot` como `Mapping[str, Any]` JSON-safe para una futura capa de transporte o interfaz, sin ejecutar lógica de configuración, crear contexto autorizado, certificar procedencia ni elegir tecnología web.
+
+Slice 4 es un **serializador/presentador tipado**. No es una frontera de autenticación, autorización, provenance ni validación de coherencia interna.
 
 ## 2. Única operación autorizada
 
@@ -31,9 +33,9 @@ No crea ni modifica:
 - histórico;
 - estados.
 
-## 3. Entrada
+## 3. Entrada y límite del type-check
 
-La entrada debe ser una instancia real de:
+La entrada debe ser una instancia de:
 
 `ConfigurationWorkflowSnapshot`
 
@@ -41,9 +43,13 @@ Cualquier otro tipo debe producir `FrontendBoundaryError`.
 
 La frontera no acepta diccionarios libres que imiten un snapshot.
 
+**Importante:** `isinstance(snapshot, ConfigurationWorkflowSnapshot)` verifica únicamente el tipo. No demuestra que el objeto haya sido producido por `ConfigurationCenterSelectedWorkflow`, no certifica procedencia y no sustituye las garantías de Slices 1–3.
+
+Slice 4 no revalida invariantes internos del snapshot y no intenta corregir composiciones manuales incoherentes. Proyecta literalmente los datos tipados recibidos.
+
 ## 4. Salida
 
-La salida contiene únicamente proyección de datos ya presentes en el snapshot:
+La salida contiene únicamente proyección explícita de datos ya presentes en el snapshot:
 
 ```text
 {
@@ -79,7 +85,7 @@ Cuando existe detalle:
 - `restricted`;
 - `configuration` completa o `null`.
 
-La `Configuration` se proyecta sin renombrar semántica:
+La `Configuration` se proyecta explícitamente, campo a campo:
 
 - `configuration_id`;
 - `parameter_id`;
@@ -92,9 +98,11 @@ La `Configuration` se proyecta sin renombrar semántica:
 - `created_at`;
 - `updated_at`.
 
+No se utilizará `dataclasses.asdict()` como mecanismo de serialización JSON.
+
 ## 6. Proyección de histórico
 
-Cada entrada conserva exactamente:
+Cada entrada conserva explícitamente:
 
 - `configuration_id`;
 - `parameter_id`;
@@ -124,23 +132,25 @@ No normaliza texto ni valida funcionalmente.
 
 Proyecta exclusivamente:
 
-- el mismo detalle contenido por `ConfigurationConfirmationPanel`;
+- el detalle contenido por `ConfigurationConfirmationPanel`;
 - la propuesta (`value`, `valid_from`, `valid_to`, `reason`).
 
-No infiere autorización adicional ni llama a `confirm()`.
+Slice 4 no compara ese detalle contra el detalle principal del screen, no reconstruye coherencia de Slice 2/3, no infiere autorización adicional y no llama a `confirm()`.
 
 ## 8. Fechas y JSON safety
 
-Todo `datetime` se serializa mediante `.isoformat()`.
+Todo `datetime` se serializa explícitamente mediante `.isoformat()`.
 
 No se convierte timezone, no se redondea y no se inventa offset.
 
-Los valores `None`, `bool`, `str`, `int`, listas y mappings resultantes deben ser serializables por JSON estándar.
+Los valores `None`, `bool`, `str`, `int`, listas y mappings resultantes deben ser serializables mediante `json.dumps(...)` estándar.
 
 ## 9. No inferencia
 
 Slice 4 no:
 
+- certifica procedencia del snapshot;
+- revalida coherencia de Slices 1–3;
 - calcula etiquetas de negocio;
 - traduce estados a decisiones;
 - calcula impacto;
@@ -166,11 +176,14 @@ Slice 4 — application presentation boundary
 future transport / UI technology (not selected here)
 ```
 
+Las garantías de autoridad/coherencia pertenecen a las capas productoras. Slice 4 solo serializa la representación recibida.
+
 Slice 4 no importa ni usa `ParameterConfigurationCenter` directamente.
 
 ## 11. Tests obligatorios
 
 - rechaza objeto que no sea `ConfigurationWorkflowSnapshot`;
+- el type-check no se presenta como prueba de procedencia;
 - snapshot vacío/READY se proyecta con `None` apropiados;
 - detalle/configuración se proyectan sin pérdida;
 - datetimes conservan `isoformat()` exacto;
@@ -178,21 +191,21 @@ Slice 4 no importa ni usa `ParameterConfigurationCenter` directamente.
 - histórico vacío se convierte en `[]`;
 - histórico conserva orden y campos;
 - formulario conserva texto exacto;
-- confirmación conserva detalle + propuesta;
+- confirmación conserva literalmente su propio detalle + propuesta;
 - `history_stale` se preserva literalmente;
 - estado/error se preservan literalmente;
-- payload completo puede pasar por `json.dumps(...)`;
+- payload completo pasa por `json.dumps(...)`;
 - no se accede a backend ni se crean contextos.
 
 ## 12. Invariantes
 
-**CCUIS4-I01:** presentación solamente.  
-**CCUIS4-I02:** input tipado real; no snapshot libre falsificable.  
+**CCUIS4-I01:** presentación/serialización solamente.  
+**CCUIS4-I02:** input tipado, pero tipo ≠ procedencia.  
 **CCUIS4-I03:** `None` ≠ vacío.  
 **CCUIS4-I04:** orden histórico preservado.  
 **CCUIS4-I05:** datetimes solo `isoformat`, sin transformación temporal.  
 **CCUIS4-I06:** estado/error/frescura se preservan literalmente.  
 **CCUIS4-I07:** confirmación visual ≠ autorización.  
-**CCUIS4-I08:** no backend directo.  
+**CCUIS4-I08:** no backend directo ni revalidación de dominio.  
 **CCUIS4-I09:** no tecnología web elegida.  
 **CCUIS4-I10:** no decisión de compra.
