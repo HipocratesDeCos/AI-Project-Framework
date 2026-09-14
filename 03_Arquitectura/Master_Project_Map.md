@@ -2,8 +2,8 @@
 
 ## Mapa Maestro del Proyecto y de la Arquitectura
 
-**Versión:** 2.2
-**Estado:** APROBADO — reconciliación estructural de aplicación/interfaz
+**Versión:** 2.3
+**Estado:** APROBADO — reconciliación de continuidad post-EIOS-BL-003
 **Función:** Mapa global de estructura y relaciones del sistema EIOS
 **Ubicación:** `03_Arquitectura/Master_Project_Map.md`
 
@@ -433,11 +433,11 @@ El punto formal de recuperación más reciente se identifica mediante los Baseli
 # 17. ESTADO
 
 **Framework:** EIOS  
-**Baseline de continuidad vigente:** EIOS-BL-002  
+**Baseline de continuidad vigente:** EIOS-BL-003  
 **Estado:** En desarrollo  
 **Gobierno:** Activo  
 **Salvaguarda Vertical MVP:** Vigente  
-**Versión del mapa:** 2.2
+**Versión del mapa:** 2.3
 
 ---
 
