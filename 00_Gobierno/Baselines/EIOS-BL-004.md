@@ -1,10 +1,10 @@
 # EIOS-BL-004 — Baseline de continuidad post-QTG/Stage2 quarantine
 
-**Estado:** DEPURADO — PENDIENTE AUDIT 2  
+**Estado:** 🔒 CERRADO — MATERIALIZADO — PENDIENTE CI DEL ARTEFACTO  
 **Fecha:** 2026-09-14  
 **Repositorio:** `HipocratesDeCos/AI-Project-Framework`  
 **Rama de referencia:** `main`  
-**SHA candidato de referencia:** `d3c462a2536ee20204b9d5c9dce1024e1ca7d31c`  
+**SHA de referencia:** `d3c462a2536ee20204b9d5c9dce1024e1ca7d31c`  
 **Baseline anterior:** `EIOS-BL-003 @ b10c4cde6c4f52af04de0794493432961b745dca`
 
 ---
@@ -55,7 +55,7 @@ Desde el SHA histórico de BL-003 quedan integrados:
 
 BL-004 no modifica retroactivamente el SHA ni el contenido histórico de BL-003.
 
-**Precisión de navegación:** en el estado candidato, `Project_Context.md` v2.3 sigue señalando correctamente BL-003 como punto formal de recuperación más reciente porque BL-004 todavía no está integrado. Si BL-004 supera sus gates y se integra, esa referencia quedará desfasada y deberá reconciliarse en una unidad documental posterior, separada y auditable. BL-004 no reescribe `Project_Context.md` dentro de su propia unidad.
+**Precisión de navegación:** en el SHA de referencia, `Project_Context.md` v2.3 sigue señalando correctamente BL-003 como punto formal de recuperación más reciente porque BL-004 aún no estaba integrado. Tras la eventual integración del artefacto BL-004, esa referencia quedará desfasada y deberá reconciliarse en una unidad documental posterior, separada y auditable. BL-004 no reescribe `Project_Context.md` dentro de su propia unidad.
 
 ### 3.2 Configuration Center — Slice 4 y selected-context E2E
 
@@ -118,13 +118,13 @@ Entre los gates posteriores al SHA histórico de BL-003 se incluyen:
 - PR #143 — reconciliación Project Context/Manual a BL-003;
 - PR #144 — Scenario Stage 2 VF provenance quarantine.
 
-El SHA candidato de BL-004 corresponde al `main` resultante de PR #144:
+El SHA de referencia de BL-004 corresponde al `main` resultante de PR #144:
 
 ```text
 d3c462a2536ee20204b9d5c9dce1024e1ca7d31c
 ```
 
-PR #144 quedó validado por CI pre-merge #796 y CI post-merge #797, ambas en SUCCESS; #797 validó el SHA exacto candidato de BL-004.
+PR #144 quedó validado por CI pre-merge #796 y CI post-merge #797, ambas en SUCCESS; #797 validó el SHA exacto de referencia de BL-004.
 
 ## 5. Capacidades que BL-004 NO declara cerradas
 
@@ -192,22 +192,41 @@ La decisión empresarial final permanece humana.
 DISEÑAR       ✅
 AUDITAR       ✅ — `07_Pruebas/EIOS_BL_004_Audit_1.md` — 4 precisiones, 0 bloqueos
 DEPURAR       ✅ — incorporadas A1–A4
-AUDITAR 2     ⏳
-CERRAR        ⏳
-MATERIALIZAR  ⏳
-CI            ⏳
+AUDITAR 2     ✅ — `07_Pruebas/EIOS_BL_004_Audit_2.md` — 0 bloqueadores
+CERRAR        ✅
+MATERIALIZAR  ✅ — `00_Gobierno/Baselines/EIOS-BL-004.md`
+CI            ⏳ — artefacto BL-004 todavía no integrado
 ```
 
-## 10. Condición de cierre
+## 10. Dictamen de cierre
 
-BL-004 solo podrá cerrarse si Audit 2 confirma que:
+Audit 2 confirmó que:
 
-1. el SHA candidato está realmente en `main` y validado por CI postintegración;
-2. el delta desde BL-003 está descrito sin alterar su historia;
-3. QTG, Scenario Stage 2 público y el wrapper público Decision Twin dependiente se presentan como cuarentenas/bloqueos, no como capacidades positivas cerradas;
+1. `d3c462a2536ee20204b9d5c9dce1024e1ca7d31c` está realmente en `main` y validado por CI postintegración #797 SUCCESS;
+2. el delta desde el SHA histórico de BL-003 es físicamente `ahead=92`, `behind=0`;
+3. QTG, Scenario Stage 2 público y el wrapper público Decision Twin dependiente se representan como cuarentenas/bloqueos y no como capacidades positivas cerradas;
 4. los cores preservados no se presentan como reabiertos;
 5. todos los bloqueos transversales relevantes permanecen visibles;
 6. la futura divergencia de navegación de `Project_Context.md` queda explícita y fuera del alcance de esta unidad;
 7. no se introduce autoridad funcional nueva.
 
-La integración del propio artefacto BL-004 requerirá además CI pre-merge sobre HEAD exacto, reconciliación `behind=0`, merge protegido por SHA exacto y CI postintegración sobre el SHA integrado.
+**DICTAMEN:** BL-004 queda cerrado y materializado como nuevo punto formal de recuperación, condicionado exclusivamente a los gates de integración de su propio artefacto.
+
+## 11. Validez e integración
+
+El punto formal de recuperación que BL-004 fija permanece:
+
+```text
+main @ d3c462a2536ee20204b9d5c9dce1024e1ca7d31c
+```
+
+La integración posterior del artefacto BL-004 no modificará retroactivamente este SHA de referencia.
+
+Restan obligatoriamente para integrar el artefacto:
+
+1. CI pre-merge SUCCESS sobre el HEAD exacto de `docs/eios-bl-004`;
+2. reconciliación final con `main` y `behind=0`;
+3. merge protegido por SHA exacto;
+4. CI postintegración SUCCESS sobre el SHA exacto resultante en `main`.
+
+Hasta completar esos gates, el contenido de BL-004 está cerrado/materializado en rama, pero su artefacto todavía no forma parte de `main`.
