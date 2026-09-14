@@ -16,6 +16,7 @@ Se contrastaron físicamente:
 - `eios/core/decision_twin.py` y `eios/core/decision_twin_engine.py` como frontera preservada;
 - `tests/test_scenario_stage2_provenance_boundary.py`;
 - `tests/test_decision_twin_provenance_integration.py`;
+- `tests/test_rules_public_provenance_boundary.py`;
 - `tests/test_vertical_mvp_scenario_e2e_conformance.py`;
 - `tests/test_viability_scenario_integration.py`;
 - `08_Implementacion/Scenario_Stage2_Provenance_Boundary_Contract_v0.1.md`;
@@ -80,7 +81,15 @@ La primera CI de la materialización detectó que `eios.rules.decision_twin_inte
 
 **Depuración:** extender la cuarentena exclusivamente al wrapper público `eios.rules.decision_twin_integration` y a sus cuatro exports; sustituir su test positivo sintético por prueba de no exposición; preservar `eios.core.decision_twin`, `eios.core.decision_twin_engine` y `compare_alternatives(...)`.
 
-## 9. Resultado de Audit 1
+## 9. Hallazgo A8 — test transversal del namespace público desactualizado
+
+La siguiente CI técnica mostró que `tests/test_rules_public_provenance_boundary.py` seguía exigiendo como pública y segura `build_authorized_scenario_analytics_from_provenanced_assessments`, pese a que la cuarentena la había retirado deliberadamente.
+
+**Clasificación:** BLOQUEADOR de CI por expectativa histórica incompatible con la nueva frontera; no defecto funcional de producción.
+
+**Depuración:** retirar ese símbolo del conjunto de entradas seguras y verificar explícitamente la ausencia de los tres símbolos Stage 2 y de los cuatro wrappers Decision Twin dependientes, manteniendo intactas las entradas C0 provenance-safe.
+
+## 10. Resultado de Audit 1
 
 El diseño queda depurado con estas restricciones obligatorias:
 
@@ -90,7 +99,7 @@ El diseño queda depurado con estas restricciones obligatorias:
 4. C0+Trace permanece cerrado e intacto;
 5. O4/O2/O3 y VF permanecen funcionalmente intactos;
 6. todo wrapper público aguas abajo que dependa de la afirmación Stage 2 provenance-safe debe quedar bloqueado, sin reabrir su core;
-7. los tests de conformidad deberán reflejar el bloqueo real;
+7. todos los tests transversales del namespace público deben reflejar la cuarentena real;
 8. una reapertura futura exige productor físico y auditable de consecuencias VF.
 
 Con estas depuraciones, la unidad puede pasar a materialización técnica y posteriormente a Audit 2.
