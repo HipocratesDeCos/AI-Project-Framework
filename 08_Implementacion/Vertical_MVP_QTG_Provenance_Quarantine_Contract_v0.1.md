@@ -1,6 +1,6 @@
 # EIOS — Vertical MVP QTG Provenance Quarantine Contract v0.1
 
-**Estado:** DEPURADO — PENDIENTE DE AUDITORÍA 2  
+**Estado:** 🔒 CERRADO — MATERIALIZADO — INTEGRACIÓN PENDIENTE DE CI  
 **Baseline:** `main @ fe03a6da407490705207f579bcd45a4b384d8bc2`  
 **Ámbito:** frontera de composición QTG ↔ Vertical MVP.
 
@@ -122,7 +122,7 @@ Esta cláusula no diseña dicho productor; únicamente fija la evidencia mínima
 
 ## 9. Gate de cierre
 
-Solo podrá pasar a `CERRAR` si Audit 2 confirma que:
+Audit 2 confirmó que:
 
 - no existe un productor QTG físico ya autorizado que esta unidad esté ocultando;
 - retirar `quality_invoker` no rompe una integración QTG legítima existente;
@@ -131,6 +131,8 @@ Solo podrá pasar a `CERRAR` si Audit 2 confirma que:
 - `QTG` permanece en `MVP_CAPABILITY_ORDER`;
 - no se altera autoridad decisional;
 - no se inventa arquitectura para resolver el `Decision Input Package` ausente.
+
+La integración en `main` sigue condicionada a CI pre-merge, reconciliación, merge protegido por SHA exacto y CI post-merge.
 
 ## 10. Depuración tras Audit 1
 
