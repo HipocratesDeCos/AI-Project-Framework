@@ -1,6 +1,6 @@
 # EIOS — BL-003 Project Context Continuity Reconciliation
 
-**Estado:** EN CURSO — DISEÑO + AUDIT 1 COMPLETADOS  
+**Estado:** 🔒 CERRADA — MATERIALIZADA — PENDIENTE DE CI  
 **Fecha:** 2026-09-14  
 **Baseline de partida:** `main @ 5e24bc95a81bb54657fc6abfd5da23354c8eb070`  
 **Baseline formal vigente preservado:** `EIOS-BL-003 @ b10c4cde6c4f52af04de0794493432961b745dca`
@@ -44,52 +44,123 @@ Delta autorizado:
 
 ### A1 — Baseline obsoleto en fuente de continuidad
 
-`Project_Context.md` todavía identifica BL-002 como punto formal más reciente, mientras Framework Map y Master Project Map vigentes identifican BL-003.
+`Project_Context.md` identificaba BL-002 como punto formal más reciente, mientras Framework Map y Master Project Map vigentes identificaban BL-003.
 
 **Dictamen:** contradicción documental objetiva.
 
-### A2 — Manual Maestro conserva navegación BL-002
+### A2 — Manual Maestro conservaba navegación BL-002
 
-El Manual v2.1 dirige recuperación y estado de continuidad a BL-002 pese al establecimiento e integración posterior de BL-003.
+El Manual v2.1 dirigía recuperación y estado de continuidad a BL-002 pese al establecimiento e integración posterior de BL-003.
 
 **Dictamen:** navegación obsoleta.
 
 ### A3 — Configuration Center descrito como evolución separada
 
-`Project_Context.md` y Manual Maestro conservan una formulación anterior a los Slices 1–4 y a la conformidad selected-context E2E.
+`Project_Context.md` y Manual Maestro conservaban una formulación anterior a los Slices 1–4 y a la conformidad selected-context E2E.
 
-La corrección debe afirmar solo el subconjunto ejecutable demostrado y mantener bloqueadas autenticación/identidad, enumeración de empresas y descubrimiento global de parámetros sin productor autorizado.
+La corrección debía afirmar solo el subconjunto ejecutable demostrado y mantener bloqueadas autenticación/identidad, enumeración de empresas y descubrimiento global de parámetros sin productor autorizado.
 
 **Dictamen:** reconciliable sin ampliar alcance.
 
-### A4 — Addendum conserva estado temporal pre-CI
+### A4 — Addendum conservaba estado temporal pre-CI
 
-El addendum fue redactado antes de completar sus propios gates y conserva `PROPUESTA` / `CI pendiente`. PR #136 demuestra integración posterior con CI #763/#764 y merge `b10c4cde...`.
+El addendum fue redactado antes de completar sus propios gates y conservaba `PROPUESTA` / `CI pendiente`. PR #136 demuestra integración posterior con CI #763/#764 y merge `b10c4cde...`.
 
 **Dictamen:** preservar el estado histórico y registrar separadamente la evidencia posterior; no reescribir la cronología.
 
 ### A5 — Bloqueos transversales
 
-La unidad debe preservar sin cambios QTG, Supplier Risk valorativo, Rotation, Assurance/Shadow Mode y MGE, además de la autoridad decisional humana.
+La unidad debía preservar sin cambios QTG, Supplier Risk valorativo, Rotation, Assurance/Shadow Mode y MGE, además de la autoridad decisional humana.
 
 **Dictamen:** condición obligatoria de cierre.
 
-## 5. DEPURAR — restricciones
+**AUDIT 1: SUPERADA — 0 bloqueadores funcionales.**
 
-Queda prohibido en esta unidad:
+## 5. DEPURAR — restricciones aplicadas
 
-- crear `EIOS-BL-004`;
-- modificar el SHA histórico de BL-003;
-- declarar completa la UI del Configuration Center;
-- introducir autenticación, selección libre de empresa o descubrimiento global de parámetros;
-- modificar reglas, parámetros, código, SQL, tests ejecutables o metodología;
-- desbloquear QTG, Supplier Risk, Rotation, Assurance/Shadow o MGE;
-- reinterpretar una instrucción genérica de continuidad como autoridad empresarial.
+Se mantuvieron las siguientes prohibiciones:
+
+- no crear `EIOS-BL-004`;
+- no modificar el SHA histórico de BL-003;
+- no declarar completa la UI del Configuration Center;
+- no introducir autenticación, selección libre de empresa o descubrimiento global de parámetros;
+- no modificar reglas, parámetros, código, SQL, tests ejecutables o metodología;
+- no desbloquear QTG, Supplier Risk, Rotation, Assurance/Shadow o MGE;
+- no reinterpretar una instrucción genérica de continuidad como autoridad empresarial.
 
 ## 6. AUDIT 2
 
-Pendiente de auditar el delta materializado contra el baseline exacto.
+Comparación física contra el baseline exacto `5e24bc95a81bb54657fc6abfd5da23354c8eb070` antes de cerrar este registro:
 
-## 7. CIERRE / MATERIALIZACIÓN / CI
+- rama: `ahead=4`, `behind=0`;
+- archivos afectados: 4, todos documentales;
+- `00_Gobierno/Project_Context.md`: 21 líneas de delta (`+11/-10`);
+- `00_Gobierno/Manual_Maestro_Proyecto_EIOS.md`: 21 líneas de delta (`+11/-10`);
+- `00_Gobierno/Project_Context_Reconciliation_2026-09-14.md`: 41 líneas de delta (`+28/-13`);
+- este registro: archivo documental nuevo;
+- producción: 0 cambios;
+- tests ejecutables: 0 cambios;
+- SQL: 0 cambios;
+- Rules: 0 cambios;
+- parámetros: 0 cambios.
 
-Pendientes hasta que Audit 2 confirme delta exclusivamente documental, ausencia de pérdida y `behind=0`.
+### A2-01 — Continuidad
+
+`Project_Context.md` v2.3 y Manual Maestro v2.2 apuntan a `EIOS-BL-003` como Baseline formal más reciente, coherentes con Framework Map v3.3.2 y Master Project Map v2.3.
+
+**SUPERADA.**
+
+### A2-02 — Configuration Center
+
+La redacción nueva reconoce únicamente contrato UI cerrado + Slices 1–4 + conformidad selected-context E2E. Declara explícitamente no demostradas autenticación/resolución de identidad, enumeración de empresas y descubrimiento global de parámetros sin productor autorizado.
+
+**SUPERADA.**
+
+### A2-03 — Addendum histórico
+
+El addendum conserva el baseline y el dictamen temporal de su redacción, y registra por separado PR #136, CI #763/#764 y merge `b10c4cde...` como evidencia posterior.
+
+**SUPERADA.**
+
+### A2-04 — Bloqueos y autoridad
+
+Se preservan QTG, Supplier Risk valorativo, Rotation, Assurance/Shadow Mode, MGE y autoridad decisional humana. No se crea política empresarial ni productor nuevo.
+
+**SUPERADA.**
+
+### A2-05 — Pérdida documental
+
+El diff de los dos documentos principales queda limitado a 21 líneas cada uno, coherente con sustituciones de metadatos, Baseline y estado de Configuration Center. No existe evidencia de reescritura masiva o pérdida estructural.
+
+**SUPERADA.**
+
+**AUDIT 2: SUPERADA — 0 BLOQUEADORES.**
+
+## 7. CERRAR
+
+Se autoriza el cierre exclusivamente documental de esta unidad.
+
+No se modifica el Baseline histórico BL-003 ni se declara cerrado el Vertical MVP completo.
+
+## 8. MATERIALIZAR
+
+Materializado:
+
+- `00_Gobierno/Project_Context.md` v2.3;
+- `00_Gobierno/Manual_Maestro_Proyecto_EIOS.md` v2.2;
+- `00_Gobierno/Project_Context_Reconciliation_2026-09-14.md` reconciliado como artefacto histórico integrado;
+- `07_Pruebas/BL003_Project_Context_Continuity_Reconciliation.md`.
+
+## 9. CI
+
+```text
+DISEÑAR       ✅
+AUDITAR       ✅ — 5 hallazgos, 0 bloqueadores funcionales
+DEPURAR       ✅ — delta mínimo y fronteras congeladas
+AUDITAR 2     ✅ — 0 bloqueadores
+CERRAR        ✅
+MATERIALIZAR  ✅ — 4 archivos exclusivamente documentales
+CI            ⏳ — pendiente de gate pre/post integración
+```
+
+La unidad solo podrá considerarse físicamente integrada tras CI pre-merge SUCCESS sobre el HEAD exacto, reconciliación final `behind=0`, merge protegido por SHA y CI postintegración SUCCESS.
