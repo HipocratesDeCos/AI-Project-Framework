@@ -1,7 +1,13 @@
-"""Typed provenance bridge from Viability Frontier into scenario analytics.
+"""Context-bound transport bridge from Viability Frontier into scenario analytics.
 
-The bridge consumes an already-produced ViabilityResult. It never executes
-Viability Frontier or O3 and does not map viability semantics to O3 status.
+The bridge consumes an already-produced ``ViabilityResult``. It validates
+scenario/context identity and versions before constructing the internal Stage-2
+transport, but it does **not** establish provenance of the producer that created
+the VF result or of the external authority behind frontier consequences.
+
+Accordingly, this module is internal infrastructure and must not be treated as
+a provenance-safe public completion boundary while no physical VF producer is
+materialized and audited.
 """
 from __future__ import annotations
 
@@ -15,7 +21,7 @@ from .viability_frontier import ViabilityResult
 
 
 def _canonical_viability_payload(result: ViabilityResult) -> dict[str, Any]:
-    """Return the exhaustive transport representation of a validated VF result."""
+    """Return the exhaustive transport representation of a context-checked VF result."""
     return {
         "decision_id": result.decision_id,
         "scenario_id": result.scenario_id,
@@ -30,7 +36,7 @@ def _canonical_viability_payload(result: ViabilityResult) -> dict[str, Any]:
     }
 
 
-def build_authorized_analytics_from_viability(
+def _build_context_bound_analytics_from_viability(
     *,
     preparation: O4O2O3Preparation,
     scenario_id: str,
@@ -41,10 +47,12 @@ def build_authorized_analytics_from_viability(
     trace_references: tuple[str, ...] = (),
     failure_reason: str | None = None,
 ) -> AuthorizedScenarioAnalytics:
-    """Bind one typed VF result to one VALID scenario from the preparation.
+    """Bind one typed VF result to one VALID scenario for internal transport.
 
     Context identity is derived only from ``preparation``. A detached context is
-    intentionally not accepted.
+    intentionally not accepted. Successful validation proves contextual
+    consistency only; it is not evidence that ``viability_result`` came from an
+    authorized provenance-safe VF producer.
     """
     preparation_snapshot = preparation.model_copy(deep=True)
     assessments_snapshot = deepcopy(tuple(assessments))
@@ -107,4 +115,5 @@ def build_authorized_analytics_from_viability(
     )
 
 
-__all__ = ["build_authorized_analytics_from_viability"]
+# Intentional quarantine: no public VF→Stage-2 bridge is exported.
+__all__: list[str] = []
