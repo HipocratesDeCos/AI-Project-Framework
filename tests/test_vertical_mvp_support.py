@@ -48,16 +48,6 @@ def _assert_runtime_context(purchase: PurchaseOperation, context: DecisionContex
     assert context.scenario_id == "S-MVP-SVC"
 
 
-def _quality_invoker(purchase: PurchaseOperation, context: DecisionContext):
-    _assert_runtime_context(purchase, context)
-    return CapabilityExecution(
-        capability="QTG",
-        status=O1ExecutionStatus.COMPLETED,
-        result_available=True,
-        trace_references=("trace-qtg",),
-    )
-
-
 def _tco_invoker(purchase: PurchaseOperation, context: DecisionContext):
     _assert_runtime_context(purchase, context)
     return CapabilityExecution(
@@ -150,7 +140,6 @@ def test_vertical_service_runs_non_rule_capabilities_directly():
         context=_context(),
         policy_version="MVP-E2E-1",
         base_result="COMPRAR",
-        quality_invoker=_quality_invoker,
         tco_invoker=_tco_invoker,
         decision_twin_invoker=_decision_twin_invoker,
         scenario_coordination_invoker=_scenario_coordination_invoker,
@@ -163,7 +152,6 @@ def test_vertical_service_runs_non_rule_capabilities_directly():
     assert result.crc_result is None
     assert result.scenario_support is None
     assert tuple(item.capability for item in result.capability_results) == (
-        "QTG",
         "TCO",
         "DECISION_TWIN",
         "SCENARIO_COORDINATION",
@@ -188,13 +176,11 @@ def test_vertical_service_exposes_rules_crc_and_e2e_in_same_result(monkeypatch):
         policy_version="MVP-E2E-1",
         base_result="COMPRAR",
         stock_excess=StockExcessRuleInputs(marker, marker),
-        quality_invoker=_quality_invoker,
         tco_invoker=_tco_invoker,
     )
 
     assert result.status == BoundaryStatus.COMPLETED
     assert tuple(item.capability for item in result.capability_results) == (
-        "QTG",
         "TCO",
         "C0",
     )
@@ -204,7 +190,7 @@ def test_vertical_service_exposes_rules_crc_and_e2e_in_same_result(monkeypatch):
     assert result.crc_result.consolidated_result == "NEGOCIAR"
 
 
-def test_vertical_service_signature_has_no_detached_opaque_results():
+def test_vertical_service_signature_quarantines_qtg_and_has_no_detached_results():
     parameters = signature(mvp.run_vertical_mvp_support).parameters
 
     for raw_result in (
@@ -219,8 +205,9 @@ def test_vertical_service_signature_has_no_detached_opaque_results():
     ):
         assert raw_result not in parameters
 
+    assert "quality_invoker" not in parameters
+
     for invoker in (
-        "quality_invoker",
         "price_invoker",
         "tco_invoker",
         "decision_twin_invoker",
@@ -229,6 +216,21 @@ def test_vertical_service_signature_has_no_detached_opaque_results():
         "negotiation_ladder_invoker",
     ):
         assert invoker in parameters
+
+
+def test_vertical_service_rejects_legacy_quality_invoker_keyword():
+    with pytest.raises(TypeError, match="quality_invoker"):
+        mvp.run_vertical_mvp_support(
+            purchase=_purchase(),
+            context=_context(),
+            policy_version="MVP-E2E-1",
+            base_result="COMPRAR",
+            quality_invoker=lambda *_: CapabilityExecution(
+                capability="QTG",
+                status=O1ExecutionStatus.COMPLETED,
+                result_available=True,
+            ),
+        )
 
 
 def test_vertical_service_requires_at_least_one_supplied_capability():
