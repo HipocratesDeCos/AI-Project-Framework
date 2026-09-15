@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.5.1  
+**Versión:** 1.5.2  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
@@ -335,6 +335,7 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 | DEP-MGE-002-RMGE-003 | `R-MGE-003` | `PARAMETER` | `P-MGE-002` | PARAMETER | Parámetro consumidor de margen objetivo | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
 | DEP-MGE-003-RMGE-002 | `R-MGE-002` | `PARAMETER` | `P-MGE-003` | PARAMETER | Parámetro consumidor de tolerancia | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
 | DEP-FIN-002-RFIN-001 | `R-FIN-001` | `PARAMETER` | `P-FIN-002` | PARAMETER | Parte del cálculo de capacidad financiera prevista | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
+| DEP-FIN-002-RFIN-003 | `R-FIN-003` | `DERIVED` | `P-FIN-002` | PARAMETER | Mínimo de tesorería autorizado integrado en el cálculo de `financial_safety_margin_pct` consumido por R-FIN-003 | PENDING | `01_Modelo/Finance_Basic_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | FIN-AUTH-07 documenta `treasury_minimum = P-FIN-002` y la transformación; no autoriza escalada R1→R0. |
 | DEP-FIN-003-RFIN-002 | `R-FIN-002` | `PARAMETER` | `P-FIN-003` | PARAMETER | Parámetro consumidor de fondo de maniobra | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa documentada. |
 | DEP-FIN-004-RFIN-003 | `R-FIN-003` | `PARAMETER` | `P-FIN-004` | PARAMETER | Parámetro consumidor de riesgo financiero | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
 | DEP-FIN-005-RFIN-001 | `R-FIN-001` | `PARAMETER` | `P-FIN-005` | PARAMETER | Parte del cálculo de capacidad financiera prevista | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
@@ -400,6 +401,8 @@ El cruce `R-ENT-001 ↔ evidencia temporal` deja de formar parte de los pendient
 
 El cruce `R-ROT-002 ↔ SalesActivityWindowEvidence` deja de formar parte de los pendientes generales de evidencia: queda demostrado por `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md` y validado por `01_Modelo/Rotation_Methodological_Audit_2_Final_v0.3.md`. Permanecen pendientes `ROT-G01` y las dependencias `DATA`/`PARAMETER` todavía no demostradas de `ROT-G04-A`; este registro no autoriza implementación de Rotation.
 
+El cruce derivado `P-FIN-002 → R-FIN-003` deja de formar parte de los pendientes de parámetros: queda demostrado por `01_Modelo/Finance_Basic_Authority_v0.1.md` FIN-AUTH-07 y reconciliado con `02_Parametros/Matriz_Parametros_Reglas_MVP.md`. La relación directa `P-FIN-004 → R-FIN-003` permanece sin cambios y no se autoriza escalada R1→R0.
+
 Estos pendientes no autorizan inferencias. Representan **gaps de evidencia/dependencia aún no resueltos**.
 
 ---
@@ -452,12 +455,12 @@ No se debe:
 
 # 22. Estado
 
-**Versión:** 1.5.1  
+**Versión:** 1.5.2  
 **Estado:** CERRADO  
 **Ámbito:** Dependencias transversales de reglas EIOS  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
-Esta versión conserva íntegramente la cobertura previa, mantiene las dos relaciones `EVIDENCE` demostradas para `R-ENT-001` y añade exclusivamente la relación `EVIDENCE` demostrada `R-ROT-002 → SalesActivityWindowEvidence`. `Criticality` y `Evaluability_Impact` permanecen en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA`, `PARAMETER` ni `COMPONENT`.
+Esta versión conserva íntegramente la cobertura previa, mantiene las relaciones `EVIDENCE` demostradas de ENT y Rotation y añade exclusivamente la relación derivada demostrada `P-FIN-002 → R-FIN-003`. `Criticality` y `Evaluability_Impact` permanecen en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA`, `EVIDENCE` ni `COMPONENT`.
 
 La reconciliación STK mantiene:
 
@@ -485,6 +488,15 @@ La reconciliación ROT confirma:
 - las dependencias `DATA` y `PARAMETER` restantes de `ROT-G04-A` permanecen pendientes;
 - Track A continúa no autorizado para implementación.
 
+La reconciliación FIN confirma:
+
+- `P-FIN-002 → R-FIN-003` como `DERIVED / CONFIRMED`;
+- `FIN-AUTH-07` como fuente que demuestra `treasury_minimum = P-FIN-002` y su participación en `financial_safety_margin_pct`;
+- `P-FIN-004 → R-FIN-003` permanece como dependencia directa ya confirmada;
+- `Criticality = PENDING` y `Evaluability_Impact = PENDING` para la nueva arista;
+- no se modifica la fórmula autorizada ni la escalada R1→R0;
+- no se canoniza por esta unidad ninguna dependencia `EVIDENCE` Finance.
+
 ### Dictamen de cierre
 
 La auditoría documental confirma:
@@ -496,6 +508,7 @@ La auditoría documental confirma:
 - compatibilidad con `01_Modelo/STK_Contract_Entry_Authority.md` y M01…M10;
 - compatibilidad con `01_Modelo/Delivery_Stockout_Methodological_Closure_v0.3.md`;
 - compatibilidad con `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md` y `01_Modelo/Rotation_Methodological_Audit_2_Final_v0.3.md`;
+- compatibilidad con `01_Modelo/Finance_Basic_Authority_v0.1.md` FIN-AUTH-07;
 - ausencia de redefinición de C0;
 - mantenimiento de gaps no demostrados como `PENDING` o `REJECTED`, sin inferencias.
 

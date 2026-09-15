@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.9
+**Versión:** 0.9.1
 **Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO / STK
 **Baseline:** EIOS Vertical MVP
 **Fecha:** 11/09/2026
@@ -108,7 +108,7 @@ La numeración funcional se conserva; el prefijo identifica el tipo de entidad.
 | **P-MGE-003** | Rentabilidad | **R-MGE-002** | Según regla | Sí | Sí | Sí | **CONFIRMADO** |
 | P-MGE-004 a P-MGE-006 | Rentabilidad | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
 | P-FIN-001 | Finanzas | Pendiente de identificación documental individual | Alta | Restringida | Sí | Sí | Pendiente de cruce |
-| P-FIN-002 | Finanzas | R-FIN-001 — capacidad financiera prevista, como parte del cálculo | Sí | Restringida | Sí | Sí | CONFIRMADO — relación compuesta |
+| P-FIN-002 | Finanzas | R-FIN-001 — capacidad financiera prevista, como parte del cálculo / R-FIN-003 — relación derivada mediante `financial_safety_margin_pct` | Sí | Restringida | Sí | Sí | CONFIRMADO — relación compuesta/derivada |
 | P-FIN-003 | Finanzas | R-FIN-002 | Sí | Restringida | Sí | Sí | CONFIRMADO |
 | P-FIN-004 | Finanzas | R-FIN-003 | Alta | Restringida | Sí | Sí | CONFIRMADO |
 | P-FIN-005 | Finanzas | R-FIN-001 — cálculo de capacidad financiera prevista | Alta | Restringida | Sí | Sí | CONFIRMADO — relación compuesta |
@@ -177,6 +177,7 @@ Las siguientes relaciones quedan confirmadas por el cruce documental realizado y
 | `P-MGE-002` | `R-MGE-003` | Directa | CONFIRMADO |
 | `P-MGE-003` | `R-MGE-002` | Directa | CONFIRMADO |
 | `P-FIN-002` | `R-FIN-001` | Compuesta | CONFIRMADO |
+| `P-FIN-002` | `R-FIN-003` | Derivada | CONFIRMADO — FIN-AUTH-07 |
 | `P-FIN-003` | `R-FIN-002` | Directa | CONFIRMADO |
 | `P-FIN-004` | `R-FIN-003` | Directa | CONFIRMADO |
 | `P-FIN-005` | `R-FIN-001` | Compuesta | CONFIRMADO |
@@ -189,6 +190,12 @@ Las siguientes relaciones quedan confirmadas por el cruce documental realizado y
 | `P-DAT-001` | `R-DAT-001` | Directa | CONFIRMADO |
 | `P-DAT-002` | `R-HIS-001` | Directa | CONFIRMADO |
 | `P-PRE-006` | `R-HIS-002` | Directa | CONFIRMADO |
+
+### Reconciliación Finance — P-FIN-002 → R-FIN-003
+
+`01_Modelo/Finance_Basic_Authority_v0.1.md`, FIN-AUTH-07, demuestra que `P-FIN-002` define `treasury_minimum` dentro del cálculo autorizado de `financial_safety_margin_pct`, indicador que posteriormente se compara con `P-FIN-004` para la evaluación ordinaria de `R-FIN-003`.
+
+La relación `P-FIN-002 → R-FIN-003` es por tanto **derivada**, no un segundo umbral directo de la regla. Esta reconciliación no modifica valores empresariales ni autoriza la escalada R1→R0.
 
 ### Resolución STK — GAP-STK-PARAM-RULE
 
@@ -266,10 +273,12 @@ Estos pendientes son de alcance general del MVP y **no mantienen abiertos GAP-HI
 
 # 11. ESTADO
 
-**Versión:** 0.9
+**Versión:** 0.9.1
 **Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO / STK
 **Baseline:** EIOS Vertical MVP
 
 `GAP-STK-PARAM-RULE` queda cerrado funcionalmente. Las únicas relaciones `P-STK/P-PYE → R-STK` confirmadas son las tres demostradas por la autoridad especializada; el resto queda clasificado explícitamente como metodología/configuración sin consumidor directo demostrado.
+
+La reconciliación Finance incorpora `P-FIN-002 → R-FIN-003` exclusivamente como relación derivada demostrada por FIN-AUTH-07, sin alterar la relación directa `P-FIN-004 → R-FIN-003`, los valores configurados ni la autoridad de Rules.
 
 Los valores iniciales del catálogo permanecen pendientes de validación empresarial y no se convierten en política por este cierre.
