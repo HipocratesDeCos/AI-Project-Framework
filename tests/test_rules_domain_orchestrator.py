@@ -68,10 +68,10 @@ def _all_bundles():
         stock_excess=orchestrator.StockExcessRuleInputs(marker, marker),
         stock_absorption=orchestrator.StockAbsorptionRuleInputs(marker, marker),
         finance_capacity=orchestrator.FinanceCapacityRuleInputs(
-            marker, marker, marker, marker, marker
+            marker, marker, marker, marker
         ),
         finance_safety_margin=orchestrator.FinanceSafetyMarginRuleInputs(
-            marker, marker, marker, marker, marker, marker, marker
+            marker, marker, marker, marker, marker, marker
         ),
         history_sufficiency=orchestrator.HistorySufficiencyRuleInputs(
             marker, marker, marker, "COMPANY-1", marker, marker
@@ -141,7 +141,7 @@ def test_orchestrator_partial_execution_reports_coverage(monkeypatch):
         context=_context(),
         base_result="COMPRAR",
         finance_capacity=orchestrator.FinanceCapacityRuleInputs(
-            marker, marker, marker, marker, marker
+            marker, marker, marker, marker
         ),
     )
 

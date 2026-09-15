@@ -3,7 +3,12 @@ from decimal import Decimal
 
 from eios.core.crc_mvp import RuleMetadata
 from eios.core.models import Assessment, DecisionContext, Evidence, PurchaseOperation, Rule
-from eios.finance import CashFlow, FinanceBasicInput, FinancialSnapshot, calculate_finance_basic
+from eios.finance import (
+    CashFlow,
+    FinanceBasicInput,
+    FinancialSnapshot,
+    run_provenanced_finance_basic,
+)
 from eios.parameters import resolve_configuration_for_context
 from eios.parameters.center import Configuration
 from eios.rules import (
@@ -83,7 +88,7 @@ def _configuration(parameter_id: str, value: str, unit: str, config_id: int) -> 
         parameter_id=parameter_id,
         company_id=COMPANY,
         value=value,
-        value_type="decimal",
+        value_type="decimal" if parameter_id != "P-FIN-001" else "integer",
         unit=unit,
         valid_from=datetime(2026, 9, 1, tzinfo=timezone.utc),
         valid_to=None,
@@ -106,14 +111,18 @@ def _parameter_evidence(evidence_id: str, resolved) -> Evidence:
 def _finance_setup(p_fin_002: str = "100", p_fin_004: str = "15"):
     context = _context()
     payload = _payload()
-    result = calculate_finance_basic(payload)
+    horizon = resolve_configuration_for_context(
+        _configuration("P-FIN-001", "30", "días", 2001), context, EFFECTIVE
+    )
     minimum = resolve_configuration_for_context(
         _configuration("P-FIN-002", p_fin_002, "€", 2002), context, EFFECTIVE
     )
     margin = resolve_configuration_for_context(
         _configuration("P-FIN-004", p_fin_004, "%", 2004), context, EFFECTIVE
     )
-    assert minimum is not None and margin is not None
+    assert horizon is not None and minimum is not None and margin is not None
+    execution = run_provenanced_finance_basic(payload, horizon)
+    result = execution.finance_result
     finance_evidence = Evidence(
         evidence_id="EV-FIN-BASIC",
         source_type=FINANCE_BASIC_EVIDENCE_SOURCE_TYPE,
@@ -124,8 +133,7 @@ def _finance_setup(p_fin_002: str = "100", p_fin_004: str = "15"):
     )
     return (
         context,
-        payload,
-        result,
+        execution,
         finance_evidence,
         minimum,
         _parameter_evidence("EV-P-FIN-002", minimum),
@@ -137,14 +145,14 @@ def _finance_setup(p_fin_002: str = "100", p_fin_004: str = "15"):
 def test_r_fin_003_true_when_safety_margin_below_p_fin_004() -> None:
     (
         context,
-        payload,
-        result,
+        execution,
         finance_evidence,
         minimum,
         minimum_evidence,
         margin,
         margin_evidence,
     ) = _finance_setup()
+    result = execution.finance_result
     assert result.projection.financial_capacity_forecast == Decimal("110")
     assert result.safety_margin.value_pct == Decimal("10.0")
 
@@ -152,8 +160,7 @@ def test_r_fin_003_true_when_safety_margin_below_p_fin_004() -> None:
         _purchase(),
         context,
         Rule(rule_id="R-FIN-003", version=RULES, requires_evidence=True),
-        payload,
-        result,
+        execution,
         finance_evidence,
         minimum,
         minimum_evidence,
@@ -171,13 +178,12 @@ def test_r_fin_003_true_when_safety_margin_below_p_fin_004() -> None:
 
 def test_r_fin_003_false_when_safety_margin_meets_p_fin_004() -> None:
     setup = _finance_setup(p_fin_004="5")
-    context, payload, result, finance_evidence, minimum, minimum_evidence, margin, margin_evidence = setup
+    context, execution, finance_evidence, minimum, minimum_evidence, margin, margin_evidence = setup
     assessment = evaluate_r_fin_003(
         _purchase(),
         context,
         Rule(rule_id="R-FIN-003", version=RULES, requires_evidence=True),
-        payload,
-        result,
+        execution,
         finance_evidence,
         minimum,
         minimum_evidence,
@@ -190,13 +196,12 @@ def test_r_fin_003_false_when_safety_margin_meets_p_fin_004() -> None:
 
 def test_r_fin_003_rejects_margin_built_with_different_p_fin_002() -> None:
     setup = _finance_setup(p_fin_002="90")
-    context, payload, result, finance_evidence, minimum, minimum_evidence, margin, margin_evidence = setup
+    context, execution, finance_evidence, minimum, minimum_evidence, margin, margin_evidence = setup
     assessment = evaluate_r_fin_003(
         _purchase(),
         context,
         Rule(rule_id="R-FIN-003", version=RULES, requires_evidence=True),
-        payload,
-        result,
+        execution,
         finance_evidence,
         minimum,
         minimum_evidence,
@@ -210,8 +215,7 @@ def test_r_fin_003_rejects_margin_built_with_different_p_fin_002() -> None:
 def test_fin_003_conditions_purchase_when_fin_001_is_not_triggered() -> None:
     (
         context,
-        payload,
-        result,
+        execution,
         finance_evidence,
         minimum,
         minimum_evidence,
@@ -226,8 +230,7 @@ def test_fin_003_conditions_purchase_when_fin_001_is_not_triggered() -> None:
         purchase,
         context,
         fin_001_rule,
-        payload,
-        result,
+        execution,
         finance_evidence,
         minimum,
         minimum_evidence,
@@ -236,8 +239,7 @@ def test_fin_003_conditions_purchase_when_fin_001_is_not_triggered() -> None:
         purchase,
         context,
         fin_003_rule,
-        payload,
-        result,
+        execution,
         finance_evidence,
         minimum,
         minimum_evidence,
