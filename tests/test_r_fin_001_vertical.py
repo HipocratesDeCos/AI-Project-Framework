@@ -5,7 +5,12 @@ import pytest
 
 from eios.core.crc_mvp import RuleMetadata
 from eios.core.models import Assessment, DecisionContext, Evidence, PurchaseOperation, Rule
-from eios.finance import CashFlow, FinanceBasicInput, FinancialSnapshot, calculate_finance_basic
+from eios.finance import (
+    CashFlow,
+    FinanceBasicInput,
+    FinancialSnapshot,
+    run_provenanced_finance_basic,
+)
 from eios.parameters import resolve_configuration_for_context
 from eios.parameters.center import Configuration, ParameterConfigurationError
 from eios.rules import (
@@ -93,6 +98,29 @@ def _configuration(*, value: str = "100", unit: str = "€", company: str = COMP
     )
 
 
+def _horizon_configuration() -> Configuration:
+    return Configuration(
+        configuration_id=2001,
+        parameter_id="P-FIN-001",
+        company_id=COMPANY,
+        value="30",
+        value_type="integer",
+        unit="días",
+        valid_from=datetime(2026, 9, 1, tzinfo=timezone.utc),
+        valid_to=None,
+        created_at=datetime(2026, 9, 1, tzinfo=timezone.utc),
+        updated_at=datetime(2026, 9, 1, tzinfo=timezone.utc),
+    )
+
+
+def _execution(payload: FinanceBasicInput):
+    horizon = resolve_configuration_for_context(
+        _horizon_configuration(), payload.context, EFFECTIVE
+    )
+    assert horizon is not None
+    return run_provenanced_finance_basic(payload, horizon)
+
+
 def _evidence(finance_result, resolved):
     finance = Evidence(
         evidence_id="EV-FIN-BASIC",
@@ -137,7 +165,8 @@ def test_r_fin_001_true_when_capacity_falls_below_p_fin_002() -> None:
     context = _context()
     purchase = _purchase()
     payload = _finance_input()
-    result = calculate_finance_basic(payload)
+    execution = _execution(payload)
+    result = execution.finance_result
     assert result.projection.financial_capacity_forecast == Decimal("70")
 
     resolved = resolve_configuration_for_context(_configuration(value="100"), context, EFFECTIVE)
@@ -148,8 +177,7 @@ def test_r_fin_001_true_when_capacity_falls_below_p_fin_002() -> None:
         purchase,
         context,
         Rule(rule_id="R-FIN-001", version=RULES, requires_evidence=True),
-        payload,
-        result,
+        execution,
         finance_evidence,
         resolved,
         parameter_evidence,
@@ -163,7 +191,8 @@ def test_r_fin_001_false_when_capacity_meets_threshold() -> None:
     context = _context()
     purchase = _purchase()
     payload = _finance_input(minimum=Decimal("60"))
-    result = calculate_finance_basic(payload)
+    execution = _execution(payload)
+    result = execution.finance_result
     resolved = resolve_configuration_for_context(_configuration(value="60"), context, EFFECTIVE)
     assert resolved is not None
     finance_evidence, parameter_evidence = _evidence(result, resolved)
@@ -172,8 +201,7 @@ def test_r_fin_001_false_when_capacity_meets_threshold() -> None:
         purchase,
         context,
         Rule(rule_id="R-FIN-001", version=RULES, requires_evidence=True),
-        payload,
-        result,
+        execution,
         finance_evidence,
         resolved,
         parameter_evidence,
@@ -186,7 +214,8 @@ def test_r_fin_001_missing_parameter_is_not_evaluable_not_zero() -> None:
     context = _context()
     purchase = _purchase()
     payload = _finance_input(minimum=None)
-    result = calculate_finance_basic(payload)
+    execution = _execution(payload)
+    result = execution.finance_result
     finance_evidence = Evidence(
         evidence_id="EV-FIN-BASIC",
         source_type=FINANCE_BASIC_EVIDENCE_SOURCE_TYPE,
@@ -200,8 +229,7 @@ def test_r_fin_001_missing_parameter_is_not_evaluable_not_zero() -> None:
         purchase,
         context,
         Rule(rule_id="R-FIN-001", version=RULES, requires_evidence=True),
-        payload,
-        result,
+        execution,
         finance_evidence,
         None,
         None,
@@ -214,7 +242,8 @@ def test_r_fin_001_non_determined_projection_is_not_evaluable() -> None:
     context = _context()
     purchase = _purchase()
     payload = _finance_input(opening=None)
-    result = calculate_finance_basic(payload)
+    execution = _execution(payload)
+    result = execution.finance_result
     assert result.projection.status == "NOT_EVIDENCED"
     resolved = resolve_configuration_for_context(_configuration(), context, EFFECTIVE)
     assert resolved is not None
@@ -224,8 +253,7 @@ def test_r_fin_001_non_determined_projection_is_not_evaluable() -> None:
         purchase,
         context,
         Rule(rule_id="R-FIN-001", version=RULES, requires_evidence=True),
-        payload,
-        result,
+        execution,
         finance_evidence,
         resolved,
         parameter_evidence,
@@ -238,7 +266,8 @@ def test_fin_r0_dominates_stock_rules_in_multidomain_runtime() -> None:
     context = _context()
     purchase = _purchase()
     payload = _finance_input()
-    result = calculate_finance_basic(payload)
+    execution = _execution(payload)
+    result = execution.finance_result
     resolved = resolve_configuration_for_context(_configuration(), context, EFFECTIVE)
     assert resolved is not None
     finance_evidence, parameter_evidence = _evidence(result, resolved)
@@ -247,8 +276,7 @@ def test_fin_r0_dominates_stock_rules_in_multidomain_runtime() -> None:
         purchase,
         context,
         fin_rule,
-        payload,
-        result,
+        execution,
         finance_evidence,
         resolved,
         parameter_evidence,
