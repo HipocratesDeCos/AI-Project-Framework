@@ -13,7 +13,7 @@ from pydantic import BaseModel, ConfigDict
 
 from eios.core.models import DecisionContext, Evidence, PurchaseOperation
 from eios.delivery.models import DeliveryStockoutAnalysisInput, DeliveryStockoutAnalysisResult
-from eios.finance import FinanceBasicInput, FinanceBasicResult
+from eios.finance import ProvenancedFinanceBasicExecution
 from eios.parameters import ResolvedConfiguration
 from eios.pricing import PriceIntelligenceInput, PriceIntelligenceResult
 from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
@@ -52,8 +52,7 @@ class StockAbsorptionRuleInputs:
 
 @dataclass(frozen=True)
 class FinanceCapacityRuleInputs:
-    finance_input: FinanceBasicInput
-    finance_result: FinanceBasicResult
+    finance_execution: ProvenancedFinanceBasicExecution
     finance_evidence: Evidence
     threshold_resolution: ResolvedConfiguration | None
     parameter_evidence: Evidence | None
@@ -61,8 +60,7 @@ class FinanceCapacityRuleInputs:
 
 @dataclass(frozen=True)
 class FinanceSafetyMarginRuleInputs:
-    finance_input: FinanceBasicInput
-    finance_result: FinanceBasicResult
+    finance_execution: ProvenancedFinanceBasicExecution
     finance_evidence: Evidence
     treasury_minimum_resolution: ResolvedConfiguration | None
     treasury_minimum_evidence: Evidence | None
@@ -173,8 +171,7 @@ def run_domain_rules(
             purchase,
             context,
             rule,
-            finance_capacity.finance_input,
-            finance_capacity.finance_result,
+            finance_capacity.finance_execution,
             finance_capacity.finance_evidence,
             finance_capacity.threshold_resolution,
             finance_capacity.parameter_evidence,
@@ -186,8 +183,7 @@ def run_domain_rules(
             purchase,
             context,
             rule,
-            finance_safety_margin.finance_input,
-            finance_safety_margin.finance_result,
+            finance_safety_margin.finance_execution,
             finance_safety_margin.finance_evidence,
             finance_safety_margin.treasury_minimum_resolution,
             finance_safety_margin.treasury_minimum_evidence,
