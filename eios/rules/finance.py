@@ -7,7 +7,12 @@ from decimal import Decimal, InvalidOperation
 
 from eios.core.models import Assessment, DecisionContext, Evidence, PurchaseOperation, Rule
 from eios.core.validation import validate_evidence
-from eios.finance import FinanceBasicInput, FinanceBasicResult
+from eios.finance import (
+    FinanceBasicInput,
+    FinanceBasicResult,
+    ProvenancedFinanceBasicExecution,
+    validate_provenanced_finance_basic_execution,
+)
 from eios.parameters import ResolvedConfiguration
 
 
@@ -137,13 +142,16 @@ def evaluate_r_fin_001(
     purchase: PurchaseOperation,
     context: DecisionContext,
     rule: Rule,
-    finance_input: FinanceBasicInput,
-    finance_result: FinanceBasicResult,
+    finance_execution: ProvenancedFinanceBasicExecution,
     finance_evidence: Evidence,
     threshold_resolution: ResolvedConfiguration | None,
     parameter_evidence: Evidence | None,
 ) -> Assessment:
     """Evaluate ``financial_capacity_forecast < P-FIN-002`` conservatively."""
+    validate_provenanced_finance_basic_execution(finance_execution)
+    finance_input = finance_execution.finance_input
+    finance_result = finance_execution.finance_result
+
     _validate_identity(purchase, context, rule, R_FIN_001, finance_input, finance_result)
     _validate_finance_evidence(finance_input, finance_result, finance_evidence)
     evidence_ids = [finance_evidence.evidence_id]
@@ -199,8 +207,7 @@ def evaluate_r_fin_003(
     purchase: PurchaseOperation,
     context: DecisionContext,
     rule: Rule,
-    finance_input: FinanceBasicInput,
-    finance_result: FinanceBasicResult,
+    finance_execution: ProvenancedFinanceBasicExecution,
     finance_evidence: Evidence,
     treasury_minimum_resolution: ResolvedConfiguration | None,
     treasury_minimum_evidence: Evidence | None,
@@ -208,6 +215,10 @@ def evaluate_r_fin_003(
     margin_evidence: Evidence | None,
 ) -> Assessment:
     """Evaluate ``financial_safety_margin_pct < P-FIN-004`` conservatively."""
+    validate_provenanced_finance_basic_execution(finance_execution)
+    finance_input = finance_execution.finance_input
+    finance_result = finance_execution.finance_result
+
     _validate_identity(purchase, context, rule, R_FIN_003, finance_input, finance_result)
     _validate_finance_evidence(finance_input, finance_result, finance_evidence)
     evidence_ids = [finance_evidence.evidence_id]
