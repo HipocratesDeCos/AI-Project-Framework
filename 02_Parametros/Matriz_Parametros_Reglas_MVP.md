@@ -2,10 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.9.1
+**Versión:** 0.9.2
 **Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO / STK
 **Baseline:** EIOS Vertical MVP
-**Fecha:** 11/09/2026
+**Fecha:** 15/09/2026
 
 ---
 
@@ -107,7 +107,7 @@ La numeración funcional se conserva; el prefijo identifica el tipo de entidad.
 | **P-MGE-002** | Rentabilidad | **R-MGE-003** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
 | **P-MGE-003** | Rentabilidad | **R-MGE-002** | Según regla | Sí | Sí | Sí | **CONFIRMADO** |
 | P-MGE-004 a P-MGE-006 | Rentabilidad | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
-| P-FIN-001 | Finanzas | Pendiente de identificación documental individual | Alta | Restringida | Sí | Sí | Pendiente de cruce |
+| P-FIN-001 | Finanzas | R-FIN-001 — relación derivada mediante horizonte Finance Basic → `financial_capacity_forecast` | Alta | Restringida | Sí | Sí | CONFIRMADO — relación derivada / FIN-AUTH-01 |
 | P-FIN-002 | Finanzas | R-FIN-001 — capacidad financiera prevista, como parte del cálculo / R-FIN-003 — relación derivada mediante `financial_safety_margin_pct` | Sí | Restringida | Sí | Sí | CONFIRMADO — relación compuesta/derivada |
 | P-FIN-003 | Finanzas | R-FIN-002 | Sí | Restringida | Sí | Sí | CONFIRMADO |
 | P-FIN-004 | Finanzas | R-FIN-003 | Alta | Restringida | Sí | Sí | CONFIRMADO |
@@ -176,6 +176,7 @@ Las siguientes relaciones quedan confirmadas por el cruce documental realizado y
 | `P-MGE-001` | `R-MGE-001` | Directa | CONFIRMADO |
 | `P-MGE-002` | `R-MGE-003` | Directa | CONFIRMADO |
 | `P-MGE-003` | `R-MGE-002` | Directa | CONFIRMADO |
+| `P-FIN-001` | `R-FIN-001` | Derivada | CONFIRMADO — FIN-AUTH-01 |
 | `P-FIN-002` | `R-FIN-001` | Compuesta | CONFIRMADO |
 | `P-FIN-002` | `R-FIN-003` | Derivada | CONFIRMADO — FIN-AUTH-07 |
 | `P-FIN-003` | `R-FIN-002` | Directa | CONFIRMADO |
@@ -190,6 +191,12 @@ Las siguientes relaciones quedan confirmadas por el cruce documental realizado y
 | `P-DAT-001` | `R-DAT-001` | Directa | CONFIRMADO |
 | `P-DAT-002` | `R-HIS-001` | Directa | CONFIRMADO |
 | `P-PRE-006` | `R-HIS-002` | Directa | CONFIRMADO |
+
+### Reconciliación Finance — P-FIN-001 → R-FIN-001
+
+`01_Modelo/Finance_Basic_Authority_v0.1.md`, FIN-AUTH-01/05/06, demuestra la cadena `P-FIN-001 → horizonte Finance Basic → financial_capacity_forecast → R-FIN-001` y especifica que `P-FIN-001` no es un parámetro directo de la condición de regla.
+
+La relación `P-FIN-001 → R-FIN-001` es por tanto **derivada**. Esta reconciliación no valida el valor inicial de 30 días ni acredita por sí sola el binding físico provenance-safe de `FinanceBasicInput.horizon_days`; `FIN-PROV-HORIZON-01` permanece abierto.
 
 ### Reconciliación Finance — P-FIN-002 → R-FIN-003
 
@@ -253,6 +260,7 @@ La creación de un parámetro `HIS-*` queda expresamente descartada.
 - `GAP-HIS-01` queda resuelto mediante la determinación de `P-DAT-002` como consumidor efectivo de `R-HIS-001` y la exclusión de `P-PRE-003` como parámetro directo.
 - `GAP-HIS-02` queda resuelto mediante la determinación de `P-PRE-006` como consumidor efectivo de `R-HIS-002` y la no sustitución por `P-DAT-003`.
 - `GAP-STK-PARAM-RULE` queda resuelto sin asignar consumidores por inferencia ni validar valores iniciales.
+- `P-FIN-001 → R-FIN-001` queda reconciliado como relación derivada demostrada por FIN-AUTH-01, manteniendo separado `FIN-PROV-HORIZON-01`.
 
 ---
 
@@ -260,7 +268,7 @@ La creación de un parámetro `HIS-*` queda expresamente descartada.
 
 1. Completar la migración documental de los IDs de `02_Parametros` a `P-*` fuera de los ámbitos ya reconciliados.
 2. Completar la migración documental de los IDs de `04_Reglas` a `R-*` fuera de los ámbitos ya reconciliados.
-3. Identificar documentalmente cada regla consumidora de los parámetros que todavía permanecen pendientes fuera del cruce STK/PYE cerrado.
+3. Identificar documentalmente cada regla consumidora de los parámetros que todavía permanecen pendientes fuera del cruce STK/PYE cerrado y de las reconciliaciones Finance ya confirmadas.
 4. Confirmar los parámetros realmente necesarios para el MVP fuera de los ámbitos ya resueltos.
 5. Validar los valores empresariales definitivos.
 6. Determinar los parámetros específicos de cada empresa.
@@ -269,16 +277,18 @@ La creación de un parámetro `HIS-*` queda expresamente descartada.
 
 Estos pendientes son de alcance general del MVP y **no mantienen abiertos GAP-HIS-01, GAP-HIS-02, C-07 ni GAP-STK-PARAM-RULE**.
 
+`FIN-PROV-HORIZON-01` permanece como deuda técnica de provenance físico y no como pendiente de existencia de la relación documental `P-FIN-001 → R-FIN-001`.
+
 ---
 
 # 11. ESTADO
 
-**Versión:** 0.9.1
+**Versión:** 0.9.2
 **Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO / STK
 **Baseline:** EIOS Vertical MVP
 
 `GAP-STK-PARAM-RULE` queda cerrado funcionalmente. Las únicas relaciones `P-STK/P-PYE → R-STK` confirmadas son las tres demostradas por la autoridad especializada; el resto queda clasificado explícitamente como metodología/configuración sin consumidor directo demostrado.
 
-La reconciliación Finance incorpora `P-FIN-002 → R-FIN-003` exclusivamente como relación derivada demostrada por FIN-AUTH-07, sin alterar la relación directa `P-FIN-004 → R-FIN-003`, los valores configurados ni la autoridad de Rules.
+La reconciliación Finance incorpora `P-FIN-001 → R-FIN-001` como relación derivada demostrada por FIN-AUTH-01 y mantiene `FIN-PROV-HORIZON-01` abierto; incorpora asimismo `P-FIN-002 → R-FIN-003` exclusivamente como relación derivada demostrada por FIN-AUTH-07, sin alterar la relación directa `P-FIN-004 → R-FIN-003`, los valores configurados ni la autoridad de Rules.
 
 Los valores iniciales del catálogo permanecen pendientes de validación empresarial y no se convierten en política por este cierre.
