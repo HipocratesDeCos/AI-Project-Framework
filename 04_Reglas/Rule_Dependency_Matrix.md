@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.5  
+**Versión:** 1.5.1  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
@@ -351,6 +351,7 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 | DEP-HIS-006-RHIS-002 | `R-HIS-002` | `PARAMETER` | `P-PRE-006` | PARAMETER | Mínimo de operaciones comparables | PENDING | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
 | DEP-ENT-BSQ-RENT-001 | `R-ENT-001` | `EVIDENCE` | `BaselineStockoutQualification` | STK / ENT METHODOLOGY | Timing de agotamiento cualificado desde escenario base sin la compra evaluada | PENDING | `04_Reglas/Especificacion_Reglas_Entrega_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Exige provenance de baseline y exclusión de la compra; no implica dependencia COMPONENT directa a STK. |
 | DEP-ENT-DTE-RENT-001 | `R-ENT-001` | `EVIDENCE` | `PurchaseSpecificDeliveryTimingEvidence` | DELIVERY / SUPPLIER EVIDENCE ADAPTER | Fecha prevista de entrega aplicable específicamente a la propuesta evaluada | PENDING | `04_Reglas/Especificacion_Reglas_Entrega_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Supplier DELIVERY_DATE es fuente opcional adaptada, no dependencia COMPONENT obligatoria. |
+| DEP-ROT-SAW-RROT-002 | `R-ROT-002` | `EVIDENCE` | `SalesActivityWindowEvidence` | ROTATION / TRACK A METHODOLOGY | Soporte factual para demostrar actividad o ausencia demostrada de ventas válidas en la ventana aplicable | PENDING | `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Relación validada por `01_Modelo/Rotation_Methodological_Audit_2_Final_v0.3.md`; no resuelve `ROT-G01` ni las dependencias `DATA`/`PARAMETER` pendientes de `ROT-G04-A`. |
 
 ---
 
@@ -386,7 +387,7 @@ La cobertura se limita a relaciones cuya existencia está demostrada documentalm
 Quedan pendientes de cruce, entre otros:
 
 - dependencias `DATA` no identificadas individualmente;
-- dependencias `EVIDENCE` específicas por reglas distintas de `R-ENT-001` cuando aún carezcan de fuente demostrable;
+- dependencias `EVIDENCE` específicas por reglas distintas de `R-ENT-001` y `R-ROT-002` cuando aún carezcan de fuente demostrable;
 - dependencias `COMPONENT` cuando no exista evidencia documental directa;
 - determinación documental de `Criticality` por dependencia;
 - determinación documental de `Evaluability_Impact` por dependencia;
@@ -396,6 +397,8 @@ Quedan pendientes de cruce, entre otros:
 El cruce individual `P-STK/P-PYE ↔ R-STK` deja de formar parte de los pendientes generales: queda resuelto por `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md` y reconciliado en esta versión.
 
 El cruce `R-ENT-001 ↔ evidencia temporal` deja de formar parte de los pendientes generales: queda demostrado por `04_Reglas/Especificacion_Reglas_Entrega_MVP.md` y se materializa mediante dos dependencias `EVIDENCE / CONFIRMED`. Permanecen `PENDING` la criticidad y el impacto de evaluabilidad por no existir autoridad suficiente para asignarlos.
+
+El cruce `R-ROT-002 ↔ SalesActivityWindowEvidence` deja de formar parte de los pendientes generales de evidencia: queda demostrado por `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md` y validado por `01_Modelo/Rotation_Methodological_Audit_2_Final_v0.3.md`. Permanecen pendientes `ROT-G01` y las dependencias `DATA`/`PARAMETER` todavía no demostradas de `ROT-G04-A`; este registro no autoriza implementación de Rotation.
 
 Estos pendientes no autorizan inferencias. Representan **gaps de evidencia/dependencia aún no resueltos**.
 
@@ -449,12 +452,12 @@ No se debe:
 
 # 22. Estado
 
-**Versión:** 1.5  
+**Versión:** 1.5.1  
 **Estado:** CERRADO  
 **Ámbito:** Dependencias transversales de reglas EIOS  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
-Esta versión conserva íntegramente la cobertura previa y amplía exclusivamente dos relaciones `EVIDENCE` demostradas para `R-ENT-001`, manteniendo `Criticality` y `Evaluability_Impact` en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA` ni `COMPONENT`.
+Esta versión conserva íntegramente la cobertura previa, mantiene las dos relaciones `EVIDENCE` demostradas para `R-ENT-001` y añade exclusivamente la relación `EVIDENCE` demostrada `R-ROT-002 → SalesActivityWindowEvidence`. `Criticality` y `Evaluability_Impact` permanecen en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA`, `PARAMETER` ni `COMPONENT`.
 
 La reconciliación STK mantiene:
 
@@ -473,6 +476,15 @@ La reconciliación ENT confirma:
 - rechazo de la transformación implícita lead time → expected delivery date;
 - ausencia de dependencia COMPONENT obligatoria a Supplier o STK por mera procedencia de datos.
 
+La reconciliación ROT confirma:
+
+- `R-ROT-002 → SalesActivityWindowEvidence` como `EVIDENCE / CONFIRMED`;
+- `Criticality = PENDING` y `Evaluability_Impact = PENDING`;
+- `Fallback = NONE` y ausencia de dependencia COMPONENT inferida;
+- `ROT-G01` permanece abierto;
+- las dependencias `DATA` y `PARAMETER` restantes de `ROT-G04-A` permanecen pendientes;
+- Track A continúa no autorizado para implementación.
+
 ### Dictamen de cierre
 
 La auditoría documental confirma:
@@ -483,10 +495,11 @@ La auditoría documental confirma:
 - conformidad con `03_Arquitectura/Architecture_Blueprint.md`;
 - compatibilidad con `01_Modelo/STK_Contract_Entry_Authority.md` y M01…M10;
 - compatibilidad con `01_Modelo/Delivery_Stockout_Methodological_Closure_v0.3.md`;
+- compatibilidad con `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md` y `01_Modelo/Rotation_Methodological_Audit_2_Final_v0.3.md`;
 - ausencia de redefinición de C0;
 - mantenimiento de gaps no demostrados como `PENDING` o `REJECTED`, sin inferencias.
 
-El cierre es **contractual y documental**. No implica completar dependencias `DATA`, `EVIDENCE` o `COMPONENT` de otras reglas que carezcan de evidencia demostrable, ni asignar `Criticality` o `Evaluability_Impact` por inferencia.
+El cierre es **contractual y documental**. No implica completar dependencias `DATA`, `EVIDENCE`, `PARAMETER` o `COMPONENT` de otras reglas que carezcan de evidencia demostrable, ni asignar `Criticality` o `Evaluability_Impact` por inferencia.
 
 Los pendientes declarados constituyen deuda controlada de cobertura y no invalidan el contrato cerrado de la matriz.
 
