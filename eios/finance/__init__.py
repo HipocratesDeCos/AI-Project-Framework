@@ -15,6 +15,14 @@ from .models import (
     WorkingCapitalInput,
     WorkingCapitalResult,
 )
+from .provenance import (
+    FinanceHorizonProvenanceError,
+    P_FIN_001,
+    P_FIN_001_UNIT,
+    ProvenancedFinanceBasicExecution,
+    run_provenanced_finance_basic,
+    validate_provenanced_finance_basic_execution,
+)
 
 __all__ = [
     "CalculationStatus",
@@ -22,13 +30,19 @@ __all__ = [
     "ExternalLiquidityReference",
     "FinanceBasicInput",
     "FinanceBasicResult",
+    "FinanceHorizonProvenanceError",
     "FinancialEvidenceState",
     "FinancialSnapshot",
     "FlowType",
+    "P_FIN_001",
+    "P_FIN_001_UNIT",
     "ProjectionPoint",
     "ProjectionResult",
+    "ProvenancedFinanceBasicExecution",
     "SafetyMarginResult",
     "WorkingCapitalInput",
     "WorkingCapitalResult",
     "calculate_finance_basic",
+    "run_provenanced_finance_basic",
+    "validate_provenanced_finance_basic_execution",
 ]
