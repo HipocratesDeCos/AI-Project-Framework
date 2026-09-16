@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.5.3  
+**Versión:** 1.5.4  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
@@ -334,7 +334,7 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 | DEP-MGE-001-RMGE-001 | `R-MGE-001` | `PARAMETER` | `P-MGE-001` | PARAMETER | Parámetro consumidor de margen | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa documentada. |
 | DEP-MGE-002-RMGE-003 | `R-MGE-003` | `PARAMETER` | `P-MGE-002` | PARAMETER | Parámetro consumidor de margen objetivo | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
 | DEP-MGE-003-RMGE-002 | `R-MGE-002` | `PARAMETER` | `P-MGE-003` | PARAMETER | Parámetro consumidor de tolerancia | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
-| DEP-FIN-001-RFIN-001 | `R-FIN-001` | `DERIVED` | `P-FIN-001` | PARAMETER | Horizonte autorizado que acota la proyección financiera de la que deriva `financial_capacity_forecast` consumida por R-FIN-001 | PENDING | `01_Modelo/Finance_Basic_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | FIN-AUTH-01 documenta `P-FIN-001 → horizonte Finance Basic → financial_capacity_forecast → R-FIN-001` y prohíbe tratar P-FIN-001 como parámetro directo. `FIN-PROV-HORIZON-01` permanece abierto: esta arista no acredita por sí sola el binding físico de `horizon_days` a una `ResolvedConfiguration/configuration_ref` concreta. |
+| DEP-FIN-001-RFIN-001 | `R-FIN-001` | `DERIVED` | `P-FIN-001` | PARAMETER | Horizonte autorizado que acota la proyección financiera de la que deriva `financial_capacity_forecast` consumida por R-FIN-001 | PENDING | `01_Modelo/Finance_Basic_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | FIN-AUTH-01 documenta `P-FIN-001 → horizonte Finance Basic → financial_capacity_forecast → R-FIN-001` y prohíbe tratar P-FIN-001 como parámetro directo. `FIN-PROV-HORIZON-01` quedó cerrado físicamente mediante `08_Implementacion/Finance_Horizon_Provenance_Contract_v0.1.md`, `ProvenancedFinanceBasicExecution` y PR #150 (CI #808/#809 SUCCESS); este cierre técnico no altera `Criticality`/`Evaluability_Impact` ni valida el valor inicial de 30 días. |
 | DEP-FIN-002-RFIN-001 | `R-FIN-001` | `PARAMETER` | `P-FIN-002` | PARAMETER | Parte del cálculo de capacidad financiera prevista | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
 | DEP-FIN-002-RFIN-003 | `R-FIN-003` | `DERIVED` | `P-FIN-002` | PARAMETER | Mínimo de tesorería autorizado integrado en el cálculo de `financial_safety_margin_pct` consumido por R-FIN-003 | PENDING | `01_Modelo/Finance_Basic_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | FIN-AUTH-07 documenta `treasury_minimum = P-FIN-002` y la transformación; no autoriza escalada R1→R0. |
 | DEP-FIN-003-RFIN-002 | `R-FIN-002` | `PARAMETER` | `P-FIN-003` | PARAMETER | Parámetro consumidor de fondo de maniobra | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa documentada. |
@@ -402,7 +402,7 @@ El cruce `R-ENT-001 ↔ evidencia temporal` deja de formar parte de los pendient
 
 El cruce `R-ROT-002 ↔ SalesActivityWindowEvidence` deja de formar parte de los pendientes generales de evidencia: queda demostrado por `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md` y validado por `01_Modelo/Rotation_Methodological_Audit_2_Final_v0.3.md`. Permanecen pendientes `ROT-G01` y las dependencias `DATA`/`PARAMETER` todavía no demostradas de `ROT-G04-A`; este registro no autoriza implementación de Rotation.
 
-El cruce derivado `P-FIN-001 → R-FIN-001` deja de formar parte de los pendientes de parámetros: queda demostrado por `01_Modelo/Finance_Basic_Authority_v0.1.md` FIN-AUTH-01/05/06 y reconciliado con `02_Parametros/Matriz_Parametros_Reglas_MVP.md`. `FIN-PROV-HORIZON-01` permanece abierto como deuda técnica separada de provenance físico y esta arista no valida el valor inicial de 30 días.
+El cruce derivado `P-FIN-001 → R-FIN-001` deja de formar parte de los pendientes de parámetros: queda demostrado por `01_Modelo/Finance_Basic_Authority_v0.1.md` FIN-AUTH-01/05/06 y reconciliado con `02_Parametros/Matriz_Parametros_Reglas_MVP.md`. `FIN-PROV-HORIZON-01` quedó cerrado físicamente mediante la frontera provenance-safe `ProvenancedFinanceBasicExecution`, integrada por PR #150 con CI #808/#809 SUCCESS; este cierre no valida el valor inicial de 30 días ni determina `Criticality` o `Evaluability_Impact`.
 
 El cruce derivado `P-FIN-002 → R-FIN-003` deja de formar parte de los pendientes de parámetros: queda demostrado por `01_Modelo/Finance_Basic_Authority_v0.1.md` FIN-AUTH-07 y reconciliado con `02_Parametros/Matriz_Parametros_Reglas_MVP.md`. La relación directa `P-FIN-004 → R-FIN-003` permanece sin cambios y no se autoriza escalada R1→R0.
 
@@ -458,12 +458,12 @@ No se debe:
 
 # 22. Estado
 
-**Versión:** 1.5.3  
+**Versión:** 1.5.4  
 **Estado:** CERRADO  
 **Ámbito:** Dependencias transversales de reglas EIOS  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
-Esta versión conserva íntegramente la cobertura previa, mantiene las relaciones `EVIDENCE` demostradas de ENT y Rotation y añade exclusivamente la relación derivada demostrada `P-FIN-001 → R-FIN-001`, además de conservar `P-FIN-002 → R-FIN-003` ya canonizada. `Criticality` y `Evaluability_Impact` permanecen en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA`, `EVIDENCE` ni `COMPONENT`.
+Esta versión conserva íntegramente la cobertura de v1.5.3 y reconcilia exclusivamente el estado posterior de `FIN-PROV-HORIZON-01` tras su cierre físico. Mantiene las relaciones `EVIDENCE` demostradas de ENT y Rotation, `P-FIN-001 → R-FIN-001` y `P-FIN-002 → R-FIN-003` ya canonizadas. `Criticality` y `Evaluability_Impact` permanecen en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA`, `EVIDENCE` ni `COMPONENT`.
 
 La reconciliación STK mantiene:
 
@@ -495,7 +495,8 @@ La reconciliación FIN confirma:
 
 - `P-FIN-001 → R-FIN-001` como `DERIVED / CONFIRMED` bajo FIN-AUTH-01/05/06;
 - `P-FIN-001` no se convierte en parámetro directo de la condición de `R-FIN-001`;
-- `FIN-PROV-HORIZON-01` permanece abierto: la arista documental no certifica el binding físico individual de `horizon_days` a una resolución/configuración concreta;
+- `FIN-PROV-HORIZON-01` queda reconciliado como 🔒 CERRADO físicamente: el horizonte se vincula y revalida mediante `ResolvedConfiguration(P-FIN-001)` dentro de `ProvenancedFinanceBasicExecution`, integrado por PR #150 con CI #808/#809 SUCCESS;
+- este cierre técnico no determina `Criticality` ni `Evaluability_Impact` y no valida 30 días como política empresarial;
 - `P-FIN-002 → R-FIN-003` permanece como `DERIVED / CONFIRMED` bajo FIN-AUTH-07;
 - `P-FIN-004 → R-FIN-003` permanece como dependencia directa ya confirmada;
 - `Criticality = PENDING` y `Evaluability_Impact = PENDING` para las aristas derivadas donde no existe autoridad suficiente;
@@ -514,6 +515,7 @@ La auditoría documental confirma:
 - compatibilidad con `01_Modelo/Delivery_Stockout_Methodological_Closure_v0.3.md`;
 - compatibilidad con `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md` y `01_Modelo/Rotation_Methodological_Audit_2_Final_v0.3.md`;
 - compatibilidad con `01_Modelo/Finance_Basic_Authority_v0.1.md` FIN-AUTH-01/05/06/07;
+- compatibilidad con `08_Implementacion/Finance_Horizon_Provenance_Contract_v0.1.md` y cierre físico de PR #150 / CI #808/#809;
 - ausencia de redefinición de C0;
 - mantenimiento de gaps no demostrados como `PENDING` o `REJECTED`, sin inferencias.
 
