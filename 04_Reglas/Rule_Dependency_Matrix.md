@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.5.4  
+**Versión:** 1.5.5  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
@@ -326,6 +326,7 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 
 | Dependency_ID | Rule_ID | Dependency_Type | Source_ID | Source_Domain | Function | Criticality | Evidence_Source | Evidence_Status | Evaluability_Impact | Fallback | Affected_Component | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+| DEP-PRE-001-RPRE-001 | `R-PRE-001` | `PARAMETER` | `P-PRE-001` | PARAMETER | Horizonte temporal autorizado que define “reciente” para la operación comparable de R-PRE-001 | PENDING | `01_Modelo/Price_Intelligence_Specification_Gaps.md` | CONFIRMED | PENDING | NONE | NONE | `GAP-PI-TEMP-01` documenta explícitamente `P-PRE-001 → R-PRE-001`; no valida 3 meses como política empresarial definitiva ni autoriza por sí mismo implementación runtime. |
 | DEP-PRE-004-RPRE-001 | `R-PRE-001` | `PARAMETER` | `P-PRE-004` | PARAMETER | Parámetro consumidor de la regla | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa documentada. |
 | DEP-PRE-005-RPRE-002 | `R-PRE-002` | `PARAMETER` | `P-PRE-005` | PARAMETER | Parámetro consumidor de la regla | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa documentada. |
 | DEP-STK-004-RSTK-002 | `R-STK-002` | `PARAMETER` | `P-STK-004` | PARAMETER | Umbral máximo de cobertura consumido por la condición de cobertura elevada | PENDING | `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa demostrada por R-STK-002 + M04. |
@@ -396,6 +397,8 @@ Quedan pendientes de cruce, entre otros:
 - tratamientos de contingencia específicos cuando una autoridad competente los defina;
 - relaciones adicionales de parámetros fuera del cruce STK/PYE ya cerrado que sigan marcadas como pendientes en la matriz de parámetros.
 
+El cruce `P-PRE-001 → R-PRE-001` deja de formar parte de los pendientes de parámetros: `GAP-PI-TEMP-01` demuestra expresamente que `P-PRE-001` define el horizonte temporal de “reciente” para `R-PRE-001`. Esta canonización no implementa la regla, no asigna funciones de PRICE adicionales y no valida 3 meses como política empresarial definitiva.
+
 El cruce individual `P-STK/P-PYE ↔ R-STK` deja de formar parte de los pendientes generales: queda resuelto por `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md` y reconciliado en esta versión.
 
 El cruce `R-ENT-001 ↔ evidencia temporal` deja de formar parte de los pendientes generales: queda demostrado por `04_Reglas/Especificacion_Reglas_Entrega_MVP.md` y se materializa mediante dos dependencias `EVIDENCE / CONFIRMED`. Permanecen `PENDING` la criticidad y el impacto de evaluabilidad por no existir autoridad suficiente para asignarlos.
@@ -458,12 +461,22 @@ No se debe:
 
 # 22. Estado
 
-**Versión:** 1.5.4  
+**Versión:** 1.5.5  
 **Estado:** CERRADO  
 **Ámbito:** Dependencias transversales de reglas EIOS  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
-Esta versión conserva íntegramente la cobertura de v1.5.3 y reconcilia exclusivamente el estado posterior de `FIN-PROV-HORIZON-01` tras su cierre físico. Mantiene las relaciones `EVIDENCE` demostradas de ENT y Rotation, `P-FIN-001 → R-FIN-001` y `P-FIN-002 → R-FIN-003` ya canonizadas. `Criticality` y `Evaluability_Impact` permanecen en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA`, `EVIDENCE` ni `COMPONENT`.
+Esta versión conserva íntegramente la cobertura de v1.5.4 y reconcilia exclusivamente la dependencia temporal `P-PRE-001 → R-PRE-001` ya demostrada por `GAP-PI-TEMP-01`. Mantiene las relaciones `EVIDENCE` demostradas de ENT y Rotation, las reconciliaciones Finance ya cerradas y el resto de dependencias confirmadas. `Criticality` y `Evaluability_Impact` permanecen en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA`, `EVIDENCE` ni `COMPONENT`.
+
+La reconciliación PRE temporal confirma:
+
+- `P-PRE-001 → R-PRE-001` como `PARAMETER / CONFIRMED`;
+- su única función canonizada es definir el horizonte temporal de “reciente” en la condición de `R-PRE-001`;
+- `Criticality = PENDING` y `Evaluability_Impact = PENDING`;
+- `Fallback = NONE` y `Affected_Component = NONE`;
+- el valor inicial de 3 meses permanece pendiente de validación empresarial;
+- la canonización no implementa `R-PRE-001` ni modifica Price Intelligence C1;
+- `P-PRE-002` permanece sin consumidor directo adicional demostrado.
 
 La reconciliación STK mantiene:
 
@@ -516,6 +529,7 @@ La auditoría documental confirma:
 - compatibilidad con `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md` y `01_Modelo/Rotation_Methodological_Audit_2_Final_v0.3.md`;
 - compatibilidad con `01_Modelo/Finance_Basic_Authority_v0.1.md` FIN-AUTH-01/05/06/07;
 - compatibilidad con `08_Implementacion/Finance_Horizon_Provenance_Contract_v0.1.md` y cierre físico de PR #150 / CI #808/#809;
+- compatibilidad con `01_Modelo/Price_Intelligence_Specification_Gaps.md` `GAP-PI-TEMP-01` y con las fronteras de `01_Modelo/Price_Intelligence_Temporal_Matrix.md`;
 - ausencia de redefinición de C0;
 - mantenimiento de gaps no demostrados como `PENDING` o `REJECTED`, sin inferencias.
 

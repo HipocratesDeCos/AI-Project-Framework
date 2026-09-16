@@ -2,10 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.9.2
+**Versión:** 0.9.3
 **Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO / STK
 **Baseline:** EIOS Vertical MVP
-**Fecha:** 15/09/2026
+**Fecha:** 16/09/2026
 
 ---
 
@@ -85,7 +85,7 @@ La numeración funcional se conserva; el prefijo identifica el tipo de entidad.
 
 | ID | Área | Regla | Crítico | Editable | Empresa | MVP | Estado |
 |---|---|---|---|---|---|---|---|
-| P-PRE-001 | Precios | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
+| **P-PRE-001** | Precios | **R-PRE-001 — horizonte temporal que define “reciente” (GAP-PI-TEMP-01)** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO — GAP-PI-TEMP-01** |
 | P-PRE-002 | Precios | Pendiente de identificación documental individual | Según regla | Sí, sujeto a control | Sí | Sí | Pendiente de cruce |
 | **P-PRE-003** | Precios | **Criterio/metodología histórica — no parámetro directo (C-01); R-HIS-001 utiliza P-DAT-002** | Según regla | No aplica como parámetro directo | Sí | Sí | **RESUELTO / C-01 / HIS-01** |
 | **P-PRE-004** | Precios | **R-PRE-001** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
@@ -168,6 +168,7 @@ Las siguientes relaciones quedan confirmadas por el cruce documental realizado y
 
 | Parámetro | Regla consumidora | Tipo | Estado |
 |---|---|---|---|
+| `P-PRE-001` | `R-PRE-001` | Directa — horizonte temporal de recencia | CONFIRMADO — GAP-PI-TEMP-01 |
 | `P-PRE-004` | `R-PRE-001` | Directa | CONFIRMADO |
 | `P-PRE-005` | `R-PRE-002` | Directa | CONFIRMADO |
 | `P-STK-004` | `R-STK-002` | Directa | CONFIRMADO — STK |
@@ -191,6 +192,12 @@ Las siguientes relaciones quedan confirmadas por el cruce documental realizado y
 | `P-DAT-001` | `R-DAT-001` | Directa | CONFIRMADO |
 | `P-DAT-002` | `R-HIS-001` | Directa | CONFIRMADO |
 | `P-PRE-006` | `R-HIS-002` | Directa | CONFIRMADO |
+
+### Reconciliación PRE temporal — P-PRE-001 → R-PRE-001
+
+`01_Modelo/Price_Intelligence_Specification_Gaps.md`, `GAP-PI-TEMP-01`, establece explícitamente que para `R-PRE-001` “reciente” significa dentro de `P-PRE-001` en el diseño MVP.
+
+La relación `P-PRE-001 → R-PRE-001` es por tanto **directa como parámetro temporal de la condición**. Esta reconciliación no implementa `R-PRE-001`, no modifica Price Intelligence C1, no asigna a `P-PRE-001` funciones de comparabilidad, representatividad, suficiencia o agregación y no valida su valor inicial de 3 meses como política empresarial definitiva.
 
 ### Reconciliación Finance — P-FIN-001 → R-FIN-001
 
@@ -257,6 +264,7 @@ La creación de un parámetro `HIS-*` queda expresamente descartada.
 - Los valores económicos y operativos siguen siendo valores iniciales hasta su validación empresarial.
 - `GAP-01 / PRO-001` queda tratado como dato del proveedor, no como nuevo parámetro empresarial.
 - `C-07` queda documentalmente satisfecho para `P-PAG-001…005` mediante `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` y su incorporación a `Matriz_Reglas_MVP v2.1`.
+- `GAP-PI-TEMP-01` queda reconciliado mediante la relación directa `P-PRE-001 → R-PRE-001` para el horizonte temporal de “reciente”, sin validar el valor inicial de 3 meses como política empresarial definitiva.
 - `GAP-HIS-01` queda resuelto mediante la determinación de `P-DAT-002` como consumidor efectivo de `R-HIS-001` y la exclusión de `P-PRE-003` como parámetro directo.
 - `GAP-HIS-02` queda resuelto mediante la determinación de `P-PRE-006` como consumidor efectivo de `R-HIS-002` y la no sustitución por `P-DAT-003`.
 - `GAP-STK-PARAM-RULE` queda resuelto sin asignar consumidores por inferencia ni validar valores iniciales.
@@ -268,14 +276,14 @@ La creación de un parámetro `HIS-*` queda expresamente descartada.
 
 1. Completar la migración documental de los IDs de `02_Parametros` a `P-*` fuera de los ámbitos ya reconciliados.
 2. Completar la migración documental de los IDs de `04_Reglas` a `R-*` fuera de los ámbitos ya reconciliados.
-3. Identificar documentalmente cada regla consumidora de los parámetros que todavía permanecen pendientes fuera del cruce STK/PYE cerrado y de las reconciliaciones Finance ya confirmadas.
+3. Identificar documentalmente cada regla consumidora de los parámetros que todavía permanecen pendientes fuera del cruce STK/PYE cerrado y de las reconciliaciones Finance/PRE ya confirmadas.
 4. Confirmar los parámetros realmente necesarios para el MVP fuera de los ámbitos ya resueltos.
 5. Validar los valores empresariales definitivos.
 6. Determinar los parámetros específicos de cada empresa.
 7. Confirmar la editabilidad individual.
 8. Resolver los gaps de parametrización que aparezcan al completar cruces futuros.
 
-Estos pendientes son de alcance general del MVP y **no mantienen abiertos GAP-HIS-01, GAP-HIS-02, C-07 ni GAP-STK-PARAM-RULE**.
+Estos pendientes son de alcance general del MVP y **no mantienen abiertos GAP-PI-TEMP-01, GAP-HIS-01, GAP-HIS-02, C-07 ni GAP-STK-PARAM-RULE**.
 
 `FIN-PROV-HORIZON-01` permanece como deuda técnica de provenance físico y no como pendiente de existencia de la relación documental `P-FIN-001 → R-FIN-001`.
 
@@ -283,9 +291,11 @@ Estos pendientes son de alcance general del MVP y **no mantienen abiertos GAP-HI
 
 # 11. ESTADO
 
-**Versión:** 0.9.2
+**Versión:** 0.9.3
 **Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO / STK
 **Baseline:** EIOS Vertical MVP
+
+`GAP-PI-TEMP-01` queda reconciliado documentalmente: `P-PRE-001 → R-PRE-001` se confirma exclusivamente como horizonte temporal de “reciente”. Esta confirmación no implementa `R-PRE-001`, no modifica PRICE C1 y no valida 3 meses como política empresarial definitiva. `P-PRE-002` permanece sin consumidor directo adicional demostrado.
 
 `GAP-STK-PARAM-RULE` queda cerrado funcionalmente. Las únicas relaciones `P-STK/P-PYE → R-STK` confirmadas son las tres demostradas por la autoridad especializada; el resto queda clasificado explícitamente como metodología/configuración sin consumidor directo demostrado.
 
