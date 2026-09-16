@@ -43,12 +43,12 @@ def run_mvp_execution(
     """Execute supplied MVP capabilities through the controlled boundary.
 
     PRICE, TCO, Decision Twin, Scenario Coordination, Negotiation Intelligence
-    and Negotiation Ladder must arrive through explicit provenance-safe
-    invokers; this service never re-labels detached raw results for those
-    capabilities into the current context. QTG remains in the canonical
-    architecture order but is deliberately not accepted by this generic
-    boundary until a provenance-safe producer from the authorized Decision
-    Input Package exists.
+    and Negotiation Ladder must arrive through explicit invokers; this service
+    never re-labels detached raw results for those capabilities into the current
+    context. Invoker presence alone is not provenance proof. QTG remains in the
+    canonical architecture order but is deliberately not accepted by this
+    generic boundary until a provenance-safe producer from the authorized
+    Decision Input Package exists.
     """
     invokers: dict[str, CapabilityInvoker] = {}
 
