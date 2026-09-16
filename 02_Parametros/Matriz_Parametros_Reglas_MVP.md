@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.9.3
+**Versión:** 0.9.4
 **Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO / STK
 **Baseline:** EIOS Vertical MVP
 **Fecha:** 16/09/2026
@@ -203,7 +203,7 @@ La relación `P-PRE-001 → R-PRE-001` es por tanto **directa como parámetro te
 
 `01_Modelo/Finance_Basic_Authority_v0.1.md`, FIN-AUTH-01/05/06, demuestra la cadena `P-FIN-001 → horizonte Finance Basic → financial_capacity_forecast → R-FIN-001` y especifica que `P-FIN-001` no es un parámetro directo de la condición de regla.
 
-La relación `P-FIN-001 → R-FIN-001` es por tanto **derivada**. Esta reconciliación no valida el valor inicial de 30 días ni acredita por sí sola el binding físico provenance-safe de `FinanceBasicInput.horizon_days`; `FIN-PROV-HORIZON-01` permanece abierto.
+La relación `P-FIN-001 → R-FIN-001` es por tanto **derivada**. El binding físico provenance-safe de `FinanceBasicInput.horizon_days` quedó cerrado mediante `08_Implementacion/Finance_Horizon_Provenance_Contract_v0.1.md` y `ProvenancedFinanceBasicExecution`, integrados por PR #150 con CI #808/#809 SUCCESS. Este cierre físico no valida el valor inicial de 30 días como política empresarial definitiva.
 
 ### Reconciliación Finance — P-FIN-002 → R-FIN-003
 
@@ -285,13 +285,13 @@ La creación de un parámetro `HIS-*` queda expresamente descartada.
 
 Estos pendientes son de alcance general del MVP y **no mantienen abiertos GAP-PI-TEMP-01, GAP-HIS-01, GAP-HIS-02, C-07 ni GAP-STK-PARAM-RULE**.
 
-`FIN-PROV-HORIZON-01` permanece como deuda técnica de provenance físico y no como pendiente de existencia de la relación documental `P-FIN-001 → R-FIN-001`.
+`FIN-PROV-HORIZON-01` ya no constituye deuda técnica abierta: quedó cerrado físicamente por la frontera provenance-safe `ProvenancedFinanceBasicExecution`, integrada por PR #150 con CI #808/#809 SUCCESS. Este cierre no modifica la naturaleza derivada de `P-FIN-001 → R-FIN-001` ni valida el valor inicial de 30 días.
 
 ---
 
 # 11. ESTADO
 
-**Versión:** 0.9.3
+**Versión:** 0.9.4
 **Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO / STK
 **Baseline:** EIOS Vertical MVP
 
@@ -299,6 +299,6 @@ Estos pendientes son de alcance general del MVP y **no mantienen abiertos GAP-PI
 
 `GAP-STK-PARAM-RULE` queda cerrado funcionalmente. Las únicas relaciones `P-STK/P-PYE → R-STK` confirmadas son las tres demostradas por la autoridad especializada; el resto queda clasificado explícitamente como metodología/configuración sin consumidor directo demostrado.
 
-La reconciliación Finance incorpora `P-FIN-001 → R-FIN-001` como relación derivada demostrada por FIN-AUTH-01 y mantiene `FIN-PROV-HORIZON-01` abierto; incorpora asimismo `P-FIN-002 → R-FIN-003` exclusivamente como relación derivada demostrada por FIN-AUTH-07, sin alterar la relación directa `P-FIN-004 → R-FIN-003`, los valores configurados ni la autoridad de Rules.
+La reconciliación Finance incorpora `P-FIN-001 → R-FIN-001` como relación derivada demostrada por FIN-AUTH-01 y reconoce `FIN-PROV-HORIZON-01` como físicamente CERRADO mediante `ProvenancedFinanceBasicExecution`, integrado por PR #150 con CI #808/#809 SUCCESS; incorpora asimismo `P-FIN-002 → R-FIN-003` exclusivamente como relación derivada demostrada por FIN-AUTH-07, sin alterar la relación directa `P-FIN-004 → R-FIN-003`, los valores configurados ni la autoridad de Rules. Este cierre físico no valida 30 días como política empresarial definitiva.
 
 Los valores iniciales del catálogo permanecen pendientes de validación empresarial y no se convierten en política por este cierre.
