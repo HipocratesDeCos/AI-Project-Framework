@@ -2,9 +2,9 @@
 
 > **Documento de recuperación y continuidad del proyecto**
 >
-> **Versión:** 2.4
-> **Estado:** APROBADO — reconciliación de continuidad BL-004
-> **Última actualización:** 14/09/2026
+> **Versión:** 2.5
+> **Estado:** APROBADO — reconciliación de continuidad y bloqueos demostrados
+> **Última actualización:** 16/09/2026
 > **Proyecto:** EIOS — Enterprise Intelligent Operations System
 
 ---
@@ -708,7 +708,7 @@ Ningún componente especializado puede contradecir una restricción expresamente
 
 # 27. ESTADO ACTUAL DEL PROYECTO
 
-## Estado de continuidad reconciliado — 14/09/2026
+## Estado de continuidad reconciliado — 16/09/2026
 
 Este apartado resume el estado para recuperación rápida. No sustituye a los documentos especializados de diseño, auditoría, cierre, implementación y reconciliación.
 
@@ -743,6 +743,11 @@ El estado integrado y documentado contiene, entre otras, las siguientes capacida
 - **Quality & Trust Gate:** existe contrato/capacidad técnica, pero no se ha demostrado un productor físico provenance-safe de `Decision Input Package` agregado, trazable y autorizado que permita cerrar la frontera end-to-end.
 - **Supplier Risk cuantitativo/valorativo:** `Supplier Evidence Core` está cerrado como núcleo factual; scoring, ranking, pesos, umbrales y política decisional continúan sin autoridad aprobada.
 - **Rotation:** Track A conserva su cierre metodológico factual, pero el contrato técnico sigue bloqueado mientras falten `ROT-G01` y `ROT-G04-A`; cualquier Track B mantiene además sus propias dependencias de fórmula/umbral y reglas.
+- **Payment / PAG:** `R-PAG-001` y `R-PAG-002` disponen de relaciones parámetro → regla documentadas, pero el cierre ejecutable permanece bloqueado porque no está demostrado un carrier provenance-safe del plazo ofrecido ni un productor autorizado de la viabilidad contrafactual de `R-PAG-002`; además, sigue sin resolverse la transformación exacta de `P-PAG-003` y la semántica de `P-PAG-005` no es uniforme entre el catálogo booleano y su uso económico especializado.
+- **Historical / HIS:** `R-HIS-002` ya está materializada en su alcance autorizado; el resto del frente permanece bloqueado porque `R-HIS-001` carece de productor provenance-safe que resuelva la elegibilidad temporal sin inventar semántica de frontera y `R-HIS-003` no dispone de una cadena completa autorizada para determinar comparabilidad comercial material.
+- **Data Quality / DAT:** la RDM confirma `P-DAT-001 → R-DAT-001`, pero no está demostrado un productor provenance-safe de frescura general ni la semántica exacta de la frontera temporal; `R-DAT-002` y `R-DAT-003` tampoco disponen de dependencias, política o criterio físico de suficiencia completos que permitan cerrarlas sin inferencia.
+- **Supplier Alternatives / PROV:** `R-PROV-001` y `R-PROV-002` existen en la Matriz de Reglas, pero la RDM no contiene dependencias `R-PROV-*` confirmadas y no existe un productor autorizado que transforme hechos de proveedor en alternativa, comparabilidad o mejora potencial/significativa; `Supplier Evidence Core` conserva únicamente autoridad factual.
+- **Discounts & Rappels / COM:** `R-COM-001` y `R-COM-002` existen en la Matriz de Reglas, pero la RDM no contiene dependencias `R-COM-*` confirmadas ni el Catálogo define parámetros `P-COM-*`; la presencia conceptual de descuentos/rappels o de hechos `COMMERCIAL_CONDITION` no autoriza por sí sola su transformación en semántica de regla o coste efectivo.
 - **Assurance / Shadow Mode / piloto:** bloqueado para comparación decisional real mientras no exista una fuente autorizada de decisión humana de referencia y su gobierno.
 - **Profitability / MGE:** la metodología propuesta permanece fuera de `main` como trabajo no autorizado para cierre/implementación hasta aprobación humana explícita de la política correspondiente; una instrucción genérica de continuar no constituye esa aprobación.
 
