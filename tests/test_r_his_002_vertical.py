@@ -1,19 +1,35 @@
+from dataclasses import fields
 from datetime import date, datetime, timezone
 from decimal import Decimal
+from inspect import signature
 
 import pytest
 
 from eios.core.crc_mvp import RuleMetadata
-from eios.core.models import Assessment, DecisionContext, Evidence, PurchaseOperation, Rule
+from eios.core.models import (
+    Assessment,
+    DecisionContext,
+    Evidence,
+    EvidenceValidation,
+    PurchaseOperation,
+    Rule,
+)
 from eios.parameters import resolve_configuration_for_context
 from eios.parameters.center import Configuration
-from eios.pricing import PriceCounts, PriceIntelligenceInput, PriceIntelligenceResult
+from eios.pricing import (
+    PriceIntelligenceAssessmentContext,
+    PriceIntelligenceInput,
+    PriceReference,
+    SufficiencyObservation,
+    run_price_intelligence,
+)
 from eios.rules import (
     PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE,
     PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE,
     evaluate_r_his_002,
     price_intelligence_result_ref,
 )
+from eios.rules.orchestrator import HistorySufficiencyRuleInputs
 from eios.rules.runtime import RuleAssessmentBinding, run_assessment_set_vertical
 
 
@@ -51,58 +67,47 @@ def _purchase() -> PurchaseOperation:
     )
 
 
-def _pricing_input() -> PriceIntelligenceInput:
+def _pricing_input(
+    comparable: int,
+    *,
+    context: DecisionContext | None = None,
+    purchase: PurchaseOperation | None = None,
+) -> PriceIntelligenceInput:
+    context = context or _context()
+    purchase = purchase or _purchase()
+    references = tuple(
+        PriceReference(
+            source_transaction_id=f"REF-{index}",
+            article_identity=purchase.article_id,
+            supplier_identity=purchase.supplier_id,
+            quantity=Decimal("1"),
+            unit="unidad",
+            unit_price=Decimal("10") + Decimal(index),
+            currency=purchase.currency,
+            operation_date=EVAL,
+            evidence_refs=(f"EV-REF-{index}",),
+        )
+        for index in range(comparable)
+    )
+    validations = tuple(
+        EvidenceValidation(
+            evidence_id=f"EV-REF-{index}",
+            status="VALID",
+            reason="Evidencia de referencia validada.",
+        )
+        for index in range(comparable)
+    )
     return PriceIntelligenceInput(
-        decision_context=_context(),
-        purchase_operation=_purchase(),
-        references=(),
-        evidence_validations=(),
+        decision_context=context,
+        purchase_operation=purchase,
+        references=references,
+        evidence_validations=validations,
         methodology_version=METHODOLOGY,
     )
 
 
-def _result(*, comparable: int, selected: int, sufficient: bool = False) -> PriceIntelligenceResult:
-    assert comparable >= selected
-    if selected == 0:
-        pr_value = None
-        currency = None
-        sufficiency = "NOT_JUSTIFIABLE"
-        pr_status = "PR_NOT_JUSTIFIABLE"
-        reference_set = ()
-    elif sufficient:
-        pr_value = Decimal("10")
-        currency = "EUR"
-        sufficiency = "SUFFICIENT"
-        pr_status = "PR_AVAILABLE"
-        reference_set = tuple(f"REF-{i}" for i in range(selected))
-    else:
-        pr_value = Decimal("10")
-        currency = "EUR"
-        sufficiency = "LIMITED"
-        pr_status = "PR_LIMITED"
-        reference_set = tuple(f"REF-{i}" for i in range(selected))
-
-    return PriceIntelligenceResult(
-        decision_id=DECISION,
-        scenario_id=SCENARIO,
-        data_snapshot_id=SNAPSHOT,
-        methodology_version=METHODOLOGY,
-        pr_value=pr_value,
-        currency=currency,
-        sufficiency_status=sufficiency,
-        pr_status=pr_status,
-        pr_limitations=() if sufficient else ("LIMITED_HISTORY",),
-        reference_set=reference_set,
-        counts=PriceCounts(
-            n_raw=max(comparable, 1),
-            n_unique=max(comparable, 1),
-            n_comparable=comparable,
-            n_representative=selected,
-            n_selected=selected,
-        ),
-        aggregation_method="MEDIAN_UNWEIGHTED",
-        trace_references=("trace:price",),
-    )
+def _pricing_assessment_context() -> PriceIntelligenceAssessmentContext:
+    return PriceIntelligenceAssessmentContext(sufficiency=SufficiencyObservation())
 
 
 def _configuration(value: str = "2", company: str = COMPANY) -> Configuration:
@@ -120,16 +125,28 @@ def _configuration(value: str = "2", company: str = COMPANY) -> Configuration:
     )
 
 
-def _evidence(result, resolved):
-    pricing = Evidence(
+def _pricing_evidence(
+    pricing_input: PriceIntelligenceInput,
+    pricing_context: PriceIntelligenceAssessmentContext,
+    *,
+    state: str = "DEMONSTRATED",
+    demonstration_ref: str | None = None,
+) -> Evidence:
+    if state == "DEMONSTRATED" and demonstration_ref is None:
+        result = run_price_intelligence(pricing_input, pricing_context)
+        demonstration_ref = price_intelligence_result_ref(result)
+    return Evidence(
         evidence_id="EV-PRICE",
         source_type=PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE,
         source_ref="pricing:c1",
         captured_at=EVAL,
-        state="DEMONSTRATED",
-        demonstration_ref=price_intelligence_result_ref(result),
+        state=state,
+        demonstration_ref=demonstration_ref,
     )
-    parameter = Evidence(
+
+
+def _parameter_evidence(resolved) -> Evidence:
+    return Evidence(
         evidence_id="EV-P-PRE-006",
         source_type=PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE,
         source_ref="parameter-center:P-PRE-006",
@@ -137,60 +154,50 @@ def _evidence(result, resolved):
         state="DEMONSTRATED",
         demonstration_ref=resolved.configuration_ref,
     )
-    return pricing, parameter
 
 
-def _evaluate(result, threshold: str = "2"):
+def _evaluate(comparable: int, threshold: str = "2") -> Assessment:
     context = _context()
+    pricing_input = _pricing_input(comparable)
+    pricing_context = _pricing_assessment_context()
     resolved = resolve_configuration_for_context(_configuration(threshold), context, EFFECTIVE)
     assert resolved is not None
-    pricing_evidence, parameter_evidence = _evidence(result, resolved)
-    assessment = evaluate_r_his_002(
+    return evaluate_r_his_002(
         _purchase(),
         context,
         Rule(rule_id="R-HIS-002", version=RULES, requires_evidence=True),
-        _pricing_input(),
-        result,
-        pricing_evidence,
+        pricing_input,
+        pricing_context,
+        _pricing_evidence(pricing_input, pricing_context),
         COMPANY,
         resolved,
-        parameter_evidence,
+        _parameter_evidence(resolved),
     )
-    return assessment
 
 
 def test_r_his_002_true_when_comparable_history_below_parameter() -> None:
-    result = _result(comparable=1, selected=0)
-    assessment = _evaluate(result)
+    assessment = _evaluate(comparable=1)
     assert assessment.status == "EVALUABLE"
     assert assessment.outcome == "TRUE"
     assert assessment.evidence_ids == ["EV-PRICE", "EV-P-PRE-006"]
 
 
 def test_r_his_002_false_when_comparable_history_reaches_parameter() -> None:
-    result = _result(comparable=2, selected=2, sufficient=True)
-    assessment = _evaluate(result)
+    assessment = _evaluate(comparable=2)
     assert assessment.status == "EVALUABLE"
     assert assessment.outcome == "FALSE"
 
 
 def test_r_his_002_missing_parameter_is_not_evaluable() -> None:
-    result = _result(comparable=1, selected=0)
-    pricing_evidence = Evidence(
-        evidence_id="EV-PRICE",
-        source_type=PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE,
-        source_ref="pricing:c1",
-        captured_at=EVAL,
-        state="DEMONSTRATED",
-        demonstration_ref=price_intelligence_result_ref(result),
-    )
+    pricing_input = _pricing_input(1)
+    pricing_context = _pricing_assessment_context()
     assessment = evaluate_r_his_002(
         _purchase(),
         _context(),
         Rule(rule_id="R-HIS-002", version=RULES, requires_evidence=True),
-        _pricing_input(),
-        result,
-        pricing_evidence,
+        pricing_input,
+        pricing_context,
+        _pricing_evidence(pricing_input, pricing_context),
         COMPANY,
         None,
         None,
@@ -200,29 +207,109 @@ def test_r_his_002_missing_parameter_is_not_evaluable() -> None:
 
 
 def test_r_his_002_rejects_configuration_from_other_company() -> None:
-    result = _result(comparable=1, selected=0)
     context = _context()
+    pricing_input = _pricing_input(1)
+    pricing_context = _pricing_assessment_context()
     resolved = resolve_configuration_for_context(
         _configuration(company="OTHER-COMPANY"), context, EFFECTIVE
     )
     assert resolved is not None
-    pricing_evidence, parameter_evidence = _evidence(result, resolved)
     with pytest.raises(ValueError, match="otro company_id"):
         evaluate_r_his_002(
             _purchase(),
             context,
             Rule(rule_id="R-HIS-002", version=RULES, requires_evidence=True),
-            _pricing_input(),
-            result,
-            pricing_evidence,
+            pricing_input,
+            pricing_context,
+            _pricing_evidence(pricing_input, pricing_context),
             COMPANY,
             resolved,
-            parameter_evidence,
+            _parameter_evidence(resolved),
         )
 
 
+def test_r_his_002_rejects_pricing_evidence_for_another_result() -> None:
+    pricing_input = _pricing_input(1)
+    pricing_context = _pricing_assessment_context()
+    other_result = run_price_intelligence(_pricing_input(2), pricing_context)
+    context = _context()
+    resolved = resolve_configuration_for_context(_configuration(), context, EFFECTIVE)
+    assert resolved is not None
+    forged_evidence = _pricing_evidence(
+        pricing_input,
+        pricing_context,
+        demonstration_ref=price_intelligence_result_ref(other_result),
+    )
+
+    with pytest.raises(ValueError, match="no está vinculada"):
+        evaluate_r_his_002(
+            _purchase(),
+            context,
+            Rule(rule_id="R-HIS-002", version=RULES, requires_evidence=True),
+            pricing_input,
+            pricing_context,
+            forged_evidence,
+            COMPANY,
+            resolved,
+            _parameter_evidence(resolved),
+        )
+
+
+def test_r_his_002_gap_pricing_evidence_is_not_evaluable() -> None:
+    pricing_input = _pricing_input(1)
+    pricing_context = _pricing_assessment_context()
+    context = _context()
+    resolved = resolve_configuration_for_context(_configuration(), context, EFFECTIVE)
+    assert resolved is not None
+
+    assessment = evaluate_r_his_002(
+        _purchase(),
+        context,
+        Rule(rule_id="R-HIS-002", version=RULES, requires_evidence=True),
+        pricing_input,
+        pricing_context,
+        _pricing_evidence(pricing_input, pricing_context, state="GAP"),
+        COMPANY,
+        resolved,
+        _parameter_evidence(resolved),
+    )
+
+    assert assessment.status == "NOT_EVALUABLE"
+    assert assessment.outcome is None
+
+
+def test_r_his_002_rejects_pricing_input_from_other_context() -> None:
+    other_context = _context().model_copy(update={"decision_id": "D-OTHER"})
+    other_purchase = _purchase().model_copy(update={"decision_id": "D-OTHER"})
+    pricing_input = _pricing_input(1, context=other_context, purchase=other_purchase)
+    pricing_context = _pricing_assessment_context()
+
+    with pytest.raises(ValueError, match="otro DecisionContext"):
+        evaluate_r_his_002(
+            _purchase(),
+            _context(),
+            Rule(rule_id="R-HIS-002", version=RULES, requires_evidence=True),
+            pricing_input,
+            pricing_context,
+            _pricing_evidence(pricing_input, pricing_context),
+            COMPANY,
+            None,
+            None,
+        )
+
+
+def test_r_his_002_api_has_no_detached_pricing_result() -> None:
+    parameters = signature(evaluate_r_his_002).parameters
+    bundle_fields = {field.name for field in fields(HistorySufficiencyRuleInputs)}
+
+    assert "pricing_result" not in parameters
+    assert "pricing_result" not in bundle_fields
+    assert "pricing_assessment_context" in parameters
+    assert "pricing_assessment_context" in bundle_fields
+
+
 def test_r3_history_warning_does_not_override_stock_r2() -> None:
-    history = _evaluate(_result(comparable=1, selected=0))
+    history = _evaluate(comparable=1)
     assert history.outcome == "TRUE"
 
     history_rule = Rule(rule_id="R-HIS-002", version=RULES, requires_evidence=True)
