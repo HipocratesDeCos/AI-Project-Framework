@@ -15,7 +15,7 @@ from eios.core.models import DecisionContext, Evidence, PurchaseOperation
 from eios.delivery.models import DeliveryStockoutAnalysisInput, DeliveryStockoutAnalysisResult
 from eios.finance import ProvenancedFinanceBasicExecution
 from eios.parameters import ResolvedConfiguration
-from eios.pricing import PriceIntelligenceInput, PriceIntelligenceResult
+from eios.pricing import PriceIntelligenceAssessmentContext, PriceIntelligenceInput
 from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
 
 from .catalog import authorized_rule, implemented_rule_ids
@@ -71,7 +71,7 @@ class FinanceSafetyMarginRuleInputs:
 @dataclass(frozen=True)
 class HistorySufficiencyRuleInputs:
     pricing_input: PriceIntelligenceInput
-    pricing_result: PriceIntelligenceResult
+    pricing_assessment_context: PriceIntelligenceAssessmentContext
     pricing_evidence: Evidence
     company_id: str
     minimum_resolution: ResolvedConfiguration | None
@@ -198,7 +198,7 @@ def run_domain_rules(
             context,
             rule,
             history_sufficiency.pricing_input,
-            history_sufficiency.pricing_result,
+            history_sufficiency.pricing_assessment_context,
             history_sufficiency.pricing_evidence,
             history_sufficiency.company_id,
             history_sufficiency.minimum_resolution,
