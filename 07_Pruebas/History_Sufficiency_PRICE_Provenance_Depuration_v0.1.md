@@ -39,10 +39,11 @@ El bridge seguirá este orden:
 3. validar igualdad completa de `pricing_input.purchase_operation` con `PurchaseOperation`;
 4. crear snapshots profundos de `pricing_input` y `pricing_assessment_context`;
 5. ejecutar `run_price_intelligence(snapshot_input, snapshot_context)`;
-6. validar la evidencia PRICE contra el resultado reconstruido;
-7. validar/recuperar el umbral provenance-safe `P-PRE-006` conforme al contrato vigente;
-8. si ambas evidencias son válidas, evaluar exclusivamente `n_comparable < threshold`;
-9. devolver el `Assessment` vigente.
+6. validar la identidad/ligadura de la evidencia PRICE contra el resultado reconstruido;
+7. aplicar `validate_evidence(...)` a la evidencia PRICE;
+8. validar/recuperar el umbral provenance-safe `P-PRE-006` conforme al contrato vigente;
+9. si ambas evidencias son válidas, evaluar exclusivamente `n_comparable < threshold`;
+10. devolver el `Assessment` vigente.
 
 ## 4. Errores del motor C1
 
@@ -55,7 +56,7 @@ Una excepción contractual producida por `run_price_intelligence(...)`:
 
 La excepción se propaga al llamador. Esto mantiene fail-closed y hace visible un input/contexto C1 inválido.
 
-`NOT_EVALUABLE` se reserva al comportamiento ya existente de la regla cuando su evidencia requerida/configuración no satisface el contrato de evaluación, no para ocultar errores estructurales de ejecución PRICE.
+`NOT_EVALUABLE` se reserva al comportamiento ya existente de la regla cuando su evidencia requerida/configuración no alcanza el estado válido después de superar las comprobaciones estructurales; no se utiliza para ocultar errores de identidad, ligadura o ejecución PRICE.
 
 ## 5. Snapshot
 
@@ -70,11 +71,14 @@ Aunque `PriceIntelligenceAssessmentContext` sea `frozen`, el snapshot explícito
 
 La evidencia sigue usando `price_intelligence_result_ref(...)`, pero la referencia esperada se calculará únicamente sobre el resultado reconstruido localmente.
 
-Consecuencia:
+Se preserva la distinción vigente entre **violación estructural** y **evidencia no válida**:
 
-- una evidencia ligada a un resultado manual o distinto del reconstruido no valida el dato;
-- la regla queda `NOT_EVALUABLE` por insuficiencia de evidencia válida;
-- no se compara `n_comparable` de ese resultado externo.
+- `source_type` incompatible → `ValueError`;
+- `captured_at` incompatible → `ValueError`;
+- evidencia `DEMONSTRATED` cuyo `demonstration_ref` no coincide con el resultado reconstruido → `ValueError`;
+- evidencia que supera las comprobaciones estructurales pero no alcanza `VALID` según `validate_evidence(...)` → `Assessment(status=NOT_EVALUABLE, outcome=None)`.
+
+Consecuencia: un llamador no puede fabricar un resultado alternativo y una evidencia `DEMONSTRATED` asociada sin que la ligadura se contraste contra el resultado reconstruido por el bridge.
 
 ## 7. P-PRE-006
 
@@ -82,11 +86,11 @@ Se conserva sin cambios el contrato de configuración existente.
 
 La ausencia de configuración o evidencia de parámetro sigue dando `NOT_EVALUABLE` cuando corresponda.
 
-Los errores estructurales de identidad, empresa, versión, vigencia, unidad o valor conservan sus rechazos vigentes; no se suavizan para facilitar la migración.
+Los errores estructurales de identidad, empresa, versión, vigencia, unidad o ligadura de evidencia conservan sus rechazos vigentes; los valores/unidades no utilizables que actualmente producen umbral `None` mantienen `NOT_EVALUABLE`. No se suaviza ninguna protección para facilitar la migración.
 
 ## 8. Migración de tests
 
-`tests/test_r_his_002_vertical.py` dejará de fabricar `PriceIntelligenceResult` como entrada autorizada.
+`tests/test_r_his_002_vertical.py` dejará de fabricar `PriceIntelligenceResult` como entrada autorizada al bridge.
 
 Los casos deberán construir el `n_comparable` mediante referencias C1 reales:
 
@@ -100,9 +104,10 @@ Casos mínimos:
 2. dos referencias comparables y umbral 2 → FALSE;
 3. ausencia de `P-PRE-006` → NOT_EVALUABLE;
 4. configuración de otra empresa → rechazo;
-5. evidencia PRICE ligada a un resultado distinto del reconstruido → NOT_EVALUABLE;
-6. `pricing_input` de otra compra/contexto → rechazo;
-7. comprobación de API: `evaluate_r_his_002` y `HistorySufficiencyRuleInputs` no exponen `pricing_result`.
+5. evidencia PRICE `DEMONSTRATED` ligada a un resultado distinto del reconstruido → `ValueError`;
+6. evidencia PRICE estructuralmente correcta pero no válida → NOT_EVALUABLE;
+7. `pricing_input` de otra compra/contexto → rechazo;
+8. comprobación de API: `evaluate_r_his_002` y `HistorySufficiencyRuleInputs` no exponen `pricing_result`.
 
 El test CRC que verifica que R3 no domina a R2 debe seguir verde usando el nuevo productor PRICE.
 
@@ -122,7 +127,7 @@ No se modificarán:
 
 ## 10. Resultado
 
-La implementación queda especificada sin rutas ambiguas ni compatibilidad insegura.
+La implementación queda especificada sin rutas ambiguas ni compatibilidad insegura, preservando además la semántica fail-closed del bridge vigente.
 
 **DEPURACIÓN COMPLETADA.**
 
