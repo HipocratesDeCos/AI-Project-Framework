@@ -15,7 +15,8 @@ from eios.core.flow_inventory_mandate import (
     validate_flow_mandate_for_target,
 )
 from eios.core.flow_inventory_review import (
-    CONDITIONS as REVIEW_CONDITIONS, FlowInventoryPersonalReview, FlowInventoryReviewFinding,
+    CONDITIONS as REVIEW_CONDITIONS, FlowInstallmentReviewFinding,
+    FlowInventoryPersonalReview, FlowInventoryReviewFinding,
     build_flow_inventory_personal_review, validate_flow_review_for_material,
 )
 
@@ -45,9 +46,19 @@ def mandate_args(flow_args):
         observations=observations())
 
 
+def installment_findings(second_outcome='CONFIRMED_BY_REVIEW'):
+    return tuple(FlowInstallmentReviewFinding(
+        installment_ref=f'PED-2026-015 / cuota {number}',
+        outcome=second_outcome if number == 2 else 'CONFIRMED_BY_REVIEW',
+        note='Synthetic installment finding',
+        locators=(locator(reference='order', origin='PAYMENT_CAPTURE'),),
+        flow_ids=(f'payment-{number}',)) for number in (1, 2))
+
+
 def finding(condition='PERIMETER_COVERAGE', outcome='CONFIRMED_BY_REVIEW'):
     return FlowInventoryReviewFinding(condition=condition, outcome=outcome,
-        note='Synthetic review finding', perimeter_refs=('mock-perimeter',))
+        note='Synthetic review finding', perimeter_refs=('mock-perimeter',),
+        installment_findings=installment_findings() if condition == 'PURCHASE_PAYMENT_COHERENCE' else ())
 
 
 def review_args(mandate_args, mandate=None):
@@ -114,6 +125,44 @@ def test_complete_positive_review_does_not_create_quality_result(mandate_args):
     assert payload['pending_conditions'] == []
     assert payload['target']['pending_flow_ids'] == ['payment-2']
     assert 'status' not in payload and 'confidence' not in payload
+
+
+@pytest.mark.parametrize('invalid', ['missing', 'duplicate', 'foreign-installment',
+    'foreign-flow', 'unsupported', 'aggregate-mismatch', 'wrong-condition'])
+def test_installment_trace_is_individual_and_complete(mandate_args, invalid):
+    args = review_args(mandate_args)
+    items = installment_findings()
+    purchase = finding('PURCHASE_PAYMENT_COHERENCE')
+    if invalid == 'missing': purchase = purchase.model_copy(update={'installment_findings': items[:1]})
+    elif invalid == 'duplicate': purchase = purchase.model_copy(update={'installment_findings': items[:1] * 2})
+    elif invalid == 'foreign-installment':
+        purchase = purchase.model_copy(update={'installment_findings': (
+            items[0], items[1].model_copy(update={'installment_ref': 'foreign'}))})
+    elif invalid == 'foreign-flow':
+        purchase = purchase.model_copy(update={'installment_findings': (
+            items[0], items[1].model_copy(update={'flow_ids': ('foreign',)}))})
+    elif invalid == 'unsupported':
+        purchase = purchase.model_copy(update={'installment_findings': (
+            items[0], items[1].model_copy(update={'locators': (), 'flow_ids': ()}))})
+    elif invalid == 'aggregate-mismatch':
+        purchase = purchase.model_copy(update={'outcome': 'CONFIRMED_BY_REVIEW',
+            'installment_findings': installment_findings('CONFLICT_REPORTED')})
+    else:
+        purchase = finding().model_copy(update={'installment_findings': items})
+    args['findings'] = (purchase,)
+    with pytest.raises((TypeError, ValueError)):
+        build_flow_inventory_personal_review(**args)
+
+
+def test_installment_outcome_is_derived_and_conflict_preserved(mandate_args):
+    args = review_args(mandate_args)
+    args['findings'] = (finding('PURCHASE_PAYMENT_COHERENCE', 'CONFLICT_REPORTED').model_copy(
+        update={'installment_findings': installment_findings('CONFLICT_REPORTED')}),)
+    payload = build_flow_inventory_personal_review(**args).to_payload()
+    item = payload['findings'][0]
+    assert item['outcome'] == 'CONFLICT_REPORTED'
+    assert [entry['installment_ref'] for entry in item['installment_findings']] == [
+        'PED-2026-015 / cuota 1', 'PED-2026-015 / cuota 2']
 
 
 @pytest.mark.parametrize('invalid', ['review-ref', 'reviewer', 'self-previous', 'naive',
