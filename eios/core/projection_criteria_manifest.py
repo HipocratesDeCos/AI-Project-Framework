@@ -16,6 +16,8 @@ CriterionFunction = Literal[
     "PARTICIPATING_FLOW_ATTRIBUTE_SUPPORT",
     "DETERMINATE_PROJECTION_RELIABILITY",
     "OUT_OF_HORIZON_CONFLICT_PRESERVATION",
+    "INITIAL_TREASURY_SUFFICIENCY",
+    "ECONOMIC_FLOW_UNIQUENESS",
 ]
 
 REQUIRED_FUNCTIONS = (
@@ -23,6 +25,8 @@ REQUIRED_FUNCTIONS = (
     "PARTICIPATING_FLOW_ATTRIBUTE_SUPPORT",
     "DETERMINATE_PROJECTION_RELIABILITY",
     "OUT_OF_HORIZON_CONFLICT_PRESERVATION",
+    "INITIAL_TREASURY_SUFFICIENCY",
+    "ECONOMIC_FLOW_UNIQUENESS",
 )
 
 
@@ -75,7 +79,7 @@ def build_projection_criteria_manifest(*, manifest_ref: str, manifest_version: s
         entries.append(criterion.model_dump(mode="json"))
     if functions != set(REQUIRED_FUNCTIONS):
         raise ValueError("Manifest must cover the exact PROJECTION_ONLY criterion functions")
-    payload = dict(schema_version="QTG-PROJECTION-CRITERIA-MANIFEST-01/v0.1",
+    payload = dict(schema_version="QTG-PROJECTION-CRITERIA-MANIFEST-01/v0.2",
         profile="PROJECTION_ONLY", consumer="future_projection_only_quality_producer",
         manifest_ref=manifest_ref, manifest_version=manifest_version,
         authority_ref=authority_ref, authorized_at=authorized_at.isoformat(),
