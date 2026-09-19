@@ -53,6 +53,13 @@ def test_manifest_preserves_closed_profile_and_authority():
     assert not {"content", "content_base64", "quality_checks", "quality_result"} & payload.keys()
 
 
+def test_v02_closes_treasury_and_economic_uniqueness_functions():
+    payload = manifest_for().to_payload()
+    assert payload["schema_version"] == "QTG-PROJECTION-CRITERIA-MANIFEST-01/v0.2"
+    assert "INITIAL_TREASURY_SUFFICIENCY" in payload["required_functions"]
+    assert "ECONOMIC_FLOW_UNIQUENESS" in payload["required_functions"]
+
+
 def test_exact_preparation_match_is_accepted(prepared_args):
     preparation = preparation_for(prepared_args)
     validate_preparation_criteria_against_manifest(preparation, manifest_for())
