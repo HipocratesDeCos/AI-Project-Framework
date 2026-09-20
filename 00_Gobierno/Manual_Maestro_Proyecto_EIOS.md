@@ -250,7 +250,9 @@ El estado integrado contiene, entre otras, las siguientes capacidades o frontera
 - cadena QTG especializada `PROJECTION_ONLY` hasta receipt/consumer;
 - adapter sintético S1–S7 y conformidad E2E `SYNTHETIC_TEST/TEST_ONLY`;
 - E2E Execution Boundary;
-- UI / Visual Frontend U1.1 en su alcance representacional;\n- U1.2 composición Vertical MVP read-only y conformidad E2E;\n- U1.3 artefacto visual inmutable con `content_sha256` exclusivamente de transporte;
+- UI / Visual Frontend U1.1 en su alcance representacional;
+- U1.2 composición Vertical MVP read-only y conformidad E2E;
+- U1.3 artefacto visual inmutable con `content_sha256` exclusivamente de transporte;
 - Configuration Center UI en su subconjunto selected-context demostrado;
 - reconciliaciones de provenance e integración asociadas.
 
