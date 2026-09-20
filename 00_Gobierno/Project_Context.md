@@ -2,9 +2,9 @@
 
 > **Documento de recuperación y continuidad del proyecto**
 >
-> **Versión:** 2.5
-> **Estado:** APROBADO — reconciliación de continuidad y bloqueos demostrados
-> **Última actualización:** 16/09/2026
+> **Versión:** 2.6
+> **Estado:** APROBADO — reconciliación de continuidad EIOS-BL-005
+> **Última actualización:** 20/09/2026
 > **Proyecto:** EIOS — Enterprise Intelligent Operations System
 
 ---
@@ -37,7 +37,7 @@ El mapa estructural y de navegación vigente corresponde a:
 
 El punto formal de recuperación más reciente es:
 
-`00_Gobierno/Baselines/EIOS-BL-004.md` — `d3c462a2536ee20204b9d5c9dce1024e1ca7d31c`
+`00_Gobierno/Baselines/EIOS-BL-005.md` — `cd0504b9540d37c6523957dccd8cc51acad1b729`
 
 Un Baseline es un punto formal de recuperación asociado a un SHA concreto; no sustituye el estado posterior de `main` ni las fuentes especializadas vigentes.
 
@@ -708,7 +708,7 @@ Ningún componente especializado puede contradecir una restricción expresamente
 
 # 27. ESTADO ACTUAL DEL PROYECTO
 
-## Estado de continuidad reconciliado — 16/09/2026
+## Estado de continuidad reconciliado — 20/09/2026
 
 Este apartado resume el estado para recuperación rápida. No sustituye a los documentos especializados de diseño, auditoría, cierre, implementación y reconciliación.
 
@@ -731,6 +731,10 @@ El estado integrado y documentado contiene, entre otras, las siguientes capacida
 - Negotiation Ladder;
 - CRC-MVP;
 - Decision Versioning;
+- `DIP-AGG-01` como Decision Input Package seleccionado, inmutable y trazable por contenido;
+- `PROJECTION_ONLY` Quality material: criterios v0.2, material envelope, productor y consumidor QTG especializados;
+- adapter semántico sintético `PROJECTION_ONLY` S1–S7 y fixture física de 13 componentes;
+- conformidad E2E `SYNTHETIC_TEST → TEST_ONLY`, incluyendo resultados sintéticos `NO_APTO/BAJA` y `APTO/ALTA` sin efecto operacional;
 - E2E Execution Boundary;
 - UI / Visual Frontend U1.1 en su alcance exclusivamente representacional;
 - Configuration Center UI: contrato cerrado y Slices 1–4 + conformidad selected-context E2E en el alcance ejecutable demostrado;
@@ -740,7 +744,10 @@ El estado integrado y documentado contiene, entre otras, las siguientes capacida
 
 ### ⛔ Bloqueado por autoridad, evidencia o dependencia no demostrada
 
-- **Quality & Trust Gate:** existe contrato/capacidad técnica, pero no se ha demostrado un productor físico provenance-safe de `Decision Input Package` agregado, trazable y autorizado que permita cerrar la frontera end-to-end.
+- **Quality & Trust Gate — ruta operacional:** la cadena especializada `PROJECTION_ONLY / SYNTHETIC_TEST → TEST_ONLY` está materializada y validada E2E. Permanece bloqueada la rama `OPERATIONAL → O1` hasta disponer de un expediente operacional concreto, autorizado y trazable; el contrato de admisión y el diseño de binding causal no sustituyen ese expediente ni habilitan QTG en el Vertical genérico.
+- **Scenario Stage 2 ↔ Viability Frontier:** la finalización pública permanece en cuarentena mientras no exista un productor VF provenance-safe de consecuencias H/K/U/S procedentes de una autoridad físicamente identificada. El core VF permanece cerrado.
+- **Decision Twin — wrapper dependiente de Stage 2:** continúa en cuarentena por esa dependencia; Decision Twin core/comparator no se consideran bloqueados por ello.
+- **Negotiation Intelligence / Negotiation Ladder provenance:** los contratos de resultado están cerrados y el Vertical usa invocadores explícitos, pero la mera presencia del invocador no prueba provenance y no existe productor determinista NI/Ladder autorizado desde la compra completa.
 - **Supplier Risk cuantitativo/valorativo:** `Supplier Evidence Core` está cerrado como núcleo factual; scoring, ranking, pesos, umbrales y política decisional continúan sin autoridad aprobada.
 - **Rotation:** Track A conserva su cierre metodológico factual, pero el contrato técnico sigue bloqueado mientras falten `ROT-G01` y `ROT-G04-A`; cualquier Track B mantiene además sus propias dependencias de fórmula/umbral y reglas.
 - **Payment / PAG:** `R-PAG-001` y `R-PAG-002` disponen de relaciones parámetro → regla documentadas, pero el cierre ejecutable permanece bloqueado porque no está demostrado un carrier provenance-safe del plazo ofrecido ni un productor autorizado de la viabilidad contrafactual de `R-PAG-002`; además, sigue sin resolverse la transformación exacta de `P-PAG-003` y la semántica de `P-PAG-005` no es uniforme entre el catálogo booleano y su uso económico especializado.
@@ -777,7 +784,7 @@ implementación
 reconciliación / CI
 ```
 
-El Baseline `EIOS-BL-004 @ d3c462a2536ee20204b9d5c9dce1024e1ca7d31c` es el punto formal de recuperación más reciente, pero el repositorio puede haber avanzado después de su SHA. Para trabajo operativo debe verificarse siempre el `main` vivo antes de actuar.
+El Baseline `EIOS-BL-005 @ cd0504b9540d37c6523957dccd8cc51acad1b729` es el punto formal de recuperación más reciente, pero el repositorio puede haber avanzado después de su SHA. Para trabajo operativo debe verificarse siempre el `main` vivo antes de actuar.
 
 ---
 
@@ -808,7 +815,7 @@ Documentos fundamentales de referencia:
 ├── Project_Governance.md
 ├── Matriz_Autoridad_Documental.md
 ├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
-└── Baselines/EIOS-BL-004.md
+└── Baselines/EIOS-BL-005.md
 
 03_Arquitectura/
 └── Framework_Map.md
