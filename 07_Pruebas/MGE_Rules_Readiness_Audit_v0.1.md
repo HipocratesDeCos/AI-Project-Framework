@@ -314,3 +314,45 @@ R-MGE-003: m >= target
 `MGE-RULES-G04` queda diseñado técnicamente mediante binding de las tres `ResolvedConfiguration + Evidence` dentro de un único bundle coherente y está listo para materialización.
 
 **Readiness actualizado: GO documental para materialización, condicionado a CI y a no ampliar el alcance autorizado.**
+
+
+## 14. Cierre físico posterior — PR #244
+
+La materialización de Rules MGE quedó integrada en:
+
+```text
+main @ b3fdb6275a6cc6a33ecca55bbd9af49816ce5776
+```
+
+mediante PR #244.
+
+Se materializaron:
+
+- `eios/rules/profitability.py`;
+- metadata de catálogo para R-MGE-001/002/003;
+- `ProfitabilityRuleInputs` en el orquestador;
+- tests dedicados de fórmulas, fronteras, provenance, parámetros y omisión.
+
+`MGE-RULES-G04` queda **CERRADO FÍSICAMENTE** mediante:
+
+```text
+ResolvedConfiguration(P-MGE-001/002/003)
++
+ParameterConfigurationEvidence
++
+ProvenancedProfitabilityExecution
++
+ProfitabilityResultEvidence
+        ↓
+R-MGE-001/002/003
+```
+
+CI inicial #1006 detectó exclusivamente cuatro expectativas históricas del catálogo/orquestador. Tras reconciliarlas sin modificar lógica MGE, CI #1007 resultó:
+
+```text
+1686 passed
+8 warnings
+SQL validations SUCCESS
+```
+
+**Readiness final: CLOSED / MATERIALIZED / CI VALIDATED.**
