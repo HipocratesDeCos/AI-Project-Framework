@@ -808,16 +808,18 @@ Estado actualizado:
 ```text
 R-FIN-002 → CLOSED / MATERIALIZED / CI VALIDATED
 
-R-STK-002 → BLOCKED por projected coverage + justified-need producer
+R-STK-002 → CLOSED / MATERIALIZED / CI VALIDATED
 
 R-PRE-*   → BLOCKED por semántica/binding/provenance de Rules de precio
 ```
 
 FIN002 usa un carrier post-operación separado de Finance Basic, vinculado a la `PurchaseOperation` exacta y a `P-FIN-003` mediante `ResolvedConfiguration + Evidence`.
 
-Los requisitos pendientes de STK002/PRE continúan en `00_Gobierno/Post_MGE_Functional_Gate_Intake_Addendum_v0.1.md`.
+STK002 quedó cerrado mediante `ProjectedCoverageAfterPurchase` + `JustifiedNeedState`, ambos vinculados a la `PurchaseOperation` exacta, más `ResolvedConfiguration(P-STK-004) + Evidence`. PR #252: `main @ be13aad7d1dde788ef6e79cf262c1a7e91ed7374`; CI #1023: 1767 passed / 8 warnings / SQL SUCCESS.
 
-No debe reinterpretarse `FinanceBasicResult.working_capital` como valor post-operación, ni `CoverageResult` como cobertura proyectada post-compra, ni `PriceIntelligenceResult.pr_value` como precio máximo recomendado sin autoridad específica.
+Los requisitos pendientes de PRE continúan en `00_Gobierno/Post_MGE_Functional_Gate_Intake_Addendum_v0.1.md`.
+
+No debe reinterpretarse `FinanceBasicResult.working_capital` como valor post-operación, `CoverageResult` como cobertura proyectada post-compra, `R-STK-004 FALSE` como ausencia de necesidad justificada, ni `PriceIntelligenceResult.pr_value` como precio máximo recomendado sin autoridad específica.
 
 ### Regla de interpretación
 
