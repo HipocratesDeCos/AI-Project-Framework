@@ -151,3 +151,32 @@ Cierre condicionado a:
 3. SQL SUCCESS;
 4. depuración de cualquier regresión legítima;
 5. merge protegido por SHA.
+
+
+## 6. CI y cierre
+
+PR #249 validó el HEAD exacto:
+
+```text
+8f6e5682d20baf41a3740cd5971e9b52e29338ee
+```
+
+CI #1017:
+
+```text
+1723 passed
+8 warnings
+SQL validations SUCCESS
+```
+
+No fue necesaria depuración posterior de lógica ni tests.
+
+Merge protegido por SHA:
+
+```text
+main @ b77b16d5af5d9c1035a01ecb827ebcb4c47d9551
+```
+
+## 7. Estado final
+
+**R-FIN-002 v0.1: CERRADA / MATERIALIZADA / CI VALIDADA.**

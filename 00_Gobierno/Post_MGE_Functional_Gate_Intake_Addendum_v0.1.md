@@ -43,3 +43,34 @@ Para declarar `READY_FOR_DESIGN` deben existir:
 ## Regla
 
 Una instrucción genérica de continuar no sustituye estos materiales cuando el gate exige productor, dato o semántica específica.
+
+
+## Reconciliación FIN002 — 20/09/2026
+
+El intake FIN002 quedó satisfecho mediante:
+
+- `01_Modelo/FIN002_Post_Operation_Working_Capital_Authority_v0.1.md`;
+- `08_Implementacion/R_FIN_002_Technical_Contract_v0.1.md`;
+- `PostOperationWorkingCapitalPosition`;
+- binding SHA-256 a la `PurchaseOperation` exacta;
+- `PostOperationWorkingCapitalEvidence`;
+- `ResolvedConfiguration(P-FIN-003) + ParameterConfigurationEvidence`;
+- política fail-closed.
+
+Materialización integrada por PR #249 en:
+
+```text
+main @ b77b16d5af5d9c1035a01ecb827ebcb4c47d9551
+```
+
+CI #1017:
+
+```text
+1723 passed
+8 warnings
+SQL SUCCESS
+```
+
+**FIN002 intake: CLOSED / MATERIALIZED / CI VALIDATED.**
+
+Los apartados STK002 y PRE permanecen vigentes sin cambios.
