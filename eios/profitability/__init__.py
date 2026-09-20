@@ -16,5 +16,16 @@ __all__ = [
     "ProfitabilityCalculationState",
     "ProfitabilityInput",
     "ProfitabilityResult",
+    "ProfitabilityProvenanceError",
+    "ProvenancedProfitabilityExecution",
     "calculate_profitability",
+    "run_provenanced_profitability",
+    "validate_provenanced_profitability_execution",
 ]
+
+from .provenance import (
+    ProfitabilityProvenanceError,
+    ProvenancedProfitabilityExecution,
+    run_provenanced_profitability,
+    validate_provenanced_profitability_execution,
+)
