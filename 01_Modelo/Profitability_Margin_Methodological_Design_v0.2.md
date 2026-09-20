@@ -1,6 +1,6 @@
 # EIOS — RENTABILIDAD / MARGEN · DISEÑO METODOLÓGICO v0.2
 
-**Estado:** DEPURADO — PENDIENTE DE AUDIT 2  
+**Estado:** CERRADO — AUDIT 2 SUPERADA + MGE-AUTH v0.1 AUTORIZADA  
 **Fecha:** 11/09/2026  
 **Base:** v0.1 + Audit 1
 
@@ -367,6 +367,6 @@ Audit 2 deberá comprobar que:
 
 ## 19. Estado
 
-**v0.2 DEPURADO — PENDIENTE DE AUDIT 2.**
+**v0.2 CERRADO.**
 
-No autoriza implementación cuantitativa.
+Audit 2 fue superada y la política mínima MGE-AUTH v0.1 quedó autorizada el 20/09/2026. La implementación cuantitativa solo puede materializar esta metodología mediante contrato técnico propio, sin ampliar selección de fuentes, parámetros o Rules.
