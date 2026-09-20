@@ -13,7 +13,7 @@ from pydantic import BaseModel, ConfigDict
 
 from eios.core.models import DecisionContext, Evidence, PurchaseOperation
 from eios.delivery.models import DeliveryStockoutAnalysisInput, DeliveryStockoutAnalysisResult
-from eios.finance import ProvenancedFinanceBasicExecution
+from eios.finance import PostOperationWorkingCapitalPosition, ProvenancedFinanceBasicExecution
 from eios.parameters import ResolvedConfiguration
 from eios.pricing import PriceIntelligenceAssessmentContext, PriceIntelligenceInput
 from eios.profitability import ProvenancedProfitabilityExecution
@@ -21,7 +21,14 @@ from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
 
 from .catalog import authorized_rule, implemented_rule_ids
 from .delivery import R_ENT_001, R_STK_001, evaluate_r_ent_001, evaluate_r_stk_001
-from .finance import R_FIN_001, R_FIN_003, evaluate_r_fin_001, evaluate_r_fin_003
+from .finance import (
+    R_FIN_001,
+    R_FIN_002,
+    R_FIN_003,
+    evaluate_r_fin_001,
+    evaluate_r_fin_002,
+    evaluate_r_fin_003,
+)
 from .pricing import R_HIS_002, evaluate_r_his_002
 from .profitability import (
     MGEParameterBundle,
@@ -65,6 +72,14 @@ class FinanceCapacityRuleInputs:
     finance_execution: ProvenancedFinanceBasicExecution
     finance_evidence: Evidence
     threshold_resolution: ResolvedConfiguration | None
+    parameter_evidence: Evidence | None
+
+
+@dataclass(frozen=True)
+class FinanceWorkingCapitalRuleInputs:
+    position: PostOperationWorkingCapitalPosition
+    position_evidence: Evidence
+    minimum_resolution: ResolvedConfiguration | None
     parameter_evidence: Evidence | None
 
 
@@ -139,6 +154,7 @@ def run_domain_rules(
     stock_excess: StockExcessRuleInputs | None = None,
     stock_absorption: StockAbsorptionRuleInputs | None = None,
     finance_capacity: FinanceCapacityRuleInputs | None = None,
+    finance_working_capital: FinanceWorkingCapitalRuleInputs | None = None,
     finance_safety_margin: FinanceSafetyMarginRuleInputs | None = None,
     history_sufficiency: HistorySufficiencyRuleInputs | None = None,
     profitability: ProfitabilityRuleInputs | None = None,
@@ -198,6 +214,18 @@ def run_domain_rules(
             finance_capacity.finance_evidence,
             finance_capacity.threshold_resolution,
             finance_capacity.parameter_evidence,
+        )
+
+    if finance_working_capital is not None:
+        rule = authorized_rule(R_FIN_002, context.rules_version)
+        assessments_by_rule[R_FIN_002] = evaluate_r_fin_002(
+            purchase,
+            context,
+            rule,
+            finance_working_capital.position,
+            finance_working_capital.position_evidence,
+            finance_working_capital.minimum_resolution,
+            finance_working_capital.parameter_evidence,
         )
 
     if finance_safety_margin is not None:
@@ -281,6 +309,7 @@ __all__ = [
     "DeliveryRuleInputs",
     "FinanceCapacityRuleInputs",
     "FinanceSafetyMarginRuleInputs",
+    "FinanceWorkingCapitalRuleInputs",
     "HistorySufficiencyRuleInputs",
     "ProfitabilityRuleInputs",
     "StockAbsorptionRuleInputs",
