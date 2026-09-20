@@ -10,6 +10,7 @@ RULES_VERSION = "rules-v1"
 ALL_RULES = (
     "R-ENT-001",
     "R-FIN-001",
+    "R-FIN-002",
     "R-FIN-003",
     "R-HIS-002",
     "R-MGE-001",
@@ -73,6 +74,9 @@ def _all_bundles():
         finance_capacity=orchestrator.FinanceCapacityRuleInputs(
             marker, marker, marker, marker
         ),
+        finance_working_capital=orchestrator.FinanceWorkingCapitalRuleInputs(
+            marker, marker, marker, marker
+        ),
         finance_safety_margin=orchestrator.FinanceSafetyMarginRuleInputs(
             marker, marker, marker, marker, marker, marker
         ),
@@ -92,6 +96,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     _patch_rule(monkeypatch, "evaluate_r_stk_003", "R-STK-003", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_stk_004", "R-STK-004", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_fin_001", "R-FIN-001", "FALSE", calls)
+    _patch_rule(monkeypatch, "evaluate_r_fin_002", "R-FIN-002", "FALSE", calls)
     _patch_rule(monkeypatch, "evaluate_r_fin_003", "R-FIN-003", "FALSE", calls)
     _patch_rule(monkeypatch, "evaluate_r_his_002", "R-HIS-002", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_mge_001", "R-MGE-001", "FALSE", calls)
@@ -111,6 +116,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
         "R-STK-003",
         "R-STK-004",
         "R-FIN-001",
+        "R-FIN-002",
         "R-FIN-003",
         "R-HIS-002",
         "R-MGE-001",
@@ -121,7 +127,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     assert result.omitted_rule_ids == ()
     assert tuple(item.rule_id for item in result.assessments) == ALL_RULES
     assert result.crc_result.consolidated_result == "COMPRAR CONDICIONADO"
-    assert len(result.traces) == 10
+    assert len(result.traces) == 11
     assert result.c0_capability.result_available is True
 
 
