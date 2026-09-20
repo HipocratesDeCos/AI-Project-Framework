@@ -312,3 +312,30 @@ Esta auditoría:
 **POST-MGE NEXT FRONTIER: NO-GO PARA NUEVA IMPLEMENTACIÓN FUNCIONAL POSITIVA.**
 
 El siguiente avance requiere intake nuevo. El candidato técnicamente más cercano es `R-FIN-002`, pero solo después de demostrar un valor post-operación de fondo de maniobra provenance-safe; el Finance Basic actual no debe reinterpretarse como ese productor.
+
+
+## 11. Reconciliación posterior — FIN002 cerrado
+
+El bloqueo FIN002 registrado en esta auditoría fue posteriormente resuelto por autorización humana explícita y materialización física.
+
+Cadena cerrada:
+
+```text
+authorized post-operation accounting source
+→ PostOperationWorkingCapitalPosition
+→ exact PurchaseOperation hash binding
+→ PostOperationWorkingCapitalEvidence
+→ assets_after - liabilities_after
+→ ResolvedConfiguration(P-FIN-003) + Evidence
+→ R-FIN-002 Assessment
+```
+
+No se reutilizó `FinanceBasicResult.working_capital` como valor post-operación.
+
+PR #249 integrada en `main @ b77b16d5af5d9c1035a01ecb827ebcb4c47d9551`.
+
+CI #1017: **1723 passed, 8 warnings, SQL SUCCESS**.
+
+**R-FIN-002: CLOSED / MATERIALIZED / CI VALIDATED.**
+
+Los diagnósticos de R-STK-002 y R-PRE-* de esta auditoría permanecen vigentes.
