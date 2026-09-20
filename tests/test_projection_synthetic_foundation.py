@@ -9,10 +9,14 @@ import pytest
 
 from eios.core._projection_synthetic_foundation import (
     SyntheticSemanticAdapterError, _build_synthetic_foundation,
-    _build_synthetic_stage3, _build_synthetic_stage4,
+    _build_synthetic_stage3, _build_synthetic_stage4, _build_synthetic_stage5,
 )
 from eios.core.projection_criteria_manifest import REQUIRED_FUNCTIONS
 from eios.core.projection_mock_dataset import load_projection_mock_dataset
+from eios.core.treasury_documentary_support import CONDITIONS as TREASURY_CONDITIONS
+from eios.core.treasury_mandate_verification import (
+    CONDITIONS as TREASURY_MANDATE_CONDITIONS,
+)
 
 
 STRUCTURAL = Path(__file__).parent / "fixtures" / "projection_only_mock_dataset_01"
@@ -37,6 +41,31 @@ def _components():
             "function": function, "reference": reference, "version": "1.0",
             "content_sha256": digest,
         })
+    treasury_criterion = next(
+        item for item in authorized_criteria
+        if item["function"] == "INITIAL_TREASURY_SUFFICIENCY"
+    )
+
+    def encoded_document(reference, content):
+        return {
+            "document_ref": reference,
+            "content_base64": base64.b64encode(content).decode("ascii"),
+            "sha256": sha256(content).hexdigest(),
+        }
+
+    treasury_document_ref = "TREASURY-DOC-MOCK-001"
+    treasury_locator = {
+        "document_ref": treasury_document_ref, "page": 1, "section": "Mock balance",
+    }
+    mandate_documents = [
+        encoded_document("TREASURY-MANDATE-DOC-MOCK-001", b"Synthetic treasury mandate"),
+    ]
+    channel_documents = [
+        encoded_document("TREASURY-CHANNEL-DOC-MOCK-001", b"Synthetic channel recognition"),
+    ]
+    contrast_documents = [
+        encoded_document("TREASURY-CONTRAST-DOC-MOCK-001", b"Synthetic mandate contrast"),
+    ]
     return {
         "identity/operation.json": {
             "case_kind": "SYNTHETIC",
@@ -113,6 +142,97 @@ def _components():
                 "authorized_at": "2026-09-20T10:00:00+00:00",
                 "criteria": authorized_criteria,
             },
+        },
+        "treasury/material.json": {
+            "case_kind": "SYNTHETIC",
+            "support": {
+                "record_ref": "TREASURY-SUPPORT-MOCK-001",
+                "target_company_scope": "COMPANY-MOCK-001",
+                "case_kind": "SYNTHETIC",
+                "documents": [
+                    encoded_document(treasury_document_ref, b"Synthetic treasury support"),
+                ],
+                "declaration": {
+                    "documentary_company": "COMPANY-MOCK-001",
+                    "currency": "EUR",
+                    "economic_date": "2026-09-20",
+                    "available_amount": "1000",
+                    "locators": [treasury_locator],
+                },
+                "observations": [{
+                    "condition": condition,
+                    "outcome": "DECLARED_CONSISTENT",
+                    "note": "Synthetic assertion only",
+                    "locators": [treasury_locator],
+                } for condition in TREASURY_CONDITIONS],
+                "reviewer_ref": None,
+                "reviewed_at": None,
+            },
+            "assessment": {
+                "assessment_ref": "TREASURY-ASSESSMENT-MOCK-001",
+                "declarations": [{
+                    "condition": condition,
+                    "criterion_reference": treasury_criterion["reference"],
+                    "criterion_version": treasury_criterion["version"],
+                    "applicability": "APPLIES",
+                    "applicability_reason": "Synthetic documentary-cutoff use",
+                    "necessity": "NECESSARY_FOR_DETERMINED_PROJECTION",
+                    "necessity_reason": "Synthetic contextual assertion",
+                    "impact_reason": "Presented explanation only",
+                    "support_assessment": "DECLARED_SUFFICIENT",
+                    "support_reason": "Synthetic assertion, not source verification",
+                    "observation_conditions": [condition],
+                    "support_locators": [{
+                        "origin": "TREASURY_SUPPORT",
+                        **treasury_locator,
+                    }],
+                } for condition in TREASURY_CONDITIONS],
+                "additional_documents": [],
+                "additional_case_kind": None,
+                "reviewer_ref": None,
+                "reviewed_at": None,
+            },
+        },
+        "treasury/mandate.json": {
+            "case_kind": "SYNTHETIC",
+            "verification_ref": "TREASURY-MANDATE-VERIFY-MOCK-001",
+            "company_scope": "COMPANY-MOCK-001",
+            "reviewer_ref": "TREASURY-REVIEWER-MOCK-001",
+            "mandate_ref": "TREASURY-MANDATE-MOCK-001",
+            "target_review_ref": "TREASURY-REVIEW-MOCK-001",
+            "verifier_ref": "TREASURY-VERIFIER-MOCK-001",
+            "verified_at": "2026-09-20T10:30:00+00:00",
+            "channel_ref": "TREASURY-CHANNEL-MOCK-001",
+            "channel_kind": "SYNTHETIC_CORPORATE_DIRECTORY",
+            "recognition_basis": "INDEPENDENTLY_SUPPORTED",
+            "mandate_kind": "SYNTHETIC",
+            "mandate_documents": mandate_documents,
+            "channel_recognition_documents": channel_documents,
+            "contrast_documents": contrast_documents,
+            "observations": [{
+                "condition": condition,
+                "outcome": "CONFIRMED_BY_CONTRAST",
+                "note": "Synthetic confirmation only",
+                "locators": [{
+                    "origin": "CONTRAST_SUPPORT",
+                    "document_ref": "TREASURY-CONTRAST-DOC-MOCK-001",
+                    "page": 1,
+                    "section": "Mock contrast",
+                }],
+            } for condition in TREASURY_MANDATE_CONDITIONS],
+        },
+        "treasury/review.json": {
+            "case_kind": "SYNTHETIC",
+            "review_ref": "TREASURY-REVIEW-MOCK-001",
+            "reviewer_ref": "TREASURY-REVIEWER-MOCK-001",
+            "reviewed_at": "2026-09-20T10:45:00+00:00",
+            "findings": [{
+                "condition": condition,
+                "outcome": "CONFIRMED_BY_REVIEW",
+                "note": "Synthetic review finding only",
+                "locators": [treasury_locator],
+            } for condition in TREASURY_CONDITIONS],
+            "previous_review_ref": None,
         },
     }
 
@@ -363,3 +483,134 @@ def test_s4_does_not_execute_finance_quality_or_qtg(tmp_path, monkeypatch):
     monkeypatch.setattr("eios.quality.gate.evaluate_quality", forbidden)
     result = _build_synthetic_stage4(_dataset(tmp_path))
     assert result.criteria_manifest.to_payload()["profile"] == "PROJECTION_ONLY"
+
+
+
+def test_builds_private_synthetic_treasury_stage(tmp_path):
+    dataset = _dataset(tmp_path)
+    result = _build_synthetic_stage5(dataset)
+    assert result.dataset_fingerprint == dataset.fingerprint
+    support = result.treasury_support.to_payload()
+    assessment = result.treasury_assessment.to_payload()
+    mandate = result.treasury_mandate.to_payload()
+    review = result.treasury_review.to_payload()
+    assert support["preparation_fingerprint"] == (
+        result.stage4.finance_quality_preparation.fingerprint)
+    assert support["case_kind"] == mandate["mandate_kind"] == "SYNTHETIC"
+    assert assessment["pending_conditions"] == []
+    assert mandate["verification_outcome"] == "ACREDITADO_POR_CONTRASTE"
+    assert review["pending_controls"] == []
+    assert review["assurance_scope"] == "AUTHORIZED_REVIEWER_PRESENTED_FINDINGS"
+    for payload in (support, assessment, mandate, review):
+        assert not {"quality_result", "quality_checks", "status", "confidence"} & payload.keys()
+    with pytest.raises(FrozenInstanceError):
+        result.dataset_fingerprint = "changed"
+
+
+def test_s5_rejects_noncanonical_treasury_document_base64(tmp_path):
+    def noncanonical(values):
+        item = values["treasury/material.json"]["support"]["documents"][0]
+        item["content_base64"] = "Zh=="
+        item["sha256"] = sha256(b"f").hexdigest()
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage5(_dataset(tmp_path, noncanonical))
+    assert error.value.code == "TREASURY_SUPPORT_REJECTED"
+    assert "canonical base64" in str(error.value)
+
+
+def test_s5_rejects_treasury_document_digest_mismatch(tmp_path):
+    def mismatch(values):
+        values["treasury/material.json"]["support"]["documents"][0][
+            "sha256"] = sha256(b"other").hexdigest()
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage5(_dataset(tmp_path, mismatch))
+    assert error.value.code == "TREASURY_SUPPORT_REJECTED"
+    assert "sha256" in str(error.value)
+
+
+def test_s5_requires_initial_treasury_sufficiency_criterion_binding(tmp_path):
+    def wrong_criterion(values):
+        other = next(item for item in values["criteria/projection_criteria.json"][
+            "manifest"]["criteria"]
+            if item["function"] != "INITIAL_TREASURY_SUFFICIENCY")
+        declaration = values["treasury/material.json"]["assessment"]["declarations"][0]
+        declaration["criterion_reference"] = other["reference"]
+        declaration["criterion_version"] = other["version"]
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage5(_dataset(tmp_path, wrong_criterion))
+    assert error.value.code == "TREASURY_ASSESSMENT_REJECTED"
+    assert "INITIAL_TREASURY_SUFFICIENCY" in str(error.value)
+
+
+def test_s5_preserves_unresolved_mandate_and_review_findings(tmp_path):
+    def incomplete(values):
+        values["treasury/mandate.json"]["observations"] = (
+            values["treasury/mandate.json"]["observations"][:1])
+        values["treasury/review.json"]["findings"] = (
+            values["treasury/review.json"]["findings"][:1])
+    result = _build_synthetic_stage5(_dataset(tmp_path, incomplete))
+    mandate = result.treasury_mandate.to_payload()
+    review = result.treasury_review.to_payload()
+    assert mandate["verification_outcome"] == "INCONCLUYENTE"
+    assert len(mandate["pending_conditions"]) == 5
+    assert review["findings"][0]["outcome"] == "CONFIRMED_BY_REVIEW"
+    assert review["assurance_scope"] == "PRESENTED_UNAUTHORIZED_OR_UNRESOLVED_FINDINGS"
+    assert len(review["pending_controls"]) == 5
+
+
+@pytest.mark.parametrize("component,path", [
+    ("treasury_material", "treasury/material.json"),
+    ("treasury_mandate", "treasury/mandate.json"),
+    ("treasury_review", "treasury/review.json"),
+])
+def test_s5_rejects_operational_promotion(tmp_path, component, path):
+    def operational(values):
+        values[path]["case_kind"] = "PRESENTED_OPERATIONAL"
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage5(_dataset(tmp_path, operational))
+    assert error.value.code == "INVALID_COMPONENT"
+    assert error.value.component == component
+
+
+def test_s5_rejects_detached_review_identity(tmp_path):
+    def detached(values):
+        values["treasury/review.json"]["reviewer_ref"] = "OTHER-REVIEWER"
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage5(_dataset(tmp_path, detached))
+    assert error.value.code == "TREASURY_REVIEW_REJECTED"
+    assert "Reviewer differs from mandate" in str(error.value)
+
+
+def test_s5_rejects_naive_verification_time(tmp_path):
+    def naive(values):
+        values["treasury/mandate.json"]["verified_at"] = "2026-09-20T10:30:00"
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage5(_dataset(tmp_path, naive))
+    assert error.value.code == "TREASURY_MANDATE_REJECTED"
+    assert "timezone-aware" in str(error.value)
+
+
+def test_s5_preserves_unknown_treasury_amount(tmp_path):
+    def unknown(values):
+        values["treasury/material.json"]["support"]["declaration"]["available_amount"] = None
+        for observation in values["treasury/material.json"]["support"]["observations"]:
+            if observation["condition"] == "AMOUNT_SUPPORT":
+                observation.update(
+                    outcome="NOT_ESTABLISHED",
+                    note="Synthetic amount not established",
+                    locators=[],
+                )
+    result = _build_synthetic_stage5(_dataset(tmp_path, unknown))
+    support = result.treasury_support.to_payload()
+    assert support["declaration"]["available_amount"] is None
+    assert support["technical_comparisons"]["amount_matches"] is None
+
+
+def test_s5_does_not_execute_finance_quality_or_qtg(tmp_path, monkeypatch):
+    def forbidden(*args, **kwargs):
+        raise AssertionError("execution boundary crossed")
+    monkeypatch.setattr("eios.finance.engine.calculate_finance_basic", forbidden)
+    monkeypatch.setattr("eios.finance.provenance.run_provenanced_finance_basic", forbidden)
+    monkeypatch.setattr("eios.quality.gate.evaluate_quality", forbidden)
+    result = _build_synthetic_stage5(_dataset(tmp_path))
+    assert result.treasury_review.to_payload()["review_ref"] == "TREASURY-REVIEW-MOCK-001"

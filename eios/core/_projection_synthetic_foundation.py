@@ -41,6 +41,21 @@ from .required_installment_coverage import (
     RequiredInstallment, RequiredInstallmentCalendar, RequiredInstallmentCoverage,
     check_required_installment_coverage,
 )
+from .treasury_contextual_assessment import (
+    ContextualSupportLocator, TreasuryContextualAssessment,
+    TreasuryContextualDeclaration, build_treasury_contextual_assessment,
+)
+from .treasury_documentary_support import (
+    TreasuryDeclaration, TreasuryDocumentarySupport, TreasuryObservation,
+    build_treasury_documentary_support,
+)
+from .treasury_mandate_verification import (
+    MandateVerificationLocator, MandateVerificationObservation,
+    TreasuryMandateVerification, build_treasury_mandate_verification,
+)
+from .treasury_personal_review import (
+    TreasuryPersonalReview, TreasuryReviewFinding, build_treasury_personal_review,
+)
 
 
 class SyntheticSemanticAdapterError(ValueError):
@@ -172,7 +187,7 @@ class _DocumentLocator(_StrictModel):
     section: str = Field(min_length=1)
 
 
-class _PaymentDocument(_StrictModel):
+class _BinaryDocument(_StrictModel):
     document_ref: str = Field(min_length=1)
     content_base64: str = Field(min_length=1)
     sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -190,7 +205,7 @@ class _PaymentDocuments(_StrictModel):
     order_ref: str = Field(min_length=1)
     order_version: str = Field(min_length=1)
     confirmation_ref: str = Field(min_length=1)
-    documents: list[_PaymentDocument]
+    documents: list[_BinaryDocument]
     bindings: list[_PaymentBinding]
 
 
@@ -244,6 +259,140 @@ class _ProjectionCriteria(_StrictModel):
     manifest: _CriteriaManifest
 
 
+TreasuryCondition = Literal[
+    "SOURCE_CORRESPONDENCE", "ECONOMIC_CUTOFF", "AMOUNT_SUPPORT",
+    "AVAILABILITY", "RESTRICTIONS", "SOURCE_SUFFICIENCY",
+]
+MandateCondition = Literal[
+    "PERSON_IDENTITY", "COMPANY_RELATION", "GRANTOR_AUTHORITY",
+    "TREASURY_SCOPE", "VALIDITY_AND_KNOWN_CHANGES", "TARGET_CONTEXT_BINDING",
+]
+
+
+class _TreasuryDeclaration(_StrictModel):
+    documentary_company: str | None
+    currency: str | None
+    economic_date: str | None
+    available_amount: str | None
+    locators: list[_DocumentLocator] = Field(min_length=1)
+
+
+class _TreasuryObservation(_StrictModel):
+    condition: TreasuryCondition
+    outcome: Literal[
+        "DECLARED_CONSISTENT", "DECLARED_INCONSISTENT", "NOT_ESTABLISHED",
+    ]
+    note: str = Field(min_length=1)
+    locators: list[_DocumentLocator]
+
+
+class _TreasurySupport(_StrictModel):
+    record_ref: str = Field(min_length=1)
+    target_company_scope: str = Field(min_length=1)
+    case_kind: Literal["SYNTHETIC"]
+    documents: list[_BinaryDocument] = Field(min_length=1)
+    declaration: _TreasuryDeclaration
+    observations: list[_TreasuryObservation]
+    reviewer_ref: str | None
+    reviewed_at: str | None
+
+
+class _ContextualSupportLocator(_StrictModel):
+    origin: Literal["TREASURY_SUPPORT", "ADDITIONAL_ASSESSMENT_MATERIAL"]
+    document_ref: str = Field(min_length=1)
+    page: int = Field(gt=0)
+    section: str = Field(min_length=1)
+
+
+class _TreasuryContextualDeclaration(_StrictModel):
+    condition: TreasuryCondition
+    criterion_reference: str = Field(min_length=1)
+    criterion_version: str = Field(min_length=1)
+    applicability: Literal["APPLIES", "DOES_NOT_APPLY", "NOT_DETERMINED"]
+    applicability_reason: str = Field(min_length=1)
+    necessity: Literal[
+        "NECESSARY_FOR_DETERMINED_PROJECTION",
+        "RELEVANT_NOT_NECESSARY",
+        "NOT_DETERMINED",
+    ]
+    necessity_reason: str = Field(min_length=1)
+    impact_reason: str = Field(min_length=1)
+    support_assessment: Literal[
+        "DECLARED_SUFFICIENT", "DECLARED_INSUFFICIENT", "NOT_ESTABLISHED",
+    ]
+    support_reason: str = Field(min_length=1)
+    observation_conditions: list[TreasuryCondition]
+    support_locators: list[_ContextualSupportLocator]
+
+
+class _TreasuryAssessment(_StrictModel):
+    assessment_ref: str = Field(min_length=1)
+    declarations: list[_TreasuryContextualDeclaration]
+    additional_documents: list[_BinaryDocument]
+    additional_case_kind: Literal["SYNTHETIC"] | None
+    reviewer_ref: str | None
+    reviewed_at: str | None
+
+
+class _TreasuryMaterial(_StrictModel):
+    case_kind: Literal["SYNTHETIC"]
+    support: _TreasurySupport
+    assessment: _TreasuryAssessment
+
+
+class _MandateLocator(_StrictModel):
+    origin: Literal[
+        "MANDATE_DOCUMENT", "CHANNEL_RECOGNITION_SUPPORT", "CONTRAST_SUPPORT",
+    ]
+    document_ref: str = Field(min_length=1)
+    page: int = Field(gt=0)
+    section: str = Field(min_length=1)
+
+
+class _MandateObservation(_StrictModel):
+    condition: MandateCondition
+    outcome: Literal[
+        "CONFIRMED_BY_CONTRAST", "NOT_CONFIRMED_BY_CONTRAST", "CONFLICT_REPORTED",
+    ]
+    note: str = Field(min_length=1)
+    locators: list[_MandateLocator]
+
+
+class _TreasuryMandate(_StrictModel):
+    case_kind: Literal["SYNTHETIC"]
+    verification_ref: str = Field(min_length=1)
+    company_scope: str = Field(min_length=1)
+    reviewer_ref: str = Field(min_length=1)
+    mandate_ref: str = Field(min_length=1)
+    target_review_ref: str = Field(min_length=1)
+    verifier_ref: str = Field(min_length=1)
+    verified_at: str = Field(min_length=1)
+    channel_ref: str = Field(min_length=1)
+    channel_kind: str = Field(min_length=1)
+    recognition_basis: Literal["PREVIOUSLY_RECOGNIZED", "INDEPENDENTLY_SUPPORTED"]
+    mandate_kind: Literal["SYNTHETIC"]
+    mandate_documents: list[_BinaryDocument] = Field(min_length=1)
+    channel_recognition_documents: list[_BinaryDocument] = Field(min_length=1)
+    contrast_documents: list[_BinaryDocument] = Field(min_length=1)
+    observations: list[_MandateObservation]
+
+
+class _TreasuryReviewFinding(_StrictModel):
+    condition: TreasuryCondition
+    outcome: Literal["CONFIRMED_BY_REVIEW", "NOT_CONFIRMED", "CONFLICT_REPORTED"]
+    note: str = Field(min_length=1)
+    locators: list[_DocumentLocator]
+
+
+class _TreasuryReview(_StrictModel):
+    case_kind: Literal["SYNTHETIC"]
+    review_ref: str = Field(min_length=1)
+    reviewer_ref: str = Field(min_length=1)
+    reviewed_at: str = Field(min_length=1)
+    findings: list[_TreasuryReviewFinding]
+    previous_review_ref: str | None
+
+
 def _decimal(value: str | None, field: str) -> Decimal | None:
     if value is None:
         return None
@@ -291,10 +440,25 @@ def _verified_base64(
     return content
 
 
-def _verified_binary(document: _PaymentDocument, index: int) -> bytes:
+def _verified_binary(document: _BinaryDocument, index: int) -> bytes:
     return _verified_base64(
         document.content_base64, document.sha256,
         f"documents[{index}].content_base64",
+    )
+
+
+def _documentary_materials(
+    documents: list[_BinaryDocument], field: str,
+) -> tuple[DocumentaryMaterial, ...]:
+    return tuple(
+        DocumentaryMaterial(
+            document_ref=item.document_ref,
+            content=_verified_base64(
+                item.content_base64, item.sha256,
+                f"{field}[{index}].content_base64",
+            ),
+        )
+        for index, item in enumerate(documents)
     )
 
 
@@ -370,6 +534,16 @@ class _SyntheticStage4:
     stage3: _SyntheticStage3
     finance_quality_preparation: FinanceQualityPreparation
     criteria_manifest: ProjectionCriteriaManifest
+
+
+@dataclass(frozen=True)
+class _SyntheticStage5:
+    dataset_fingerprint: str
+    stage4: _SyntheticStage4
+    treasury_support: TreasuryDocumentarySupport
+    treasury_assessment: TreasuryContextualAssessment
+    treasury_mandate: TreasuryMandateVerification
+    treasury_review: TreasuryPersonalReview
 
 
 def _build_synthetic_foundation(dataset: ProjectionMockDataset) -> _SyntheticFoundation:
@@ -620,6 +794,192 @@ def _build_synthetic_stage4(dataset: ProjectionMockDataset) -> _SyntheticStage4:
         stage3=stage3,
         finance_quality_preparation=preparation,
         criteria_manifest=manifest,
+    )
+
+
+def _build_synthetic_stage5(dataset: ProjectionMockDataset) -> _SyntheticStage5:
+    """Build private S1-S5 treasury material without evaluating quality."""
+    stage4 = _build_synthetic_stage4(dataset)
+    material_data = _decode(dataset, "treasury_material", _TreasuryMaterial)
+    mandate_data = _decode(dataset, "treasury_mandate", _TreasuryMandate)
+    review_data = _decode(dataset, "treasury_review", _TreasuryReview)
+
+    support_data = material_data.support
+    try:
+        support = build_treasury_documentary_support(
+            preparation=stage4.finance_quality_preparation,
+            record_ref=support_data.record_ref,
+            target_company_scope=support_data.target_company_scope,
+            case_kind=support_data.case_kind,
+            documents=_documentary_materials(
+                support_data.documents, "treasury_support.documents"),
+            declaration=TreasuryDeclaration(
+                documentary_company=support_data.declaration.documentary_company,
+                currency=support_data.declaration.currency,
+                economic_date=None if support_data.declaration.economic_date is None
+                    else _date(
+                        support_data.declaration.economic_date,
+                        "treasury_support.declaration.economic_date",
+                    ),
+                available_amount=_decimal(
+                    support_data.declaration.available_amount,
+                    "treasury_support.declaration.available_amount",
+                ),
+                locators=tuple(
+                    DocumentaryLocator(**locator.model_dump())
+                    for locator in support_data.declaration.locators
+                ),
+            ),
+            observations=tuple(
+                TreasuryObservation(
+                    condition=item.condition,
+                    outcome=item.outcome,
+                    note=item.note,
+                    locators=tuple(
+                        DocumentaryLocator(**locator.model_dump())
+                        for locator in item.locators
+                    ),
+                )
+                for item in support_data.observations
+            ),
+            reviewer_ref=support_data.reviewer_ref,
+            reviewed_at=None if support_data.reviewed_at is None else _datetime(
+                support_data.reviewed_at, "treasury_support.reviewed_at"),
+        )
+    except (TypeError, ValueError, ValidationError) as exc:
+        raise SyntheticSemanticAdapterError(
+            "TREASURY_SUPPORT_REJECTED", "treasury_material", str(exc),
+        ) from exc
+
+    assessment_data = material_data.assessment
+    manifest_entries = stage4.criteria_manifest.to_payload()["criteria"]
+    treasury_entry = next(
+        item for item in manifest_entries
+        if item["function"] == "INITIAL_TREASURY_SUFFICIENCY"
+    )
+    try:
+        for item in assessment_data.declarations:
+            if (item.criterion_reference, item.criterion_version) != (
+                treasury_entry["reference"], treasury_entry["version"]):
+                raise ValueError(
+                    "Treasury declaration must use INITIAL_TREASURY_SUFFICIENCY criterion")
+        assessment = build_treasury_contextual_assessment(
+            preparation=stage4.finance_quality_preparation,
+            treasury_support=support,
+            assessment_ref=assessment_data.assessment_ref,
+            declarations=tuple(
+                TreasuryContextualDeclaration(
+                    condition=item.condition,
+                    criterion_reference=item.criterion_reference,
+                    criterion_version=item.criterion_version,
+                    applicability=item.applicability,
+                    applicability_reason=item.applicability_reason,
+                    necessity=item.necessity,
+                    necessity_reason=item.necessity_reason,
+                    impact_reason=item.impact_reason,
+                    support_assessment=item.support_assessment,
+                    support_reason=item.support_reason,
+                    observation_conditions=tuple(item.observation_conditions),
+                    support_locators=tuple(
+                        ContextualSupportLocator(**locator.model_dump())
+                        for locator in item.support_locators
+                    ),
+                )
+                for item in assessment_data.declarations
+            ),
+            additional_documents=_documentary_materials(
+                assessment_data.additional_documents,
+                "treasury_assessment.additional_documents",
+            ),
+            additional_case_kind=assessment_data.additional_case_kind,
+            reviewer_ref=assessment_data.reviewer_ref,
+            reviewed_at=None if assessment_data.reviewed_at is None else _datetime(
+                assessment_data.reviewed_at, "treasury_assessment.reviewed_at"),
+        )
+    except (TypeError, ValueError, ValidationError) as exc:
+        raise SyntheticSemanticAdapterError(
+            "TREASURY_ASSESSMENT_REJECTED", "treasury_material", str(exc),
+        ) from exc
+
+    try:
+        mandate = build_treasury_mandate_verification(
+            target=assessment,
+            verification_ref=mandate_data.verification_ref,
+            company_scope=mandate_data.company_scope,
+            reviewer_ref=mandate_data.reviewer_ref,
+            mandate_ref=mandate_data.mandate_ref,
+            target_review_ref=mandate_data.target_review_ref,
+            verifier_ref=mandate_data.verifier_ref,
+            verified_at=_datetime(
+                mandate_data.verified_at, "treasury_mandate.verified_at"),
+            channel_ref=mandate_data.channel_ref,
+            channel_kind=mandate_data.channel_kind,
+            recognition_basis=mandate_data.recognition_basis,
+            mandate_kind=mandate_data.mandate_kind,
+            mandate_documents=_documentary_materials(
+                mandate_data.mandate_documents,
+                "treasury_mandate.mandate_documents",
+            ),
+            channel_recognition_documents=_documentary_materials(
+                mandate_data.channel_recognition_documents,
+                "treasury_mandate.channel_recognition_documents",
+            ),
+            contrast_documents=_documentary_materials(
+                mandate_data.contrast_documents,
+                "treasury_mandate.contrast_documents",
+            ),
+            observations=tuple(
+                MandateVerificationObservation(
+                    condition=item.condition,
+                    outcome=item.outcome,
+                    note=item.note,
+                    locators=tuple(
+                        MandateVerificationLocator(**locator.model_dump())
+                        for locator in item.locators
+                    ),
+                )
+                for item in mandate_data.observations
+            ),
+        )
+    except (TypeError, ValueError, ValidationError) as exc:
+        raise SyntheticSemanticAdapterError(
+            "TREASURY_MANDATE_REJECTED", "treasury_mandate", str(exc),
+        ) from exc
+
+    try:
+        review = build_treasury_personal_review(
+            assessment=assessment,
+            mandate=mandate,
+            review_ref=review_data.review_ref,
+            reviewer_ref=review_data.reviewer_ref,
+            reviewed_at=_datetime(
+                review_data.reviewed_at, "treasury_review.reviewed_at"),
+            findings=tuple(
+                TreasuryReviewFinding(
+                    condition=item.condition,
+                    outcome=item.outcome,
+                    note=item.note,
+                    locators=tuple(
+                        DocumentaryLocator(**locator.model_dump())
+                        for locator in item.locators
+                    ),
+                )
+                for item in review_data.findings
+            ),
+            previous_review_ref=review_data.previous_review_ref,
+        )
+    except (TypeError, ValueError, ValidationError) as exc:
+        raise SyntheticSemanticAdapterError(
+            "TREASURY_REVIEW_REJECTED", "treasury_review", str(exc),
+        ) from exc
+
+    return _SyntheticStage5(
+        dataset_fingerprint=dataset.fingerprint,
+        stage4=stage4,
+        treasury_support=support,
+        treasury_assessment=assessment,
+        treasury_mandate=mandate,
+        treasury_review=review,
     )
 
 
