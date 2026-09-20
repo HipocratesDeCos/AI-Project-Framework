@@ -2,8 +2,8 @@
 
 ## Mapa Maestro del Proyecto y de la Arquitectura
 
-**Versión:** 2.5
-**Estado:** APROBADO — reconciliación de continuidad post-EIOS-BL-005
+**Versión:** 2.6
+**Estado:** APROBADO — reconciliación de continuidad post-EIOS-BL-006
 **Función:** Mapa global de estructura y relaciones del sistema EIOS
 **Ubicación:** `03_Arquitectura/Master_Project_Map.md`
 
@@ -426,14 +426,14 @@ Para conocer el estado operativo y de continuidad vigente se deberá consultar:
 
 `00_Gobierno/Project_Context.md`
 
-El punto formal de recuperación más reciente es `EIOS-BL-005 @ cd0504b9540d37c6523957dccd8cc51acad1b729`, identificado mediante `00_Gobierno/Baselines/`, sin sustituir el estado posterior de `main`.
+El punto formal de recuperación más reciente es `EIOS-BL-006 @ d8291cd72c3b96b42add4cabd74ee5ba2eb4c763`, identificado mediante `00_Gobierno/Baselines/`, sin sustituir el estado posterior de `main`.
 
 ---
 
 # 17. ESTADO
 
 **Framework:** EIOS  
-**Baseline de continuidad vigente:** EIOS-BL-005 @ `cd0504b9540d37c6523957dccd8cc51acad1b729`  
+**Baseline de continuidad vigente:** EIOS-BL-006 @ `d8291cd72c3b96b42add4cabd74ee5ba2eb4c763`  
 **Estado:** En desarrollo  
 **Gobierno:** Activo  
 **Salvaguarda Vertical MVP:** Vigente  
