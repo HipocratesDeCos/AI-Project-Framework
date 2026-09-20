@@ -2,7 +2,7 @@
 
 > **Documento de recuperación y continuidad del proyecto**
 >
-> **Versión:** 2.6
+> **Versión:** 2.7
 > **Estado:** APROBADO — reconciliación de continuidad EIOS-BL-005
 > **Última actualización:** 20/09/2026
 > **Proyecto:** EIOS — Enterprise Intelligent Operations System
@@ -750,7 +750,7 @@ El estado integrado y documentado contiene, entre otras, las siguientes capacida
 - **Negotiation Intelligence / Negotiation Ladder provenance:** los contratos de resultado están cerrados y el Vertical usa invocadores explícitos, pero la mera presencia del invocador no prueba provenance y no existe productor determinista NI/Ladder autorizado desde la compra completa.
 - **Supplier Risk cuantitativo/valorativo:** `Supplier Evidence Core` está cerrado como núcleo factual; scoring, ranking, pesos, umbrales y política decisional continúan sin autoridad aprobada.
 - **Rotation:** Track A conserva su cierre metodológico factual, pero el contrato técnico sigue bloqueado mientras falten `ROT-G01` y `ROT-G04-A`; cualquier Track B mantiene además sus propias dependencias de fórmula/umbral y reglas.
-- **Payment / PAG:** `R-PAG-001` y `R-PAG-002` disponen de relaciones parámetro → regla documentadas, pero el cierre ejecutable permanece bloqueado porque no está demostrado un carrier provenance-safe del plazo ofrecido ni un productor autorizado de la viabilidad contrafactual de `R-PAG-002`; además, sigue sin resolverse la transformación exacta de `P-PAG-003` y la semántica de `P-PAG-005` no es uniforme entre el catálogo booleano y su uso económico especializado.
+- **Payment / PAG:** `R-PAG-001` y `R-PAG-002` disponen de relaciones parámetro → regla documentadas. Supplier Evidence Core ya preserva hechos `PAYMENT_TERM` del proveedor actual y la cadena documental de pagos/cuotas conserva vencimientos y asociaciones, por lo que el carrier factual genérico ya no está totalmente ausente. El cierre ejecutable sigue bloqueado porque no existe un binding EVIDENCE/DATA canónico que transforme ese material en el escalar autorizado “plazo ofrecido” para Rules, no está definida la normalización de estructuras multicuota, sigue sin resolverse la transformación exacta de `P-PAG-003`, `P-PAG-005` mantiene contradicción entre control booleano y factor económico, y `R-PAG-002` carece de productor autorizado de viabilidad contrafactual.
 - **Historical / HIS:** `R-HIS-002` ya está materializada en su alcance autorizado; el resto del frente permanece bloqueado porque `R-HIS-001` carece de productor provenance-safe que resuelva la elegibilidad temporal sin inventar semántica de frontera y `R-HIS-003` no dispone de una cadena completa autorizada para determinar comparabilidad comercial material.
 - **Data Quality / DAT:** la RDM confirma `P-DAT-001 → R-DAT-001`, pero no está demostrado un productor provenance-safe de frescura general ni la semántica exacta de la frontera temporal; `R-DAT-002` y `R-DAT-003` tampoco disponen de dependencias, política o criterio físico de suficiencia completos que permitan cerrarlas sin inferencia.
 - **Supplier Alternatives / PROV:** `R-PROV-001` y `R-PROV-002` existen en la Matriz de Reglas, pero la RDM no contiene dependencias `R-PROV-*` confirmadas y no existe un productor autorizado que transforme hechos de proveedor en alternativa, comparabilidad o mejora potencial/significativa; `Supplier Evidence Core` conserva únicamente autoridad factual.
