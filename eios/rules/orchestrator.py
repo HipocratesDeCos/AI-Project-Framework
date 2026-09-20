@@ -16,12 +16,22 @@ from eios.delivery.models import DeliveryStockoutAnalysisInput, DeliveryStockout
 from eios.finance import ProvenancedFinanceBasicExecution
 from eios.parameters import ResolvedConfiguration
 from eios.pricing import PriceIntelligenceAssessmentContext, PriceIntelligenceInput
+from eios.profitability import ProvenancedProfitabilityExecution
 from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
 
 from .catalog import authorized_rule, implemented_rule_ids
 from .delivery import R_ENT_001, R_STK_001, evaluate_r_ent_001, evaluate_r_stk_001
 from .finance import R_FIN_001, R_FIN_003, evaluate_r_fin_001, evaluate_r_fin_003
 from .pricing import R_HIS_002, evaluate_r_his_002
+from .profitability import (
+    MGEParameterBundle,
+    R_MGE_001,
+    R_MGE_002,
+    R_MGE_003,
+    evaluate_r_mge_001,
+    evaluate_r_mge_002,
+    evaluate_r_mge_003,
+)
 from .runtime import (
     ConsolidatedBaseResult,
     RuleSetVerticalResult,
@@ -78,6 +88,18 @@ class HistorySufficiencyRuleInputs:
     parameter_evidence: Evidence | None
 
 
+@dataclass(frozen=True)
+class ProfitabilityRuleInputs:
+    profitability_execution: ProvenancedProfitabilityExecution
+    profitability_evidence: Evidence
+    minimum_resolution: ResolvedConfiguration | None
+    minimum_evidence: Evidence | None
+    target_resolution: ResolvedConfiguration | None
+    target_evidence: Evidence | None
+    tolerance_resolution: ResolvedConfiguration | None
+    tolerance_evidence: Evidence | None
+
+
 class DecisionRuleExecutionResult(BaseModel):
     """Rules result plus explicit coverage of implemented rule bridges."""
 
@@ -119,6 +141,7 @@ def run_domain_rules(
     finance_capacity: FinanceCapacityRuleInputs | None = None,
     finance_safety_margin: FinanceSafetyMarginRuleInputs | None = None,
     history_sufficiency: HistorySufficiencyRuleInputs | None = None,
+    profitability: ProfitabilityRuleInputs | None = None,
 ) -> DecisionRuleExecutionResult:
     """Evaluate supplied domain bundles and compose them in the same execution."""
     assessments_by_rule = {}
@@ -205,6 +228,30 @@ def run_domain_rules(
             history_sufficiency.parameter_evidence,
         )
 
+    if profitability is not None:
+        bundle = MGEParameterBundle(
+            minimum_resolution=profitability.minimum_resolution,
+            minimum_evidence=profitability.minimum_evidence,
+            target_resolution=profitability.target_resolution,
+            target_evidence=profitability.target_evidence,
+            tolerance_resolution=profitability.tolerance_resolution,
+            tolerance_evidence=profitability.tolerance_evidence,
+        )
+        for rule_id, evaluator in (
+            (R_MGE_001, evaluate_r_mge_001),
+            (R_MGE_002, evaluate_r_mge_002),
+            (R_MGE_003, evaluate_r_mge_003),
+        ):
+            rule = authorized_rule(rule_id, context.rules_version)
+            assessments_by_rule[rule_id] = evaluator(
+                purchase,
+                context,
+                rule,
+                profitability.profitability_execution,
+                profitability.profitability_evidence,
+                bundle,
+            )
+
     catalog_rule_ids = implemented_rule_ids()
     executed_rule_ids = tuple(
         rule_id for rule_id in catalog_rule_ids if rule_id in assessments_by_rule
@@ -235,6 +282,7 @@ __all__ = [
     "FinanceCapacityRuleInputs",
     "FinanceSafetyMarginRuleInputs",
     "HistorySufficiencyRuleInputs",
+    "ProfitabilityRuleInputs",
     "StockAbsorptionRuleInputs",
     "StockExcessRuleInputs",
     "run_domain_rules",

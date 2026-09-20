@@ -160,12 +160,14 @@ R-MGE-001 no escala a R0 en v0.1.
 
 ## 10. Evidence IDs
 
-Cada Assessment incluye, en orden estable y sin inferencias:
+Cada Assessment conserva, en orden estable y sin inferencias, los IDs de todas las evidencias realmente suministradas:
 
 1. profitability evidence;
-2. P-MGE-001 evidence;
-3. P-MGE-002 evidence;
-4. P-MGE-003 evidence.
+2. P-MGE-001 evidence, si existe;
+3. P-MGE-002 evidence, si existe;
+4. P-MGE-003 evidence, si existe.
+
+Cuando el bundle está completo, las tres rules incluyen los cuatro IDs. Si una evidencia está ausente y la rule queda `NOT_EVALUABLE`, no se inventa un ID inexistente.
 
 Aunque una condición use solo uno o dos thresholds de forma matemática, el bundle coherente completo es parte de la evaluabilidad autorizada de las tres reglas.
 
