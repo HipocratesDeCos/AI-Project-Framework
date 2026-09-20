@@ -3,8 +3,8 @@
 ## EIOS — Enterprise Intelligent Operations System
 
 **Documento:** Manual Maestro del Proyecto EIOS (MMP-EIOS)  
-**Versión:** 2.5  
-**Estado:** APROBADO — reconciliación de continuidad BL-006  
+**Versión:** 2.6  
+**Estado:** APROBADO — reconciliación de continuidad BL-007  
 **Fecha:** 20/09/2026  
 **Ubicación oficial:** `00_Gobierno/Manual_Maestro_Proyecto_EIOS.md`
 
@@ -64,7 +64,7 @@ La recuperación del proyecto debe comenzar por estas fuentes:
 ├── Manual_Maestro_Proyecto_EIOS.md
 ├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
 └── Baselines/
-    └── EIOS-BL-006.md
+    └── EIOS-BL-007.md
 
 03_Arquitectura/
 ├── Framework_Map.md
@@ -78,7 +78,7 @@ Funciones principales:
 - `Project_Governance.md` → gobierno y evolución controlada.
 - `Matriz_Autoridad_Documental.md` → precedencia y fuente oficial por dominio.
 - Salvaguarda Vertical MVP → marco congelado, restricciones y no regresión.
-- `EIOS-BL-006.md` → punto formal de recuperación `d8291cd72c3b96b42add4cabd74ee5ba2eb4c763`.
+- `EIOS-BL-007.md` → punto formal de recuperación `6de45ba0e069074d126cf98cf0a6723e64da61e7`.
 - `Framework_Map.md` → dónde buscar documentación y materialización.
 - `Master_Project_Map.md` → cómo se organiza EIOS como sistema/proyecto.
 
@@ -253,6 +253,10 @@ El estado integrado contiene, entre otras, las siguientes capacidades o frontera
 - UI / Visual Frontend U1.1 en su alcance representacional;
 - U1.2 composición Vertical MVP read-only y conformidad E2E;
 - U1.3 artefacto visual inmutable con `content_sha256` exclusivamente de transporte;
+- U1.4 delivery visual controlado y CSP deny-by-default, sin I/O;
+- U1.5A admisión visual sintética registrada y atómica;
+- U1.5C artefacto sintético designado con advertencia persistente en sus propios bytes;
+- U1.5B preview local `TEST_ONLY` sobre loopback `127.0.0.1` y puerto efímero;
 - Configuration Center UI en su subconjunto selected-context demostrado;
 - reconciliaciones de provenance e integración asociadas.
 
@@ -331,7 +335,7 @@ Principio de representación:
 
 > **La interfaz muestra lo autorizado; no crea autoridad nueva.**
 
-U1.1 Visual Frontend permanece cerrado en su alcance representacional. U1.2 añade una composición read-only del Vertical MVP y U1.3 empaqueta ese HTML como artefacto inmutable verificable por `content_sha256`, sin servidor, persistencia ni autoridad decisional.
+U1.1 Visual Frontend permanece cerrado en su alcance representacional. U1.2 añade una composición read-only del Vertical MVP; U1.3 empaqueta ese HTML como artefacto inmutable; U1.4 define su delivery controlado. U1.5A/C/B añaden una cadena exclusivamente sintética `TEST_ONLY` hasta una preview loopback efímera, sin convertirla en ejecución operacional ni autoridad decisional.
 
 Los contratos de UI, registro de campos, mapping e interacción se localizan en `03_App/`.
 
@@ -420,7 +424,7 @@ Secuencia mínima:
 4. leer `Matriz_Autoridad_Documental.md`;
 5. leer la Salvaguarda Vertical MVP;
 6. consultar `Framework_Map.md` y `Master_Project_Map.md`;
-7. consultar `EIOS-BL-006.md` como punto formal de recuperación;
+7. consultar `EIOS-BL-007.md` como punto formal de recuperación;
 8. verificar el SHA actual de `main`;
 9. identificar la unidad realmente abierta y su autoridad especializada;
 10. continuar únicamente dentro del alcance autorizado.
@@ -458,15 +462,15 @@ GitHub conserva el historial; las versiones antiguas del Manual no deben utiliza
 
 **Framework:** EIOS  
 **Vertical:** Intelligent Procurement Decision & Negotiation  
-**Baseline formal más reciente:** EIOS-BL-006 @ `d8291cd72c3b96b42add4cabd74ee5ba2eb4c763`  
+**Baseline formal más reciente:** EIOS-BL-007 @ `6de45ba0e069074d126cf98cf0a6723e64da61e7`  
 **Estado general:** En desarrollo  
 **Gobierno:** Activo  
 **Salvaguarda Vertical MVP:** Vigente  
-**Manual:** v2.4 — reconciliado 20/09/2026
+**Manual:** v2.6 — reconciliado 20/09/2026
 
 El Vertical MVP completo **no está declarado cerrado**.
 
-Los componentes cerrados y los bloqueos vigentes deben resolverse desde `Project_Context.md`, `EIOS-BL-006.md` y sus fuentes especializadas, no desde estados históricos de este Manual.
+Los componentes cerrados y los bloqueos vigentes deben resolverse desde `Project_Context.md`, `EIOS-BL-007.md` y sus fuentes especializadas, no desde estados históricos de este Manual.
 
 ---
 

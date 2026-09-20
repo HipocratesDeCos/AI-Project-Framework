@@ -2,8 +2,8 @@
 
 > **Documento de recuperación y continuidad del proyecto**
 >
-> **Versión:** 2.8
-> **Estado:** APROBADO — reconciliación de continuidad EIOS-BL-006
+> **Versión:** 2.9
+> **Estado:** APROBADO — reconciliación de continuidad EIOS-BL-007
 > **Última actualización:** 20/09/2026
 > **Proyecto:** EIOS — Enterprise Intelligent Operations System
 
@@ -37,7 +37,7 @@ El mapa estructural y de navegación vigente corresponde a:
 
 El punto formal de recuperación más reciente es:
 
-`00_Gobierno/Baselines/EIOS-BL-006.md` — `d8291cd72c3b96b42add4cabd74ee5ba2eb4c763`
+`00_Gobierno/Baselines/EIOS-BL-007.md` — `6de45ba0e069074d126cf98cf0a6723e64da61e7`
 
 Un Baseline es un punto formal de recuperación asociado a un SHA concreto; no sustituye el estado posterior de `main` ni las fuentes especializadas vigentes.
 
@@ -739,6 +739,10 @@ El estado integrado y documentado contiene, entre otras, las siguientes capacida
 - UI / Visual Frontend U1.1 en su alcance exclusivamente representacional;
 - U1.2 Vertical MVP Visual Read-Only Composition + conformidad E2E, sin ejecución de motores;
 - U1.3 Read-Only Visual Artifact con bytes HTML reproducibles y `content_sha256` de transporte, sin I/O;
+- U1.4 Controlled Visual Delivery Boundary, puro y sin I/O;
+- U1.5A Synthetic Visual Admission con fixture registrada y binding atómico;
+- U1.5C Designated Synthetic Preview Artifact con designación persistente `SYNTHETIC / TEST_ONLY / NO OPERATIONAL EFFECT`;
+- U1.5B Local Loopback Preview Adapter sobre `127.0.0.1`, puerto efímero y GET/HEAD;
 - Configuration Center UI: contrato cerrado y Slices 1–4 + conformidad selected-context E2E en el alcance ejecutable demostrado;
 - migración documental de identificadores `P-*` / `R-*` y reconciliaciones postintegración asociadas.
 
@@ -786,7 +790,7 @@ implementación
 reconciliación / CI
 ```
 
-El Baseline `EIOS-BL-006 @ d8291cd72c3b96b42add4cabd74ee5ba2eb4c763` es el punto formal de recuperación más reciente, pero el repositorio puede haber avanzado después de su SHA. Para trabajo operativo debe verificarse siempre el `main` vivo antes de actuar.
+El Baseline `EIOS-BL-007 @ 6de45ba0e069074d126cf98cf0a6723e64da61e7` es el punto formal de recuperación más reciente, pero el repositorio puede haber avanzado después de su SHA. Para trabajo operativo debe verificarse siempre el `main` vivo antes de actuar.
 
 ---
 
@@ -817,7 +821,7 @@ Documentos fundamentales de referencia:
 ├── Project_Governance.md
 ├── Matriz_Autoridad_Documental.md
 ├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
-└── Baselines/EIOS-BL-006.md
+└── Baselines/EIOS-BL-007.md
 
 03_Arquitectura/
 └── Framework_Map.md

@@ -2,8 +2,8 @@
 
 ## Mapa Maestro del Proyecto y de la Arquitectura
 
-**Versión:** 2.6
-**Estado:** APROBADO — reconciliación de continuidad post-EIOS-BL-006
+**Versión:** 2.7
+**Estado:** APROBADO — reconciliación de continuidad post-EIOS-BL-007
 **Función:** Mapa global de estructura y relaciones del sistema EIOS
 **Ubicación:** `03_Arquitectura/Master_Project_Map.md`
 
@@ -257,7 +257,7 @@ Incluye, entre otros, contratos y cierres relativos a:
 
 `03_App/` no sustituye a `03_Arquitectura/` ni a `08_Implementacion/`.
 
-Su función es describir y gobernar la representación e interacción dentro del alcance autorizado. La aplicación no puede convertir una salida representacional en una decisión empresarial automática ni redefinir la autoridad de los componentes que representa.
+Su función es describir y gobernar la representación e interacción dentro del alcance autorizado. La cadena visual integrada dispone además de una preview local sintética `TEST_ONLY` hasta U1.5B, confinada a loopback y sin efecto operacional. La aplicación no puede convertir una salida representacional en una decisión empresarial automática ni redefinir la autoridad de los componentes que representa.
 
 ---
 
@@ -426,18 +426,18 @@ Para conocer el estado operativo y de continuidad vigente se deberá consultar:
 
 `00_Gobierno/Project_Context.md`
 
-El punto formal de recuperación más reciente es `EIOS-BL-006 @ d8291cd72c3b96b42add4cabd74ee5ba2eb4c763`, identificado mediante `00_Gobierno/Baselines/`, sin sustituir el estado posterior de `main`.
+El punto formal de recuperación más reciente es `EIOS-BL-007 @ 6de45ba0e069074d126cf98cf0a6723e64da61e7`, identificado mediante `00_Gobierno/Baselines/`, sin sustituir el estado posterior de `main`.
 
 ---
 
 # 17. ESTADO
 
 **Framework:** EIOS  
-**Baseline de continuidad vigente:** EIOS-BL-006 @ `d8291cd72c3b96b42add4cabd74ee5ba2eb4c763`  
+**Baseline de continuidad vigente:** EIOS-BL-007 @ `6de45ba0e069074d126cf98cf0a6723e64da61e7`  
 **Estado:** En desarrollo  
 **Gobierno:** Activo  
 **Salvaguarda Vertical MVP:** Vigente  
-**Versión del mapa:** 2.5
+**Versión del mapa:** 2.7
 
 ---
 
