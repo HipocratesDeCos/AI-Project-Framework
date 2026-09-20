@@ -130,3 +130,21 @@ Cierre físico condicionado a:
 3. SQL validations verdes;
 4. CI exact-head;
 5. merge protegido por SHA.
+
+
+## 5. Depuración CI #994
+
+La primera CI de materialización detectó 6 fallos exclusivamente en el harness parametrizado de estados no `KNOWN`.
+
+Causa:
+
+- los casos de control con estado `KNOWN` se construían accidentalmente con `value=None`, `source_ref=None` y sin traces;
+- el modelo físico los rechazó correctamente según el contrato `KNOWN`.
+
+Corrección:
+
+- el harness construye una base `KNOWN` válida cuando corresponde;
+- solo la base no `KNOWN` utiliza `value=None`;
+- no se modifica engine, modelo, autoridad ni semántica fail-closed.
+
+**Clasificación:** defecto de test, no defecto del core.
