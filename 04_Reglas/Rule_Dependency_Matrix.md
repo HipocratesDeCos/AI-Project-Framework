@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.5.6  
+**Versión:** 1.5.7  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
@@ -338,7 +338,7 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 | DEP-FIN-001-RFIN-001 | `R-FIN-001` | `DERIVED` | `P-FIN-001` | PARAMETER | Horizonte autorizado que acota la proyección financiera de la que deriva `financial_capacity_forecast` consumida por R-FIN-001 | PENDING | `01_Modelo/Finance_Basic_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | FIN-AUTH-01 documenta `P-FIN-001 → horizonte Finance Basic → financial_capacity_forecast → R-FIN-001` y prohíbe tratar P-FIN-001 como parámetro directo. `FIN-PROV-HORIZON-01` quedó cerrado físicamente mediante `08_Implementacion/Finance_Horizon_Provenance_Contract_v0.1.md`, `ProvenancedFinanceBasicExecution` y PR #150 (CI #808/#809 SUCCESS); este cierre técnico no altera `Criticality`/`Evaluability_Impact` ni valida el valor inicial de 30 días. |
 | DEP-FIN-002-RFIN-001 | `R-FIN-001` | `PARAMETER` | `P-FIN-002` | PARAMETER | Parte del cálculo de capacidad financiera prevista | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
 | DEP-FIN-002-RFIN-003 | `R-FIN-003` | `DERIVED` | `P-FIN-002` | PARAMETER | Mínimo de tesorería autorizado integrado en el cálculo de `financial_safety_margin_pct` consumido por R-FIN-003 | PENDING | `01_Modelo/Finance_Basic_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | FIN-AUTH-07 documenta `treasury_minimum = P-FIN-002` y la transformación; no autoriza escalada R1→R0. |
-| DEP-FIN-003-RFIN-002 | `R-FIN-002` | `PARAMETER` | `P-FIN-003` | PARAMETER | Parámetro consumidor de fondo de maniobra | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa documentada. |
+| DEP-FIN-003-RFIN-002 | `R-FIN-002` | `PARAMETER` | `P-FIN-003` | PARAMETER | Parámetro consumidor de fondo de maniobra | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md`; `01_Modelo/FIN002_Post_Operation_Working_Capital_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa documentada. Binding físico cerrado mediante `ResolvedConfiguration(P-FIN-003) + ParameterConfigurationEvidence` y `PostOperationWorkingCapitalPosition`, integrado por PR #249 (CI #1017 SUCCESS). `Criticality` y `Evaluability_Impact` permanecen PENDING al no existir autoridad RDM explícita para reclasificarlos. |
 | DEP-FIN-004-RFIN-003 | `R-FIN-003` | `PARAMETER` | `P-FIN-004` | PARAMETER | Parámetro consumidor de riesgo financiero | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
 | DEP-FIN-005-RFIN-001 | `R-FIN-001` | `PARAMETER` | `P-FIN-005` | PARAMETER | Parte del cálculo de capacidad financiera prevista | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
 | DEP-FIN-006-RFIN-001 | `R-FIN-001` | `PARAMETER` | `P-FIN-006` | PARAMETER | Parte del cálculo de capacidad financiera prevista | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
