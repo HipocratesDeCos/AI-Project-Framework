@@ -154,6 +154,7 @@ def _compose_designated_html(source: bytes) -> bytes:
 class DesignatedSyntheticPreviewArtifact:
     """Immutable U1.5C HTML artifact with designation in its own bytes."""
 
+    _source_admission: LocalSyntheticPreviewAdmission
     _case_id: str
     _case_fingerprint: str
     _source_artifact_content_sha256: str
@@ -260,6 +261,7 @@ def build_designated_synthetic_preview_artifact(
         raise ValueError("U1.5C digest no puede identificarse con U1.3")
 
     artifact = object.__new__(DesignatedSyntheticPreviewArtifact)
+    object.__setattr__(artifact, "_source_admission", rebuilt)
     object.__setattr__(artifact, "_case_id", rebuilt.case_id)
     object.__setattr__(artifact, "_case_fingerprint", rebuilt.case_fingerprint)
     object.__setattr__(artifact, "_source_artifact_content_sha256", source_digest)
@@ -273,6 +275,18 @@ def _revalidate_artifact(
 ) -> None:
     if type(artifact) is not DesignatedSyntheticPreviewArtifact:
         raise TypeError("artifact debe ser un DesignatedSyntheticPreviewArtifact exacto")
+    rebuilt = _revalidate_admission(artifact._source_admission)
+    source = rebuilt.artifact.content
+    source_digest = sha256(source).hexdigest()
+    if artifact.case_id != rebuilt.case_id:
+        raise ValueError("artifact case_id no coincide con U1.5A revalidada")
+    if not compare_digest(artifact.case_fingerprint, rebuilt.case_fingerprint):
+        raise ValueError("artifact case_fingerprint no coincide con U1.5A revalidada")
+    if not compare_digest(artifact.source_artifact_content_sha256, source_digest):
+        raise ValueError("artifact source_artifact_content_sha256 no coincide con U1.3")
+    expected_content = _compose_designated_html(source)
+    if artifact.content != expected_content:
+        raise ValueError("artifact content no coincide con la composición U1.5C revalidada")
     if artifact.schema_version != ARTIFACT_SCHEMA_VERSION:
         raise ValueError("artifact schema_version no coincide con U1.5C")
     if artifact.profile != PROFILE or artifact.classification != CLASSIFICATION:
