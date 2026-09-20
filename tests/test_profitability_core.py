@@ -141,8 +141,16 @@ def test_zero_sale_keeps_amount_but_percentage_is_not_determinable():
     ],
 )
 def test_non_known_states_fail_closed(sale_state, cost_state, expected):
-    sale = _sale(None, state=sale_state, source_ref=None, trace_refs=())
-    cost = _cost(None, state=cost_state, source_ref=None, trace_refs=())
+    sale = (
+        _sale()
+        if sale_state == "KNOWN"
+        else _sale(None, state=sale_state, source_ref=None, trace_refs=())
+    )
+    cost = (
+        _cost()
+        if cost_state == "KNOWN"
+        else _cost(None, state=cost_state, source_ref=None, trace_refs=())
+    )
 
     result = calculate_profitability(_payload(sale=sale, cost=cost))
 
