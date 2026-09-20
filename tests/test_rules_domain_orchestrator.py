@@ -17,6 +17,7 @@ ALL_RULES = (
     "R-MGE-002",
     "R-MGE-003",
     "R-STK-001",
+    "R-STK-002",
     "R-STK-003",
     "R-STK-004",
 )
@@ -69,6 +70,9 @@ def _all_bundles():
     marker = object()
     return dict(
         delivery=orchestrator.DeliveryRuleInputs(marker, marker, marker, marker),
+        stock_coverage_need=orchestrator.StockCoverageNeedRuleInputs(
+            marker, marker, marker, marker, marker, marker
+        ),
         stock_excess=orchestrator.StockExcessRuleInputs(marker, marker),
         stock_absorption=orchestrator.StockAbsorptionRuleInputs(marker, marker),
         finance_capacity=orchestrator.FinanceCapacityRuleInputs(
@@ -93,6 +97,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     calls: list[str] = []
     _patch_rule(monkeypatch, "evaluate_r_ent_001", "R-ENT-001", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_stk_001", "R-STK-001", "TRUE", calls)
+    _patch_rule(monkeypatch, "evaluate_r_stk_002", "R-STK-002", "FALSE", calls)
     _patch_rule(monkeypatch, "evaluate_r_stk_003", "R-STK-003", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_stk_004", "R-STK-004", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_fin_001", "R-FIN-001", "FALSE", calls)
@@ -113,6 +118,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     assert calls == [
         "R-ENT-001",
         "R-STK-001",
+        "R-STK-002",
         "R-STK-003",
         "R-STK-004",
         "R-FIN-001",
@@ -127,7 +133,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     assert result.omitted_rule_ids == ()
     assert tuple(item.rule_id for item in result.assessments) == ALL_RULES
     assert result.crc_result.consolidated_result == "COMPRAR CONDICIONADO"
-    assert len(result.traces) == 11
+    assert len(result.traces) == 12
     assert result.c0_capability.result_available is True
 
 
