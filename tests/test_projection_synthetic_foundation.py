@@ -9,8 +9,9 @@ import pytest
 
 from eios.core._projection_synthetic_foundation import (
     SyntheticSemanticAdapterError, _build_synthetic_foundation,
-    _build_synthetic_stage3,
+    _build_synthetic_stage3, _build_synthetic_stage4,
 )
+from eios.core.projection_criteria_manifest import REQUIRED_FUNCTIONS
 from eios.core.projection_mock_dataset import load_projection_mock_dataset
 
 
@@ -21,6 +22,21 @@ def _components():
     document_content = b"Synthetic payment terms"
     document_base64 = base64.b64encode(document_content).decode("ascii")
     document_sha256 = sha256(document_content).hexdigest()
+    presented_criteria = []
+    authorized_criteria = []
+    for index, function in enumerate(REQUIRED_FUNCTIONS, start=1):
+        content = f"Synthetic criterion material: {function}".encode()
+        digest = sha256(content).hexdigest()
+        reference = f"CRITERION-MOCK-{index:03d}"
+        presented_criteria.append({
+            "reference": reference, "version": "1.0",
+            "content_base64": base64.b64encode(content).decode("ascii"),
+            "sha256": digest,
+        })
+        authorized_criteria.append({
+            "function": function, "reference": reference, "version": "1.0",
+            "content_sha256": digest,
+        })
     return {
         "identity/operation.json": {
             "case_kind": "SYNTHETIC",
@@ -86,6 +102,17 @@ def _components():
                 "amount": "205", "currency": "EUR", "due_date": "2026-09-25",
                 "locators": [{"document_ref": "PAYMENT-DOC-MOCK-001", "page": 1,
                     "section": "Payment terms"}]}],
+        },
+        "criteria/projection_criteria.json": {
+            "case_kind": "SYNTHETIC",
+            "presented_criteria": presented_criteria,
+            "manifest": {
+                "manifest_ref": "PROJECTION-CRITERIA-MOCK-001",
+                "manifest_version": "1.0",
+                "authority_ref": "SYNTHETIC-AUTHORITY-MOCK-001",
+                "authorized_at": "2026-09-20T10:00:00+00:00",
+                "criteria": authorized_criteria,
+            },
         },
     }
 
@@ -243,3 +270,96 @@ def test_s3_does_not_execute_finance_quality_or_qtg(tmp_path, monkeypatch):
     monkeypatch.setattr("eios.quality.gate.evaluate_quality", forbidden)
     result = _build_synthetic_stage3(_dataset(tmp_path))
     assert result.required_installment_coverage.to_payload()["required_calendar_matches"]
+
+
+
+def test_builds_private_synthetic_criteria_stage(tmp_path):
+    dataset = _dataset(tmp_path)
+    result = _build_synthetic_stage4(dataset)
+    assert result.dataset_fingerprint == dataset.fingerprint
+    preparation = result.finance_quality_preparation.to_payload()
+    manifest = result.criteria_manifest.to_payload()
+    assert preparation["capture_fingerprint"] == result.stage3.payment_capture.fingerprint
+    assert preparation["coverage_fingerprint"] == result.stage3.required_installment_coverage.fingerprint
+    assert len(preparation["presented_criteria"]) == len(REQUIRED_FUNCTIONS) == 6
+    assert manifest["required_functions"] == list(REQUIRED_FUNCTIONS)
+    assert manifest["schema_version"] == "QTG-PROJECTION-CRITERIA-MANIFEST-01/v0.2"
+    assert preparation["review"] is None and preparation["designation"] is None
+    assert not {"quality_result", "quality_checks", "authorized", "status"} & preparation.keys()
+    with pytest.raises(FrozenInstanceError):
+        result.dataset_fingerprint = "changed"
+
+
+def test_s4_rejects_valid_but_noncanonical_criterion_base64(tmp_path):
+    def noncanonical(values):
+        item = values["criteria/projection_criteria.json"]["presented_criteria"][0]
+        item["content_base64"] = "Zh=="
+        item["sha256"] = sha256(b"f").hexdigest()
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage4(_dataset(tmp_path, noncanonical))
+    assert error.value.code == "CRITERIA_PREPARATION_REJECTED"
+    assert "canonical base64" in str(error.value)
+
+
+def test_s4_rejects_presented_criterion_digest_mismatch(tmp_path):
+    def mismatch(values):
+        values["criteria/projection_criteria.json"]["presented_criteria"][0][
+            "sha256"] = sha256(b"other").hexdigest()
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage4(_dataset(tmp_path, mismatch))
+    assert error.value.code == "CRITERIA_PREPARATION_REJECTED"
+    assert "sha256" in str(error.value)
+
+
+def test_s4_requires_exact_six_manifest_functions(tmp_path):
+    def missing(values):
+        values["criteria/projection_criteria.json"]["manifest"]["criteria"].pop()
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage4(_dataset(tmp_path, missing))
+    assert error.value.code == "CRITERIA_MANIFEST_REJECTED"
+    assert "exact PROJECTION_ONLY" in str(error.value)
+
+
+def test_s4_rejects_manifest_presented_content_mismatch(tmp_path):
+    def mismatch(values):
+        values["criteria/projection_criteria.json"]["manifest"]["criteria"][0][
+            "content_sha256"] = "0" * 64
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage4(_dataset(tmp_path, mismatch))
+    assert error.value.code == "CRITERIA_BINDING_REJECTED"
+    assert error.value.component == "S4"
+
+
+@pytest.mark.parametrize("mutation,code", [
+    (lambda values: values["criteria/projection_criteria.json"].update(
+        {"case_kind": "PRESENTED_OPERATIONAL"}), "INVALID_COMPONENT"),
+    (lambda values: values["criteria/projection_criteria.json"]["manifest"].update(
+        {"authorized_at": "2026-09-20T10:00:00"}), "CRITERIA_MANIFEST_REJECTED"),
+])
+def test_s4_rejects_operational_promotion_and_naive_authorization_time(
+    tmp_path, mutation, code,
+):
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage4(_dataset(tmp_path, mutation))
+    assert error.value.code == code
+
+
+def test_s4_preserves_negative_payment_coverage_without_quality_conclusion(tmp_path):
+    def mismatch(values):
+        values["finance/finance_input.json"]["cash_flows"][0]["amount"] = "204"
+    result = _build_synthetic_stage4(_dataset(tmp_path, mismatch))
+    preparation = result.finance_quality_preparation.to_payload()
+    assert preparation["coverage"]["required_calendar_matches"] is False
+    assert preparation["coverage"]["observations"][0]["issues"] == ["AMOUNT_MISMATCH"]
+    assert preparation["assurance_scope"] == "BOUND_PRESENTED_MATERIAL_ONLY"
+    assert "quality_result" not in preparation
+
+
+def test_s4_does_not_execute_finance_quality_or_qtg(tmp_path, monkeypatch):
+    def forbidden(*args, **kwargs):
+        raise AssertionError("execution boundary crossed")
+    monkeypatch.setattr("eios.finance.engine.calculate_finance_basic", forbidden)
+    monkeypatch.setattr("eios.finance.provenance.run_provenanced_finance_basic", forbidden)
+    monkeypatch.setattr("eios.quality.gate.evaluate_quality", forbidden)
+    result = _build_synthetic_stage4(_dataset(tmp_path))
+    assert result.criteria_manifest.to_payload()["profile"] == "PROJECTION_ONLY"
