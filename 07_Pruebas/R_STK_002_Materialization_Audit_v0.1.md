@@ -136,3 +136,30 @@ La suite dedicada cubre:
 **AUDIT 2 FÍSICO: SUPERADA — 0 bloqueadores observados antes de CI.**
 
 Cierre condicionado a CI exact-head, suite completa, SQL SUCCESS y merge protegido por SHA.
+
+
+## 5. CI y cierre
+
+PR #252 validó el HEAD exacto:
+
+```text
+458a941cb5421445b40b44037155759a9f6fa19a
+```
+
+CI #1023:
+
+```text
+1767 passed
+8 warnings
+SQL validations SUCCESS
+```
+
+Merge protegido por SHA:
+
+```text
+main @ be13aad7d1dde788ef6e79cf262c1a7e91ed7374
+```
+
+## 6. Estado final
+
+**R-STK-002 v0.1: CERRADA / MATERIALIZADA / CI VALIDADA.**
