@@ -26,9 +26,22 @@ from .documentary_payment_capture import (
 from .finance_decision_input_package import (
     FinanceDecisionInputPackage, build_finance_decision_input_package,
 )
+from .finance_flow_completeness import (
+    CapturedFlowAssessment, FinanceFlowCompletenessRecord, FlowInventoryCandidate,
+    FlowInventoryLocator, FlowInventoryPerimeter,
+    build_finance_flow_completeness_record,
+)
 from .finance_quality_preparation import (
     FinanceQualityPreparation, PresentedQualityCriteria,
     build_finance_quality_preparation,
+)
+from .flow_inventory_mandate import (
+    FlowInventoryMandateVerification, FlowMandateLocator, FlowMandateObservation,
+    build_flow_inventory_mandate_verification,
+)
+from .flow_inventory_review import (
+    FlowInstallmentReviewFinding, FlowInventoryPersonalReview,
+    FlowInventoryReviewFinding, build_flow_inventory_personal_review,
 )
 from .models import DecisionContext, Evidence, PurchaseOperation
 from .projection_criteria_manifest import (
@@ -393,6 +406,153 @@ class _TreasuryReview(_StrictModel):
     previous_review_ref: str | None
 
 
+FlowAssessmentState = Literal["ESTABLISHED", "NOT_ESTABLISHED", "CONFLICTING"]
+FlowHorizonRelevance = Literal[
+    "WITHIN_HORIZON", "AFTER_HORIZON", "NON_FUTURE",
+    "NOT_ESTABLISHED", "CONFLICTING",
+]
+FlowReviewCondition = Literal[
+    "PERIMETER_COVERAGE", "SOURCE_COVERAGE", "CAPTURED_FLOW_COVERAGE",
+    "UNMATCHED_CANDIDATES", "HORIZON_CLASSIFICATION", "FLOW_ATTRIBUTE_SUPPORT",
+    "ECONOMIC_DUPLICATION", "PURCHASE_PAYMENT_COHERENCE",
+    "CONFLICTS_AND_LIMITATIONS",
+]
+FlowMandateCondition = Literal[
+    "PERSON_IDENTITY", "COMPANY_RELATION", "GRANTOR_AUTHORITY",
+    "FLOW_INVENTORY_SCOPE", "VALIDITY_AND_KNOWN_CHANGES", "TARGET_RECORD_BINDING",
+]
+
+
+class _FlowInventoryLocator(_StrictModel):
+    origin: Literal["FLOW_INVENTORY_MATERIAL", "PAYMENT_CAPTURE"]
+    document_ref: str = Field(min_length=1)
+    page: int = Field(gt=0)
+    section: str = Field(min_length=1)
+
+
+class _FlowInventoryPerimeter(_StrictModel):
+    perimeter_ref: str = Field(min_length=1)
+    description: str = Field(min_length=1)
+    company_scope: str = Field(min_length=1)
+    as_of_date: str = Field(min_length=1)
+    horizon_end: str = Field(min_length=1)
+    currency: str = Field(min_length=3, max_length=3)
+    source_refs: list[str] = Field(min_length=1)
+    coverage_declaration: Literal[
+        "DECLARED_COMPLETE", "DECLARED_INCOMPLETE", "NOT_ESTABLISHED",
+    ]
+    coverage_reason: str = Field(min_length=1)
+    limitations: list[str]
+
+
+class _FlowInventoryCandidate(_StrictModel):
+    candidate_ref: str = Field(min_length=1)
+    perimeter_ref: str = Field(min_length=1)
+    declared_flow_type: Literal["PAYMENT", "COLLECTION", "NOT_ESTABLISHED"]
+    captured_flow_id: str | None
+    amount_assessment: FlowAssessmentState
+    currency_assessment: FlowAssessmentState
+    due_date_assessment: FlowAssessmentState
+    economic_membership_assessment: FlowAssessmentState
+    horizon_relevance: FlowHorizonRelevance
+    economic_identity_ref: str | None
+    locators: list[_FlowInventoryLocator] = Field(min_length=1)
+    note: str = Field(min_length=1)
+
+
+class _CapturedFlowAssessment(_StrictModel):
+    flow_id: str = Field(min_length=1)
+    candidate_refs: list[str]
+    amount_assessment: FlowAssessmentState
+    currency_assessment: FlowAssessmentState
+    due_date_assessment: FlowAssessmentState
+    economic_membership_assessment: FlowAssessmentState
+    duplication_assessment: Literal[
+        "DECLARED_UNIQUE", "POSSIBLE_DUPLICATE", "CONFLICTING", "NOT_ESTABLISHED",
+    ]
+    horizon_relevance: FlowHorizonRelevance
+    criterion_reference: str = Field(min_length=1)
+    criterion_version: str = Field(min_length=1)
+    reason: str = Field(min_length=1)
+    locators: list[_FlowInventoryLocator] = Field(min_length=1)
+
+
+class _FlowInventory(_StrictModel):
+    case_kind: Literal["SYNTHETIC"]
+    record_ref: str = Field(min_length=1)
+    perimeters: list[_FlowInventoryPerimeter] = Field(min_length=1)
+    documents: list[_BinaryDocument]
+    candidates: list[_FlowInventoryCandidate]
+    flow_assessments: list[_CapturedFlowAssessment]
+    presenter_ref: str | None
+    presented_at: str | None
+
+
+class _FlowMandateLocator(_StrictModel):
+    origin: Literal[
+        "MANDATE_DOCUMENT", "CHANNEL_RECOGNITION_SUPPORT", "CONTRAST_SUPPORT",
+    ]
+    document_ref: str = Field(min_length=1)
+    page: int = Field(gt=0)
+    section: str = Field(min_length=1)
+
+
+class _FlowMandateObservation(_StrictModel):
+    condition: FlowMandateCondition
+    outcome: Literal[
+        "CONFIRMED_BY_CONTRAST", "NOT_CONFIRMED_BY_CONTRAST", "CONFLICT_REPORTED",
+    ]
+    note: str = Field(min_length=1)
+    locators: list[_FlowMandateLocator]
+
+
+class _FlowMandate(_StrictModel):
+    case_kind: Literal["SYNTHETIC"]
+    verification_ref: str = Field(min_length=1)
+    company_scope: str = Field(min_length=1)
+    reviewer_ref: str = Field(min_length=1)
+    mandate_ref: str = Field(min_length=1)
+    target_review_ref: str = Field(min_length=1)
+    verifier_ref: str = Field(min_length=1)
+    verified_at: str = Field(min_length=1)
+    channel_ref: str = Field(min_length=1)
+    channel_kind: str = Field(min_length=1)
+    recognition_basis: Literal["PREVIOUSLY_RECOGNIZED", "INDEPENDENTLY_SUPPORTED"]
+    mandate_kind: Literal["SYNTHETIC"]
+    mandate_documents: list[_BinaryDocument] = Field(min_length=1)
+    channel_recognition_documents: list[_BinaryDocument] = Field(min_length=1)
+    contrast_documents: list[_BinaryDocument] = Field(min_length=1)
+    observations: list[_FlowMandateObservation]
+
+
+class _FlowInstallmentFinding(_StrictModel):
+    installment_ref: str = Field(min_length=1)
+    outcome: Literal["CONFIRMED_BY_REVIEW", "NOT_CONFIRMED", "CONFLICT_REPORTED"]
+    note: str = Field(min_length=1)
+    locators: list[_FlowInventoryLocator]
+    flow_ids: list[str]
+
+
+class _FlowReviewFinding(_StrictModel):
+    condition: FlowReviewCondition
+    outcome: Literal["CONFIRMED_BY_REVIEW", "NOT_CONFIRMED", "CONFLICT_REPORTED"]
+    note: str = Field(min_length=1)
+    locators: list[_FlowInventoryLocator]
+    perimeter_refs: list[str]
+    candidate_refs: list[str]
+    flow_ids: list[str]
+    installment_findings: list[_FlowInstallmentFinding]
+
+
+class _FlowReview(_StrictModel):
+    case_kind: Literal["SYNTHETIC"]
+    review_ref: str = Field(min_length=1)
+    reviewer_ref: str = Field(min_length=1)
+    reviewed_at: str = Field(min_length=1)
+    findings: list[_FlowReviewFinding]
+    previous_review_ref: str | None
+
+
 def _decimal(value: str | None, field: str) -> Decimal | None:
     if value is None:
         return None
@@ -544,6 +704,15 @@ class _SyntheticStage5:
     treasury_assessment: TreasuryContextualAssessment
     treasury_mandate: TreasuryMandateVerification
     treasury_review: TreasuryPersonalReview
+
+
+@dataclass(frozen=True)
+class _SyntheticStage6:
+    dataset_fingerprint: str
+    stage5: _SyntheticStage5
+    flow_record: FinanceFlowCompletenessRecord
+    flow_mandate: FlowInventoryMandateVerification
+    flow_review: FlowInventoryPersonalReview
 
 
 def _build_synthetic_foundation(dataset: ProjectionMockDataset) -> _SyntheticFoundation:
@@ -980,6 +1149,182 @@ def _build_synthetic_stage5(dataset: ProjectionMockDataset) -> _SyntheticStage5:
         treasury_assessment=assessment,
         treasury_mandate=mandate,
         treasury_review=review,
+    )
+
+
+def _build_synthetic_stage6(dataset: ProjectionMockDataset) -> _SyntheticStage6:
+    """Build private S1-S6 flow material without evaluating quality."""
+    stage5 = _build_synthetic_stage5(dataset)
+    inventory_data = _decode(dataset, "flow_inventory", _FlowInventory)
+    mandate_data = _decode(dataset, "flow_mandate", _FlowMandate)
+    review_data = _decode(dataset, "flow_review", _FlowReview)
+
+    def flow_locator(item: _FlowInventoryLocator) -> FlowInventoryLocator:
+        return FlowInventoryLocator(**item.model_dump())
+
+    try:
+        record = build_finance_flow_completeness_record(
+            preparation=stage5.stage4.finance_quality_preparation,
+            record_ref=inventory_data.record_ref,
+            perimeters=tuple(
+                FlowInventoryPerimeter(
+                    perimeter_ref=item.perimeter_ref,
+                    description=item.description,
+                    company_scope=item.company_scope,
+                    as_of_date=_date(
+                        item.as_of_date,
+                        f"flow_inventory.{item.perimeter_ref}.as_of_date",
+                    ),
+                    horizon_end=_date(
+                        item.horizon_end,
+                        f"flow_inventory.{item.perimeter_ref}.horizon_end",
+                    ),
+                    currency=item.currency,
+                    source_refs=tuple(item.source_refs),
+                    coverage_declaration=item.coverage_declaration,
+                    coverage_reason=item.coverage_reason,
+                    limitations=tuple(item.limitations),
+                )
+                for item in inventory_data.perimeters
+            ),
+            documents=_documentary_materials(
+                inventory_data.documents, "flow_inventory.documents"),
+            candidates=tuple(
+                FlowInventoryCandidate(
+                    candidate_ref=item.candidate_ref,
+                    perimeter_ref=item.perimeter_ref,
+                    declared_flow_type=item.declared_flow_type,
+                    captured_flow_id=item.captured_flow_id,
+                    amount_assessment=item.amount_assessment,
+                    currency_assessment=item.currency_assessment,
+                    due_date_assessment=item.due_date_assessment,
+                    economic_membership_assessment=item.economic_membership_assessment,
+                    horizon_relevance=item.horizon_relevance,
+                    economic_identity_ref=item.economic_identity_ref,
+                    locators=tuple(flow_locator(locator) for locator in item.locators),
+                    note=item.note,
+                )
+                for item in inventory_data.candidates
+            ),
+            flow_assessments=tuple(
+                CapturedFlowAssessment(
+                    flow_id=item.flow_id,
+                    candidate_refs=tuple(item.candidate_refs),
+                    amount_assessment=item.amount_assessment,
+                    currency_assessment=item.currency_assessment,
+                    due_date_assessment=item.due_date_assessment,
+                    economic_membership_assessment=item.economic_membership_assessment,
+                    duplication_assessment=item.duplication_assessment,
+                    horizon_relevance=item.horizon_relevance,
+                    criterion_reference=item.criterion_reference,
+                    criterion_version=item.criterion_version,
+                    reason=item.reason,
+                    locators=tuple(flow_locator(locator) for locator in item.locators),
+                )
+                for item in inventory_data.flow_assessments
+            ),
+            case_kind=inventory_data.case_kind,
+            presenter_ref=inventory_data.presenter_ref,
+            presented_at=None if inventory_data.presented_at is None else _datetime(
+                inventory_data.presented_at, "flow_inventory.presented_at"),
+        )
+    except (TypeError, ValueError, ValidationError) as exc:
+        raise SyntheticSemanticAdapterError(
+            "FLOW_INVENTORY_REJECTED", "flow_inventory", str(exc),
+        ) from exc
+
+    try:
+        mandate = build_flow_inventory_mandate_verification(
+            target=record,
+            verification_ref=mandate_data.verification_ref,
+            company_scope=mandate_data.company_scope,
+            reviewer_ref=mandate_data.reviewer_ref,
+            mandate_ref=mandate_data.mandate_ref,
+            target_review_ref=mandate_data.target_review_ref,
+            verifier_ref=mandate_data.verifier_ref,
+            verified_at=_datetime(
+                mandate_data.verified_at, "flow_mandate.verified_at"),
+            channel_ref=mandate_data.channel_ref,
+            channel_kind=mandate_data.channel_kind,
+            recognition_basis=mandate_data.recognition_basis,
+            mandate_kind=mandate_data.mandate_kind,
+            mandate_documents=_documentary_materials(
+                mandate_data.mandate_documents,
+                "flow_mandate.mandate_documents",
+            ),
+            channel_recognition_documents=_documentary_materials(
+                mandate_data.channel_recognition_documents,
+                "flow_mandate.channel_recognition_documents",
+            ),
+            contrast_documents=_documentary_materials(
+                mandate_data.contrast_documents,
+                "flow_mandate.contrast_documents",
+            ),
+            observations=tuple(
+                FlowMandateObservation(
+                    condition=item.condition,
+                    outcome=item.outcome,
+                    note=item.note,
+                    locators=tuple(
+                        FlowMandateLocator(**locator.model_dump())
+                        for locator in item.locators
+                    ),
+                )
+                for item in mandate_data.observations
+            ),
+        )
+    except (TypeError, ValueError, ValidationError) as exc:
+        raise SyntheticSemanticAdapterError(
+            "FLOW_MANDATE_REJECTED", "flow_mandate", str(exc),
+        ) from exc
+
+    try:
+        review = build_flow_inventory_personal_review(
+            target=record,
+            mandate=mandate,
+            review_ref=review_data.review_ref,
+            reviewer_ref=review_data.reviewer_ref,
+            reviewed_at=_datetime(
+                review_data.reviewed_at, "flow_review.reviewed_at"),
+            findings=tuple(
+                FlowInventoryReviewFinding(
+                    condition=item.condition,
+                    outcome=item.outcome,
+                    note=item.note,
+                    locators=tuple(
+                        flow_locator(locator) for locator in item.locators),
+                    perimeter_refs=tuple(item.perimeter_refs),
+                    candidate_refs=tuple(item.candidate_refs),
+                    flow_ids=tuple(item.flow_ids),
+                    installment_findings=tuple(
+                        FlowInstallmentReviewFinding(
+                            installment_ref=installment.installment_ref,
+                            outcome=installment.outcome,
+                            note=installment.note,
+                            locators=tuple(
+                                flow_locator(locator)
+                                for locator in installment.locators
+                            ),
+                            flow_ids=tuple(installment.flow_ids),
+                        )
+                        for installment in item.installment_findings
+                    ),
+                )
+                for item in review_data.findings
+            ),
+            previous_review_ref=review_data.previous_review_ref,
+        )
+    except (TypeError, ValueError, ValidationError) as exc:
+        raise SyntheticSemanticAdapterError(
+            "FLOW_REVIEW_REJECTED", "flow_review", str(exc),
+        ) from exc
+
+    return _SyntheticStage6(
+        dataset_fingerprint=dataset.fingerprint,
+        stage5=stage5,
+        flow_record=record,
+        flow_mandate=mandate,
+        flow_review=review,
     )
 
 
