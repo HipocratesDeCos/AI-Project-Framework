@@ -15,7 +15,11 @@ from eios.core.models import DecisionContext, Evidence, PurchaseOperation
 from eios.delivery.models import DeliveryStockoutAnalysisInput, DeliveryStockoutAnalysisResult
 from eios.finance import PostOperationWorkingCapitalPosition, ProvenancedFinanceBasicExecution
 from eios.parameters import ResolvedConfiguration
-from eios.pricing import PriceIntelligenceAssessmentContext, PriceIntelligenceInput
+from eios.pricing import (
+    PriceIntelligenceAssessmentContext,
+    PriceIntelligenceInput,
+    RecommendedPriceCeiling,
+)
 from eios.profitability import ProvenancedProfitabilityExecution
 from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
 from eios.stock.rule_inputs import JustifiedNeedState, ProjectedCoverageAfterPurchase
@@ -30,7 +34,7 @@ from .finance import (
     evaluate_r_fin_002,
     evaluate_r_fin_003,
 )
-from .pricing import R_HIS_002, evaluate_r_his_002
+from .pricing import R_HIS_002, R_PRE_003, evaluate_r_his_002, evaluate_r_pre_003
 from .profitability import (
     MGEParameterBundle,
     R_MGE_001,
@@ -112,6 +116,12 @@ class FinanceSafetyMarginRuleInputs:
 
 
 @dataclass(frozen=True)
+class RecommendedPriceRuleInputs:
+    ceiling: RecommendedPriceCeiling
+    ceiling_evidence: Evidence
+
+
+@dataclass(frozen=True)
 class HistorySufficiencyRuleInputs:
     pricing_input: PriceIntelligenceInput
     pricing_assessment_context: PriceIntelligenceAssessmentContext
@@ -176,6 +186,7 @@ def run_domain_rules(
     finance_working_capital: FinanceWorkingCapitalRuleInputs | None = None,
     finance_safety_margin: FinanceSafetyMarginRuleInputs | None = None,
     history_sufficiency: HistorySufficiencyRuleInputs | None = None,
+    recommended_price: RecommendedPriceRuleInputs | None = None,
     profitability: ProfitabilityRuleInputs | None = None,
 ) -> DecisionRuleExecutionResult:
     """Evaluate supplied domain bundles and compose them in the same execution."""
@@ -289,6 +300,16 @@ def run_domain_rules(
             history_sufficiency.parameter_evidence,
         )
 
+    if recommended_price is not None:
+        rule = authorized_rule(R_PRE_003, context.rules_version)
+        assessments_by_rule[R_PRE_003] = evaluate_r_pre_003(
+            purchase,
+            context,
+            rule,
+            recommended_price.ceiling,
+            recommended_price.ceiling_evidence,
+        )
+
     if profitability is not None:
         bundle = MGEParameterBundle(
             minimum_resolution=profitability.minimum_resolution,
@@ -345,6 +366,7 @@ __all__ = [
     "FinanceWorkingCapitalRuleInputs",
     "HistorySufficiencyRuleInputs",
     "ProfitabilityRuleInputs",
+    "RecommendedPriceRuleInputs",
     "StockAbsorptionRuleInputs",
     "StockCoverageNeedRuleInputs",
     "StockExcessRuleInputs",
