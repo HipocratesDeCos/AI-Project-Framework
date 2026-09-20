@@ -173,6 +173,7 @@ class LocalSyntheticPreviewRuntime:
 
     _server: _LoopbackHTTPServer
     _closed: bool
+    _serving: bool
 
     def __init__(self) -> None:
         raise TypeError("Use serve_local_synthetic_preview")
@@ -201,12 +202,17 @@ class LocalSyntheticPreviewRuntime:
     def serve_forever(self) -> None:
         if self._closed:
             raise RuntimeError("runtime cerrado")
-        self._server.serve_forever(poll_interval=0.05)
+        self._serving = True
+        try:
+            self._server.serve_forever(poll_interval=0.05)
+        finally:
+            self._serving = False
 
     def close(self) -> None:
         if self._closed:
             return
-        self._server.shutdown()
+        if self._serving:
+            self._server.shutdown()
         self._server.server_close()
         self._closed = True
 
@@ -223,6 +229,7 @@ def serve_local_synthetic_preview(
     runtime = object.__new__(LocalSyntheticPreviewRuntime)
     runtime._server = server
     runtime._closed = False
+    runtime._serving = False
     return runtime
 
 
