@@ -2,7 +2,7 @@
 
 **Baseline:** `main @ b400846d7ea9be07a774d19408cff8391dc0c385`
 
-**Estado:** DISEÑADO — PENDIENTE DE AUDIT 1
+**Estado:** DISEÑADO → AUDITADO → DEPURADO → AUDIT 2 SUPERADA — DISEÑO CERRADO
 
 ## 1. Propósito
 
