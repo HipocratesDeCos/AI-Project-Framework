@@ -1,6 +1,6 @@
 # EIOS — RENTABILIDAD / MARGEN · AUDIT 2 METODOLÓGICA v0.2
 
-**Estado:** SUPERADA ESTRUCTURALMENTE — POLICY GATE EMPRESARIAL PENDIENTE  
+**Estado:** SUPERADA — POLICY GATE EMPRESARIAL SATISFECHO  
 **Fecha:** 11/09/2026  
 **Objeto:** `Profitability_Margin_Methodological_Design_v0.2.md`
 
@@ -112,16 +112,16 @@ No necesita elegir ERP, tarifa, TCO, descuento o rappel específico si las bases
 
 ---
 
-## 6. Fórmula todavía NO autorizada
+## 6. Fórmula autorizada por MGE-AUTH v0.1
 
-Audit 2 no convierte en política la propuesta siguiente:
+La autorización humana explícita posterior a Audit 2 convierte en política MGE-AUTH v0.1 la fórmula:
 
 ```text
 margin_amount = authorized_sale_basis - authorized_cost_basis
 margin_percentage = margin_amount / authorized_sale_basis × 100
 ```
 
-Es una candidata coherente con la distinción margen vs markup, pero requiere autorización empresarial expresa.
+Se mantiene la distinción margen vs markup. Esta autorización no selecciona por inferencia las bases económicas.
 
 ---
 
@@ -216,6 +216,4 @@ Audit 2 confirma:
 
 **AUDIT 2 ESTRUCTURAL: SUPERADA.**
 
-No procede aún cerrar metodología cuantitativa ni redactar contrato técnico hasta autorizar el **Margin Calculation Policy** mínimo.
-
-Siguiente paso: materializar una única propuesta empresarial conservadora, sin defaults de parámetros y sin apropiarse de PRICE/TCO.
+Con MGE-AUTH v0.1 autorizada el 20/09/2026, procede cerrar la metodología cuantitativa y abrir el diseño de un contrato técnico `Profitability Core` estrictamente limitado a bases autorizadas.
