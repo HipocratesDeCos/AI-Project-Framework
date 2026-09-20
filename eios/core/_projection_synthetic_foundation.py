@@ -1,10 +1,12 @@
-"""Private S1-S2 decoder for a future atomic synthetic semantic adapter."""
+"""Private staged decoder for a future atomic synthetic semantic adapter."""
 
 from __future__ import annotations
 
+import base64
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
+from hashlib import sha256
 import json
 from typing import Literal
 
@@ -17,11 +19,19 @@ from eios.finance.models import (
 from eios.parameters.center import (
     Configuration, ParameterConfigurationCenter, ParameterDefinition,
 )
+from .documentary_payment_capture import (
+    DocumentaryLocator, DocumentaryMaterial, DocumentaryPaymentBinding,
+    DocumentaryPaymentCapture, build_documentary_payment_capture,
+)
 from .finance_decision_input_package import (
     FinanceDecisionInputPackage, build_finance_decision_input_package,
 )
 from .models import DecisionContext, Evidence, PurchaseOperation
 from .projection_mock_dataset import ProjectionMockDataset
+from .required_installment_coverage import (
+    RequiredInstallment, RequiredInstallmentCalendar, RequiredInstallmentCoverage,
+    check_required_installment_coverage,
+)
 
 
 class SyntheticSemanticAdapterError(ValueError):
@@ -147,6 +157,56 @@ class _Parameters(_StrictModel):
     configurations: list[_Configuration] = Field(min_length=1)
 
 
+class _DocumentLocator(_StrictModel):
+    document_ref: str = Field(min_length=1)
+    page: int = Field(gt=0)
+    section: str = Field(min_length=1)
+
+
+class _PaymentDocument(_StrictModel):
+    document_ref: str = Field(min_length=1)
+    content_base64: str = Field(min_length=1)
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
+class _PaymentBinding(_StrictModel):
+    installment_ref: str = Field(min_length=1)
+    flow_id: str = Field(min_length=1)
+    locators: list[_DocumentLocator] = Field(min_length=1)
+
+
+class _PaymentDocuments(_StrictModel):
+    case_kind: Literal["SYNTHETIC"]
+    operation_ref: str = Field(min_length=1)
+    order_ref: str = Field(min_length=1)
+    order_version: str = Field(min_length=1)
+    confirmation_ref: str = Field(min_length=1)
+    documents: list[_PaymentDocument]
+    bindings: list[_PaymentBinding]
+
+
+class _RequiredInstallment(_StrictModel):
+    installment_ref: str = Field(min_length=1)
+    sequence: int = Field(gt=0)
+    amount: str = Field(min_length=1)
+    currency: str = Field(min_length=1)
+    due_date: str = Field(min_length=1)
+    locators: list[_DocumentLocator] = Field(min_length=1)
+
+
+class _RequiredInstallmentCalendar(_StrictModel):
+    case_kind: Literal["SYNTHETIC"]
+    declaration_ref: str = Field(min_length=1)
+    authority_ref: str = Field(min_length=1)
+    operation_ref: str = Field(min_length=1)
+    order_ref: str = Field(min_length=1)
+    order_version: str = Field(min_length=1)
+    confirmation_ref: str = Field(min_length=1)
+    total_due: str = Field(min_length=1)
+    currency: str = Field(min_length=1)
+    installments: list[_RequiredInstallment] = Field(min_length=1)
+
+
 def _decimal(value: str | None, field: str) -> Decimal | None:
     if value is None:
         return None
@@ -177,6 +237,20 @@ def _datetime(value: str, field: str) -> datetime:
     if result.utcoffset() is None or result.isoformat() != value:
         raise ValueError(f"{field} must be canonical and timezone-aware")
     return result
+
+
+def _verified_binary(document: _PaymentDocument, index: int) -> bytes:
+    field = f"documents[{index}].content_base64"
+    try:
+        content = base64.b64decode(document.content_base64, validate=True)
+    except (ValueError, UnicodeEncodeError) as exc:
+        raise ValueError(f"{field} must be strict standard base64") from exc
+    canonical = base64.b64encode(content).decode("ascii")
+    if canonical != document.content_base64:
+        raise ValueError(f"{field} must use canonical base64 representation")
+    if sha256(content).hexdigest() != document.sha256:
+        raise ValueError(f"documents[{index}].sha256 does not match decoded content")
+    return content
 
 
 def _decode(dataset: ProjectionMockDataset, component: str, model):
@@ -234,6 +308,15 @@ class _SyntheticFoundation:
     evidence: tuple[Evidence, ...]
     finance_input: FinanceBasicInput
     finance_package: FinanceDecisionInputPackage
+
+
+@dataclass(frozen=True)
+class _SyntheticStage3:
+    dataset_fingerprint: str
+    foundation: _SyntheticFoundation
+    payment_capture: DocumentaryPaymentCapture
+    required_installment_calendar: RequiredInstallmentCalendar
+    required_installment_coverage: RequiredInstallmentCoverage
 
 
 def _build_synthetic_foundation(dataset: ProjectionMockDataset) -> _SyntheticFoundation:
@@ -320,6 +403,102 @@ def _build_synthetic_foundation(dataset: ProjectionMockDataset) -> _SyntheticFou
             "FOUNDATION_REJECTED", "S1-S2", str(exc)) from exc
     return _SyntheticFoundation(dataset.fingerprint, purchase, context, evidence,
                                 finance_input, package)
+
+
+def _build_synthetic_stage3(dataset: ProjectionMockDataset) -> _SyntheticStage3:
+    """Build private S1-S3 material without exposing a partial public bundle."""
+    foundation = _build_synthetic_foundation(dataset)
+    payment_data = _decode(dataset, "payment_documents", _PaymentDocuments)
+    calendar_data = _decode(
+        dataset, "required_installment_calendar", _RequiredInstallmentCalendar)
+
+    try:
+        documents = tuple(
+            DocumentaryMaterial(
+                document_ref=item.document_ref,
+                content=_verified_binary(item, index),
+            )
+            for index, item in enumerate(payment_data.documents)
+        )
+        bindings = tuple(
+            DocumentaryPaymentBinding(
+                installment_ref=item.installment_ref,
+                flow_id=item.flow_id,
+                locators=tuple(
+                    DocumentaryLocator(**locator.model_dump())
+                    for locator in item.locators
+                ),
+            )
+            for item in payment_data.bindings
+        )
+        capture = build_documentary_payment_capture(
+            package=foundation.finance_package,
+            documents=documents,
+            bindings=bindings,
+            case_kind=payment_data.case_kind,
+            operation_ref=payment_data.operation_ref,
+            order_ref=payment_data.order_ref,
+            order_version=payment_data.order_version,
+            confirmation_ref=payment_data.confirmation_ref,
+            external_review_ref=None,
+        )
+    except (TypeError, ValueError, ValidationError) as exc:
+        raise SyntheticSemanticAdapterError(
+            "PAYMENT_CAPTURE_REJECTED", "payment_documents", str(exc)) from exc
+
+    try:
+        calendar = RequiredInstallmentCalendar(
+            declaration_ref=calendar_data.declaration_ref,
+            authority_ref=calendar_data.authority_ref,
+            case_kind=calendar_data.case_kind,
+            operation_ref=calendar_data.operation_ref,
+            order_ref=calendar_data.order_ref,
+            order_version=calendar_data.order_version,
+            confirmation_ref=calendar_data.confirmation_ref,
+            total_due=_decimal(calendar_data.total_due, "required_calendar.total_due"),
+            currency=calendar_data.currency,
+            installments=tuple(
+                RequiredInstallment(
+                    installment_ref=item.installment_ref,
+                    sequence=item.sequence,
+                    amount=_decimal(
+                        item.amount,
+                        f"required_calendar.{item.installment_ref}.amount",
+                    ),
+                    currency=item.currency,
+                    due_date=_date(
+                        item.due_date,
+                        f"required_calendar.{item.installment_ref}.due_date",
+                    ),
+                    locators=tuple(
+                        DocumentaryLocator(**locator.model_dump())
+                        for locator in item.locators
+                    ),
+                )
+                for item in calendar_data.installments
+            ),
+        )
+    except (TypeError, ValueError, ValidationError) as exc:
+        raise SyntheticSemanticAdapterError(
+            "INSTALLMENT_CALENDAR_REJECTED",
+            "required_installment_calendar",
+            str(exc),
+        ) from exc
+
+    try:
+        coverage = check_required_installment_coverage(
+            capture=capture, calendar=calendar)
+    except (TypeError, ValueError, ValidationError) as exc:
+        raise SyntheticSemanticAdapterError(
+            "PAYMENT_COVERAGE_REJECTED", "S3", str(exc)) from exc
+
+    return _SyntheticStage3(
+        dataset_fingerprint=dataset.fingerprint,
+        foundation=foundation,
+        payment_capture=capture,
+        required_installment_calendar=calendar,
+        required_installment_coverage=coverage,
+    )
 
 
 __all__: tuple[str, ...] = ()
