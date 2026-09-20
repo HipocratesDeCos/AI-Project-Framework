@@ -181,7 +181,6 @@ class _PaymentDocuments(_StrictModel):
     order_ref: str = Field(min_length=1)
     order_version: str = Field(min_length=1)
     confirmation_ref: str = Field(min_length=1)
-    external_review_ref: str | None
     documents: list[_PaymentDocument]
     bindings: list[_PaymentBinding]
 
@@ -441,7 +440,7 @@ def _build_synthetic_stage3(dataset: ProjectionMockDataset) -> _SyntheticStage3:
             order_ref=payment_data.order_ref,
             order_version=payment_data.order_version,
             confirmation_ref=payment_data.confirmation_ref,
-            external_review_ref=payment_data.external_review_ref,
+            external_review_ref=None,
         )
     except (TypeError, ValueError, ValidationError) as exc:
         raise SyntheticSemanticAdapterError(
