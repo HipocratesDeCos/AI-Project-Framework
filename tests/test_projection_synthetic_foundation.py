@@ -68,7 +68,7 @@ def _components():
         "documents/payment_documents.json": {
             "case_kind": "SYNTHETIC", "operation_ref": "OPERATION-MOCK-001",
             "order_ref": "ORDER-MOCK-001", "order_version": "1",
-            "confirmation_ref": "CONFIRMATION-MOCK-001", "external_review_ref": None,
+            "confirmation_ref": "CONFIRMATION-MOCK-001",
             "documents": [{"document_ref": "PAYMENT-DOC-MOCK-001",
                 "content_base64": document_base64, "sha256": document_sha256}],
             "bindings": [{"installment_ref": "INSTALLMENT-MOCK-001",
