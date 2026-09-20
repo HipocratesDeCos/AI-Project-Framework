@@ -736,7 +736,9 @@ El estado integrado y documentado contiene, entre otras, las siguientes capacida
 - adapter semántico sintético `PROJECTION_ONLY` S1–S7 y fixture física de 13 componentes;
 - conformidad E2E `SYNTHETIC_TEST → TEST_ONLY`, incluyendo resultados sintéticos `NO_APTO/BAJA` y `APTO/ALTA` sin efecto operacional;
 - E2E Execution Boundary;
-- UI / Visual Frontend U1.1 en su alcance exclusivamente representacional;\n- U1.2 Vertical MVP Visual Read-Only Composition + conformidad E2E, sin ejecución de motores;\n- U1.3 Read-Only Visual Artifact con bytes HTML reproducibles y `content_sha256` de transporte, sin I/O;
+- UI / Visual Frontend U1.1 en su alcance exclusivamente representacional;
+- U1.2 Vertical MVP Visual Read-Only Composition + conformidad E2E, sin ejecución de motores;
+- U1.3 Read-Only Visual Artifact con bytes HTML reproducibles y `content_sha256` de transporte, sin I/O;
 - Configuration Center UI: contrato cerrado y Slices 1–4 + conformidad selected-context E2E en el alcance ejecutable demostrado;
 - migración documental de identificadores `P-*` / `R-*` y reconciliaciones postintegración asociadas.
 
