@@ -2,7 +2,7 @@
 
 > **Documento de recuperación y continuidad del proyecto**
 >
-> **Versión:** 2.9
+> **Versión:** 3.0
 > **Estado:** APROBADO — reconciliación de continuidad EIOS-BL-007
 > **Última actualización:** 20/09/2026
 > **Proyecto:** EIOS — Enterprise Intelligent Operations System
@@ -771,6 +771,26 @@ El estado integrado y documentado contiene, entre otras, las siguientes capacida
 - evolución del modelo de datos empresarial más allá de los modelos físicos ya materializados;
 - ampliaciones de dominios y capacidades que requieran nueva autoridad;
 - cierre integral del Vertical MVP una vez resueltos sus frentes bloqueados y gates pendientes.
+
+### Gate operativo post-BL-007
+
+La auditoría `Post_BL_007_Frontier_Readiness_Audit_v0.1.md` determina que no existe actualmente una nueva implementación funcional positiva que pueda abrirse sin cerrar previamente al menos un gate de autoridad/evidencia.
+
+El contrato `00_Gobierno/Post_BL_007_Gate_Intake_Contract_v0.1.md` define los requisitos mínimos de intake para HIS-001, DAT-001, PAG-001, QTG operacional, MGE y Stage 2/VF.
+
+Regla de continuidad:
+
+```text
+BLOCKED
+  ↓
+intake verificable
+  ↓
+autoridad + productor + identity/provenance + fail-closed
+  ↓
+READY_FOR_DESIGN
+```
+
+Una instrucción genérica de continuar no sustituye el intake específico cuando el propio gate exige autorización o evidencia material.
 
 ### Regla de interpretación
 
