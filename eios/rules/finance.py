@@ -10,15 +10,21 @@ from eios.core.validation import validate_evidence
 from eios.finance import (
     FinanceBasicInput,
     FinanceBasicResult,
+    POST_OPERATION_WORKING_CAPITAL_EVIDENCE_SOURCE_TYPE,
+    PostOperationWorkingCapitalPosition,
     ProvenancedFinanceBasicExecution,
+    post_operation_working_capital_position_ref,
+    purchase_operation_ref,
     validate_provenanced_finance_basic_execution,
 )
 from eios.parameters import ResolvedConfiguration
 
 
 R_FIN_001 = "R-FIN-001"
+R_FIN_002 = "R-FIN-002"
 R_FIN_003 = "R-FIN-003"
 P_FIN_002 = "P-FIN-002"
+P_FIN_003 = "P-FIN-003"
 P_FIN_004 = "P-FIN-004"
 FINANCE_BASIC_EVIDENCE_SOURCE_TYPE = "FinanceBasicResultEvidence"
 PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE = "ParameterConfigurationEvidence"
@@ -203,6 +209,172 @@ def evaluate_r_fin_001(
     )
 
 
+def _validate_post_operation_identity(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    position: PostOperationWorkingCapitalPosition,
+) -> None:
+    if purchase.decision_id != context.decision_id:
+        raise ValueError("PurchaseOperation y DecisionContext tienen decision_id distintos")
+    if purchase.scenario_id != context.scenario_id:
+        raise ValueError("PurchaseOperation y DecisionContext tienen scenario_id distintos")
+    if rule.rule_id != R_FIN_002:
+        raise ValueError("El bridge solo evalúa R-FIN-002")
+    if rule.version != context.rules_version:
+        raise ValueError("Rule.version incompatible con DecisionContext.rules_version")
+    if not rule.requires_evidence:
+        raise ValueError("R-FIN-002 requiere evidencia")
+    if position.decision_id != context.decision_id:
+        raise ValueError("La posición post-operación pertenece a otra decisión")
+    if position.scenario_id != context.scenario_id:
+        raise ValueError("La posición post-operación pertenece a otro escenario")
+    if position.data_snapshot_id != context.data_snapshot_id:
+        raise ValueError("La posición post-operación usa otro data_snapshot_id")
+    if position.article_id != purchase.article_id:
+        raise ValueError("La posición post-operación pertenece a otro artículo")
+    if position.evaluation_date != purchase.operation_date:
+        raise ValueError("La posición post-operación usa otra evaluation_date")
+    if position.purchase_operation_ref != purchase_operation_ref(purchase):
+        raise ValueError("La posición post-operación no está vinculada a la PurchaseOperation exacta")
+
+
+def _validate_post_operation_evidence(
+    position: PostOperationWorkingCapitalPosition,
+    evidence: Evidence,
+) -> None:
+    if evidence.source_type != POST_OPERATION_WORKING_CAPITAL_EVIDENCE_SOURCE_TYPE:
+        raise ValueError("position_evidence.source_type incompatible")
+    if evidence.captured_at != position.evaluation_date:
+        raise ValueError("position_evidence debe corresponder a la evaluation_date")
+    if (
+        evidence.state == "DEMONSTRATED"
+        and evidence.demonstration_ref
+        != post_operation_working_capital_position_ref(position)
+    ):
+        raise ValueError(
+            "position_evidence no está vinculada a la posición post-operación evaluada"
+        )
+
+
+def _working_capital_minimum(
+    position: PostOperationWorkingCapitalPosition,
+    context: DecisionContext,
+    resolved: ResolvedConfiguration,
+    evidence: Evidence,
+) -> Decimal | None:
+    if resolved.parameter_id != P_FIN_003:
+        raise ValueError("R-FIN-002 requiere P-FIN-003")
+    if resolved.parameters_version != context.parameters_version:
+        raise ValueError("P-FIN-003 está vinculada a otra parameters_version")
+    if resolved.company_id != position.company_scope:
+        raise ValueError("P-FIN-003 pertenece a otro company_scope")
+    if resolved.effective_at.date() != position.evaluation_date:
+        raise ValueError("P-FIN-003 debe resolverse para la evaluation_date")
+
+    configuration = resolved.configuration
+    try:
+        active = configuration.valid_from <= resolved.effective_at and (
+            configuration.valid_to is None
+            or resolved.effective_at < configuration.valid_to
+        )
+    except TypeError as exc:
+        raise ValueError("P-FIN-003 usa semántica temporal incompatible") from exc
+    if not active:
+        raise ValueError("P-FIN-003 no está vigente en effective_at")
+
+    allowed_units = {position.currency}
+    if position.currency == "EUR":
+        allowed_units.add("€")
+    if resolved.unit not in allowed_units:
+        return None
+
+    if evidence.source_type != PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE:
+        raise ValueError("parameter_evidence.source_type incompatible")
+    if evidence.captured_at != position.evaluation_date:
+        raise ValueError("parameter_evidence debe corresponder a la evaluation_date")
+    if (
+        evidence.state == "DEMONSTRATED"
+        and evidence.demonstration_ref != resolved.configuration_ref
+    ):
+        raise ValueError("parameter_evidence no está vinculada a P-FIN-003")
+
+    try:
+        value = Decimal(resolved.value)
+    except (InvalidOperation, ValueError, TypeError):
+        return None
+    if not value.is_finite():
+        return None
+    return value
+
+
+def evaluate_r_fin_002(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    position: PostOperationWorkingCapitalPosition,
+    position_evidence: Evidence,
+    minimum_resolution: ResolvedConfiguration | None,
+    parameter_evidence: Evidence | None,
+) -> Assessment:
+    """Evaluate post-operation working capital against P-FIN-003."""
+
+    _validate_post_operation_identity(purchase, context, rule, position)
+    _validate_post_operation_evidence(position, position_evidence)
+    evidence_ids = [position_evidence.evidence_id]
+
+    if validate_evidence(position_evidence).status != "VALID":
+        return _not_evaluable(
+            R_FIN_002,
+            evidence_ids,
+            "R-FIN-002 no evaluable: posición post-operación no demostrada.",
+        )
+
+    assets = position.current_assets_after_operation
+    liabilities = position.current_liabilities_after_operation
+    if assets is None or liabilities is None:
+        return _not_evaluable(
+            R_FIN_002,
+            evidence_ids,
+            "R-FIN-002 no evaluable: magnitudes post-operación incompletas.",
+        )
+
+    if minimum_resolution is None or parameter_evidence is None:
+        return _not_evaluable(
+            R_FIN_002,
+            evidence_ids,
+            "R-FIN-002 no evaluable: P-FIN-003 no está resuelta/evidenciada.",
+        )
+
+    evidence_ids.append(parameter_evidence.evidence_id)
+    threshold = _working_capital_minimum(
+        position,
+        context,
+        minimum_resolution,
+        parameter_evidence,
+    )
+    if validate_evidence(parameter_evidence).status != "VALID" or threshold is None:
+        return _not_evaluable(
+            R_FIN_002,
+            evidence_ids,
+            "R-FIN-002 no evaluable: P-FIN-003 no es utilizable con evidencia suficiente.",
+        )
+
+    working_capital = assets - liabilities
+    triggered = working_capital < threshold
+    return Assessment(
+        rule_id=R_FIN_002,
+        status="EVALUABLE",
+        outcome="TRUE" if triggered else "FALSE",
+        evidence_ids=evidence_ids,
+        reason=(
+            "R-FIN-002 demostrada: fondo de maniobra post-operación inferior a P-FIN-003."
+            if triggered
+            else "R-FIN-002 no demostrada: fondo de maniobra post-operación cumple P-FIN-003."
+        ),
+    )
+
+
 def evaluate_r_fin_003(
     purchase: PurchaseOperation,
     context: DecisionContext,
@@ -293,10 +465,13 @@ __all__ = [
     "FINANCE_BASIC_EVIDENCE_SOURCE_TYPE",
     "PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE",
     "P_FIN_002",
+    "P_FIN_003",
     "P_FIN_004",
     "R_FIN_001",
+    "R_FIN_002",
     "R_FIN_003",
     "evaluate_r_fin_001",
+    "evaluate_r_fin_002",
     "evaluate_r_fin_003",
     "finance_basic_result_ref",
 ]
