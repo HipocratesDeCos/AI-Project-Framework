@@ -2,8 +2,8 @@
 
 > **Documento de recuperación y continuidad del proyecto**
 >
-> **Versión:** 2.8
-> **Estado:** APROBADO — reconciliación de continuidad EIOS-BL-006
+> **Versión:** 2.9
+> **Estado:** APROBADO — reconciliación de continuidad EIOS-BL-007
 > **Última actualización:** 20/09/2026
 > **Proyecto:** EIOS — Enterprise Intelligent Operations System
 
@@ -37,7 +37,7 @@ El mapa estructural y de navegación vigente corresponde a:
 
 El punto formal de recuperación más reciente es:
 
-`00_Gobierno/Baselines/EIOS-BL-006.md` — `d8291cd72c3b96b42add4cabd74ee5ba2eb4c763`
+`00_Gobierno/Baselines/EIOS-BL-007.md` — `d8291cd72c3b96b42add4cabd74ee5ba2eb4c763`
 
 Un Baseline es un punto formal de recuperación asociado a un SHA concreto; no sustituye el estado posterior de `main` ni las fuentes especializadas vigentes.
 
@@ -786,7 +786,7 @@ implementación
 reconciliación / CI
 ```
 
-El Baseline `EIOS-BL-006 @ d8291cd72c3b96b42add4cabd74ee5ba2eb4c763` es el punto formal de recuperación más reciente, pero el repositorio puede haber avanzado después de su SHA. Para trabajo operativo debe verificarse siempre el `main` vivo antes de actuar.
+El Baseline `EIOS-BL-007 @ 6de45ba0e069074d126cf98cf0a6723e64da61e7` es el punto formal de recuperación más reciente, pero el repositorio puede haber avanzado después de su SHA. Para trabajo operativo debe verificarse siempre el `main` vivo antes de actuar.
 
 ---
 
@@ -817,7 +817,7 @@ Documentos fundamentales de referencia:
 ├── Project_Governance.md
 ├── Matriz_Autoridad_Documental.md
 ├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
-└── Baselines/EIOS-BL-006.md
+└── Baselines/EIOS-BL-007.md
 
 03_Arquitectura/
 └── Framework_Map.md
