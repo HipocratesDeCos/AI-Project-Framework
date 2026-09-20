@@ -366,3 +366,36 @@ CI #1023: **1767 passed, 8 warnings, SQL SUCCESS**.
 **R-STK-002: CLOSED / MATERIALIZED / CI VALIDATED.**
 
 Los diagnósticos de R-PRE-* permanecen vigentes.
+
+
+## 13. Reconciliación posterior — PRE003 cerrado
+
+El bloqueo de R-PRE-003 registrado en esta auditoría fue resuelto posteriormente mediante autoridad humana explícita y materialización física.
+
+Cadena cerrada:
+
+```text
+RecommendedPriceCeiling
++
+RecommendedPriceCeilingEvidence
++
+exact PurchaseOperation binding
+        ↓
+R-PRE-003
+```
+
+Se preservó:
+
+```text
+Price Intelligence PR ≠ PMR
+```
+
+No se reutilizó `PriceIntelligenceResult.pr_value`.
+
+PR #255 integrada en `main @ a16a6343a43dd72a5676f351ecb28bcfa1b94250`.
+
+CI #1029: **1789 passed, 8 warnings, SQL SUCCESS**.
+
+**R-PRE-003: CLOSED / MATERIALIZED / CI VALIDATED.**
+
+Los diagnósticos de R-PRE-001 y R-PRE-002 permanecen vigentes.
