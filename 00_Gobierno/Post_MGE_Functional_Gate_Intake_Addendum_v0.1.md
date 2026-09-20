@@ -74,3 +74,35 @@ SQL SUCCESS
 **FIN002 intake: CLOSED / MATERIALIZED / CI VALIDATED.**
 
 Los apartados STK002 y PRE permanecen vigentes sin cambios.
+
+
+## Reconciliación STK002 — 20/09/2026
+
+El intake STK002 quedó satisfecho mediante:
+
+- `01_Modelo/STK002_Projected_Coverage_Justified_Need_Authority_v0.1.md`;
+- `08_Implementacion/R_STK_002_Technical_Contract_v0.1.md`;
+- `ProjectedCoverageAfterPurchase`;
+- `JustifiedNeedState`;
+- binding SHA-256 a la `PurchaseOperation` exacta;
+- evidencias separadas de cobertura y necesidad;
+- `ResolvedConfiguration(P-STK-004) + ParameterConfigurationEvidence`;
+- política fail-closed.
+
+Materialización integrada por PR #252 en:
+
+```text
+main @ be13aad7d1dde788ef6e79cf262c1a7e91ed7374
+```
+
+CI #1023:
+
+```text
+1767 passed
+8 warnings
+SQL SUCCESS
+```
+
+**STK002 intake: CLOSED / MATERIALIZED / CI VALIDATED.**
+
+El apartado PRE permanece vigente sin cambios.
