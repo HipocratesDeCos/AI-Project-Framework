@@ -9,14 +9,19 @@ from eios.core.models import Assessment, DecisionContext, Evidence, PurchaseOper
 from eios.core.validation import validate_evidence
 from eios.parameters import ResolvedConfiguration
 from eios.pricing import (
+    RECOMMENDED_PRICE_CEILING_EVIDENCE_SOURCE_TYPE,
     PriceIntelligenceAssessmentContext,
     PriceIntelligenceInput,
     PriceIntelligenceResult,
+    RecommendedPriceCeiling,
+    recommended_price_ceiling_ref,
+    recommended_price_purchase_ref,
     run_price_intelligence,
 )
 
 
 R_HIS_002 = "R-HIS-002"
+R_PRE_003 = "R-PRE-003"
 P_PRE_006 = "P-PRE-006"
 PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE = "PriceIntelligenceResultEvidence"
 PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE = "ParameterConfigurationEvidence"
@@ -110,6 +115,98 @@ def _minimum_comparable_operations(
     return int(value)
 
 
+def _validate_pre003_identity(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    ceiling: RecommendedPriceCeiling,
+) -> None:
+    if purchase.decision_id != context.decision_id:
+        raise ValueError("PurchaseOperation y DecisionContext tienen decision_id distintos")
+    if purchase.scenario_id != context.scenario_id:
+        raise ValueError("PurchaseOperation y DecisionContext tienen scenario_id distintos")
+    if rule.rule_id != R_PRE_003:
+        raise ValueError("El bridge solo evalúa R-PRE-003")
+    if rule.version != context.rules_version:
+        raise ValueError("Rule.version incompatible con DecisionContext.rules_version")
+    if not rule.requires_evidence:
+        raise ValueError("R-PRE-003 requiere evidencia")
+    if ceiling.decision_id != context.decision_id:
+        raise ValueError("RecommendedPriceCeiling pertenece a otra decisión")
+    if ceiling.scenario_id != context.scenario_id:
+        raise ValueError("RecommendedPriceCeiling pertenece a otro escenario")
+    if ceiling.data_snapshot_id != context.data_snapshot_id:
+        raise ValueError("RecommendedPriceCeiling usa otro data_snapshot_id")
+    if ceiling.article_id != purchase.article_id:
+        raise ValueError("RecommendedPriceCeiling pertenece a otro artículo")
+    if ceiling.evaluation_date != purchase.operation_date:
+        raise ValueError("RecommendedPriceCeiling usa otra evaluation_date")
+    if ceiling.currency != purchase.currency:
+        raise ValueError("RecommendedPriceCeiling usa otra moneda")
+    if ceiling.purchase_operation_ref != recommended_price_purchase_ref(purchase):
+        raise ValueError("RecommendedPriceCeiling no está vinculada a la PurchaseOperation exacta")
+
+
+def _validate_pre003_evidence(
+    ceiling: RecommendedPriceCeiling,
+    evidence: Evidence,
+) -> None:
+    if evidence.source_type != RECOMMENDED_PRICE_CEILING_EVIDENCE_SOURCE_TYPE:
+        raise ValueError("ceiling_evidence.source_type incompatible")
+    if evidence.captured_at != ceiling.evaluation_date:
+        raise ValueError("ceiling_evidence debe corresponder a evaluation_date")
+    if (
+        evidence.state == "DEMONSTRATED"
+        and evidence.demonstration_ref != recommended_price_ceiling_ref(ceiling)
+    ):
+        raise ValueError("ceiling_evidence no está vinculada al RecommendedPriceCeiling evaluado")
+
+
+def evaluate_r_pre_003(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    ceiling: RecommendedPriceCeiling,
+    ceiling_evidence: Evidence,
+) -> Assessment:
+    """Evaluate proposed price at or below an independently authorized PMR."""
+    _validate_pre003_identity(purchase, context, rule, ceiling)
+    _validate_pre003_evidence(ceiling, ceiling_evidence)
+
+    evidence_ids = [ceiling_evidence.evidence_id]
+    if validate_evidence(ceiling_evidence).status != "VALID":
+        return Assessment(
+            rule_id=R_PRE_003,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-PRE-003 no evaluable: PMR no demostrada.",
+        )
+
+    if ceiling.state != "AVAILABLE":
+        return Assessment(
+            rule_id=R_PRE_003,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason=f"R-PRE-003 no evaluable: PMR {ceiling.state}.",
+        )
+
+    assert ceiling.ceiling_price is not None
+    triggered = purchase.unit_price <= ceiling.ceiling_price
+    return Assessment(
+        rule_id=R_PRE_003,
+        status="EVALUABLE",
+        outcome="TRUE" if triggered else "FALSE",
+        evidence_ids=evidence_ids,
+        reason=(
+            "R-PRE-003 demostrada: precio propuesto igual o inferior al PMR."
+            if triggered
+            else "R-PRE-003 no demostrada: precio propuesto superior al PMR."
+        ),
+    )
+
+
 def evaluate_r_his_002(
     purchase: PurchaseOperation,
     context: DecisionContext,
@@ -185,6 +282,8 @@ __all__ = [
     "PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE",
     "PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE",
     "R_HIS_002",
+    "R_PRE_003",
     "evaluate_r_his_002",
+    "evaluate_r_pre_003",
     "price_intelligence_result_ref",
 ]
