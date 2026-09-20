@@ -224,7 +224,7 @@ def test_delivery_revalidates_tampered_artifact_content():
     artifact = _artifact()
     object.__setattr__(artifact, "_content", artifact.content + b"x")
 
-    with pytest.raises(ValueError, match="content_sha256"):
+    with pytest.raises(ValueError, match="composición U1.5C"):
         build_designated_synthetic_preview_delivery(artifact)
 
 
@@ -242,7 +242,27 @@ def test_delivery_rejects_missing_notice_after_deliberate_internal_tamper():
     object.__setattr__(artifact, "_content", changed)
     object.__setattr__(artifact, "_content_sha256", sha256(changed).hexdigest())
 
-    with pytest.raises(ValueError, match="NOTICE"):
+    with pytest.raises(ValueError, match="composición U1.5C"):
+        build_designated_synthetic_preview_delivery(artifact)
+
+
+def test_delivery_revalidates_artifact_lineage_metadata():
+    artifact = _artifact()
+    object.__setattr__(artifact, "_case_id", "SYNTHETIC-PREVIEW-TAMPERED")
+    with pytest.raises(ValueError, match="case_id"):
+        build_designated_synthetic_preview_delivery(artifact)
+
+    artifact = _artifact()
+    object.__setattr__(artifact, "_source_artifact_content_sha256", "0" * 64)
+    with pytest.raises(ValueError, match="source_artifact_content_sha256"):
+        build_designated_synthetic_preview_delivery(artifact)
+
+
+def test_delivery_revalidates_retained_source_admission():
+    artifact = _artifact()
+    object.__setattr__(artifact._source_admission, "_case_fingerprint", "0" * 64)
+
+    with pytest.raises(ValueError, match="case_fingerprint"):
         build_designated_synthetic_preview_delivery(artifact)
 
 
