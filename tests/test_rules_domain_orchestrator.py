@@ -16,6 +16,7 @@ ALL_RULES = (
     "R-MGE-001",
     "R-MGE-002",
     "R-MGE-003",
+    "R-PRE-003",
     "R-STK-001",
     "R-STK-002",
     "R-STK-003",
@@ -87,6 +88,7 @@ def _all_bundles():
         history_sufficiency=orchestrator.HistorySufficiencyRuleInputs(
             marker, marker, marker, "COMPANY-1", marker, marker
         ),
+        recommended_price=orchestrator.RecommendedPriceRuleInputs(marker, marker),
         profitability=orchestrator.ProfitabilityRuleInputs(
             marker, marker, marker, marker, marker, marker, marker, marker
         ),
@@ -104,6 +106,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     _patch_rule(monkeypatch, "evaluate_r_fin_002", "R-FIN-002", "FALSE", calls)
     _patch_rule(monkeypatch, "evaluate_r_fin_003", "R-FIN-003", "FALSE", calls)
     _patch_rule(monkeypatch, "evaluate_r_his_002", "R-HIS-002", "TRUE", calls)
+    _patch_rule(monkeypatch, "evaluate_r_pre_003", "R-PRE-003", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_mge_001", "R-MGE-001", "FALSE", calls)
     _patch_rule(monkeypatch, "evaluate_r_mge_002", "R-MGE-002", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_mge_003", "R-MGE-003", "FALSE", calls)
@@ -125,6 +128,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
         "R-FIN-002",
         "R-FIN-003",
         "R-HIS-002",
+        "R-PRE-003",
         "R-MGE-001",
         "R-MGE-002",
         "R-MGE-003",
@@ -133,7 +137,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     assert result.omitted_rule_ids == ()
     assert tuple(item.rule_id for item in result.assessments) == ALL_RULES
     assert result.crc_result.consolidated_result == "COMPRAR CONDICIONADO"
-    assert len(result.traces) == 12
+    assert len(result.traces) == 13
     assert result.c0_capability.result_available is True
 
 
