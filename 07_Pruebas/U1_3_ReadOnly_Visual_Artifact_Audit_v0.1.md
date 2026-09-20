@@ -91,3 +91,59 @@ No se incorpora ningún otro paso.
 **SUPERADA — 0 bloqueadores.**
 
 La implementación puede materializarse siempre que permanezca como wrapper puro de contenido y no introduzca I/O, identidad decisional o semántica duplicada.
+
+
+## AUDITAR 2 — implementación materializada
+
+### Delta físico
+
+La rama añade/modifica únicamente:
+
+- contrato U1.3;
+- este registro;
+- `eios/frontend/visual/vertical_mvp_artifact.py`;
+- export explícito en `eios/frontend/visual/__init__.py`;
+- `tests/test_vertical_mvp_readonly_artifact.py`.
+
+No se modifica U1.2 renderer/view-model, U1.1, Application Boundary, O1, Vertical MVP, Rules, CRC, Scenario, Twin, Finance, QTG, NI/Ladder, SQL, reglas o parámetros.
+
+### Verificación estática
+
+La implementación:
+
+1. consume únicamente `Mapping`;
+2. delega la validación/render en U1.2;
+3. ejecuta exactamente `.encode("utf-8")`;
+4. calcula `sha256(content).hexdigest()`;
+5. conserva `bytes` inmutables;
+6. usa constructor directo cerrado;
+7. expone metadata exclusivamente de transporte;
+8. no acepta ruta, file handle, URL, storage key ni callback;
+9. no importa filesystem, networking, framework web ni motores EIOS;
+10. no transforma, minifica o reserializa HTML;
+11. no captura errores del renderer;
+12. denomina el hash exclusivamente `content_sha256`.
+
+### Cobertura materializada
+
+Las pruebas verifican:
+
+- bytes exactos U1.2;
+- hash reproducible;
+- metadata exacta;
+- constructor cerrado e inmutabilidad;
+- determinismo;
+- cambio material → hash distinto;
+- no mutación del view-model;
+- propagación fail-closed;
+- preservación del escape HTML;
+- ausencia de aliases decisionales/provenance;
+- ausencia de imports filesystem/red/motores.
+
+**AUDITAR 2: SUPERADA — 0 bloqueadores.**
+
+## CERRAR → MATERIALIZAR → CI
+
+U1.3 queda **CERRADA TÉCNICAMENTE — CI PENDIENTE**.
+
+La unidad crea un artefacto de transporte verificable, no una nueva identidad EIOS ni una frontera de persistencia.
