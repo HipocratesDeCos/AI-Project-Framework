@@ -2,7 +2,7 @@
 
 **Baseline:** `main @ 076828839ebe6004a5052ad5e778cb4c1b1dc62a`
 
-**Estado:** DISEÑADO — AUDITORÍA 1 PENDIENTE
+**Estado:** DISEÑADO → AUDITADO → DEPURADO — AUDIT 2 PENDIENTE
 
 ## 1. Propósito
 
@@ -132,7 +132,33 @@ La implementación deberá demostrar:
 - rechazo fail-closed de view-model incompleto;
 - ausencia de imports o llamadas a motores.
 
-## 11. Criterio de cierre
+## 11. Forma técnica depurada
+
+La materialización se realizará mediante una función pura:
+
+`render_vertical_mvp_readonly(view_model: Mapping[str, Any]) -> str`
+
+que devolverá un documento HTML completo y autosuficiente.
+
+Decisiones de implementación:
+
+- sin JavaScript;
+- sin networking;
+- sin persistencia;
+- navegación interna mediante anclas HTML;
+- CSS estático embebido;
+- contenido dinámico escapado con `html.escape`;
+- listas/tablas en el mismo orden recibido;
+- `None` representado como “NO DISPONIBLE”, nunca como cero o resultado favorable;
+- bloques ausentes representados explícitamente como “NO SUMINISTRADO”;
+- estado de ejecución etiquetado como **estado técnico**;
+- resultado CRC etiquetado como **resultado de soporte CRC — no decisión humana**;
+- comparación de escenarios presentada descriptivamente, sin cálculo adicional;
+- validación estructural mínima y fail-closed del view-model esperado.
+
+No se aceptará un template con lógica de negocio ni un renderer que reciba modelos EIOS.
+
+## 12. Criterio de cierre
 
 U1.2 podrá cerrarse cuando exista una composición visual navegable/read-only demostrablemente alimentada solo por el view-model ya autorizado, con pruebas de fidelidad, seguridad y ausencia de autoridad decisional.
 
