@@ -1,0 +1,28 @@
+{
+  "schema_id": "EIOS-PROJECTION-ONLY-MOCK-DATASET-01",
+  "schema_version": "0.1",
+  "dataset_id": "OP-2026-001-STRUCTURE-MOCK",
+  "case_kind": "SYNTHETIC",
+  "profile": "PROJECTION_ONLY",
+  "effect_scope": "NO_OPERATIONAL_EFFECT",
+  "components": {
+    "operation": {"path": "identity/operation.json", "sha256": "d1884838b809c2f064c170f1a2ecc9cdccb3f63f5d8144421edf986011fa453c"},
+    "decision_context": {"path": "identity/decision_context.json", "sha256": "1acf2090a65230bb54f6ec3e9181e89044b1549544fdffc65f6c2dd445ef44b5"},
+    "finance_input": {"path": "finance/finance_input.json", "sha256": "c1dc03d6a80cd41f9a8a420f88edab31bfa7695690bd9ff67e71edcbe0505c80"},
+    "parameter_resolutions": {"path": "finance/parameter_resolutions.json", "sha256": "6e8db4803d74d4f6c459c1a1353b865c73e59a400ba7b63f831076179a2d5838"},
+    "payment_documents": {"path": "documents/payment_documents.json", "sha256": "d9b86d56feefaa28128ee020aead8a17173e759cd64389e649f6bc4188b1bd3e"},
+    "required_installment_calendar": {"path": "documents/required_installment_calendar.json", "sha256": "ec5c1835cb10622ba5b439080257d122880f827b77c53058cd527c71519388c7"},
+    "projection_criteria": {"path": "criteria/projection_criteria.json", "sha256": "450042beb23be8b91f39876c45ecd9d81baec1f21012beb5fca4051de951a233"},
+    "treasury_material": {"path": "treasury/material.json", "sha256": "1c2c46c7bf7a0f03f318903137fbe0a9d359920f1a569807ddb79a7a63872918"},
+    "treasury_mandate": {"path": "treasury/mandate.json", "sha256": "540c88c2da73906d2c2c703d9d3b18549f82aa80ebf90e7d62355e0165a0827e"},
+    "treasury_review": {"path": "treasury/review.json", "sha256": "febb5f525ccdfa5cbbdf7c2df6a83fd3134b14dae610c2fd36374273da04e891"},
+    "flow_inventory": {"path": "flows/inventory.json", "sha256": "d7727ced79139893dbc8f29234722e8829f0649fa787da89141d25b0f0fcd86f"},
+    "flow_mandate": {"path": "flows/mandate.json", "sha256": "540c88c2da73906d2c2c703d9d3b18549f82aa80ebf90e7d62355e0165a0827e"},
+    "flow_review": {"path": "flows/review.json", "sha256": "d051ac79ee8b4e6ffa3adbc308d0986eb73fbec6e22e7fed078501abf216cc34"}
+  },
+  "limitations": [
+    "Synthetic structure-only fixture; it is not evidence of a real operation.",
+    "Component payloads are not yet mapped to EIOS domain objects.",
+    "No QTG result, business authority or operational admission is represented."
+  ]
+}
