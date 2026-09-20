@@ -762,7 +762,7 @@ El estado integrado y documentado contiene, entre otras, las siguientes capacida
 - **Supplier Alternatives / PROV:** `R-PROV-001` y `R-PROV-002` existen en la Matriz de Reglas, pero la RDM no contiene dependencias `R-PROV-*` confirmadas y no existe un productor autorizado que transforme hechos de proveedor en alternativa, comparabilidad o mejora potencial/significativa; `Supplier Evidence Core` conserva únicamente autoridad factual.
 - **Discounts & Rappels / COM:** `R-COM-001` y `R-COM-002` existen en la Matriz de Reglas, pero la RDM no contiene dependencias `R-COM-*` confirmadas ni el Catálogo define parámetros `P-COM-*`; la presencia conceptual de descuentos/rappels o de hechos `COMMERCIAL_CONDITION` no autoriza por sí sola su transformación en semántica de regla o coste efectivo.
 - **Assurance / Shadow Mode / piloto:** bloqueado para comparación decisional real mientras no exista una fuente autorizada de decisión humana de referencia y su gobierno.
-- **Profitability / MGE:** la metodología propuesta permanece fuera de `main` como trabajo no autorizado para cierre/implementación hasta aprobación humana explícita de la política correspondiente; una instrucción genérica de continuar no constituye esa aprobación.
+- **Profitability / MGE:** `MGE-AUTH v0.1` ha recibido autorización humana explícita y permite cerrar la metodología y diseñar un `Profitability Core` determinista sobre `AuthorizedSaleBasis` + `AuthorizedCostBasis`. Permanecen fuera de alcance la selección automática de fuentes, TCO como coste por defecto, descuentos/rappels implícitos, P-MGE-004/005/006 y la ejecución de Rules MGE.
 
 ### 🟡 En evolución del sistema, sin declarar cerrado el Vertical MVP completo
 
