@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.5.7  
+**Versión:** 1.5.8  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
@@ -329,7 +329,7 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 | DEP-PRE-001-RPRE-001 | `R-PRE-001` | `PARAMETER` | `P-PRE-001` | PARAMETER | Horizonte temporal autorizado que define “reciente” para la operación comparable de R-PRE-001 | PENDING | `01_Modelo/Price_Intelligence_Specification_Gaps.md` | CONFIRMED | PENDING | NONE | NONE | `GAP-PI-TEMP-01` documenta explícitamente `P-PRE-001 → R-PRE-001`; no valida 3 meses como política empresarial definitiva ni autoriza por sí mismo implementación runtime. |
 | DEP-PRE-004-RPRE-001 | `R-PRE-001` | `PARAMETER` | `P-PRE-004` | PARAMETER | Parámetro consumidor de la regla | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa documentada. |
 | DEP-PRE-005-RPRE-002 | `R-PRE-002` | `PARAMETER` | `P-PRE-005` | PARAMETER | Parámetro consumidor de la regla | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa documentada. |
-| DEP-STK-004-RSTK-002 | `R-STK-002` | `PARAMETER` | `P-STK-004` | PARAMETER | Umbral máximo de cobertura consumido por la condición de cobertura elevada | PENDING | `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa demostrada por R-STK-002 + M04. |
+| DEP-STK-004-RSTK-002 | `R-STK-002` | `PARAMETER` | `P-STK-004` | PARAMETER | Umbral máximo de cobertura consumido por la condición de cobertura elevada | PENDING | `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md`; `01_Modelo/STK002_Projected_Coverage_Justified_Need_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa demostrada por R-STK-002 + M04. Binding físico cerrado mediante `ProjectedCoverageAfterPurchase + JustifiedNeedState + ResolvedConfiguration(P-STK-004) + Evidence`, integrado por PR #252 (CI #1023 SUCCESS). `Criticality` y `Evaluability_Impact` permanecen PENDING al no existir autoridad RDM explícita para reclasificarlos. |
 | DEP-STK-004-RSTK-003 | `R-STK-003` | `DERIVED` | `P-STK-004` | PARAMETER | Conversión de coverage_maximum a cantidad máxima cuando el máximo se gobierna por cobertura | PENDING | `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Transformación documentada por M04/M07. |
 | DEP-STK-005-RSTK-003 | `R-STK-003` | `DERIVED` | `P-STK-005` | PARAMETER | Tolerancia incorporada al umbral cuantitativo de exceso | PENDING | `04_Reglas/Especificacion_Reglas_STK_Parametros_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Transformación documentada por M07. |
 | DEP-MGE-001-RMGE-001 | `R-MGE-001` | `PARAMETER` | `P-MGE-001` | PARAMETER | Parámetro consumidor de margen | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md`; `01_Modelo/MGE_Rules_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa documentada. Binding físico cerrado mediante `MGEParameterBundle` + `ResolvedConfiguration` + `Evidence` y PR #244 (CI #1007 SUCCESS). La implementación no reclasifica por inferencia `Criticality` ni `Evaluability_Impact`. |
