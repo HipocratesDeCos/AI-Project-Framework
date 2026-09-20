@@ -118,3 +118,30 @@ Se cubren:
 **AUDIT 2 FÍSICO: SUPERADA — 0 bloqueadores observados antes de CI.**
 
 Cierre condicionado a CI exact-head, suite completa, SQL SUCCESS y merge protegido por SHA.
+
+
+## 5. CI y cierre
+
+PR #255 validó el HEAD exacto:
+
+```text
+e8fa1f50b2b0ac5304ae262a799227f3a869b92d
+```
+
+CI #1029:
+
+```text
+1789 passed
+8 warnings
+SQL validations SUCCESS
+```
+
+Merge protegido por SHA:
+
+```text
+main @ a16a6343a43dd72a5676f351ecb28bcfa1b94250
+```
+
+## 6. Estado final
+
+**R-PRE-003 v0.1: CERRADA / MATERIALIZADA / CI VALIDADA.**
