@@ -106,3 +106,42 @@ SQL SUCCESS
 **STK002 intake: CLOSED / MATERIALIZED / CI VALIDATED.**
 
 El apartado PRE permanece vigente sin cambios.
+
+
+## Reconciliación PRE003 — 20/09/2026
+
+El gate PRE-G04 y el intake específico de R-PRE-003 quedaron satisfechos mediante:
+
+- `01_Modelo/PRE003_Recommended_Price_Ceiling_Authority_v0.1.md`;
+- `08_Implementacion/R_PRE_003_Technical_Contract_v0.1.md`;
+- `RecommendedPriceCeiling`;
+- binding SHA-256 a la `PurchaseOperation` exacta;
+- `RecommendedPriceCeilingEvidence`;
+- moneda exacta;
+- política fail-closed;
+- separación física `PR ≠ PMR`.
+
+Materialización integrada por PR #255 en:
+
+```text
+main @ a16a6343a43dd72a5676f351ecb28bcfa1b94250
+```
+
+CI #1029:
+
+```text
+1789 passed
+8 warnings
+SQL SUCCESS
+```
+
+**R-PRE-003 intake: CLOSED / MATERIALIZED / CI VALIDATED.**
+
+Permanecen vigentes:
+
+- PRE-G01 — temporalidad provenance-safe ligada a P-PRE-001 para R-PRE-001;
+- PRE-G02 — semántica ejecutable de P-PRE-004 para R-PRE-001;
+- PRE-G03 — semántica ejecutable de P-PRE-005 para R-PRE-002;
+- PRE-G05 — bridge Price Intelligence → Rules cuando sea aplicable a R-PRE-001/002.
+
+R-PRE-003 no requiere Price Intelligence → Rule en v0.1.
