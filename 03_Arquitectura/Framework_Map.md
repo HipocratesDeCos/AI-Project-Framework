@@ -99,7 +99,8 @@ Gobierno, identidad, contexto, autoridad, trazabilidad y salvaguarda del proyect
 - `Baselines/EIOS-BL-002.md`
 - `Baselines/EIOS-BL-003.md`
 - `Baselines/EIOS-BL-004.md`
-- `Baselines/EIOS-BL-006.md`\n- `Baselines/EIOS-BL-006.md`
+- `Baselines/EIOS-BL-005.md`
+- `Baselines/EIOS-BL-006.md`
 
 Los Baselines fijan puntos formales de continuidad asociados a SHAs concretos. No sustituyen la autoridad especializada de los componentes que resumen.
 
