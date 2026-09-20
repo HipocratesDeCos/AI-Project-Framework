@@ -165,7 +165,7 @@ Además debe quedar documentado:
 
 ### Estado actual
 
-PR draft #73 contiene metodología auditada, pero `MGE-AUTH v0.1` permanece **NO AUTORIZADA**.
+`MGE-AUTH v0.1` recibió autorización humana explícita el 20/09/2026. El gate de autoridad metodológica queda satisfecho para diseñar un `Profitability Core` estrictamente limitado a bases económicas previamente autorizadas.
 
 ### Intake mínimo requerido
 
@@ -182,9 +182,9 @@ Una instrucción genérica como “continúa”, “prosigue” o “implementa 
 
 ### Gate de apertura
 
-`MGE-G01` — aprobación explícita de la política.  
-`MGE-G02` — versión y alcance identificados.  
-`MGE-G03` — parámetros/política ejecutable sin contradicciones pendientes.
+`MGE-G01` — **SATISFECHO**: aprobación explícita de `MGE-AUTH v0.1`.  
+`MGE-G02` — **SATISFECHO**: versión y alcance identificados.  
+`MGE-G03` — **SATISFECHO PARA PROFITABILITY CORE**: la política de cálculo es ejecutable sin consumir parámetros MGE; Rules y parámetros permanecen en una frontera posterior y requieren sus propios contratos/bindings.
 
 ## 8. Stage 2 / Viability Frontier
 
