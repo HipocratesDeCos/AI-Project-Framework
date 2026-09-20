@@ -3,7 +3,7 @@
 ## EIOS — Enterprise Intelligent Operations System
 
 **Documento:** Manual Maestro del Proyecto EIOS (MMP-EIOS)  
-**Versión:** 2.6  
+**Versión:** 2.7  
 **Estado:** APROBADO — reconciliación de continuidad BL-007  
 **Fecha:** 20/09/2026  
 **Ubicación oficial:** `00_Gobierno/Manual_Maestro_Proyecto_EIOS.md`
@@ -379,6 +379,8 @@ La Salvaguarda vigente del Vertical MVP es:
 
 Las restricciones congeladas por la Salvaguarda no pueden modificarse silenciosamente.
 
+Tras BL-007, la continuidad de frentes bloqueados se gobierna además mediante `00_Gobierno/Post_BL_007_Gate_Intake_Contract_v0.1.md`. Este contrato no autoriza capacidades: especifica qué autoridad, productor físico, identity/provenance y comportamiento fail-closed deben existir antes de volver a DISEÑAR un frente bloqueado.
+
 ---
 
 # 16. MÉTODO OBLIGATORIO DE TRABAJO
@@ -426,8 +428,9 @@ Secuencia mínima:
 6. consultar `Framework_Map.md` y `Master_Project_Map.md`;
 7. consultar `EIOS-BL-007.md` como punto formal de recuperación;
 8. verificar el SHA actual de `main`;
-9. identificar la unidad realmente abierta y su autoridad especializada;
-10. continuar únicamente dentro del alcance autorizado.
+9. revisar `Post_BL_007_Gate_Intake_Contract_v0.1.md` si no existe una unidad abierta;
+10. identificar la unidad realmente abierta y su autoridad especializada;
+11. continuar únicamente dentro del alcance autorizado.
 
 No debe reconstruirse el estado del proyecto exclusivamente desde conversaciones anteriores.
 
@@ -466,7 +469,7 @@ GitHub conserva el historial; las versiones antiguas del Manual no deben utiliza
 **Estado general:** En desarrollo  
 **Gobierno:** Activo  
 **Salvaguarda Vertical MVP:** Vigente  
-**Manual:** v2.6 — reconciliado 20/09/2026
+**Manual:** v2.7 — reconciliado 20/09/2026
 
 El Vertical MVP completo **no está declarado cerrado**.
 
