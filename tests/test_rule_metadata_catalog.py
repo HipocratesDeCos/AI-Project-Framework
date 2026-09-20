@@ -57,6 +57,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
         "R-MGE-001",
         "R-MGE-002",
         "R-MGE-003",
+        "R-PRE-003",
         "R-STK-001",
         "R-STK-002",
         "R-STK-003",
@@ -79,6 +80,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
         ("R-MGE-001", "R1", "ALTA"),
         ("R-MGE-002", "R2", "MEDIA"),
         ("R-MGE-003", "R3", "INFORMATIVA"),
+        ("R-PRE-003", "R3", "INFORMATIVA"),
     ),
 )
 def test_catalog_resolves_authorized_metadata(rule_id: str, effect: str, severity: str) -> None:
