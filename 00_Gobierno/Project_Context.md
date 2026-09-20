@@ -792,6 +792,27 @@ READY_FOR_DESIGN
 
 Una instrucción genérica de continuar no sustituye el intake específico cuando el propio gate exige autorización o evidencia material.
 
+### Readiness funcional post-MGE
+
+La auditoría `07_Pruebas/Post_MGE_Next_Frontier_Readiness_Audit_v0.1.md` actualiza la selección de siguiente frente después del cierre completo de MGE.
+
+Resultado:
+
+```text
+R-FIN-002 → candidato técnicamente más cercano
+            pero BLOCKED por ausencia de post_operation_working_capital provenance-safe
+
+R-STK-002 → BLOCKED por projected coverage + justified-need producer
+
+R-PRE-*   → BLOCKED por semántica/binding/provenance de Rules de precio
+```
+
+Los requisitos de intake correspondientes se formalizan en:
+
+`00_Gobierno/Post_MGE_Functional_Gate_Intake_Addendum_v0.1.md`.
+
+No debe reinterpretarse `FinanceBasicResult.working_capital` como valor post-operación, ni `CoverageResult` como cobertura proyectada post-compra, ni `PriceIntelligenceResult.pr_value` como precio máximo recomendado sin autoridad específica.
+
 ### Regla de interpretación
 
 No debe inferirse que una capacidad está abierta solo porque un documento histórico diga “pendiente”, ni que está cerrada solo porque exista código.
