@@ -26,4 +26,25 @@ __all__ = [
     "calculate_stock_availability",
     "calculate_stock_projection",
     "use_authorized_forecast",
+    "JUSTIFIED_NEED_EVIDENCE_SOURCE_TYPE",
+    "PROJECTED_COVERAGE_EVIDENCE_SOURCE_TYPE",
+    "JustifiedNeedState",
+    "JustifiedNeedStatus",
+    "ProjectedCoverageAfterPurchase",
+    "ProjectedCoverageState",
+    "justified_need_ref",
+    "projected_coverage_ref",
+    "stock_purchase_operation_ref",
 ]
+
+from .rule_inputs import (
+    JUSTIFIED_NEED_EVIDENCE_SOURCE_TYPE,
+    PROJECTED_COVERAGE_EVIDENCE_SOURCE_TYPE,
+    JustifiedNeedState,
+    JustifiedNeedStatus,
+    ProjectedCoverageAfterPurchase,
+    ProjectedCoverageState,
+    justified_need_ref,
+    projected_coverage_ref,
+    stock_purchase_operation_ref,
+)
