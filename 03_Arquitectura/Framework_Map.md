@@ -2,8 +2,8 @@
 
 ## Índice Maestro del Framework
 
-**Versión:** 3.3.4  
-**Estado:** APROBADO — reconciliación de continuidad post-EIOS-BL-005  
+**Versión:** 3.3.5  
+**Estado:** APROBADO — reconciliación de continuidad post-EIOS-BL-006  
 **Función:** Índice maestro de navegación de la estructura documental y técnica EIOS  
 **Ubicación:** `03_Arquitectura/Framework_Map.md`
 
@@ -100,6 +100,7 @@ Gobierno, identidad, contexto, autoridad, trazabilidad y salvaguarda del proyect
 - `Baselines/EIOS-BL-003.md`
 - `Baselines/EIOS-BL-004.md`
 - `Baselines/EIOS-BL-005.md`
+- `Baselines/EIOS-BL-006.md`
 
 Los Baselines fijan puntos formales de continuidad asociados a SHAs concretos. No sustituyen la autoridad especializada de los componentes que resumen.
 
@@ -265,7 +266,7 @@ Contratos, auditorías, cierres y reconciliaciones de materialización técnica.
 - `Viability_Frontier_Implementation_Contract.md`
 - `E2E_Execution_Boundary_Implementation_Contract.md`
 
-El dominio incluye además familias de Assessment/provenance, C0/Rules, Parameter Configuration, STK, Delivery Stockout, Finance Basic, Supplier Evidence Core, Scenario/O2–O4, Decision Twin, Negotiation Intelligence/Ladder, CRC, Decision Versioning, UI/U1/U1.1 y reconciliaciones de provenance/postintegración.
+El dominio incluye además familias de Assessment/provenance, C0/Rules, Parameter Configuration, STK, Delivery Stockout, Finance Basic, Supplier Evidence Core, Scenario/O2–O4, Decision Twin, Negotiation Intelligence/Ladder, CRC, Decision Versioning, UI/U1/U1.1/U1.2/U1.3 y reconciliaciones de provenance/postintegración.
 
 No se mantiene aquí una enumeración exhaustiva de contratos, porque su inventario canónico operativo es el árbol físico de `08_Implementacion/`.
 
@@ -369,7 +370,7 @@ La Salvaguarda vigente del Vertical MVP es:
 
 El punto formal de continuidad más reciente es:
 
-`00_Gobierno/Baselines/EIOS-BL-005.md` — `cd0504b9540d37c6523957dccd8cc51acad1b729`
+`00_Gobierno/Baselines/EIOS-BL-006.md` — `d8291cd72c3b96b42add4cabd74ee5ba2eb4c763`
 
 El Baseline no sustituye a las fuentes especializadas.
 
@@ -403,7 +404,7 @@ Esta regla evita convertir el mapa en un inventario manual frágil.
 # 11. ESTADO DEL FRAMEWORK
 
 **Framework:** EIOS  
-**Baseline de continuidad vigente:** EIOS-BL-005 @ `cd0504b9540d37c6523957dccd8cc51acad1b729`  
+**Baseline de continuidad vigente:** EIOS-BL-006 @ `d8291cd72c3b96b42add4cabd74ee5ba2eb4c763`  
 **Estado:** En desarrollo  
 **Gobierno:** Activo  
 **Salvaguarda Vertical MVP:** Vigente  
