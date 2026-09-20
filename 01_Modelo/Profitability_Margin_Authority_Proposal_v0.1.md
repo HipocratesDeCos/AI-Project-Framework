@@ -1,7 +1,7 @@
 # EIOS — RENTABILIDAD / MARGEN · MGE-AUTH v0.1
 
-**Estado:** PROPUESTA — NO AUTORIZADA  
-**Fecha:** 11/09/2026  
+**Estado:** AUTORIZADA — MGE-AUTH v0.1  
+**Fecha:** 20/09/2026  
 **Objeto:** política mínima para habilitar el cálculo de margen sobre bases económicas previamente autorizadas
 
 ---
@@ -240,9 +240,9 @@ No existe fallback silencioso.
 
 ---
 
-## 12. Consecuencia de aprobación
+## 12. Consecuencia de autorización
 
-Si esta propuesta se autoriza, permitirá:
+Esta autoridad permite:
 
 1. cerrar metodología MGE v0.3;
 2. diseñar contrato técnico de `Profitability Core`;
@@ -254,6 +254,6 @@ Si esta propuesta se autoriza, permitirá:
 
 ## 13. Estado
 
-**MGE-AUTH v0.1 — PROPUESTA / NO AUTORIZADA.**
+**MGE-AUTH v0.1 — AUTORIZADA.**
 
-No debe utilizarse como autoridad hasta aprobación humana explícita.
+Autorización humana explícita registrada el 20/09/2026. El alcance autorizado es exactamente el descrito en este documento; no incluye selección automática de fuentes, TCO como coste por defecto, descuentos/rappels implícitos, ejecución de Rules ni valores empresariales definitivos de parámetros.
