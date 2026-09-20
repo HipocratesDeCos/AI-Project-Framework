@@ -51,6 +51,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
     assert implemented_rule_ids() == (
         "R-ENT-001",
         "R-FIN-001",
+        "R-FIN-002",
         "R-FIN-003",
         "R-HIS-002",
         "R-MGE-001",
@@ -70,6 +71,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
         ("R-STK-003", "R2", "ALTA"),
         ("R-STK-004", "R1", "ALTA"),
         ("R-FIN-001", "R0", "CRÍTICA"),
+        ("R-FIN-002", "R0", "CRÍTICA"),
         ("R-FIN-003", "R1", "ALTA"),
         ("R-HIS-002", "R3", "INFORMATIVA"),
         ("R-MGE-001", "R1", "ALTA"),
