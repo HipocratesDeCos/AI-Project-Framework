@@ -454,7 +454,7 @@ def test_carrier_invariants():
     with pytest.raises(Exception):
         _coverage(state="FINITE", days=None)
     with pytest.raises(Exception):
-        _coverage(state="UNBOUNDED", days="10")
+        _coverage(state="UNBOUNDED", coverage_days=Decimal("10"))
     with pytest.raises(Exception):
         _coverage(days="-1")
     with pytest.raises(ValueError, match="duplicados"):
