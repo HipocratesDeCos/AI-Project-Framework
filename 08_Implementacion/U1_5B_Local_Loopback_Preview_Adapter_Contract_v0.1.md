@@ -2,7 +2,7 @@
 
 **Baseline:** `main @ b400846d7ea9be07a774d19408cff8391dc0c385`
 
-**Estado:** DISEÑADO → AUDITADO → DEPURADO → AUDIT 2 SUPERADA — DISEÑO CERRADO
+**Estado:** DISEÑADO → AUDITADO → DEPURADO → AUDIT 2 SUPERADA → MATERIALIZADO → AUDITORÍA FÍSICA SUPERADA — CI PR REGISTRADA
 
 ## 1. Propósito
 
@@ -251,3 +251,37 @@ El diseño puede cerrarse si una auditoría demuestra:
 11. ninguna reapertura U1.2–U1.5C.
 
 La materialización requerirá un ciclo separado y pruebas de socket reales sobre loopback.
+
+
+## 15. Materialización física
+
+La implementación queda contenida en:
+
+- `eios/frontend/visual/local_synthetic_preview_adapter.py`;
+- export explícito en `eios/frontend/visual/__init__.py`;
+- `tests/test_local_synthetic_preview_adapter.py`;
+- hardening mínimo U1.5C en `designated_synthetic_preview.py` para retener el artifact exacto dentro del delivery;
+- prueba de regresión U1.5C que fija `delivery → artifact`.
+
+La cadena física es:
+
+```text
+DesignatedSyntheticPreviewDelivery
+→ artifact U1.5C retenido
+→ reconstrucción U1.5C desde U1.5A
+→ LocalSyntheticPreviewAdapter
+→ HTTPServer(127.0.0.1, 0)
+→ /eios/local-synthetic-preview
+```
+
+La construcción del adapter no abre sockets. El socket solo se abre mediante `serve_local_synthetic_preview`.
+
+## 16. Evidencia CI de materialización
+
+La PR #232 ejecutó la suite completa sobre el código materializado:
+
+- **1589 passed**;
+- **8 warnings** preexistentes;
+- validaciones SQL C0 / Decision Versioning / Parameter Configuration: **SUCCESS**.
+
+La integración queda condicionada a una CI final sobre el HEAD exacto después de fijar esta documentación.
