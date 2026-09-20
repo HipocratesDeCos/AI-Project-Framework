@@ -1,6 +1,6 @@
 # EIOS — RENTABILIDAD / MARGEN · AUTHORIZATION GATE v0.1
 
-**Estado:** BLOQUEO DE AUTORIDAD — CIERRE METODOLÓGICO NO AUTORIZADO  
+**Estado:** GATE SATISFECHO — MGE-AUTH v0.1 AUTORIZADA  
 **Fecha:** 11/09/2026  
 **Rama:** `mge/profitability-methodology-v0.1`
 
@@ -27,7 +27,7 @@ No se ha identificado contradicción que obligue a reabrir C0, PRICE, TCO, Finan
 
 ---
 
-## 2. Único bloqueo restante
+## 2. Bloqueo de autoridad — RESUELTO
 
 El repositorio vigente no contiene autoridad empresarial suficiente para fijar por inferencia:
 
@@ -42,9 +42,9 @@ La propuesta correspondiente está documentada en:
 
 `01_Modelo/Profitability_Margin_Authority_Proposal_v0.1.md`
 
-con estado:
+con estado vigente:
 
-`PROPUESTA — NO AUTORIZADA`.
+`AUTORIZADA — MGE-AUTH v0.1`.
 
 ---
 
@@ -65,7 +65,7 @@ Este documento no autoriza:
 
 ---
 
-## 4. Trabajo permitido mientras el gate esté abierto
+## 4. Trabajo permitido tras cierre del gate
 
 Sí puede avanzarse en:
 
@@ -75,27 +75,25 @@ Sí puede avanzarse en:
 - identificación de dependencias y gaps;
 - trabajo en unidades independientes del repositorio.
 
-No puede avanzarse a:
+Puede avanzarse a:
 
 ```text
-CERRAR → MATERIALIZAR IMPLEMENTACIÓN → CI DE IMPLEMENTACIÓN
+CERRAR METODOLOGÍA → DISEÑAR CONTRATO TÉCNICO → AUDITAR → MATERIALIZAR → CI
 ```
 
-para Profitability Core mientras la autoridad empresarial siga sin aprobarse.
+sin ampliar el alcance autorizado de MGE-AUTH v0.1.
 
 ---
 
 ## 5. Condición de desbloqueo
 
-El gate se desbloquea únicamente mediante autorización humana explícita de `MGE-AUTH v0.1` o mediante otra autoridad empresarial equivalente que defina de forma trazable la semántica del margen.
-
-`continuar`, `proseguir`, `actuar` o instrucciones operativas genéricas no se interpretan como aprobación de política económica.
+El gate fue satisfecho mediante autorización humana explícita de `MGE-AUTH v0.1` el 20/09/2026.
 
 ---
 
 ## 6. Estado final
 
-**MGE metodológico:** AUDIT 2 SUPERADA / CIERRE BLOQUEADO POR AUTORIDAD.  
-**Implementación MGE:** NO AUTORIZADA.  
+**MGE metodológico:** AUDIT 2 SUPERADA / AUTORIDAD SATISFECHA.  
+**Implementación MGE:** AUTORIZADA únicamente dentro de MGE-AUTH v0.1 y su futuro contrato técnico auditado.  
 **Política nueva inventada:** 0.  
 **Componentes cerrados reabiertos:** 0.
