@@ -1,8 +1,10 @@
 # EIOS — U1.5A · Synthetic Visual Admission — Contract v0.1
 
-**Baseline:** `main @ 5dabd8ada1013f74c6ed6358ace8475a778d8233`
+**Baseline de diseño:** `main @ 5dabd8ada1013f74c6ed6358ace8475a778d8233`
 
-**Estado:** DISEÑADO → AUDITADO → DEPURADO → AUDIT 2 SUPERADA → DISEÑO CERRADO — MATERIALIZACIÓN PENDIENTE
+**Baseline de materialización:** `main @ 1c0b5f2c5158612204050c594b8083e13cdf3d8a`
+
+**Estado:** DISEÑADO → AUDITADO → DEPURADO → AUDIT 2 SUPERADA → MATERIALIZADO → CERRADO TÉCNICAMENTE — CI PENDIENTE
 
 ## 1. Propósito y alcance
 
@@ -225,13 +227,36 @@ U1.5A no:
 - habilita perfil operacional o datos reales;
 - implementa U1.5B, servidor, rutas o I/O.
 
-## 11. Gates y criterio de cierre
+## 11. Evidencia física
 
-Este diseño resuelve contractualmente:
+La materialización exacta queda contenida en:
 
-- **U15-G01:** schema exacto, fixture física requerida, validación estricta, fingerprint recomputable y constructor cerrado;
-- **U15-G02:** factoría atómica sin piezas desprendidas.
+- `eios/frontend/visual/synthetic_preview_admission.py`: schema cerrado, parseo estricto, canonicalización, registro inmutable, carriers factory-built y binding atómico;
+- `tests/fixtures/vertical_mvp_synthetic_preview_case_01.json`: única fixture inicial registrada;
+- `tests/test_synthetic_preview_admission.py`: pruebas positivas, negativas, de inmutabilidad, manipulación, pureza y regresión contractual;
+- `eios/frontend/visual/__init__.py`: únicamente exporta los dos tipos y las dos factorías U1.5A.
 
-G01 y G02 solo quedarán **cerrados físicamente** cuando el módulo, la fixture y las pruebas sean materializados y auditados.
+La fixture canónica `SYNTHETIC-PREVIEW-001` queda fijada por:
+
+`sha256:fbe81e2e898bbc209a853c9b88beca01e1e88153e1f69b5b76ba3ff348926f60`.
+
+La verificación local de cierre acredita:
+
+- 88 pruebas específicas U1.5A superadas;
+- 1507 pruebas totales superadas;
+- 6 warnings preexistentes, sin warning nuevo atribuible a U1.5A;
+- cero imports de filesystem, red, servidor, persistencia o motores operacionales en el módulo;
+- ninguna modificación de U1.2, U1.3 o U1.4.
+
+Estos resultados son evidencia local; no se denominan CI hasta la ejecución remota sobre el commit exacto.
+
+## 12. Gates y criterio de cierre
+
+El diseño y la materialización cierran:
+
+- **U15-G01 — CERRADO FÍSICAMENTE:** schema exacto, fixture física registrada, validación estricta, canonicalización, fingerprint recomputable, revalidación y constructor cerrado;
+- **U15-G02 — CERRADO FÍSICAMENTE:** factoría atómica que construye U1.3 y U1.4 desde el mismo carrier, sin aceptar piezas desprendidas.
+
+El cierre técnico de G01/G02 queda condicionado a una CI satisfactoria sobre el commit exacto y, posteriormente, sobre `main` si se autoriza su integración.
 
 **U15-G03 permanece bloqueado:** U1.5A no resuelve una advertencia visual persistente fuera de los bytes U1.3 y compatible con `frame-ancestors 'none'`. En consecuencia, U1.5B y cualquier adaptador loopback continúan en `NO-GO`.

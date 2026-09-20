@@ -1,6 +1,10 @@
 # EIOS — U1.5A Synthetic Visual Admission — Audit v0.1
 
-**Baseline:** `main @ 5dabd8ada1013f74c6ed6358ace8475a778d8233`
+**Baseline de diseño:** `main @ 5dabd8ada1013f74c6ed6358ace8475a778d8233`
+
+**Baseline de materialización:** `main @ 1c0b5f2c5158612204050c594b8083e13cdf3d8a`
+
+**Estado:** AUDITORÍA DE MATERIALIZACIÓN SUPERADA EN LOCAL — CI PENDIENTE
 
 **Objeto:** auditar y depurar el schema, la allowlist y el binding atómico de U1.5A sin materializar I/O.
 
@@ -168,8 +172,77 @@ No se modifican `eios/`, `tests/`, fixtures, dependencias, reglas, parámetros n
 
 **AUDITAR 2: SUPERADA PARA EL DISEÑO — 0 bloqueadores documentales.**
 
+## AUDITAR MATERIALIZACIÓN
+
+### M1 — correspondencia contrato → código
+
+La materialización conserva las dos fronteras diseñadas:
+
+```text
+bytes en memoria → case registrado
+case exacto → artifact U1.3 + delivery U1.4 → admission
+```
+
+No existe entrada por path, `Mapping`, artifact, delivery, hash o etiqueta suelta.
+
+### M2 — evidencia U15-G01
+
+- fixture física única `vertical_mvp_synthetic_preview_case_01.json`;
+- `case_id` inequívocamente sintético y allowlist por digest canónico literal;
+- rechazo de UTF-8 inválido, BOM, trailing content, claves duplicadas, no finitos, Unicode no escalar y profundidad excesiva;
+- conjuntos exactos de claves en raíz y objetos cerrados;
+- invariantes Rules/CRC y escenarios fail-closed;
+- constructor directo cerrado y estructura devuelta desacoplada de los bytes internos;
+- revalidación completa antes de admission.
+
+### M3 — evidencia U15-G02
+
+- la factoría acepta exclusivamente el tipo exacto `VerticalMVPSyntheticPreviewCase`;
+- artifact y delivery se construyen internamente en la misma llamada;
+- el case retenido es el mismo objeto admitido;
+- body U1.4 y content U1.3 conservan bytes y SHA-256 idénticos;
+- no existe overload para piezas preconstruidas;
+- la admission conserva metadata sintética fija y no incorpora `admission_sha256`.
+
+### M4 — depuración durante Audit 1
+
+Se identificó que un escape JSON con un sustituto Unicode aislado podía superar el parser y fallar después durante la codificación canónica con una excepción no contractual.
+
+**Corrección:** validación UTF-8 escalar de todos los strings y claves antes de canonicalizar, con rechazo `ValueError` y prueba negativa dedicada.
+
+### M5 — fronteras contrastadas
+
+El delta no contiene imports ni llamadas de filesystem, red, HTTP, sockets, frameworks web, subprocess o persistencia. Tampoco importa motores, reglas, Finance, Quality, application boundary ni `build_vertical_mvp_view_model`.
+
+La fixture no contiene magnitudes numéricas empresariales y declara literalmente:
+
+- `SYNTHETIC_PRESENTATION_FIXTURE`;
+- `TEST_ONLY`;
+- `operational_effect=false`;
+- `decision_authority=false`;
+- `execution_claim=false`.
+
+### Resultado Audit 1 de materialización
+
+**SUPERADA — 0 defectos pendientes.**
+
+## AUDITAR 2 — evidencia ejecutada
+
+| Verificación | Resultado local |
+|---|---|
+| Suite U1.5A | `88 passed` |
+| Suite completa | `1507 passed` |
+| Warnings | 6 preexistentes; 0 nuevos de U1.5A |
+| `git diff --check` | satisfactorio |
+| CI exact-head | pendiente de publicación autorizada |
+| CI post-merge | no aplicable antes de integración autorizada |
+
+**AUDITAR 2 DE MATERIALIZACIÓN: SUPERADA EN LOCAL.**
+
+G01 y G02 quedan cerrados físicamente. La CI remota sigue siendo condición de cierre integrado.
+
 ## CERRAR
 
-U1.5A queda **CERRADA A NIVEL DE DISEÑO**.
+U1.5A queda **CERRADA TÉCNICAMENTE EN LOCAL — CI PENDIENTE**.
 
-La siguiente acción legítima es materializar U15-G01 y U15-G02 exactamente según este contrato, auditar las pruebas y mantener U1.5B bloqueada hasta una solución independiente para U15-G03.
+U15-G03 y U1.5B permanecen bloqueados. Ninguna parte de este cierre autoriza servidor, loopback, rutas, autenticación, datos operacionales ni una asociación QTG sintética → O1/Vertical.
