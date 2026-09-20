@@ -286,3 +286,31 @@ R-MGE execution authority   → BLOQUEADA
 **NO-GO para materializar R-MGE en este momento.**
 
 El siguiente avance requiere autorización específica de Rules MGE y cierre semántico de G02/G03; la autorización previa de MGE-AUTH v0.1 no se extiende automáticamente a esta frontera.
+
+
+## 13. Reconciliación posterior — 20/09/2026
+
+Tras autorización humana explícita:
+
+```text
+Autorizo Rules MGE y la semántica propuesta
+```
+
+se cierran documentalmente:
+
+- MGE-RULES-G01 — autoridad de ejecución;
+- MGE-RULES-G02 — fórmula exacta R-MGE-002;
+- MGE-RULES-G03 — interacción mínimo/objetivo/tolerancia;
+- MGE-RULES-G05 — metadata conservadora sin R0.
+
+La semántica autorizada es:
+
+```text
+R-MGE-001: m < minimum
+R-MGE-002: m >= minimum AND m >= target - tolerance AND m < target
+R-MGE-003: m >= target
+```
+
+`MGE-RULES-G04` queda diseñado técnicamente mediante binding de las tres `ResolvedConfiguration + Evidence` dentro de un único bundle coherente y está listo para materialización.
+
+**Readiness actualizado: GO documental para materialización, condicionado a CI y a no ampliar el alcance autorizado.**
