@@ -794,22 +794,28 @@ Una instrucción genérica de continuar no sustituye el intake específico cuand
 
 ### Readiness funcional post-MGE
 
-La auditoría `07_Pruebas/Post_MGE_Next_Frontier_Readiness_Audit_v0.1.md` actualiza la selección de siguiente frente después del cierre completo de MGE.
+La auditoría `07_Pruebas/Post_MGE_Next_Frontier_Readiness_Audit_v0.1.md` identificó inicialmente FIN002/STK002/PRE como los frentes técnicos más próximos.
 
-Resultado:
+Tras autorización humana explícita de `FIN002 Post-Operation Working Capital Authority v0.1`, `R-FIN-002` quedó materializada e integrada mediante PR #249:
 
 ```text
-R-FIN-002 → candidato técnicamente más cercano
-            pero BLOCKED por ausencia de post_operation_working_capital provenance-safe
+main @ b77b16d5af5d9c1035a01ecb827ebcb4c47d9551
+CI #1017 → 1723 passed / 8 warnings / SQL SUCCESS
+```
+
+Estado actualizado:
+
+```text
+R-FIN-002 → CLOSED / MATERIALIZED / CI VALIDATED
 
 R-STK-002 → BLOCKED por projected coverage + justified-need producer
 
 R-PRE-*   → BLOCKED por semántica/binding/provenance de Rules de precio
 ```
 
-Los requisitos de intake correspondientes se formalizan en:
+FIN002 usa un carrier post-operación separado de Finance Basic, vinculado a la `PurchaseOperation` exacta y a `P-FIN-003` mediante `ResolvedConfiguration + Evidence`.
 
-`00_Gobierno/Post_MGE_Functional_Gate_Intake_Addendum_v0.1.md`.
+Los requisitos pendientes de STK002/PRE continúan en `00_Gobierno/Post_MGE_Functional_Gate_Intake_Addendum_v0.1.md`.
 
 No debe reinterpretarse `FinanceBasicResult.working_capital` como valor post-operación, ni `CoverageResult` como cobertura proyectada post-compra, ni `PriceIntelligenceResult.pr_value` como precio máximo recomendado sin autoridad específica.
 
