@@ -26,7 +26,16 @@ from .documentary_payment_capture import (
 from .finance_decision_input_package import (
     FinanceDecisionInputPackage, build_finance_decision_input_package,
 )
+from .finance_quality_preparation import (
+    FinanceQualityPreparation, PresentedQualityCriteria,
+    build_finance_quality_preparation,
+)
 from .models import DecisionContext, Evidence, PurchaseOperation
+from .projection_criteria_manifest import (
+    AuthorizedProjectionCriterion, CriterionFunction, ProjectionCriteriaManifest,
+    build_projection_criteria_manifest,
+    validate_preparation_criteria_against_manifest,
+)
 from .projection_mock_dataset import ProjectionMockDataset
 from .required_installment_coverage import (
     RequiredInstallment, RequiredInstallmentCalendar, RequiredInstallmentCoverage,
@@ -207,6 +216,34 @@ class _RequiredInstallmentCalendar(_StrictModel):
     installments: list[_RequiredInstallment] = Field(min_length=1)
 
 
+class _PresentedCriterion(_StrictModel):
+    reference: str = Field(min_length=1)
+    version: str = Field(min_length=1)
+    content_base64: str = Field(min_length=1)
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
+class _AuthorizedCriterion(_StrictModel):
+    function: CriterionFunction
+    reference: str = Field(min_length=1)
+    version: str = Field(min_length=1)
+    content_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
+class _CriteriaManifest(_StrictModel):
+    manifest_ref: str = Field(min_length=1)
+    manifest_version: str = Field(min_length=1)
+    authority_ref: str = Field(min_length=1)
+    authorized_at: str = Field(min_length=1)
+    criteria: list[_AuthorizedCriterion] = Field(min_length=1)
+
+
+class _ProjectionCriteria(_StrictModel):
+    case_kind: Literal["SYNTHETIC"]
+    presented_criteria: list[_PresentedCriterion] = Field(min_length=1)
+    manifest: _CriteriaManifest
+
+
 def _decimal(value: str | None, field: str) -> Decimal | None:
     if value is None:
         return None
@@ -239,18 +276,26 @@ def _datetime(value: str, field: str) -> datetime:
     return result
 
 
-def _verified_binary(document: _PaymentDocument, index: int) -> bytes:
-    field = f"documents[{index}].content_base64"
+def _verified_base64(
+    content_base64: str, expected_sha256: str, field: str,
+) -> bytes:
     try:
-        content = base64.b64decode(document.content_base64, validate=True)
+        content = base64.b64decode(content_base64, validate=True)
     except (ValueError, UnicodeEncodeError) as exc:
         raise ValueError(f"{field} must be strict standard base64") from exc
     canonical = base64.b64encode(content).decode("ascii")
-    if canonical != document.content_base64:
+    if canonical != content_base64:
         raise ValueError(f"{field} must use canonical base64 representation")
-    if sha256(content).hexdigest() != document.sha256:
-        raise ValueError(f"documents[{index}].sha256 does not match decoded content")
+    if sha256(content).hexdigest() != expected_sha256:
+        raise ValueError(f"{field} sha256 does not match decoded content")
     return content
+
+
+def _verified_binary(document: _PaymentDocument, index: int) -> bytes:
+    return _verified_base64(
+        document.content_base64, document.sha256,
+        f"documents[{index}].content_base64",
+    )
 
 
 def _decode(dataset: ProjectionMockDataset, component: str, model):
@@ -317,6 +362,14 @@ class _SyntheticStage3:
     payment_capture: DocumentaryPaymentCapture
     required_installment_calendar: RequiredInstallmentCalendar
     required_installment_coverage: RequiredInstallmentCoverage
+
+
+@dataclass(frozen=True)
+class _SyntheticStage4:
+    dataset_fingerprint: str
+    stage3: _SyntheticStage3
+    finance_quality_preparation: FinanceQualityPreparation
+    criteria_manifest: ProjectionCriteriaManifest
 
 
 def _build_synthetic_foundation(dataset: ProjectionMockDataset) -> _SyntheticFoundation:
@@ -498,6 +551,75 @@ def _build_synthetic_stage3(dataset: ProjectionMockDataset) -> _SyntheticStage3:
         payment_capture=capture,
         required_installment_calendar=calendar,
         required_installment_coverage=coverage,
+    )
+
+
+def _build_synthetic_stage4(dataset: ProjectionMockDataset) -> _SyntheticStage4:
+    """Build private S1-S4 material without evaluating any quality criterion."""
+    stage3 = _build_synthetic_stage3(dataset)
+    criteria_data = _decode(dataset, "projection_criteria", _ProjectionCriteria)
+
+    try:
+        presented = tuple(
+            PresentedQualityCriteria(
+                reference=item.reference,
+                version=item.version,
+                content=_verified_base64(
+                    item.content_base64,
+                    item.sha256,
+                    f"presented_criteria[{index}].content_base64",
+                ),
+            )
+            for index, item in enumerate(criteria_data.presented_criteria)
+        )
+        preparation = build_finance_quality_preparation(
+            capture=stage3.payment_capture,
+            calendar=stage3.required_installment_calendar,
+            coverage=stage3.required_installment_coverage,
+            criteria=presented,
+            review=None,
+            designation=None,
+        )
+    except (TypeError, ValueError, ValidationError) as exc:
+        raise SyntheticSemanticAdapterError(
+            "CRITERIA_PREPARATION_REJECTED", "projection_criteria", str(exc),
+        ) from exc
+
+    manifest_data = criteria_data.manifest
+    try:
+        manifest = build_projection_criteria_manifest(
+            manifest_ref=manifest_data.manifest_ref,
+            manifest_version=manifest_data.manifest_version,
+            authority_ref=manifest_data.authority_ref,
+            authorized_at=_datetime(
+                manifest_data.authorized_at, "criteria_manifest.authorized_at"),
+            criteria=tuple(
+                AuthorizedProjectionCriterion(
+                    function=item.function,
+                    reference=item.reference,
+                    version=item.version,
+                    content_sha256=item.content_sha256,
+                )
+                for item in manifest_data.criteria
+            ),
+        )
+    except (TypeError, ValueError, ValidationError) as exc:
+        raise SyntheticSemanticAdapterError(
+            "CRITERIA_MANIFEST_REJECTED", "projection_criteria", str(exc),
+        ) from exc
+
+    try:
+        validate_preparation_criteria_against_manifest(preparation, manifest)
+    except (TypeError, ValueError) as exc:
+        raise SyntheticSemanticAdapterError(
+            "CRITERIA_BINDING_REJECTED", "S4", str(exc),
+        ) from exc
+
+    return _SyntheticStage4(
+        dataset_fingerprint=dataset.fingerprint,
+        stage3=stage3,
+        finance_quality_preparation=preparation,
+        criteria_manifest=manifest,
     )
 
 
