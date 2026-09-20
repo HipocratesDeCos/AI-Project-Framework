@@ -35,6 +35,7 @@ from .orchestrator import (
     FinanceSafetyMarginRuleInputs,
     HistorySufficiencyRuleInputs,
     StockAbsorptionRuleInputs,
+    StockCoverageNeedRuleInputs,
     StockExcessRuleInputs,
     run_domain_rules,
 )
@@ -54,10 +55,12 @@ from .provenance import (
 )
 from .runtime import ConsolidatedBaseResult, RuleSetVerticalResult, RuleVerticalResult
 from .stock import (
+    R_STK_002,
     R_STK_003,
     R_STK_004,
     STOCK_CONFIRMED_DEMAND_EVIDENCE_SOURCE_TYPE,
     STOCK_EXCESS_EVIDENCE_SOURCE_TYPE,
+    evaluate_r_stk_002,
     evaluate_r_stk_003,
     evaluate_r_stk_004,
 )
@@ -85,6 +88,7 @@ __all__ = [
     "R_FIN_003",
     "R_HIS_002",
     "R_STK_001",
+    "R_STK_002",
     "R_STK_003",
     "R_STK_004",
     "REnt001VerticalResult",
@@ -96,6 +100,7 @@ __all__ = [
     "STOCK_CONFIRMED_DEMAND_EVIDENCE_SOURCE_TYPE",
     "STOCK_EXCESS_EVIDENCE_SOURCE_TYPE",
     "StockAbsorptionRuleInputs",
+    "StockCoverageNeedRuleInputs",
     "StockExcessRuleInputs",
     "authorized_rule",
     "authorized_rule_metadata",
@@ -107,6 +112,7 @@ __all__ = [
     "evaluate_r_fin_003",
     "evaluate_r_his_002",
     "evaluate_r_stk_001",
+    "evaluate_r_stk_002",
     "evaluate_r_stk_003",
     "evaluate_r_stk_004",
     "finance_basic_result_ref",

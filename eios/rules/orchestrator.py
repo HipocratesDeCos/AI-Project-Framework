@@ -18,6 +18,7 @@ from eios.parameters import ResolvedConfiguration
 from eios.pricing import PriceIntelligenceAssessmentContext, PriceIntelligenceInput
 from eios.profitability import ProvenancedProfitabilityExecution
 from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
+from eios.stock.rule_inputs import JustifiedNeedState, ProjectedCoverageAfterPurchase
 
 from .catalog import authorized_rule, implemented_rule_ids
 from .delivery import R_ENT_001, R_STK_001, evaluate_r_ent_001, evaluate_r_stk_001
@@ -44,7 +45,14 @@ from .runtime import (
     RuleSetVerticalResult,
     run_authorized_assessments_vertical,
 )
-from .stock import R_STK_003, R_STK_004, evaluate_r_stk_003, evaluate_r_stk_004
+from .stock import (
+    R_STK_002,
+    R_STK_003,
+    R_STK_004,
+    evaluate_r_stk_002,
+    evaluate_r_stk_003,
+    evaluate_r_stk_004,
+)
 
 
 @dataclass(frozen=True)
@@ -53,6 +61,16 @@ class DeliveryRuleInputs:
     analysis: DeliveryStockoutAnalysisResult
     baseline_evidence: Evidence
     delivery_evidence: Evidence
+
+
+@dataclass(frozen=True)
+class StockCoverageNeedRuleInputs:
+    coverage: ProjectedCoverageAfterPurchase
+    coverage_evidence: Evidence
+    need: JustifiedNeedState
+    need_evidence: Evidence
+    maximum_resolution: ResolvedConfiguration | None
+    parameter_evidence: Evidence | None
 
 
 @dataclass(frozen=True)
@@ -151,6 +169,7 @@ def run_domain_rules(
     context: DecisionContext,
     base_result: ConsolidatedBaseResult,
     delivery: DeliveryRuleInputs | None = None,
+    stock_coverage_need: StockCoverageNeedRuleInputs | None = None,
     stock_excess: StockExcessRuleInputs | None = None,
     stock_absorption: StockAbsorptionRuleInputs | None = None,
     finance_capacity: FinanceCapacityRuleInputs | None = None,
@@ -182,6 +201,20 @@ def run_domain_rules(
             delivery.analysis,
             delivery.baseline_evidence,
             delivery.delivery_evidence,
+        )
+
+    if stock_coverage_need is not None:
+        rule = authorized_rule(R_STK_002, context.rules_version)
+        assessments_by_rule[R_STK_002] = evaluate_r_stk_002(
+            purchase,
+            context,
+            rule,
+            stock_coverage_need.coverage,
+            stock_coverage_need.coverage_evidence,
+            stock_coverage_need.need,
+            stock_coverage_need.need_evidence,
+            stock_coverage_need.maximum_resolution,
+            stock_coverage_need.parameter_evidence,
         )
 
     if stock_excess is not None:
@@ -313,6 +346,7 @@ __all__ = [
     "HistorySufficiencyRuleInputs",
     "ProfitabilityRuleInputs",
     "StockAbsorptionRuleInputs",
+    "StockCoverageNeedRuleInputs",
     "StockExcessRuleInputs",
     "run_domain_rules",
 ]
