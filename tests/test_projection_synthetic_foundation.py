@@ -10,7 +10,10 @@ import pytest
 from eios.core._projection_synthetic_foundation import (
     SyntheticSemanticAdapterError, _build_synthetic_foundation,
     _build_synthetic_stage3, _build_synthetic_stage4, _build_synthetic_stage5,
+    _build_synthetic_stage6,
 )
+from eios.core.flow_inventory_mandate import CONDITIONS as FLOW_MANDATE_CONDITIONS
+from eios.core.flow_inventory_review import CONDITIONS as FLOW_REVIEW_CONDITIONS
 from eios.core.projection_criteria_manifest import REQUIRED_FUNCTIONS
 from eios.core.projection_mock_dataset import load_projection_mock_dataset
 from eios.core.treasury_documentary_support import CONDITIONS as TREASURY_CONDITIONS
@@ -65,6 +68,26 @@ def _components():
     ]
     contrast_documents = [
         encoded_document("TREASURY-CONTRAST-DOC-MOCK-001", b"Synthetic mandate contrast"),
+    ]
+    flow_criterion = next(
+        item for item in authorized_criteria
+        if item["function"] == "PARTICIPATING_FLOW_ATTRIBUTE_SUPPORT"
+    )
+    flow_document_ref = "FLOW-INVENTORY-DOC-MOCK-001"
+    flow_locator = {
+        "origin": "FLOW_INVENTORY_MATERIAL",
+        "document_ref": flow_document_ref,
+        "page": 1,
+        "section": "Mock flow inventory",
+    }
+    flow_mandate_documents = [
+        encoded_document("FLOW-MANDATE-DOC-MOCK-001", b"Synthetic flow mandate"),
+    ]
+    flow_channel_documents = [
+        encoded_document("FLOW-CHANNEL-DOC-MOCK-001", b"Synthetic flow channel"),
+    ]
+    flow_contrast_documents = [
+        encoded_document("FLOW-CONTRAST-DOC-MOCK-001", b"Synthetic flow contrast"),
     ]
     return {
         "identity/operation.json": {
@@ -232,6 +255,111 @@ def _components():
                 "note": "Synthetic review finding only",
                 "locators": [treasury_locator],
             } for condition in TREASURY_CONDITIONS],
+            "previous_review_ref": None,
+        },
+        "flows/inventory.json": {
+            "case_kind": "SYNTHETIC",
+            "record_ref": "FLOW-INVENTORY-MOCK-001",
+            "perimeters": [{
+                "perimeter_ref": "FLOW-PERIMETER-MOCK-001",
+                "description": "Synthetic complete projection perimeter",
+                "company_scope": "COMPANY-MOCK-001",
+                "as_of_date": "2026-09-20",
+                "horizon_end": "2026-10-20",
+                "currency": "EUR",
+                "source_refs": [flow_document_ref],
+                "coverage_declaration": "DECLARED_COMPLETE",
+                "coverage_reason": "Synthetic declaration only",
+                "limitations": ["Mock Data only"],
+            }],
+            "documents": [
+                encoded_document(flow_document_ref, b"Synthetic flow inventory"),
+            ],
+            "candidates": [{
+                "candidate_ref": "FLOW-CANDIDATE-MOCK-001",
+                "perimeter_ref": "FLOW-PERIMETER-MOCK-001",
+                "declared_flow_type": "PAYMENT",
+                "captured_flow_id": "FLOW-MOCK-PAYMENT-001",
+                "amount_assessment": "ESTABLISHED",
+                "currency_assessment": "ESTABLISHED",
+                "due_date_assessment": "ESTABLISHED",
+                "economic_membership_assessment": "ESTABLISHED",
+                "horizon_relevance": "WITHIN_HORIZON",
+                "economic_identity_ref": "ECONOMIC-OBLIGATION-MOCK-001",
+                "locators": [flow_locator],
+                "note": "Synthetic candidate declaration",
+            }],
+            "flow_assessments": [{
+                "flow_id": "FLOW-MOCK-PAYMENT-001",
+                "candidate_refs": ["FLOW-CANDIDATE-MOCK-001"],
+                "amount_assessment": "ESTABLISHED",
+                "currency_assessment": "ESTABLISHED",
+                "due_date_assessment": "ESTABLISHED",
+                "economic_membership_assessment": "ESTABLISHED",
+                "duplication_assessment": "DECLARED_UNIQUE",
+                "horizon_relevance": "WITHIN_HORIZON",
+                "criterion_reference": flow_criterion["reference"],
+                "criterion_version": flow_criterion["version"],
+                "reason": "Synthetic captured-flow assessment",
+                "locators": [flow_locator],
+            }],
+            "presenter_ref": None,
+            "presented_at": None,
+        },
+        "flows/mandate.json": {
+            "case_kind": "SYNTHETIC",
+            "verification_ref": "FLOW-MANDATE-VERIFY-MOCK-001",
+            "company_scope": "COMPANY-MOCK-001",
+            "reviewer_ref": "FLOW-REVIEWER-MOCK-001",
+            "mandate_ref": "FLOW-MANDATE-MOCK-001",
+            "target_review_ref": "FLOW-REVIEW-MOCK-001",
+            "verifier_ref": "FLOW-VERIFIER-MOCK-001",
+            "verified_at": "2026-09-20T11:00:00+00:00",
+            "channel_ref": "FLOW-CHANNEL-MOCK-001",
+            "channel_kind": "SYNTHETIC_TEST_CHANNEL",
+            "recognition_basis": "INDEPENDENTLY_SUPPORTED",
+            "mandate_kind": "SYNTHETIC",
+            "mandate_documents": flow_mandate_documents,
+            "channel_recognition_documents": flow_channel_documents,
+            "contrast_documents": flow_contrast_documents,
+            "observations": [{
+                "condition": condition,
+                "outcome": "CONFIRMED_BY_CONTRAST",
+                "note": "Synthetic flow mandate observation",
+                "locators": [{
+                    "origin": "CONTRAST_SUPPORT",
+                    "document_ref": "FLOW-CONTRAST-DOC-MOCK-001",
+                    "page": 1,
+                    "section": "Mock contrast",
+                }],
+            } for condition in FLOW_MANDATE_CONDITIONS],
+        },
+        "flows/review.json": {
+            "case_kind": "SYNTHETIC",
+            "review_ref": "FLOW-REVIEW-MOCK-001",
+            "reviewer_ref": "FLOW-REVIEWER-MOCK-001",
+            "reviewed_at": "2026-09-20T11:15:00+00:00",
+            "findings": [{
+                "condition": condition,
+                "outcome": "CONFIRMED_BY_REVIEW",
+                "note": "Synthetic flow review finding",
+                "locators": [],
+                "perimeter_refs": ["FLOW-PERIMETER-MOCK-001"],
+                "candidate_refs": [],
+                "flow_ids": [],
+                "installment_findings": [{
+                    "installment_ref": "INSTALLMENT-MOCK-001",
+                    "outcome": "CONFIRMED_BY_REVIEW",
+                    "note": "Synthetic installment trace",
+                    "locators": [{
+                        "origin": "PAYMENT_CAPTURE",
+                        "document_ref": "PAYMENT-DOC-MOCK-001",
+                        "page": 1,
+                        "section": "Payment terms",
+                    }],
+                    "flow_ids": ["FLOW-MOCK-PAYMENT-001"],
+                }] if condition == "PURCHASE_PAYMENT_COHERENCE" else [],
+            } for condition in FLOW_REVIEW_CONDITIONS],
             "previous_review_ref": None,
         },
     }
@@ -614,3 +742,162 @@ def test_s5_does_not_execute_finance_quality_or_qtg(tmp_path, monkeypatch):
     monkeypatch.setattr("eios.quality.gate.evaluate_quality", forbidden)
     result = _build_synthetic_stage5(_dataset(tmp_path))
     assert result.treasury_review.to_payload()["review_ref"] == "TREASURY-REVIEW-MOCK-001"
+
+
+
+def test_builds_private_synthetic_flow_stage(tmp_path):
+    dataset = _dataset(tmp_path)
+    result = _build_synthetic_stage6(dataset)
+    assert result.dataset_fingerprint == dataset.fingerprint
+    record = result.flow_record.to_payload()
+    mandate = result.flow_mandate.to_payload()
+    review = result.flow_review.to_payload()
+    assert record["preparation_fingerprint"] == (
+        result.stage5.stage4.finance_quality_preparation.fingerprint)
+    assert record["pending_flow_ids"] == []
+    assert record["unmatched_candidate_refs"] == []
+    assert mandate["verification_outcome"] == "ACREDITADO_POR_CONTRASTE"
+    assert review["pending_conditions"] == []
+    purchase = next(
+        item for item in review["findings"]
+        if item["condition"] == "PURCHASE_PAYMENT_COHERENCE")
+    assert [item["installment_ref"] for item in purchase["installment_findings"]] == [
+        "INSTALLMENT-MOCK-001"]
+    assert review["assurance_scope"] == "AUTHORIZED_REVIEWER_PRESENTED_FLOW_FINDINGS"
+    for payload in (record, mandate, review):
+        assert not {"quality_result", "quality_checks", "status", "confidence"} & payload.keys()
+    with pytest.raises(FrozenInstanceError):
+        result.dataset_fingerprint = "changed"
+
+
+def test_s6_rejects_noncanonical_flow_document_base64(tmp_path):
+    def noncanonical(values):
+        item = values["flows/inventory.json"]["documents"][0]
+        item["content_base64"] = "Zh=="
+        item["sha256"] = sha256(b"f").hexdigest()
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage6(_dataset(tmp_path, noncanonical))
+    assert error.value.code == "FLOW_INVENTORY_REJECTED"
+    assert "canonical base64" in str(error.value)
+
+
+def test_s6_rejects_flow_document_digest_mismatch(tmp_path):
+    def mismatch(values):
+        values["flows/mandate.json"]["contrast_documents"][0][
+            "sha256"] = sha256(b"other").hexdigest()
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage6(_dataset(tmp_path, mismatch))
+    assert error.value.code == "FLOW_MANDATE_REJECTED"
+    assert "sha256" in str(error.value)
+
+
+def test_s6_rejects_foreign_presented_criterion(tmp_path):
+    def foreign(values):
+        values["flows/inventory.json"]["flow_assessments"][0][
+            "criterion_reference"] = "FOREIGN-CRITERION"
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage6(_dataset(tmp_path, foreign))
+    assert error.value.code == "FLOW_INVENTORY_REJECTED"
+    assert "Criterion not preserved" in str(error.value)
+
+
+def test_s6_preserves_incomplete_inventory_without_fabricating_success(tmp_path):
+    def incomplete(values):
+        values["flows/inventory.json"]["flow_assessments"] = []
+        values["flows/inventory.json"]["perimeters"][0][
+            "coverage_declaration"] = "DECLARED_INCOMPLETE"
+        values["flows/inventory.json"]["perimeters"][0][
+            "coverage_reason"] = "Synthetic incomplete inventory"
+        values["flows/review.json"]["findings"] = (
+            values["flows/review.json"]["findings"][:1])
+    result = _build_synthetic_stage6(_dataset(tmp_path, incomplete))
+    record = result.flow_record.to_payload()
+    review = result.flow_review.to_payload()
+    assert record["pending_flow_ids"] == ["FLOW-MOCK-PAYMENT-001"]
+    assert record["perimeters"][0]["coverage_declaration"] == "DECLARED_INCOMPLETE"
+    assert len(review["pending_conditions"]) == 8
+    assert "quality_result" not in review
+
+
+def test_s6_rejects_uncertain_due_date_excluded_from_horizon(tmp_path):
+    def uncertain(values):
+        item = values["flows/inventory.json"]["flow_assessments"][0]
+        item["due_date_assessment"] = "NOT_ESTABLISHED"
+        item["horizon_relevance"] = "AFTER_HORIZON"
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage6(_dataset(tmp_path, uncertain))
+    assert error.value.code == "FLOW_INVENTORY_REJECTED"
+    assert "Uncertain due date" in str(error.value)
+
+
+def test_s6_requires_every_installment_in_purchase_payment_review(tmp_path):
+    def missing(values):
+        purchase = next(
+            item for item in values["flows/review.json"]["findings"]
+            if item["condition"] == "PURCHASE_PAYMENT_COHERENCE")
+        purchase["installment_findings"] = []
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage6(_dataset(tmp_path, missing))
+    assert error.value.code == "FLOW_REVIEW_REJECTED"
+    assert "every required installment" in str(error.value)
+
+
+def test_s6_rejects_foreign_installment_in_purchase_payment_review(tmp_path):
+    def foreign(values):
+        purchase = next(
+            item for item in values["flows/review.json"]["findings"]
+            if item["condition"] == "PURCHASE_PAYMENT_COHERENCE")
+        purchase["installment_findings"][0]["installment_ref"] = "FOREIGN-INSTALLMENT"
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage6(_dataset(tmp_path, foreign))
+    assert error.value.code == "FLOW_REVIEW_REJECTED"
+    assert "every required installment" in str(error.value)
+
+
+def test_s6_preserves_unresolved_mandate_and_review_findings(tmp_path):
+    def unresolved(values):
+        values["flows/mandate.json"]["observations"] = (
+            values["flows/mandate.json"]["observations"][:1])
+        values["flows/review.json"]["findings"] = (
+            values["flows/review.json"]["findings"][:1])
+    result = _build_synthetic_stage6(_dataset(tmp_path, unresolved))
+    mandate = result.flow_mandate.to_payload()
+    review = result.flow_review.to_payload()
+    assert mandate["verification_outcome"] == "INCONCLUYENTE"
+    assert len(mandate["pending_conditions"]) == 5
+    assert review["findings"][0]["outcome"] == "CONFIRMED_BY_REVIEW"
+    assert review["assurance_scope"] == (
+        "PRESENTED_UNAUTHORIZED_OR_UNRESOLVED_FLOW_FINDINGS")
+
+
+@pytest.mark.parametrize("component,path", [
+    ("flow_inventory", "flows/inventory.json"),
+    ("flow_mandate", "flows/mandate.json"),
+    ("flow_review", "flows/review.json"),
+])
+def test_s6_rejects_operational_promotion(tmp_path, component, path):
+    def operational(values):
+        values[path]["case_kind"] = "PRESENTED_OPERATIONAL"
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage6(_dataset(tmp_path, operational))
+    assert error.value.code == "INVALID_COMPONENT"
+    assert error.value.component == component
+
+
+def test_s6_rejects_detached_reviewer_identity(tmp_path):
+    def detached(values):
+        values["flows/review.json"]["reviewer_ref"] = "OTHER-REVIEWER"
+    with pytest.raises(SyntheticSemanticAdapterError) as error:
+        _build_synthetic_stage6(_dataset(tmp_path, detached))
+    assert error.value.code == "FLOW_REVIEW_REJECTED"
+    assert "Reviewer differs from mandate" in str(error.value)
+
+
+def test_s6_does_not_execute_finance_quality_or_qtg(tmp_path, monkeypatch):
+    def forbidden(*args, **kwargs):
+        raise AssertionError("execution boundary crossed")
+    monkeypatch.setattr("eios.finance.engine.calculate_finance_basic", forbidden)
+    monkeypatch.setattr("eios.finance.provenance.run_provenanced_finance_basic", forbidden)
+    monkeypatch.setattr("eios.quality.gate.evaluate_quality", forbidden)
+    result = _build_synthetic_stage6(_dataset(tmp_path))
+    assert result.flow_record.to_payload()["record_ref"] == "FLOW-INVENTORY-MOCK-001"
