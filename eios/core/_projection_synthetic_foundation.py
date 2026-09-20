@@ -6,6 +6,7 @@ import base64
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
+from hashlib import sha256
 import json
 from typing import Literal
 
