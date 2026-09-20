@@ -6,6 +6,12 @@ from .designated_synthetic_preview import (
     build_designated_synthetic_preview_artifact,
     build_designated_synthetic_preview_delivery,
 )
+from .local_synthetic_preview_adapter import (
+    LocalSyntheticPreviewAdapter,
+    LocalSyntheticPreviewRuntime,
+    build_local_synthetic_preview_adapter,
+    serve_local_synthetic_preview,
+)
 from .vertical_mvp_artifact import (
     VerticalMVPReadOnlyArtifact,
     build_vertical_mvp_readonly_artifact,
@@ -27,12 +33,15 @@ from .view_model import build_view_model
 __all__ = [
     "DesignatedSyntheticPreviewArtifact",
     "DesignatedSyntheticPreviewDelivery",
+    "LocalSyntheticPreviewAdapter",
     "LocalSyntheticPreviewAdmission",
+    "LocalSyntheticPreviewRuntime",
     "VerticalMVPReadOnlyArtifact",
     "VerticalMVPReadOnlyDelivery",
     "VerticalMVPSyntheticPreviewCase",
     "build_designated_synthetic_preview_artifact",
     "build_designated_synthetic_preview_delivery",
+    "build_local_synthetic_preview_adapter",
     "build_local_synthetic_preview_admission",
     "build_vertical_mvp_readonly_artifact",
     "build_vertical_mvp_readonly_delivery",
@@ -40,4 +49,5 @@ __all__ = [
     "build_vertical_mvp_view_model",
     "build_view_model",
     "render_vertical_mvp_readonly",
+    "serve_local_synthetic_preview",
 ]

@@ -398,3 +398,12 @@ def test_gate_evidence_is_physical_not_metadata_only():
     assert b"SYNTHETIC" in body
     assert b"TEST_ONLY" in body
     assert b"NO OPERATIONAL EFFECT" in body
+
+
+def test_delivery_retains_exact_artifact_for_downstream_lineage_revalidation():
+    artifact = _artifact()
+    delivery = build_designated_synthetic_preview_delivery(artifact)
+
+    assert delivery.artifact is artifact
+    assert delivery.artifact.content == delivery.body
+    assert delivery.artifact.content_sha256 == delivery.content_sha256

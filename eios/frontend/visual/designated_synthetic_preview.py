@@ -321,6 +321,7 @@ def _revalidate_artifact(
 class DesignatedSyntheticPreviewDelivery:
     """Immutable response descriptor for U1.5C; performs no HTTP I/O."""
 
+    _artifact: DesignatedSyntheticPreviewArtifact
     _headers: Headers
     _body: bytes
     _content_sha256: str
@@ -331,6 +332,10 @@ class DesignatedSyntheticPreviewDelivery:
     @property
     def schema_version(self) -> str:
         return DELIVERY_SCHEMA_VERSION
+
+    @property
+    def artifact(self) -> DesignatedSyntheticPreviewArtifact:
+        return self._artifact
 
     @property
     def status_code(self) -> int:
@@ -371,6 +376,7 @@ def build_designated_synthetic_preview_delivery(
         ("Content-Security-Policy", CONTENT_SECURITY_POLICY),
     )
     delivery = object.__new__(DesignatedSyntheticPreviewDelivery)
+    object.__setattr__(delivery, "_artifact", artifact)
     object.__setattr__(delivery, "_headers", headers)
     object.__setattr__(delivery, "_body", artifact.content)
     object.__setattr__(delivery, "_content_sha256", artifact.content_sha256)
