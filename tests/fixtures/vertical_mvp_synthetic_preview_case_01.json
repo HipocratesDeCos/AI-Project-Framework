@@ -1,0 +1,132 @@
+{
+  "schema_version": "EIOS-VERTICAL-MVP-SYNTHETIC-PREVIEW-CASE-01/v0.1",
+  "case_id": "SYNTHETIC-PREVIEW-001",
+  "classification": "SYNTHETIC_PRESENTATION_FIXTURE",
+  "scope": "TEST_ONLY",
+  "operational_effect": false,
+  "decision_authority": false,
+  "execution_claim": false,
+  "notice": "VISTA SINTÉTICA DE PRUEBA — NO ES UNA EJECUCIÓN OPERACIONAL DE EIOS",
+  "view_model": {
+    "execution_status": "PARTIAL",
+    "policy_version": "POLICY-SYNTHETIC-TEST-ONLY-001",
+    "failure_reason": null,
+    "unresolved_items": [
+      "SYNTHETIC-UNRESOLVED-001"
+    ],
+    "capabilities": [
+      {
+        "capability": "SYNTHETIC-PRESENTATION-A",
+        "status": "COMPLETED",
+        "result_available": true,
+        "trace_references": [
+          "TRACE-SYNTHETIC-A"
+        ],
+        "unresolved_items": []
+      },
+      {
+        "capability": "SYNTHETIC-PRESENTATION-B",
+        "status": "NOT_EVALUABLE",
+        "result_available": false,
+        "trace_references": [
+          "TRACE-SYNTHETIC-B"
+        ],
+        "unresolved_items": [
+          "SYNTHETIC-MISSING-B"
+        ]
+      }
+    ],
+    "rules_available": true,
+    "rule_coverage": {
+      "executed_rule_ids": [
+        "RULE-SYNTHETIC-PRESENTATION-001"
+      ],
+      "omitted_rule_ids": [
+        "RULE-SYNTHETIC-PRESENTATION-OMITTED-001"
+      ]
+    },
+    "crc_support_result": {
+      "consolidated_result": "INFORMACIÓN INSUFICIENTE",
+      "dominant_reason": "Fixture sintética de presentación sin autoridad decisional.",
+      "relevant_factors": [
+        "SYNTHETIC-FACTOR-ONLY"
+      ],
+      "conflicts": []
+    },
+    "assessments": [
+      {
+        "rule_id": "RULE-SYNTHETIC-PRESENTATION-001",
+        "status": "NOT_EVALUABLE",
+        "outcome": null,
+        "reason": "Sin evaluación operacional; contenido exclusivo de prueba visual.",
+        "evidence_ids": [
+          "EVIDENCE-SYNTHETIC-PRESENTATION-001"
+        ]
+      }
+    ],
+    "rule_trace_references": [
+      "TRACE-SYNTHETIC-RULES"
+    ],
+    "scenario_support_available": true,
+    "scenario_execution_context": {
+      "execution_id": "EXECUTION-SYNTHETIC-TEST-ONLY-001",
+      "decision_id": "DECISION-SYNTHETIC-NON-AUTHORITATIVE-001",
+      "rules_version": "RULES-SYNTHETIC-001",
+      "parameters_version": "PARAMETERS-SYNTHETIC-001",
+      "data_snapshot_id": "SNAPSHOT-SYNTHETIC-001"
+    },
+    "scenario_records": [
+      {
+        "scenario_id": "SCENARIO-SYNTHETIC-ALPHA",
+        "status": "COMPLETED",
+        "values": {
+          "display_state": "SYNTHETIC_ALPHA"
+        },
+        "trace_references": [
+          "TRACE-SYNTHETIC-SCENARIO-ALPHA"
+        ],
+        "unresolved_items": [],
+        "failure_reason": null
+      },
+      {
+        "scenario_id": "SCENARIO-SYNTHETIC-BETA",
+        "status": "NOT_EVALUABLE",
+        "values": {
+          "display_state": "SYNTHETIC_BETA"
+        },
+        "trace_references": [
+          "TRACE-SYNTHETIC-SCENARIO-BETA"
+        ],
+        "unresolved_items": [
+          "SYNTHETIC-SCENARIO-UNRESOLVED"
+        ],
+        "failure_reason": "Estado sintético no evaluable para prueba de presentación."
+      }
+    ],
+    "scenario_comparison": {
+      "scenario_ids": [
+        "SCENARIO-SYNTHETIC-ALPHA",
+        "SCENARIO-SYNTHETIC-BETA"
+      ],
+      "observations": [
+        "Comparación sintética exclusivamente descriptiva."
+      ],
+      "differences": [
+        {
+          "field": "display_state"
+        }
+      ],
+      "missing": [],
+      "statuses": [
+        "COMPLETED",
+        "NOT_EVALUABLE"
+      ],
+      "unresolved_items": [
+        "SYNTHETIC-SCENARIO-UNRESOLVED"
+      ],
+      "traceability": [
+        "TRACE-SYNTHETIC-COMPARISON"
+      ]
+    }
+  }
+}
