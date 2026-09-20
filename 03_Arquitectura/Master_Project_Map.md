@@ -257,7 +257,7 @@ Incluye, entre otros, contratos y cierres relativos a:
 
 `03_App/` no sustituye a `03_Arquitectura/` ni a `08_Implementacion/`.
 
-Su función es describir y gobernar la representación e interacción dentro del alcance autorizado. La aplicación no puede convertir una salida representacional en una decisión empresarial automática ni redefinir la autoridad de los componentes que representa.
+Su función es describir y gobernar la representación e interacción dentro del alcance autorizado. La cadena visual integrada dispone además de una preview local sintética `TEST_ONLY` hasta U1.5B, confinada a loopback y sin efecto operacional. La aplicación no puede convertir una salida representacional en una decisión empresarial automática ni redefinir la autoridad de los componentes que representa.
 
 ---
 
