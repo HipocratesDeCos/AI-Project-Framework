@@ -3,9 +3,9 @@
 ## EIOS — Enterprise Intelligent Operations System
 
 **Documento:** Manual Maestro del Proyecto EIOS (MMP-EIOS)  
-**Versión:** 2.3  
-**Estado:** APROBADO — reconciliación de continuidad BL-004  
-**Fecha:** 14/09/2026  
+**Versión:** 2.4  
+**Estado:** APROBADO — reconciliación de continuidad BL-005  
+**Fecha:** 20/09/2026  
 **Ubicación oficial:** `00_Gobierno/Manual_Maestro_Proyecto_EIOS.md`
 
 ---
@@ -64,7 +64,7 @@ La recuperación del proyecto debe comenzar por estas fuentes:
 ├── Manual_Maestro_Proyecto_EIOS.md
 ├── EIOS_Vertical_MVP_Salvaguarda_2026-08-16.md
 └── Baselines/
-    └── EIOS-BL-004.md
+    └── EIOS-BL-005.md
 
 03_Arquitectura/
 ├── Framework_Map.md
@@ -78,7 +78,7 @@ Funciones principales:
 - `Project_Governance.md` → gobierno y evolución controlada.
 - `Matriz_Autoridad_Documental.md` → precedencia y fuente oficial por dominio.
 - Salvaguarda Vertical MVP → marco congelado, restricciones y no regresión.
-- `EIOS-BL-004.md` → punto formal de recuperación `d3c462a2536ee20204b9d5c9dce1024e1ca7d31c`.
+- `EIOS-BL-005.md` → punto formal de recuperación `cd0504b9540d37c6523957dccd8cc51acad1b729`.
 - `Framework_Map.md` → dónde buscar documentación y materialización.
 - `Master_Project_Map.md` → cómo se organiza EIOS como sistema/proyecto.
 
@@ -246,6 +246,9 @@ El estado integrado contiene, entre otras, las siguientes capacidades o frontera
 - Negotiation Ladder;
 - CRC-MVP;
 - Decision Versioning;
+- `DIP-AGG-01` seleccionado;
+- cadena QTG especializada `PROJECTION_ONLY` hasta receipt/consumer;
+- adapter sintético S1–S7 y conformidad E2E `SYNTHETIC_TEST/TEST_ONLY`;
 - E2E Execution Boundary;
 - UI / Visual Frontend U1.1 en su alcance representacional;
 - Configuration Center UI en su subconjunto selected-context demostrado;
@@ -261,9 +264,9 @@ Para el estado exacto debe consultarse `00_Gobierno/Project_Context.md` y, despu
 
 Los siguientes frentes no deben cerrarse por inferencia:
 
-### Quality & Trust Gate
+### Quality & Trust Gate — frontera operacional
 
-No está demostrado un productor físico de `Decision Input Package` agregado, trazable y autorizado que permita declarar cerrada una frontera provenance-safe end-to-end.
+La cadena especializada `PROJECTION_ONLY / SYNTHETIC_TEST → TEST_ONLY` está cerrada y probada E2E. La integración `OPERATIONAL → O1` permanece bloqueada hasta disponer de un expediente operacional concreto y autorizado; los mocks sintéticos no pueden promoverse por cambio de etiqueta.
 
 ### Supplier Risk cuantitativo / valorativo
 
@@ -415,7 +418,7 @@ Secuencia mínima:
 4. leer `Matriz_Autoridad_Documental.md`;
 5. leer la Salvaguarda Vertical MVP;
 6. consultar `Framework_Map.md` y `Master_Project_Map.md`;
-7. consultar `EIOS-BL-004.md` como punto formal de recuperación;
+7. consultar `EIOS-BL-005.md` como punto formal de recuperación;
 8. verificar el SHA actual de `main`;
 9. identificar la unidad realmente abierta y su autoridad especializada;
 10. continuar únicamente dentro del alcance autorizado.
@@ -453,15 +456,15 @@ GitHub conserva el historial; las versiones antiguas del Manual no deben utiliza
 
 **Framework:** EIOS  
 **Vertical:** Intelligent Procurement Decision & Negotiation  
-**Baseline formal más reciente:** EIOS-BL-004 @ `d3c462a2536ee20204b9d5c9dce1024e1ca7d31c`  
+**Baseline formal más reciente:** EIOS-BL-005 @ `cd0504b9540d37c6523957dccd8cc51acad1b729`  
 **Estado general:** En desarrollo  
 **Gobierno:** Activo  
 **Salvaguarda Vertical MVP:** Vigente  
-**Manual:** v2.3 — reconciliado 14/09/2026
+**Manual:** v2.4 — reconciliado 20/09/2026
 
 El Vertical MVP completo **no está declarado cerrado**.
 
-Los componentes cerrados y los bloqueos vigentes deben resolverse desde `Project_Context.md`, `EIOS-BL-004.md` y sus fuentes especializadas, no desde estados históricos de este Manual.
+Los componentes cerrados y los bloqueos vigentes deben resolverse desde `Project_Context.md`, `EIOS-BL-005.md` y sus fuentes especializadas, no desde estados históricos de este Manual.
 
 ---
 
