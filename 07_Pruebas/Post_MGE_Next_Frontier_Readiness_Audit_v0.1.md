@@ -339,3 +339,30 @@ CI #1017: **1723 passed, 8 warnings, SQL SUCCESS**.
 **R-FIN-002: CLOSED / MATERIALIZED / CI VALIDATED.**
 
 Los diagnósticos de R-STK-002 y R-PRE-* de esta auditoría permanecen vigentes.
+
+
+## 12. Reconciliación posterior — STK002 cerrado
+
+El bloqueo STK002 registrado en esta auditoría fue resuelto posteriormente mediante autoridad humana explícita y materialización física.
+
+Cadena cerrada:
+
+```text
+ProjectedCoverageAfterPurchase + Evidence
++
+JustifiedNeedState + Evidence
++
+ResolvedConfiguration(P-STK-004) + Evidence
+        ↓
+R-STK-002
+```
+
+No se reutilizaron `CoverageResult`, `ExcessResult` ni R-STK-004 como proxies.
+
+PR #252 integrada en `main @ be13aad7d1dde788ef6e79cf262c1a7e91ed7374`.
+
+CI #1023: **1767 passed, 8 warnings, SQL SUCCESS**.
+
+**R-STK-002: CLOSED / MATERIALIZED / CI VALIDATED.**
+
+Los diagnósticos de R-PRE-* permanecen vigentes.
