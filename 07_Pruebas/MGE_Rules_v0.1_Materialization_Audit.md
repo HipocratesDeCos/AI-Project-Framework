@@ -168,3 +168,68 @@ Cierre condicionado a:
 3. SQL validations;
 4. reconciliación de cualquier test histórico afectado legítimamente por el nuevo catálogo;
 5. merge protegido por SHA.
+
+
+## 6. CI y depuración
+
+### CI #1006 — FAILURE controlado
+
+Resultado:
+
+```text
+4 failed
+1679 passed
+8 warnings
+```
+
+Los cuatro fallos correspondían a tests históricos que fijaban el conjunto anterior de reglas implementadas:
+
+- `tests/test_rule_metadata_catalog.py`;
+- `tests/test_rules_domain_orchestrator.py`.
+
+No se detectó fallo en la suite funcional MGE.
+
+### Depuración
+
+Se reconciliaron exclusivamente las expectativas históricas para:
+
+- incluir R-MGE-001/002/003 en el catálogo implementado;
+- considerar las tres reglas como `omitted` cuando no existe bundle MGE;
+- incluir el bundle MGE en el test de ejecución total del orquestador.
+
+No se modificaron:
+
+- fórmulas;
+- metadata;
+- provenance;
+- política de parámetros;
+- semántica `NOT_EVALUABLE`;
+- CRC.
+
+### CI #1007 — SUCCESS
+
+HEAD validado:
+
+```text
+37aafbaeb5c0f2733a534ae49ac5d7ed903a83d6
+```
+
+Resultado:
+
+```text
+1686 passed
+8 warnings
+SQL validations SUCCESS
+```
+
+PR #244 integrada mediante SHA protegido.
+
+Merge commit:
+
+```text
+b3fdb6275a6cc6a33ecca55bbd9af49816ce5776
+```
+
+## 7. Estado final
+
+**Rules MGE v0.1: CERRADAS / MATERIALIZADAS / CI VALIDADA.**
