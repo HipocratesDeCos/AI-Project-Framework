@@ -4,7 +4,7 @@
 >
 > **Versión:** 3.0
 > **Estado:** APROBADO — reconciliación de continuidad EIOS-BL-007
-> **Última actualización:** 20/09/2026
+> **Última actualización:** 21/09/2026
 > **Proyecto:** EIOS — Enterprise Intelligent Operations System
 
 ---
@@ -812,7 +812,9 @@ R-STK-002 → CLOSED / MATERIALIZED / CI VALIDATED
 
 R-PRE-003 → CLOSED / MATERIALIZED / CI VALIDATED
 
-R-PRE-001/002 → BLOCKED por semántica/binding/provenance específica
+R-PRE-001 → CLOSED / MATERIALIZED / CI VALIDATED
+
+R-PRE-002 → BLOCKED por semántica/binding/provenance específica
 ```
 
 FIN002 usa un carrier post-operación separado de Finance Basic, vinculado a la `PurchaseOperation` exacta y a `P-FIN-003` mediante `ResolvedConfiguration + Evidence`.
@@ -821,9 +823,11 @@ STK002 quedó cerrado mediante `ProjectedCoverageAfterPurchase` + `JustifiedNeed
 
 PRE003 quedó cerrado mediante `RecommendedPriceCeiling + RecommendedPriceCeilingEvidence`, ligado a la `PurchaseOperation` exacta y físicamente separado de Price Intelligence. PR #255: `main @ a16a6343a43dd72a5676f351ecb28bcfa1b94250`; CI #1029: 1789 passed / 8 warnings / SQL SUCCESS.
 
-Los requisitos pendientes de R-PRE-001/002 continúan en `00_Gobierno/Post_MGE_Functional_Gate_Intake_Addendum_v0.1.md`.
+PRE001 quedó cerrado mediante `ComparablePriceReference + ComparablePriceReferenceEvidence`, ligado a la `PurchaseOperation` exacta, más `ResolvedConfiguration(P-PRE-001) + Evidence` y `ResolvedConfiguration(P-PRE-004) + Evidence`. La regla utiliza una referencia individual ya seleccionada upstream, meses calendario con clipping y uplift porcentual sin defaults. PR #258: `main @ 433007bf59d1a1fdb94df9dbfcd262e14878df85`; CI #1037: 1829 passed / 8 warnings / SQL SUCCESS.
 
-No debe reinterpretarse `FinanceBasicResult.working_capital` como valor post-operación, `CoverageResult` como cobertura proyectada post-compra, `R-STK-004 FALSE` como ausencia de necesidad justificada, ni `PriceIntelligenceResult.pr_value` como precio máximo recomendado. PRE003 preserva explícitamente `PR ≠ PMR`.
+Los requisitos pendientes de R-PRE-002 continúan en `00_Gobierno/Post_MGE_Functional_Gate_Intake_Addendum_v0.1.md`.
+
+No debe reinterpretarse `FinanceBasicResult.working_capital` como valor post-operación, `CoverageResult` como cobertura proyectada post-compra, `R-STK-004 FALSE` como ausencia de necesidad justificada, ni `PriceIntelligenceResult.pr_value` como precio máximo recomendado o como referencia individual de R-PRE-001. PRE003 preserva explícitamente `PR ≠ PMR`; PRE001 no selecciona referencias automáticamente.
 
 ### Regla de interpretación
 
