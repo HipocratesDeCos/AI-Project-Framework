@@ -1,7 +1,7 @@
 # EIOS — PAG001 Offered Payment Term Adapter Implementation Audit v0.1
 
 **Autoridad:** `01_Modelo/PAG001_Offered_Payment_Term_Authority_v0.1.md`  
-**Estado:** AUDIT 1 SUPERADA — CI PENDIENTE
+**Estado:** AUDIT 2 SUPERADA — CERRADO / MATERIALIZADO / CI VALIDATED
 
 ## Cobertura estática
 
@@ -42,4 +42,18 @@ Cubren:
 
 ## Dictamen
 
-**AUDIT 1 SUPERADA — 0 BLOQUEADORES ESTÁTICOS PARA CI.**
+**AUDIT 2 SUPERADA — 0 BLOQUEADORES.**
+
+CI #1087 sobre `ea2337dde672daba32a2d22d4975ec16c7e93c4a`: **SUCCESS**.
+
+- Python tests → SUCCESS;
+- SQL validation → SUCCESS;
+- semantic authority explícita → SUCCESS;
+- multiplicidad fail-closed → SUCCESS;
+- no conversión/unificación implícita → SUCCESS.
+
+PR #280 integrada en `main @ 196ec77a22f8cd938f44871da9318d3741dfb815`.
+
+**DICTAMEN: PAG001 OFFERED PAYMENT TERM ADAPTER v0.1 CERRADO / MATERIALIZADO / CI VALIDATED.**
+
+Este cierre corresponde al carrier factual. `R-PAG-001` completa permanece abierta.
