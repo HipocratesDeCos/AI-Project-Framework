@@ -88,3 +88,5 @@ Hasta aprobación explícita:
 ```text
 R-PRE-002 → BLOCKED
 ```
+
+Una instrucción genérica de continuar no equivale a autorización de esta semántica.
