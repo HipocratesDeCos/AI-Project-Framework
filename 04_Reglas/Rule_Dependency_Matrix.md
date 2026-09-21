@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.5.11  
+**Versión:** 1.5.12  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
@@ -353,7 +353,8 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 | DEP-PAG-005-RPAG-001 | `R-PAG-001` | `DERIVED` | `P-PAG-005` | PARAMETER | Contexto económico de negociación | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Naturaleza derivada documentada. |
 | DEP-PAG-005-RPAG-002 | `R-PAG-002` | `DERIVED` | `P-PAG-005` | PARAMETER | Contexto económico de negociación | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Naturaleza derivada documentada. |
 | DEP-DAT-001-RDAT-001 | `R-DAT-001` | `PARAMETER` | `P-DAT-001` | PARAMETER | Parámetro consumidor de calidad de datos | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
-| DEP-HIS-002-RHIS-001 | `R-HIS-001` | `PARAMETER` | `P-DAT-002` | PARAMETER | Antigüedad máxima de referencia | PENDING | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
+| DEP-HIS-002-RHIS-001 | `R-HIS-001` | `PARAMETER` | `P-DAT-002` | PARAMETER | Antigüedad máxima de referencia | PENDING | `04_Reglas/Especificacion_Reglas_Historico_MVP.md`; `01_Modelo/HIS001_Temporal_Reference_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Binding físico cerrado mediante `ResolvedConfiguration(P-DAT-002) + ParameterConfigurationEvidence`; PR #265, CI #1052 SUCCESS. No valida 12 meses como política empresarial definitiva. |
+| DEP-HIS001-TEMPORAL-EVIDENCE | `R-HIS-001` | `EVIDENCE` | `HistoricalReferenceTemporalEvidence` | EVIDENCE | Demuestra la observación temporal exacta, su fecha histórica y binding a la PurchaseOperation evaluada | PENDING | `01_Modelo/HIS001_Temporal_Reference_Authority_v0.1.md`; `08_Implementacion/R_HIS_001_Technical_Contract_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Dependencia física materializada mediante `HistoricalReferenceTemporalObservation + HistoricalReferenceTemporalEvidence`; fecha futura/ausente/contradictoria falla cerrada. |
 | DEP-HIS-006-RHIS-002 | `R-HIS-002` | `PARAMETER` | `P-PRE-006` | PARAMETER | Mínimo de operaciones comparables | PENDING | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
 | DEP-ENT-BSQ-RENT-001 | `R-ENT-001` | `EVIDENCE` | `BaselineStockoutQualification` | STK / ENT METHODOLOGY | Timing de agotamiento cualificado desde escenario base sin la compra evaluada | PENDING | `04_Reglas/Especificacion_Reglas_Entrega_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Exige provenance de baseline y exclusión de la compra; no implica dependencia COMPONENT directa a STK. |
 | DEP-ENT-DTE-RENT-001 | `R-ENT-001` | `EVIDENCE` | `PurchaseSpecificDeliveryTimingEvidence` | DELIVERY / SUPPLIER EVIDENCE ADAPTER | Fecha prevista de entrega aplicable específicamente a la propuesta evaluada | PENDING | `04_Reglas/Especificacion_Reglas_Entrega_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Supplier DELIVERY_DATE es fuente opcional adaptada, no dependencia COMPONENT obligatoria. |
@@ -464,12 +465,12 @@ No se debe:
 
 # 22. Estado
 
-**Versión:** 1.5.5  
+**Versión:** 1.5.12  
 **Estado:** CERRADO  
 **Ámbito:** Dependencias transversales de reglas EIOS  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
-Esta versión conserva íntegramente la cobertura de v1.5.4 y reconcilia exclusivamente la dependencia temporal `P-PRE-001 → R-PRE-001` ya demostrada por `GAP-PI-TEMP-01`. Mantiene las relaciones `EVIDENCE` demostradas de ENT y Rotation, las reconciliaciones Finance ya cerradas y el resto de dependencias confirmadas. `Criticality` y `Evaluability_Impact` permanecen en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA`, `EVIDENCE` ni `COMPONENT`.
+Esta versión conserva la cobertura previa y reconcilia además el cierre físico de `R-HIS-001`, sin alterar las dependencias no relacionadas. Mantiene las relaciones `EVIDENCE` demostradas de ENT y Rotation, las reconciliaciones Finance ya cerradas y el resto de dependencias confirmadas. `Criticality` y `Evaluability_Impact` permanecen en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA`, `EVIDENCE` ni `COMPONENT`.
 
 La reconciliación PRE temporal confirma:
 
