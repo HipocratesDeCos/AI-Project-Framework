@@ -10,6 +10,7 @@ RULES_VERSION = "rules-v1"
 ALL_RULES = (
     "R-DAT-001",
     "R-DAT-002",
+    "R-DAT-003",
     "R-ENT-001",
     "R-FIN-001",
     "R-FIN-002",
@@ -76,6 +77,7 @@ def _all_bundles():
     marker = object()
     return dict(
         data_freshness=orchestrator.DataFreshnessRuleInputs(marker, marker, marker, marker),
+        data_sufficiency=orchestrator.DataSufficiencyRuleInputs(marker, marker),
         delivery=orchestrator.DeliveryRuleInputs(marker, marker, marker, marker),
         stock_coverage_need=orchestrator.StockCoverageNeedRuleInputs(
             marker, marker, marker, marker, marker, marker
@@ -114,6 +116,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     calls: list[str] = []
     _patch_rule(monkeypatch, "evaluate_r_dat_001", "R-DAT-001", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_dat_002", "R-DAT-002", "FALSE", calls)
+    _patch_rule(monkeypatch, "evaluate_r_dat_003", "R-DAT-003", "FALSE", calls)
     _patch_rule(monkeypatch, "evaluate_r_ent_001", "R-ENT-001", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_stk_001", "R-STK-001", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_stk_002", "R-STK-002", "FALSE", calls)
@@ -141,6 +144,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     assert calls == [
         "R-DAT-001",
         "R-DAT-002",
+        "R-DAT-003",
         "R-ENT-001",
         "R-STK-001",
         "R-STK-002",
@@ -162,7 +166,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     assert result.omitted_rule_ids == ()
     assert tuple(item.rule_id for item in result.assessments) == ALL_RULES
     assert result.crc_result.consolidated_result == "COMPRAR CONDICIONADO"
-    assert len(result.traces) == 18
+    assert len(result.traces) == 19
     assert result.c0_capability.result_available is True
 
 
@@ -227,3 +231,20 @@ def test_orchestrator_delegates_purchase_context_validation_to_public_engine():
             context=_context(),
             base_result="COMPRAR",
         )
+
+
+def test_dat003_true_dominates_as_information_insufficient(monkeypatch):
+    calls: list[str] = []
+    _patch_rule(monkeypatch, "evaluate_r_dat_003", "R-DAT-003", "TRUE", calls)
+    marker = object()
+
+    result = orchestrator.run_domain_rules(
+        purchase=_purchase(),
+        context=_context(),
+        base_result="COMPRAR",
+        data_sufficiency=orchestrator.DataSufficiencyRuleInputs(marker, marker),
+    )
+
+    assert calls == ["R-DAT-003"]
+    assert result.executed_rule_ids == ("R-DAT-003",)
+    assert result.crc_result.consolidated_result == "INFORMACIÓN INSUFICIENTE"
