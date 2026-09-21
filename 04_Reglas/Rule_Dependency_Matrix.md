@@ -354,6 +354,8 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 | DEP-PAG-005-RPAG-002 | `R-PAG-002` | `DERIVED` | `P-PAG-005` | PARAMETER | Contexto económico de negociación | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Naturaleza derivada documentada. |
 | DEP-DAT-001-RDAT-001 | `R-DAT-001` | `PARAMETER` | `P-DAT-001` | PARAMETER | Antigüedad máxima del snapshot operativo evaluado | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md`; `01_Modelo/DAT001_Data_Freshness_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Binding físico cerrado mediante `ResolvedConfiguration(P-DAT-001) + ParameterConfigurationEvidence`; PR #268, CI #1059 SUCCESS. No valida 6 semanas como política empresarial definitiva. |
 | DEP-DAT001-FRESHNESS-EVIDENCE | `R-DAT-001` | `EVIDENCE` | `DataSnapshotFreshnessEvidence` | DATA FRESHNESS | Demuestra la fecha canónica explícita de actualización del snapshot exacto y su binding a contexto/operación | PENDING | `01_Modelo/DAT001_Data_Freshness_Authority_v0.1.md`; `08_Implementacion/R_DAT_001_Technical_Contract_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Materializada mediante `DataSnapshotFreshnessProducer + DataSnapshotFreshnessObservation`; no deriva fecha desde `data_snapshot_id`, Evidence, DIP ni reloj del sistema. |
+| DEP-DAT-001-RDAT-002 | `R-DAT-002` | `PARAMETER` | `P-DAT-001` | PARAMETER | Antigüedad máxima del snapshot operativo evaluado | PENDING | `01_Modelo/DAT002_Stale_Data_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Nueva relación autorizada y materializada; mismo `ResolvedConfiguration(P-DAT-001) + Evidence` que DAT001. PR #271, CI #1066 SUCCESS. |
+| DEP-DAT002-FRESHNESS-EVIDENCE | `R-DAT-002` | `EVIDENCE` | `DataSnapshotFreshnessEvidence` | DATA FRESHNESS | Demuestra la fecha canónica explícita de actualización del mismo snapshot evaluado | PENDING | `01_Modelo/DAT002_Stale_Data_Authority_v0.1.md`; `08_Implementacion/R_DAT_002_Technical_Contract_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Reutiliza el carrier factual DAT001; no existe segundo productor ni timestamp. |
 | DEP-HIS-002-RHIS-001 | `R-HIS-001` | `PARAMETER` | `P-DAT-002` | PARAMETER | Antigüedad máxima de referencia | PENDING | `04_Reglas/Especificacion_Reglas_Historico_MVP.md`; `01_Modelo/HIS001_Temporal_Reference_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Binding físico cerrado mediante `ResolvedConfiguration(P-DAT-002) + ParameterConfigurationEvidence`; PR #265, CI #1052 SUCCESS. No valida 12 meses como política empresarial definitiva. |
 | DEP-HIS001-TEMPORAL-EVIDENCE | `R-HIS-001` | `EVIDENCE` | `HistoricalReferenceTemporalEvidence` | EVIDENCE | Demuestra la observación temporal exacta, su fecha histórica y binding a la PurchaseOperation evaluada | PENDING | `01_Modelo/HIS001_Temporal_Reference_Authority_v0.1.md`; `08_Implementacion/R_HIS_001_Technical_Contract_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Dependencia física materializada mediante `HistoricalReferenceTemporalObservation + HistoricalReferenceTemporalEvidence`; fecha futura/ausente/contradictoria falla cerrada. |
 | DEP-HIS-006-RHIS-002 | `R-HIS-002` | `PARAMETER` | `P-PRE-006` | PARAMETER | Mínimo de operaciones comparables | PENDING | `04_Reglas/Especificacion_Reglas_Historico_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
@@ -466,12 +468,12 @@ No se debe:
 
 # 22. Estado
 
-**Versión:** 1.5.12  
+**Versión:** 1.5.13  
 **Estado:** CERRADO  
 **Ámbito:** Dependencias transversales de reglas EIOS  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
-Esta versión conserva la cobertura previa y reconcilia además el cierre físico de `R-DAT-001`, sin alterar las dependencias no relacionadas. Mantiene las relaciones `EVIDENCE` demostradas de ENT y Rotation, las reconciliaciones Finance ya cerradas y el resto de dependencias confirmadas. `Criticality` y `Evaluability_Impact` permanecen en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA`, `EVIDENCE` ni `COMPONENT`.
+Esta versión conserva la cobertura previa y reconcilia además el cierre físico de `R-DAT-002` y la nueva dependencia autorizada `P-DAT-001 → R-DAT-002`, sin alterar las dependencias no relacionadas. Mantiene las relaciones `EVIDENCE` demostradas de ENT y Rotation, las reconciliaciones Finance ya cerradas y el resto de dependencias confirmadas. `Criticality` y `Evaluability_Impact` permanecen en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA`, `EVIDENCE` ni `COMPONENT`.
 
 La reconciliación DAT confirma:
 
@@ -480,7 +482,7 @@ La reconciliación DAT confirma:
 - el productor factual está separado del evaluador de regla;
 - `data_snapshot_id`, `Evidence.captured_at`, `DIP.effective_at` y el reloj del sistema no se usan como sustitutos de `source_updated_date`;
 - semana = 7 días y la igualdad con cutoff cumple la condición positiva;
-- `R-DAT-002` y `R-DAT-003` permanecen fuera de alcance;
+- `R-DAT-002` queda materializada sobre el mismo carrier/configuración, con complementariedad solo dentro del dominio EVALUABLE;\n- `R-DAT-003` permanece fuera de alcance;
 - `Criticality` y `Evaluability_Impact` permanecen `PENDING`.
 
 La reconciliación PRE temporal confirma:
