@@ -18,7 +18,12 @@ __all__=["AggregationMethod","ComparabilityStatus","EconomicBasisAssessment","Ec
 "CriticalPriceBaseline",
 "CriticalPriceBaselineState",
 "critical_price_baseline_ref",
-"critical_price_purchase_ref"]
+"critical_price_purchase_ref",
+"HISTORICAL_REFERENCE_TEMPORAL_EVIDENCE_SOURCE_TYPE",
+"HistoricalReferenceTemporalObservation",
+"HistoricalTemporalState",
+"historical_reference_purchase_ref",
+"historical_reference_temporal_ref"]
 from .recommended_ceiling import (
     RECOMMENDED_PRICE_CEILING_EVIDENCE_SOURCE_TYPE,
     RecommendedPriceCeiling,
@@ -41,4 +46,12 @@ from .critical_baseline import (
     CriticalPriceBaselineState,
     critical_price_baseline_ref,
     critical_price_purchase_ref,
+)
+
+from .historical_reference import (
+    HISTORICAL_REFERENCE_TEMPORAL_EVIDENCE_SOURCE_TYPE,
+    HistoricalReferenceTemporalObservation,
+    HistoricalTemporalState,
+    historical_reference_purchase_ref,
+    historical_reference_temporal_ref,
 )
