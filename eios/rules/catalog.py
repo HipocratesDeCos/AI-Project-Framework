@@ -29,6 +29,7 @@ _IMPLEMENTED_RULES: dict[str, ImplementedRuleMetadata] = {
     "R-FIN-002": ImplementedRuleMetadata("R-FIN-002", "R0", "CRÍTICA"),
     # FIN-AUTH-v0.1 authorizes the ordinary R1 condition only; no automatic R0 escalation.
     "R-FIN-003": ImplementedRuleMetadata("R-FIN-003", "R1", "ALTA"),
+    "R-HIS-001": ImplementedRuleMetadata("R-HIS-001", "R3", "MEDIA"),
     "R-HIS-002": ImplementedRuleMetadata("R-HIS-002", "R3", "INFORMATIVA"),
     "R-PRE-001": ImplementedRuleMetadata("R-PRE-001", "R2", "ALTA"),
     "R-PRE-002": ImplementedRuleMetadata("R-PRE-002", "R1", "ALTA"),
