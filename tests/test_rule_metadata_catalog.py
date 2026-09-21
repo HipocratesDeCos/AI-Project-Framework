@@ -50,6 +50,7 @@ def _assessment(rule_id: str, outcome: str = "TRUE") -> Assessment:
 def test_catalog_contains_exactly_implemented_rules() -> None:
     assert implemented_rule_ids() == (
         "R-DAT-001",
+        "R-DAT-002",
         "R-ENT-001",
         "R-FIN-001",
         "R-FIN-002",
@@ -73,6 +74,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
     ("rule_id", "effect", "severity"),
     (
         ("R-DAT-001", "R3", "INFORMATIVA"),
+        ("R-DAT-002", "R3", "MEDIA"),
         ("R-ENT-001", "R2", "ALTA"),
         ("R-STK-001", "R1", "ALTA"),
         ("R-STK-002", "R2", "ALTA"),
