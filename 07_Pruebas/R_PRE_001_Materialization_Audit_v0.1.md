@@ -130,3 +130,41 @@ Se cubren:
 **AUDIT 2 FÍSICO: SUPERADA — 0 bloqueadores observados antes de CI.**
 
 Cierre condicionado a CI exact-head, suite completa, SQL SUCCESS y merge protegido por SHA.
+
+
+## 5. CI y depuración
+
+PR #258 tuvo un primer run CI #1035 que falló únicamente porque tres tests históricos seguían usando `R-PRE-001` como ejemplo de regla no materializada.
+
+Depuración:
+
+```text
+uncatalogued-rule test sentinel:
+R-PRE-001 → R-PRE-002
+```
+
+No se modificó la lógica PRE001.
+
+Nuevo HEAD exacto validado:
+
+```text
+656837fdf5077a6d2332dca191823864c7810e4e
+```
+
+CI #1037:
+
+```text
+1829 passed
+8 warnings
+SQL validations SUCCESS
+```
+
+Merge protegido por SHA:
+
+```text
+main @ 433007bf59d1a1fdb94df9dbfcd262e14878df85
+```
+
+## 6. Estado final
+
+**R-PRE-001 v0.1: CERRADA / MATERIALIZADA / CI VALIDADA.**
