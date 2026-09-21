@@ -1,7 +1,7 @@
 # EIOS — R-DAT-003 Implementation Audit v0.1
 
 **Autoridad:** `01_Modelo/DAT003_Insufficient_Data_Authority_v0.1.md`  
-**Estado:** AUDIT 1 SUPERADA — CI PENDIENTE
+**Estado:** AUDIT 2 SUPERADA — CERRADO / MATERIALIZADO / CI VALIDATED
 
 ## Materialización auditada
 
@@ -47,4 +47,14 @@ sin autoridad CRC específica.
 
 **SUPERADA — 0 bloqueadores estáticos para CI.**
 
-Permanece como gap controlado la política de precedencia entre DAT003 activa y otro R0 activo.
+CI #1073 sobre `0adedde13853d6d8fcedd0a2e0feca370b468d71`: **SUCCESS**.
+
+- Python tests → SUCCESS;
+- SQL validation → SUCCESS;
+- cobertura DAT003/CRC → SUCCESS.
+
+PR #274 integrada en `main @ 2a7c26f5e5c0573ddd57fc83e4b40a1613180691`.
+
+Permanece como gap controlado la política de precedencia entre DAT003 activa y otro R0 activo. El runtime falla cerrado ante ese conflicto.
+
+**DICTAMEN: R-DAT-003 CERRADA / MATERIALIZADA / CI VALIDATED EN ALCANCE v0.1.**
