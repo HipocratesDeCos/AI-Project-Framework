@@ -399,3 +399,34 @@ CI #1029: **1789 passed, 8 warnings, SQL SUCCESS**.
 **R-PRE-003: CLOSED / MATERIALIZED / CI VALIDATED.**
 
 Los diagnósticos de R-PRE-001 y R-PRE-002 permanecen vigentes.
+
+
+## 14. Reconciliación posterior — PRE001 cerrado
+
+El bloqueo de R-PRE-001 registrado en esta auditoría fue resuelto posteriormente mediante autoridad humana explícita y materialización física.
+
+Cadena cerrada:
+
+```text
+ComparablePriceReference + Evidence
++
+ResolvedConfiguration(P-PRE-001) + Evidence
++
+ResolvedConfiguration(P-PRE-004) + Evidence
+        ↓
+calendar-month recency
++
+uplift percentage
+        ↓
+R-PRE-001
+```
+
+No se reutilizó `PriceIntelligenceResult.pr_value` como referencia individual y no se introdujo selección automática de histórico.
+
+PR #258 integrada en `main @ 433007bf59d1a1fdb94df9dbfcd262e14878df85`.
+
+CI #1037: **1829 passed, 8 warnings, SQL SUCCESS**.
+
+**R-PRE-001: CLOSED / MATERIALIZED / CI VALIDATED.**
+
+El diagnóstico de R-PRE-002 permanece vigente.
