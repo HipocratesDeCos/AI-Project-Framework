@@ -145,3 +145,43 @@ Permanecen vigentes:
 - PRE-G05 — bridge Price Intelligence → Rules cuando sea aplicable a R-PRE-001/002.
 
 R-PRE-003 no requiere Price Intelligence → Rule en v0.1.
+
+
+## Reconciliación PRE001 — 21/09/2026
+
+Los gates PRE-G01 y PRE-G02 y el intake específico de R-PRE-001 quedaron satisfechos mediante:
+
+- `01_Modelo/PRE001_Comparable_Recent_Price_Authority_v0.1.md`;
+- `08_Implementacion/R_PRE_001_Technical_Contract_v0.1.md`;
+- `ComparablePriceReference`;
+- binding SHA-256 a la `PurchaseOperation` exacta;
+- `ComparablePriceReferenceEvidence`;
+- `ResolvedConfiguration(P-PRE-001) + ParameterConfigurationEvidence`;
+- meses calendario con clipping de fin de mes;
+- `ResolvedConfiguration(P-PRE-004) + ParameterConfigurationEvidence`;
+- fórmula de uplift porcentual sin redondeo previo;
+- política fail-closed;
+- prohibición de seleccionar referencias dentro de Rules.
+
+Materialización integrada por PR #258 en:
+
+```text
+main @ 433007bf59d1a1fdb94df9dbfcd262e14878df85
+```
+
+CI #1037:
+
+```text
+1829 passed
+8 warnings
+SQL SUCCESS
+```
+
+**R-PRE-001 intake: CLOSED / MATERIALIZED / CI VALIDATED.**
+
+Permanecen vigentes para R-PRE-002:
+
+- PRE-G03 — semántica ejecutable de P-PRE-005;
+- PRE-G05 — bridge/provenance de la magnitud de precio crítico cuando corresponda.
+
+R-PRE-001 no consume `PriceIntelligenceResult.pr_value` ni selecciona referencias automáticamente.
