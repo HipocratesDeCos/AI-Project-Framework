@@ -133,7 +133,23 @@ def resolve_crc(
         active.sort(key=lambda pair: _EFFECT_PRIORITY[pair[1].effect])
         dominant_assessment, dominant_rule = active[0]
         dominant_effect = dominant_rule.effect
-        consolidated = dominant_rule.active_result or _EFFECT_RESULT[dominant_effect] or crc_input.base_result
+        dominant_candidates = [
+            (item, metadata)
+            for item, metadata in active
+            if metadata.effect == dominant_effect
+        ]
+        dominant_results = {
+            metadata.active_result
+            or _EFFECT_RESULT[dominant_effect]
+            or crc_input.base_result
+            for _, metadata in dominant_candidates
+        }
+        if len(dominant_results) != 1:
+            raise ValueError(
+                "conflicto de resultados entre reglas con el mismo efecto dominante; "
+                "requiere autoridad CRC explícita"
+            )
+        consolidated = next(iter(dominant_results))
 
         relevant = tuple(
             item.reason
