@@ -12,14 +12,18 @@ from eios.core.validation import validate_evidence
 from eios.parameters import ResolvedConfiguration
 from eios.pricing import (
     COMPARABLE_PRICE_REFERENCE_EVIDENCE_SOURCE_TYPE,
+    CRITICAL_PRICE_BASELINE_EVIDENCE_SOURCE_TYPE,
     RECOMMENDED_PRICE_CEILING_EVIDENCE_SOURCE_TYPE,
     ComparablePriceReference,
+    CriticalPriceBaseline,
     PriceIntelligenceAssessmentContext,
     PriceIntelligenceInput,
     PriceIntelligenceResult,
     RecommendedPriceCeiling,
     comparable_price_purchase_ref,
     comparable_price_reference_ref,
+    critical_price_baseline_ref,
+    critical_price_purchase_ref,
     recommended_price_ceiling_ref,
     recommended_price_purchase_ref,
     run_price_intelligence,
@@ -28,9 +32,11 @@ from eios.pricing import (
 
 R_HIS_002 = "R-HIS-002"
 R_PRE_001 = "R-PRE-001"
+R_PRE_002 = "R-PRE-002"
 R_PRE_003 = "R-PRE-003"
 P_PRE_001 = "P-PRE-001"
 P_PRE_004 = "P-PRE-004"
+P_PRE_005 = "P-PRE-005"
 P_PRE_006 = "P-PRE-006"
 PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE = "PriceIntelligenceResultEvidence"
 PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE = "ParameterConfigurationEvidence"
@@ -363,6 +369,134 @@ def evaluate_r_pre_001(
     )
 
 
+def _validate_pre002_identity(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    baseline: CriticalPriceBaseline,
+) -> None:
+    if purchase.decision_id != context.decision_id:
+        raise ValueError("PurchaseOperation y DecisionContext tienen decision_id distintos")
+    if purchase.scenario_id != context.scenario_id:
+        raise ValueError("PurchaseOperation y DecisionContext tienen scenario_id distintos")
+    if rule.rule_id != R_PRE_002:
+        raise ValueError("El bridge solo evalúa R-PRE-002")
+    if rule.version != context.rules_version:
+        raise ValueError("Rule.version incompatible con DecisionContext.rules_version")
+    if not rule.requires_evidence:
+        raise ValueError("R-PRE-002 requiere evidencia")
+    if baseline.decision_id != context.decision_id:
+        raise ValueError("CriticalPriceBaseline pertenece a otra decisión")
+    if baseline.scenario_id != context.scenario_id:
+        raise ValueError("CriticalPriceBaseline pertenece a otro escenario")
+    if baseline.data_snapshot_id != context.data_snapshot_id:
+        raise ValueError("CriticalPriceBaseline usa otro data_snapshot_id")
+    if baseline.article_id != purchase.article_id:
+        raise ValueError("CriticalPriceBaseline pertenece a otro artículo")
+    if baseline.evaluation_date != purchase.operation_date:
+        raise ValueError("CriticalPriceBaseline usa otra evaluation_date")
+    if baseline.currency != purchase.currency:
+        raise ValueError("CriticalPriceBaseline usa otra moneda")
+    if baseline.purchase_operation_ref != critical_price_purchase_ref(purchase):
+        raise ValueError("CriticalPriceBaseline no está vinculada a la PurchaseOperation exacta")
+
+
+def _validate_pre002_evidence(
+    baseline: CriticalPriceBaseline,
+    evidence: Evidence,
+) -> None:
+    if evidence.source_type != CRITICAL_PRICE_BASELINE_EVIDENCE_SOURCE_TYPE:
+        raise ValueError("baseline_evidence.source_type incompatible")
+    if evidence.captured_at != baseline.evaluation_date:
+        raise ValueError("baseline_evidence debe corresponder a evaluation_date")
+    if (
+        evidence.state == "DEMONSTRATED"
+        and evidence.demonstration_ref != critical_price_baseline_ref(baseline)
+    ):
+        raise ValueError("baseline_evidence no está vinculada al CriticalPriceBaseline evaluado")
+
+
+def evaluate_r_pre_002(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    baseline: CriticalPriceBaseline,
+    baseline_evidence: Evidence,
+    critical_resolution: ResolvedConfiguration | None,
+    critical_evidence: Evidence | None,
+) -> Assessment:
+    """Evaluate purchase price strictly above an authorized critical price limit."""
+    _validate_pre002_identity(purchase, context, rule, baseline)
+    _validate_pre002_evidence(baseline, baseline_evidence)
+    evidence_ids = [baseline_evidence.evidence_id]
+
+    if validate_evidence(baseline_evidence).status != "VALID":
+        return Assessment(
+            rule_id=R_PRE_002,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-PRE-002 no evaluable: baseline crítico no demostrado.",
+        )
+    if baseline.state != "AVAILABLE":
+        return Assessment(
+            rule_id=R_PRE_002,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason=f"R-PRE-002 no evaluable: baseline crítico {baseline.state}.",
+        )
+    if baseline.baseline_price is None:
+        return Assessment(
+            rule_id=R_PRE_002,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-PRE-002 no evaluable: baseline_price ausente.",
+        )
+    if critical_resolution is None or critical_evidence is None:
+        return Assessment(
+            rule_id=R_PRE_002,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-PRE-002 no evaluable: P-PRE-005 no resuelta/evidenciada.",
+        )
+
+    evidence_ids.append(critical_evidence.evidence_id)
+    threshold = _validated_parameter_decimal(
+        expected_id=P_PRE_005,
+        expected_unit="%",
+        purchase=purchase,
+        context=context,
+        company_id=baseline.company_scope,
+        resolved=critical_resolution,
+        evidence=critical_evidence,
+    )
+    if validate_evidence(critical_evidence).status != "VALID" or threshold is None:
+        return Assessment(
+            rule_id=R_PRE_002,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-PRE-002 no evaluable: P-PRE-005 no utilizable.",
+        )
+
+    critical_limit = baseline.baseline_price * (Decimal("1") + threshold / Decimal("100"))
+    triggered = purchase.unit_price > critical_limit
+    return Assessment(
+        rule_id=R_PRE_002,
+        status="EVALUABLE",
+        outcome="TRUE" if triggered else "FALSE",
+        evidence_ids=evidence_ids,
+        reason=(
+            "R-PRE-002 demostrada: precio propuesto superior al límite crítico."
+            if triggered
+            else "R-PRE-002 no demostrada: precio propuesto no supera el límite crítico."
+        ),
+    )
+
+
 def _validate_pre003_identity(
     purchase: PurchaseOperation,
     context: DecisionContext,
@@ -528,14 +662,17 @@ def evaluate_r_his_002(
 __all__ = [
     "P_PRE_001",
     "P_PRE_004",
+    "P_PRE_005",
     "P_PRE_006",
     "PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE",
     "PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE",
     "R_HIS_002",
     "R_PRE_001",
+    "R_PRE_002",
     "R_PRE_003",
     "evaluate_r_his_002",
     "evaluate_r_pre_001",
+    "evaluate_r_pre_002",
     "evaluate_r_pre_003",
     "price_intelligence_result_ref",
 ]
