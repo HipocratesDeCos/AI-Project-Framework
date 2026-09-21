@@ -20,6 +20,7 @@ from eios.pricing import (
     PriceIntelligenceInput,
     RecommendedPriceCeiling,
     ComparablePriceReference,
+    HistoricalReferenceTemporalObservation,
 )
 from eios.profitability import ProvenancedProfitabilityExecution
 from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
@@ -36,10 +37,12 @@ from .finance import (
     evaluate_r_fin_003,
 )
 from .pricing import (
+    R_HIS_001,
     R_HIS_002,
     R_PRE_001,
     R_PRE_002,
     R_PRE_003,
+    evaluate_r_his_001,
     evaluate_r_his_002,
     evaluate_r_pre_001,
     evaluate_r_pre_002,
@@ -150,6 +153,14 @@ class RecommendedPriceRuleInputs:
 
 
 @dataclass(frozen=True)
+class HistoryTemporalRuleInputs:
+    observation: HistoricalReferenceTemporalObservation
+    reference_evidence: Evidence
+    maximum_age_resolution: ResolvedConfiguration | None
+    parameter_evidence: Evidence | None
+
+
+@dataclass(frozen=True)
 class HistorySufficiencyRuleInputs:
     pricing_input: PriceIntelligenceInput
     pricing_assessment_context: PriceIntelligenceAssessmentContext
@@ -213,6 +224,7 @@ def run_domain_rules(
     finance_capacity: FinanceCapacityRuleInputs | None = None,
     finance_working_capital: FinanceWorkingCapitalRuleInputs | None = None,
     finance_safety_margin: FinanceSafetyMarginRuleInputs | None = None,
+    history_temporal: HistoryTemporalRuleInputs | None = None,
     history_sufficiency: HistorySufficiencyRuleInputs | None = None,
     comparable_recent_price: ComparableRecentPriceRuleInputs | None = None,
     critical_price: CriticalPriceRuleInputs | None = None,
@@ -314,6 +326,18 @@ def run_domain_rules(
             finance_safety_margin.treasury_minimum_evidence,
             finance_safety_margin.margin_resolution,
             finance_safety_margin.margin_evidence,
+        )
+
+    if history_temporal is not None:
+        rule = authorized_rule(R_HIS_001, context.rules_version)
+        assessments_by_rule[R_HIS_001] = evaluate_r_his_001(
+            purchase,
+            context,
+            rule,
+            history_temporal.observation,
+            history_temporal.reference_evidence,
+            history_temporal.maximum_age_resolution,
+            history_temporal.parameter_evidence,
         )
 
     if history_sufficiency is not None:
@@ -422,6 +446,7 @@ __all__ = [
     "FinanceCapacityRuleInputs",
     "FinanceSafetyMarginRuleInputs",
     "FinanceWorkingCapitalRuleInputs",
+    "HistoryTemporalRuleInputs",
     "HistorySufficiencyRuleInputs",
     "ProfitabilityRuleInputs",
     "RecommendedPriceRuleInputs",
