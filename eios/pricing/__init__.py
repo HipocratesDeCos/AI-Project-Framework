@@ -8,11 +8,24 @@ __all__=["AggregationMethod","ComparabilityStatus","EconomicBasisAssessment","Ec
 "RecommendedPriceCeiling",
 "RecommendedPriceCeilingState",
 "recommended_price_ceiling_ref",
-"recommended_price_purchase_ref"]
+"recommended_price_purchase_ref",
+"COMPARABLE_PRICE_REFERENCE_EVIDENCE_SOURCE_TYPE",
+"ComparablePriceReference",
+"ComparableReferenceState",
+"comparable_price_purchase_ref",
+"comparable_price_reference_ref"]
 from .recommended_ceiling import (
     RECOMMENDED_PRICE_CEILING_EVIDENCE_SOURCE_TYPE,
     RecommendedPriceCeiling,
     RecommendedPriceCeilingState,
     recommended_price_ceiling_ref,
     recommended_price_purchase_ref,
+)
+
+from .comparable_reference import (
+    COMPARABLE_PRICE_REFERENCE_EVIDENCE_SOURCE_TYPE,
+    ComparablePriceReference,
+    ComparabilityState as ComparableReferenceState,
+    comparable_price_purchase_ref,
+    comparable_price_reference_ref,
 )
