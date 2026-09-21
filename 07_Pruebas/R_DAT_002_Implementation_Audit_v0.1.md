@@ -1,7 +1,7 @@
 # EIOS — R-DAT-002 Implementation Audit v0.1
 
 **Autoridad:** `01_Modelo/DAT002_Stale_Data_Authority_v0.1.md`  
-**Estado:** AUDIT 1 SUPERADA — CI PENDIENTE
+**Estado:** AUDIT 2 SUPERADA — CERRADO / MATERIALIZADO / CI VALIDATED
 
 ## Materialización
 
@@ -27,4 +27,4 @@
 
 **AUDIT 1: SUPERADA — 0 bloqueadores estáticos.**
 
-Audit 2 queda supeditada a CI completa.
+CI #1066 sobre `b60decafbe5c38e55e1eba47f230520b3cbac8d2`: **SUCCESS**.\n\n- Python tests → SUCCESS;\n- SQL validation → SUCCESS;\n- 0 regresiones DAT002 observadas.\n\nPR #271 integrada en `main @ 24e246161106512d1bb1b69475145ad6c687ae66`.\n\n**DICTAMEN: R-DAT-002 CERRADA / MATERIALIZADA / CI VALIDATED.**
