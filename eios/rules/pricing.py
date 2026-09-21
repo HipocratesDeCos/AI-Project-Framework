@@ -13,9 +13,11 @@ from eios.parameters import ResolvedConfiguration
 from eios.pricing import (
     COMPARABLE_PRICE_REFERENCE_EVIDENCE_SOURCE_TYPE,
     CRITICAL_PRICE_BASELINE_EVIDENCE_SOURCE_TYPE,
+    HISTORICAL_REFERENCE_TEMPORAL_EVIDENCE_SOURCE_TYPE,
     RECOMMENDED_PRICE_CEILING_EVIDENCE_SOURCE_TYPE,
     ComparablePriceReference,
     CriticalPriceBaseline,
+    HistoricalReferenceTemporalObservation,
     PriceIntelligenceAssessmentContext,
     PriceIntelligenceInput,
     PriceIntelligenceResult,
@@ -24,16 +26,20 @@ from eios.pricing import (
     comparable_price_reference_ref,
     critical_price_baseline_ref,
     critical_price_purchase_ref,
+    historical_reference_purchase_ref,
+    historical_reference_temporal_ref,
     recommended_price_ceiling_ref,
     recommended_price_purchase_ref,
     run_price_intelligence,
 )
 
 
+R_HIS_001 = "R-HIS-001"
 R_HIS_002 = "R-HIS-002"
 R_PRE_001 = "R-PRE-001"
 R_PRE_002 = "R-PRE-002"
 R_PRE_003 = "R-PRE-003"
+P_DAT_002 = "P-DAT-002"
 P_PRE_001 = "P-PRE-001"
 P_PRE_004 = "P-PRE-004"
 P_PRE_005 = "P-PRE-005"
@@ -191,7 +197,7 @@ def _validated_parameter_decimal(
     positive_integer: bool = False,
 ) -> Decimal | None:
     if resolved.parameter_id != expected_id:
-        raise ValueError(f"R-PRE-001 requiere {expected_id}")
+        raise ValueError(f"Se requiere {expected_id}")
     if resolved.parameters_version != context.parameters_version:
         raise ValueError(f"{expected_id} está vinculada a otra parameters_version")
     if resolved.company_id != company_id:
@@ -589,6 +595,141 @@ def evaluate_r_pre_003(
     )
 
 
+
+def _validate_his001_identity(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    observation: HistoricalReferenceTemporalObservation,
+) -> None:
+    if purchase.decision_id != context.decision_id:
+        raise ValueError("PurchaseOperation y DecisionContext tienen decision_id distintos")
+    if purchase.scenario_id != context.scenario_id:
+        raise ValueError("PurchaseOperation y DecisionContext tienen scenario_id distintos")
+    if rule.rule_id != R_HIS_001:
+        raise ValueError("El bridge solo evalúa R-HIS-001")
+    if rule.version != context.rules_version:
+        raise ValueError("Rule.version incompatible con DecisionContext.rules_version")
+    if not rule.requires_evidence:
+        raise ValueError("R-HIS-001 requiere evidencia")
+    if observation.decision_id != context.decision_id:
+        raise ValueError("HistoricalReferenceTemporalObservation pertenece a otra decisión")
+    if observation.scenario_id != context.scenario_id:
+        raise ValueError("HistoricalReferenceTemporalObservation pertenece a otro escenario")
+    if observation.data_snapshot_id != context.data_snapshot_id:
+        raise ValueError("HistoricalReferenceTemporalObservation usa otro data_snapshot_id")
+    if observation.evaluation_date != purchase.operation_date:
+        raise ValueError("HistoricalReferenceTemporalObservation usa otra evaluation_date")
+    if observation.purchase_operation_ref != historical_reference_purchase_ref(purchase):
+        raise ValueError("HistoricalReferenceTemporalObservation no está vinculada a la PurchaseOperation exacta")
+
+
+def _validate_his001_evidence(
+    observation: HistoricalReferenceTemporalObservation,
+    evidence: Evidence,
+) -> None:
+    if evidence.source_type != HISTORICAL_REFERENCE_TEMPORAL_EVIDENCE_SOURCE_TYPE:
+        raise ValueError("reference_evidence.source_type incompatible")
+    if evidence.captured_at != observation.evaluation_date:
+        raise ValueError("reference_evidence debe corresponder a evaluation_date")
+    if (
+        evidence.state == "DEMONSTRATED"
+        and evidence.demonstration_ref != historical_reference_temporal_ref(observation)
+    ):
+        raise ValueError("reference_evidence no está vinculada al carrier temporal HIS001")
+
+
+def evaluate_r_his_001(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    observation: HistoricalReferenceTemporalObservation,
+    reference_evidence: Evidence,
+    maximum_age_resolution: ResolvedConfiguration | None,
+    parameter_evidence: Evidence | None,
+) -> Assessment:
+    """Evaluate whether one historical reference exceeds P-DAT-002 maximum age."""
+    _validate_his001_identity(purchase, context, rule, observation)
+    _validate_his001_evidence(observation, reference_evidence)
+    evidence_ids = [reference_evidence.evidence_id]
+
+    if validate_evidence(reference_evidence).status != "VALID":
+        return Assessment(
+            rule_id=R_HIS_001,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-HIS-001 no evaluable: referencia temporal no demostrada.",
+        )
+    if observation.state != "AVAILABLE":
+        return Assessment(
+            rule_id=R_HIS_001,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason=f"R-HIS-001 no evaluable: estado temporal {observation.state}.",
+        )
+    reference_date = observation.reference_operation_date
+    if reference_date is None:
+        return Assessment(
+            rule_id=R_HIS_001,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-HIS-001 no evaluable: reference_operation_date ausente.",
+        )
+    if reference_date > observation.evaluation_date:
+        return Assessment(
+            rule_id=R_HIS_001,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-HIS-001 no evaluable: referencia futura respecto a evaluation_date.",
+        )
+    if maximum_age_resolution is None or parameter_evidence is None:
+        return Assessment(
+            rule_id=R_HIS_001,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-HIS-001 no evaluable: P-DAT-002 no resuelta/evidenciada.",
+        )
+
+    evidence_ids.append(parameter_evidence.evidence_id)
+    months_value = _validated_parameter_decimal(
+        expected_id=P_DAT_002,
+        expected_unit="meses",
+        purchase=purchase,
+        context=context,
+        company_id=observation.company_scope,
+        resolved=maximum_age_resolution,
+        evidence=parameter_evidence,
+        positive_integer=True,
+    )
+    if validate_evidence(parameter_evidence).status != "VALID" or months_value is None:
+        return Assessment(
+            rule_id=R_HIS_001,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-HIS-001 no evaluable: P-DAT-002 no utilizable.",
+        )
+
+    cutoff = _subtract_calendar_months(observation.evaluation_date, int(months_value))
+    triggered = reference_date < cutoff
+    return Assessment(
+        rule_id=R_HIS_001,
+        status="EVALUABLE",
+        outcome="TRUE" if triggered else "FALSE",
+        evidence_ids=evidence_ids,
+        reason=(
+            "R-HIS-001 demostrada: la referencia supera la antigüedad máxima P-DAT-002."
+            if triggered
+            else "R-HIS-001 no demostrada: la referencia está dentro del límite P-DAT-002."
+        ),
+    )
+
+
 def evaluate_r_his_002(
     purchase: PurchaseOperation,
     context: DecisionContext,
@@ -660,16 +801,19 @@ def evaluate_r_his_002(
 
 
 __all__ = [
+    "P_DAT_002",
     "P_PRE_001",
     "P_PRE_004",
     "P_PRE_005",
     "P_PRE_006",
     "PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE",
     "PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE",
+    "R_HIS_001",
     "R_HIS_002",
     "R_PRE_001",
     "R_PRE_002",
     "R_PRE_003",
+    "evaluate_r_his_001",
     "evaluate_r_his_002",
     "evaluate_r_pre_001",
     "evaluate_r_pre_002",
