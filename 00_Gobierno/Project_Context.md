@@ -758,7 +758,7 @@ El estado integrado y documentado contiene, entre otras, las siguientes capacida
 - **Rotation:** Track A conserva su cierre metodológico factual, pero el contrato técnico sigue bloqueado mientras falten `ROT-G01` y `ROT-G04-A`; cualquier Track B mantiene además sus propias dependencias de fórmula/umbral y reglas.
 - **Payment / PAG:** `R-PAG-001` y `R-PAG-002` disponen de relaciones parámetro → regla documentadas. Supplier Evidence Core ya preserva hechos `PAYMENT_TERM` del proveedor actual y la cadena documental de pagos/cuotas conserva vencimientos y asociaciones, por lo que el carrier factual genérico ya no está totalmente ausente. El cierre ejecutable sigue bloqueado porque no existe un binding EVIDENCE/DATA canónico que transforme ese material en el escalar autorizado “plazo ofrecido” para Rules, no está definida la normalización de estructuras multicuota, sigue sin resolverse la transformación exacta de `P-PAG-003`, `P-PAG-005` mantiene contradicción entre control booleano y factor económico, y `R-PAG-002` carece de productor autorizado de viabilidad contrafactual.
 - **Historical / HIS:** `R-HIS-001` y `R-HIS-002` están materializadas en su alcance autorizado. `R-HIS-001` consume `HistoricalReferenceTemporalObservation + Evidence` vinculadas a la `PurchaseOperation` exacta y `ResolvedConfiguration(P-DAT-002) + Evidence`, con meses calendario, clipping y fail-closed. `R-HIS-003` permanece bloqueada porque no dispone de una cadena completa autorizada para determinar comparabilidad comercial material.
-- **Data Quality / DAT:** la RDM confirma `P-DAT-001 → R-DAT-001`, pero no está demostrado un productor provenance-safe de frescura general ni la semántica exacta de la frontera temporal; `R-DAT-002` y `R-DAT-003` tampoco disponen de dependencias, política o criterio físico de suficiencia completos que permitan cerrarlas sin inferencia.
+- **Data Quality / DAT:** `R-DAT-001` está materializada en su alcance autorizado mediante `DataSnapshotFreshnessProducer → DataSnapshotFreshnessObservation + Evidence → evaluate_r_dat_001`, ligada al `DecisionContext.data_snapshot_id` y a la `PurchaseOperation` exactos. Consume `ResolvedConfiguration(P-DAT-001) + Evidence`, define semana = 7 días y falla cerrada ante fecha futura, ausencia o contradicción. `R-DAT-002` y `R-DAT-003` permanecen bloqueadas porque no disponen todavía de dependencias y política física completas; DAT001 no las infiere ni sustituye QTG.
 - **Supplier Alternatives / PROV:** `R-PROV-001` y `R-PROV-002` existen en la Matriz de Reglas, pero la RDM no contiene dependencias `R-PROV-*` confirmadas y no existe un productor autorizado que transforme hechos de proveedor en alternativa, comparabilidad o mejora potencial/significativa; `Supplier Evidence Core` conserva únicamente autoridad factual.
 - **Discounts & Rappels / COM:** `R-COM-001` y `R-COM-002` existen en la Matriz de Reglas, pero la RDM no contiene dependencias `R-COM-*` confirmadas ni el Catálogo define parámetros `P-COM-*`; la presencia conceptual de descuentos/rappels o de hechos `COMMERCIAL_CONDITION` no autoriza por sí sola su transformación en semántica de regla o coste efectivo.
 - **Assurance / Shadow Mode / piloto:** bloqueado para comparación decisional real mientras no exista una fuente autorizada de decisión humana de referencia y su gobierno.
@@ -817,6 +817,8 @@ R-PRE-001 → CLOSED / MATERIALIZED / CI VALIDATED
 R-PRE-002 → CLOSED / MATERIALIZED / CI VALIDATED
 
 R-HIS-001 → CLOSED / MATERIALIZED / CI VALIDATED
+
+R-DAT-001 → CLOSED / MATERIALIZED / CI VALIDATED
 ```
 
 FIN002 usa un carrier post-operación separado de Finance Basic, vinculado a la `PurchaseOperation` exacta y a `P-FIN-003` mediante `ResolvedConfiguration + Evidence`.
@@ -832,6 +834,8 @@ PRE002 quedó cerrado mediante `CriticalPriceBaseline + CriticalPriceBaselineEvi
 El frente PRE (R-PRE-001/002/003) queda cerrado física y documentalmente.
 
 HIS001 quedó cerrado mediante `HistoricalReferenceTemporalObservation + HistoricalReferenceTemporalEvidence`, ligado a la `PurchaseOperation` exacta, más `ResolvedConfiguration(P-DAT-002) + Evidence`. La regla usa `PurchaseOperation.operation_date` como fecha base, meses calendario con clipping y frontera estricta `reference_operation_date < cutoff_date`; igualdad con el corte → `FALSE`, fecha futura/ausente/contradictoria → `NOT_EVALUABLE`. PR #265: `main @ 56c5d58478bef64922629e1f584ce7d02dc4cd1f`; CI #1052: Python tests + SQL SUCCESS.
+
+DAT001 quedó cerrado mediante un productor factual separado del evaluador normativo. `DataSnapshotFreshnessProducer` conserva metadata temporal explícita del snapshot y no deriva fechas desde IDs, Evidence, DIP ni reloj del sistema. `R-DAT-001` consume `P-DAT-001` sin hardcodear 6 semanas; cutoff inclusivo, semana = 7 días; fecha futura/ausente/contradictoria → `NOT_EVALUABLE`. PR #268: `main @ ff0d648a0594c3d495d5d348e6eaabdbe6d615ff`; CI #1059: Python tests + SQL SUCCESS.
 
 No debe reinterpretarse `FinanceBasicResult.working_capital` como valor post-operación, `CoverageResult` como cobertura proyectada post-compra, `R-STK-004 FALSE` como ausencia de necesidad justificada, ni `PriceIntelligenceResult.pr_value` como precio máximo recomendado o como referencia individual de R-PRE-001. PRE003 preserva explícitamente `PR ≠ PMR`; PRE001 no selecciona referencias automáticamente.
 
