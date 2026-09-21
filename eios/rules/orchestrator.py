@@ -19,6 +19,7 @@ from eios.pricing import (
     PriceIntelligenceAssessmentContext,
     PriceIntelligenceInput,
     RecommendedPriceCeiling,
+    ComparablePriceReference,
 )
 from eios.profitability import ProvenancedProfitabilityExecution
 from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
@@ -34,7 +35,14 @@ from .finance import (
     evaluate_r_fin_002,
     evaluate_r_fin_003,
 )
-from .pricing import R_HIS_002, R_PRE_003, evaluate_r_his_002, evaluate_r_pre_003
+from .pricing import (
+    R_HIS_002,
+    R_PRE_001,
+    R_PRE_003,
+    evaluate_r_his_002,
+    evaluate_r_pre_001,
+    evaluate_r_pre_003,
+)
 from .profitability import (
     MGEParameterBundle,
     R_MGE_001,
@@ -116,6 +124,16 @@ class FinanceSafetyMarginRuleInputs:
 
 
 @dataclass(frozen=True)
+class ComparableRecentPriceRuleInputs:
+    reference: ComparablePriceReference
+    reference_evidence: Evidence
+    recency_resolution: ResolvedConfiguration | None
+    recency_evidence: Evidence | None
+    alert_resolution: ResolvedConfiguration | None
+    alert_evidence: Evidence | None
+
+
+@dataclass(frozen=True)
 class RecommendedPriceRuleInputs:
     ceiling: RecommendedPriceCeiling
     ceiling_evidence: Evidence
@@ -186,6 +204,7 @@ def run_domain_rules(
     finance_working_capital: FinanceWorkingCapitalRuleInputs | None = None,
     finance_safety_margin: FinanceSafetyMarginRuleInputs | None = None,
     history_sufficiency: HistorySufficiencyRuleInputs | None = None,
+    comparable_recent_price: ComparableRecentPriceRuleInputs | None = None,
     recommended_price: RecommendedPriceRuleInputs | None = None,
     profitability: ProfitabilityRuleInputs | None = None,
 ) -> DecisionRuleExecutionResult:
@@ -300,6 +319,20 @@ def run_domain_rules(
             history_sufficiency.parameter_evidence,
         )
 
+    if comparable_recent_price is not None:
+        rule = authorized_rule(R_PRE_001, context.rules_version)
+        assessments_by_rule[R_PRE_001] = evaluate_r_pre_001(
+            purchase,
+            context,
+            rule,
+            comparable_recent_price.reference,
+            comparable_recent_price.reference_evidence,
+            comparable_recent_price.recency_resolution,
+            comparable_recent_price.recency_evidence,
+            comparable_recent_price.alert_resolution,
+            comparable_recent_price.alert_evidence,
+        )
+
     if recommended_price is not None:
         rule = authorized_rule(R_PRE_003, context.rules_version)
         assessments_by_rule[R_PRE_003] = evaluate_r_pre_003(
@@ -359,6 +392,7 @@ def run_domain_rules(
 
 
 __all__ = [
+    "ComparableRecentPriceRuleInputs",
     "DecisionRuleExecutionResult",
     "DeliveryRuleInputs",
     "FinanceCapacityRuleInputs",
