@@ -29,6 +29,7 @@ from .finance import (
     finance_basic_result_ref,
 )
 from .orchestrator import (
+    ComparableRecentPriceRuleInputs,
     DecisionRuleExecutionResult,
     DeliveryRuleInputs,
     FinanceCapacityRuleInputs,
@@ -41,11 +42,15 @@ from .orchestrator import (
     run_domain_rules,
 )
 from .pricing import (
+    P_PRE_001,
+    P_PRE_004,
     P_PRE_006,
     PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE,
     R_HIS_002,
+    R_PRE_001,
     R_PRE_003,
     evaluate_r_his_002,
+    evaluate_r_pre_001,
     evaluate_r_pre_003,
     price_intelligence_result_ref,
 )
@@ -71,6 +76,7 @@ from .stock import (
 __all__ = [
     "AssessmentTraceBinding",
     "BASELINE_EVIDENCE_SOURCE_TYPE",
+    "ComparableRecentPriceRuleInputs",
     "ConsolidatedBaseResult",
     "DELIVERY_EVIDENCE_SOURCE_TYPE",
     "DecisionRuleExecutionResult",
@@ -85,12 +91,15 @@ __all__ = [
     "PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE",
     "P_FIN_002",
     "P_FIN_004",
+    "P_PRE_001",
+    "P_PRE_004",
     "P_PRE_006",
     "ProvenancedRulesC0Invoker",
     "R_ENT_001",
     "R_FIN_001",
     "R_FIN_003",
     "R_HIS_002",
+    "R_PRE_001",
     "R_PRE_003",
     "R_STK_001",
     "R_STK_002",
@@ -116,6 +125,7 @@ __all__ = [
     "evaluate_r_fin_001",
     "evaluate_r_fin_003",
     "evaluate_r_his_002",
+    "evaluate_r_pre_001",
     "evaluate_r_pre_003",
     "evaluate_r_stk_001",
     "evaluate_r_stk_002",
