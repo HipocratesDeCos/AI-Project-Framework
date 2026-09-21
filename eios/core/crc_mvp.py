@@ -144,24 +144,61 @@ def resolve_crc(
             or crc_input.base_result
             for _, metadata in dominant_candidates
         }
-        if len(dominant_results) != 1:
+        dat003_true = next(
+            (
+                (item, metadata)
+                for item, metadata in dominant_candidates
+                if item.rule_id == "R-DAT-003"
+                and item.status == "EVALUABLE"
+                and item.outcome == "TRUE"
+                and (
+                    metadata.active_result
+                    or _EFFECT_RESULT[dominant_effect]
+                    or crc_input.base_result
+                )
+                == "INFORMACIÓN INSUFICIENTE"
+            ),
+            None,
+        )
+
+        dat003_precedence = (
+            dat003_true is not None
+            and dominant_effect == "R0"
+            and dominant_results
+            == {"INFORMACIÓN INSUFICIENTE", "NO COMPRAR"}
+        )
+
+        if len(dominant_results) != 1 and not dat003_precedence:
             raise ValueError(
                 "conflicto de resultados entre reglas con el mismo efecto dominante; "
                 "requiere autoridad CRC explícita"
             )
-        consolidated = next(iter(dominant_results))
 
-        relevant = tuple(
-            item.reason
-            for item, metadata in active[1:]
-            if metadata.effect != dominant_effect
-        )
-
-        conflicts = tuple(
-            f"{item.rule_id}:{metadata.effect}"
-            for item, metadata in active
-            if metadata.effect != dominant_effect
-        )
+        if dat003_precedence:
+            dominant_assessment, dominant_rule = dat003_true
+            consolidated = "INFORMACIÓN INSUFICIENTE"
+            relevant = tuple(
+                item.reason
+                for item, _ in active
+                if item.rule_id != "R-DAT-003"
+            )
+            conflicts = tuple(
+                f"{item.rule_id}:{metadata.effect}"
+                for item, metadata in active
+                if item.rule_id != "R-DAT-003"
+            )
+        else:
+            consolidated = next(iter(dominant_results))
+            relevant = tuple(
+                item.reason
+                for item, metadata in active[1:]
+                if metadata.effect != dominant_effect
+            )
+            conflicts = tuple(
+                f"{item.rule_id}:{metadata.effect}"
+                for item, metadata in active
+                if metadata.effect != dominant_effect
+            )
 
         return CRCResult(
             consolidated_result=consolidated,

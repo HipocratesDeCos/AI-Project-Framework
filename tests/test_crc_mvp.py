@@ -24,12 +24,13 @@ def assessment(rule_id="R1", outcome="TRUE", status="EVALUABLE", reason="ok"):
     )
 
 
-def rule(rule_id, effect, severity="MEDIA", version="v1"):
+def rule(rule_id, effect, severity="MEDIA", version="v1", active_result=None):
     return RuleMetadata(
         rule_id=rule_id,
         version=version,
         effect=effect,
         severity=severity,
+        active_result=active_result,
     )
 
 
@@ -156,3 +157,33 @@ def test_forbidden_outputs_are_absent(forbidden):
         {"R3": rule("R3", "R3")},
     )
     assert not hasattr(result, forbidden)
+
+
+def test_non_dat003_r0_result_conflict_still_fails_closed():
+    assessments = [
+        assessment("R0-A", reason="block-a"),
+        assessment("R0-B", reason="block-b"),
+    ]
+    metadata = {
+        "R0-A": rule(
+            "R0-A",
+            "R0",
+            severity="CRÍTICA",
+            active_result="NO COMPRAR",
+        ),
+        "R0-B": rule(
+            "R0-B",
+            "R0",
+            severity="CRÍTICA",
+            active_result="INFORMACIÓN INSUFICIENTE",
+        ),
+    }
+    with pytest.raises(ValueError, match="conflicto de resultados"):
+        resolve_crc(
+            CRCInput(
+                assessments=assessments,
+                decision_context=context(),
+                base_result="COMPRAR",
+            ),
+            metadata,
+        )

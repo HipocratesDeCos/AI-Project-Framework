@@ -208,14 +208,55 @@ def test_dat003_true_resolves_to_information_insufficient_not_no_buy() -> None:
     assert result.crc_result.consolidated_result == "INFORMACIÓN INSUFICIENTE"
 
 
-def test_crc_fails_closed_on_unresolved_r0_result_conflict() -> None:
-    with pytest.raises(ValueError, match="conflicto de resultados"):
-        run_authorized_assessments_vertical(
-            purchase=_purchase(),
-            context=_context(),
-            assessments=(
-                _assessment("R-DAT-003", "TRUE"),
-                _assessment("R-FIN-001", "TRUE"),
-            ),
-            base_result="COMPRAR",
-        )
+def test_dat003_true_precedes_concurrent_no_buy_r0_without_mutation() -> None:
+    dat003 = _assessment("R-DAT-003", "TRUE")
+    fin = _assessment("R-FIN-001", "TRUE")
+
+    result = run_authorized_assessments_vertical(
+        purchase=_purchase(),
+        context=_context(),
+        assessments=(dat003, fin),
+        base_result="COMPRAR",
+    )
+
+    assert result.crc_result.consolidated_result == "INFORMACIÓN INSUFICIENTE"
+    assert result.crc_result.dominant_reason == dat003.reason
+    assert fin.reason in result.crc_result.relevant_factors
+    assert "R-FIN-001:R0" in result.crc_result.conflicts
+    assert result.assessments[0] == dat003
+    assert result.assessments[1] == fin
+
+
+def test_dat003_false_does_not_precede_concurrent_r0_true() -> None:
+    result = run_authorized_assessments_vertical(
+        purchase=_purchase(),
+        context=_context(),
+        assessments=(
+            _assessment("R-DAT-003", "FALSE"),
+            _assessment("R-FIN-001", "TRUE"),
+        ),
+        base_result="COMPRAR",
+    )
+    assert result.crc_result.consolidated_result == "NO COMPRAR"
+    assert result.crc_result.dominant_reason == "R-FIN-001 assessment."
+
+
+def test_dat003_not_evaluable_does_not_absorb_concurrent_r0_true() -> None:
+    dat003 = Assessment(
+        rule_id="R-DAT-003",
+        status="NOT_EVALUABLE",
+        outcome=None,
+        evidence_ids=["EV-R-DAT-003"],
+        reason="R-DAT-003 no evaluable.",
+    )
+    result = run_authorized_assessments_vertical(
+        purchase=_purchase(),
+        context=_context(),
+        assessments=(
+            dat003,
+            _assessment("R-FIN-001", "TRUE"),
+        ),
+        base_result="COMPRAR",
+    )
+    assert result.crc_result.consolidated_result == "NO COMPRAR"
+    assert result.crc_result.dominant_reason == "R-FIN-001 assessment."
