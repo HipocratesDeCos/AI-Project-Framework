@@ -38,9 +38,11 @@ from .finance import (
 from .pricing import (
     R_HIS_002,
     R_PRE_001,
+    R_PRE_002,
     R_PRE_003,
     evaluate_r_his_002,
     evaluate_r_pre_001,
+    evaluate_r_pre_002,
     evaluate_r_pre_003,
 )
 from .profitability import (
@@ -134,6 +136,14 @@ class ComparableRecentPriceRuleInputs:
 
 
 @dataclass(frozen=True)
+class CriticalPriceRuleInputs:
+    baseline: CriticalPriceBaseline
+    baseline_evidence: Evidence
+    critical_resolution: ResolvedConfiguration | None
+    critical_evidence: Evidence | None
+
+
+@dataclass(frozen=True)
 class RecommendedPriceRuleInputs:
     ceiling: RecommendedPriceCeiling
     ceiling_evidence: Evidence
@@ -205,6 +215,7 @@ def run_domain_rules(
     finance_safety_margin: FinanceSafetyMarginRuleInputs | None = None,
     history_sufficiency: HistorySufficiencyRuleInputs | None = None,
     comparable_recent_price: ComparableRecentPriceRuleInputs | None = None,
+    critical_price: CriticalPriceRuleInputs | None = None,
     recommended_price: RecommendedPriceRuleInputs | None = None,
     profitability: ProfitabilityRuleInputs | None = None,
 ) -> DecisionRuleExecutionResult:
@@ -333,6 +344,18 @@ def run_domain_rules(
             comparable_recent_price.alert_evidence,
         )
 
+    if critical_price is not None:
+        rule = authorized_rule(R_PRE_002, context.rules_version)
+        assessments_by_rule[R_PRE_002] = evaluate_r_pre_002(
+            purchase,
+            context,
+            rule,
+            critical_price.baseline,
+            critical_price.baseline_evidence,
+            critical_price.critical_resolution,
+            critical_price.critical_evidence,
+        )
+
     if recommended_price is not None:
         rule = authorized_rule(R_PRE_003, context.rules_version)
         assessments_by_rule[R_PRE_003] = evaluate_r_pre_003(
@@ -393,6 +416,7 @@ def run_domain_rules(
 
 __all__ = [
     "ComparableRecentPriceRuleInputs",
+    "CriticalPriceRuleInputs",
     "DecisionRuleExecutionResult",
     "DeliveryRuleInputs",
     "FinanceCapacityRuleInputs",

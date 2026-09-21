@@ -58,6 +58,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
         "R-MGE-002",
         "R-MGE-003",
         "R-PRE-001",
+        "R-PRE-002",
         "R-PRE-003",
         "R-STK-001",
         "R-STK-002",
@@ -82,6 +83,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
         ("R-MGE-002", "R2", "MEDIA"),
         ("R-MGE-003", "R3", "INFORMATIVA"),
         ("R-PRE-001", "R2", "ALTA"),
+        ("R-PRE-002", "R1", "ALTA"),
         ("R-PRE-003", "R3", "INFORMATIVA"),
     ),
 )
@@ -100,9 +102,9 @@ def test_catalog_builds_canonical_rule() -> None:
 
 def test_catalog_rejects_unknown_rule() -> None:
     with pytest.raises(ValueError, match="no materializada"):
-        authorized_rule_metadata("R-PRE-002", RULES)
+        authorized_rule_metadata("R-HIS-001", RULES)
     with pytest.raises(ValueError, match="no materializada"):
-        authorized_rule("R-PRE-002", RULES)
+        authorized_rule("R-HIS-001", RULES)
 
 
 def test_bind_authorized_assessment_rejects_rule_mismatch() -> None:
@@ -165,7 +167,7 @@ def test_same_execution_runtime_fails_closed_for_uncatalogued_rule() -> None:
         run_authorized_assessments_vertical(
             purchase=_purchase(),
             context=_context(),
-            assessments=(_assessment("R-PRE-002"),),
+            assessments=(_assessment("R-HIS-001"),),
             base_result="COMPRAR",
         )
 
