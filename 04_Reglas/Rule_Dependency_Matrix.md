@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.5.15  
+**Versión:** 1.5.16  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
@@ -347,6 +347,7 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 | DEP-FIN-006-RFIN-001 | `R-FIN-001` | `PARAMETER` | `P-FIN-006` | PARAMETER | Parte del cálculo de capacidad financiera prevista | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación documentada. |
 | DEP-PAG-001-RPAG-002 | `R-PAG-002` | `PARAMETER` | `P-PAG-001` | PARAMETER | Plazo mínimo aceptable | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa. |
 | DEP-PAG-002-RPAG-001 | `R-PAG-001` | `PARAMETER` | `P-PAG-002` | PARAMETER | Plazo objetivo | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa. |
+| DEP-PAG001-OFFERED-TERM | `R-PAG-001` | `DATA` | `OfferedPaymentTermObservation` | PAYMENT TERM | Escalar canónico de plazo ofrecido del proveedor actual en días | PENDING | `01_Modelo/PAG001_Offered_Payment_Term_Authority_v0.1.md`; `08_Implementacion/PAG001_Offered_Payment_Term_Adapter_Technical_Contract_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Carrier materializado por `PaymentTermObservationAdapter` desde Supplier Evidence con `PaymentTermSemanticAuthority` explícita. No autoriza R-PAG-001 completa ni normalización multicuota. PR #280, CI #1087 SUCCESS. |
 | DEP-PAG-003-RPAG-001 | `R-PAG-001` | `DERIVED` | `P-PAG-003` | PARAMETER | Modulación del objetivo de pago | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Naturaleza derivada documentada. |
 | DEP-PAG-004-RPAG-001 | `R-PAG-001` | `CONTROL` | `P-PAG-004` | PARAMETER | Control de consideración del plazo | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Control documentado. |
 | DEP-PAG-004-RPAG-002 | `R-PAG-002` | `CONTROL` | `P-PAG-004` | PARAMETER | Control de consideración del plazo | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Control documentado. |
@@ -492,6 +493,15 @@ La reconciliación DAT confirma:
 - `P-DAT-003` y `P-DAT-007` permanecen fuera de consumo DAT003 v0.1;
 - la precedencia `R-DAT-003 EVALUABLE/TRUE` frente a otro R0 `EVALUABLE/TRUE → NO COMPRAR` queda autorizada y materializada: consolida `INFORMACIÓN INSUFICIENTE`, preservando el otro R0 como factor/conflicto; DAT003 `FALSE` o `NOT_EVALUABLE` no activa la excepción;
 - `Criticality` y `Evaluability_Impact` permanecen `PENDING`.
+
+La reconciliación PAG001 factual confirma:
+
+- `OfferedPaymentTermObservation` como carrier DATA confirmado para `R-PAG-001`;
+- semantic authority explícita; el literal `semantic_ref` no tiene autoridad por sí mismo;
+- múltiples PAYMENT_TERM aplicables → `CONFLICTING_DATA`;
+- observación KNOWN presente pero no utilizable → `NOT_DETERMINABLE`;
+- no se normalizan cuotas/vencimientos a un escalar;
+- `P-PAG-003`, `P-PAG-005` y la regla R-PAG-001 completa permanecen pendientes.
 
 La reconciliación PRE temporal confirma:
 
