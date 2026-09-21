@@ -1,19 +1,25 @@
 """Rules-layer bridges for closed Price Intelligence C1 outputs."""
 from __future__ import annotations
 
+import calendar
 import hashlib
 import json
+from datetime import date
 from decimal import Decimal, InvalidOperation
 
 from eios.core.models import Assessment, DecisionContext, Evidence, PurchaseOperation, Rule
 from eios.core.validation import validate_evidence
 from eios.parameters import ResolvedConfiguration
 from eios.pricing import (
+    COMPARABLE_PRICE_REFERENCE_EVIDENCE_SOURCE_TYPE,
     RECOMMENDED_PRICE_CEILING_EVIDENCE_SOURCE_TYPE,
+    ComparablePriceReference,
     PriceIntelligenceAssessmentContext,
     PriceIntelligenceInput,
     PriceIntelligenceResult,
     RecommendedPriceCeiling,
+    comparable_price_purchase_ref,
+    comparable_price_reference_ref,
     recommended_price_ceiling_ref,
     recommended_price_purchase_ref,
     run_price_intelligence,
@@ -21,7 +27,10 @@ from eios.pricing import (
 
 
 R_HIS_002 = "R-HIS-002"
+R_PRE_001 = "R-PRE-001"
 R_PRE_003 = "R-PRE-003"
+P_PRE_001 = "P-PRE-001"
+P_PRE_004 = "P-PRE-004"
 P_PRE_006 = "P-PRE-006"
 PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE = "PriceIntelligenceResultEvidence"
 PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE = "ParameterConfigurationEvidence"
@@ -113,6 +122,245 @@ def _minimum_comparable_operations(
     if not value.is_finite() or value <= 0 or value != value.to_integral_value():
         return None
     return int(value)
+
+
+def _validate_pre001_identity(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    reference: ComparablePriceReference,
+) -> None:
+    if purchase.decision_id != context.decision_id:
+        raise ValueError("PurchaseOperation y DecisionContext tienen decision_id distintos")
+    if purchase.scenario_id != context.scenario_id:
+        raise ValueError("PurchaseOperation y DecisionContext tienen scenario_id distintos")
+    if rule.rule_id != R_PRE_001:
+        raise ValueError("El bridge solo evalúa R-PRE-001")
+    if rule.version != context.rules_version:
+        raise ValueError("Rule.version incompatible con DecisionContext.rules_version")
+    if not rule.requires_evidence:
+        raise ValueError("R-PRE-001 requiere evidencia")
+    if reference.decision_id != context.decision_id:
+        raise ValueError("ComparablePriceReference pertenece a otra decisión")
+    if reference.scenario_id != context.scenario_id:
+        raise ValueError("ComparablePriceReference pertenece a otro escenario")
+    if reference.data_snapshot_id != context.data_snapshot_id:
+        raise ValueError("ComparablePriceReference usa otro data_snapshot_id")
+    if reference.article_id != purchase.article_id:
+        raise ValueError("ComparablePriceReference pertenece a otro artículo")
+    if reference.evaluation_date != purchase.operation_date:
+        raise ValueError("ComparablePriceReference usa otra evaluation_date")
+    if reference.currency != purchase.currency:
+        raise ValueError("ComparablePriceReference usa otra moneda")
+    if reference.purchase_operation_ref != comparable_price_purchase_ref(purchase):
+        raise ValueError("ComparablePriceReference no está vinculada a la PurchaseOperation exacta")
+    if reference.reference_date > reference.evaluation_date:
+        raise ValueError("reference_date no puede ser futura respecto a evaluation_date")
+
+
+def _validate_pre001_reference_evidence(
+    reference: ComparablePriceReference,
+    evidence: Evidence,
+) -> None:
+    if evidence.source_type != COMPARABLE_PRICE_REFERENCE_EVIDENCE_SOURCE_TYPE:
+        raise ValueError("reference_evidence.source_type incompatible")
+    if evidence.captured_at != reference.evaluation_date:
+        raise ValueError("reference_evidence debe corresponder a evaluation_date")
+    if (
+        evidence.state == "DEMONSTRATED"
+        and evidence.demonstration_ref != comparable_price_reference_ref(reference)
+    ):
+        raise ValueError("reference_evidence no está vinculada a ComparablePriceReference")
+
+
+def _validated_parameter_decimal(
+    *,
+    expected_id: str,
+    expected_unit: str,
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    company_id: str,
+    resolved: ResolvedConfiguration,
+    evidence: Evidence,
+    positive_integer: bool = False,
+) -> Decimal | None:
+    if resolved.parameter_id != expected_id:
+        raise ValueError(f"R-PRE-001 requiere {expected_id}")
+    if resolved.parameters_version != context.parameters_version:
+        raise ValueError(f"{expected_id} está vinculada a otra parameters_version")
+    if resolved.company_id != company_id:
+        raise ValueError(f"{expected_id} pertenece a otro company_scope")
+    if resolved.effective_at.date() != purchase.operation_date:
+        raise ValueError(f"{expected_id} debe resolverse para evaluation_date")
+
+    configuration = resolved.configuration
+    try:
+        active = configuration.valid_from <= resolved.effective_at and (
+            configuration.valid_to is None
+            or resolved.effective_at < configuration.valid_to
+        )
+    except TypeError as exc:
+        raise ValueError(f"{expected_id} usa semántica temporal incompatible") from exc
+    if not active:
+        raise ValueError(f"{expected_id} no está vigente en effective_at")
+
+    if resolved.unit != expected_unit:
+        return None
+    if evidence.source_type != PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE:
+        raise ValueError("parameter_evidence.source_type incompatible")
+    if evidence.captured_at != purchase.operation_date:
+        raise ValueError("parameter_evidence debe corresponder a evaluation_date")
+    if (
+        evidence.state == "DEMONSTRATED"
+        and evidence.demonstration_ref != resolved.configuration_ref
+    ):
+        raise ValueError(f"parameter_evidence no está vinculada a {expected_id}")
+
+    try:
+        value = Decimal(resolved.value)
+    except (InvalidOperation, ValueError, TypeError):
+        return None
+    if not value.is_finite():
+        return None
+    if positive_integer:
+        if value <= 0 or value != value.to_integral_value():
+            return None
+    elif value < 0:
+        return None
+    return value
+
+
+def _subtract_calendar_months(value: date, months: int) -> date:
+    total_months = value.year * 12 + (value.month - 1) - months
+    target_year, month_index = divmod(total_months, 12)
+    target_month = month_index + 1
+    target_day = min(value.day, calendar.monthrange(target_year, target_month)[1])
+    return date(target_year, target_month, target_day)
+
+
+def evaluate_r_pre_001(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    reference: ComparablePriceReference,
+    reference_evidence: Evidence,
+    recency_resolution: ResolvedConfiguration | None,
+    recency_evidence: Evidence | None,
+    alert_resolution: ResolvedConfiguration | None,
+    alert_evidence: Evidence | None,
+) -> Assessment:
+    """Evaluate one explicit comparable recent price against P-PRE-004."""
+    _validate_pre001_identity(purchase, context, rule, reference)
+    _validate_pre001_reference_evidence(reference, reference_evidence)
+    evidence_ids = [reference_evidence.evidence_id]
+
+    if validate_evidence(reference_evidence).status != "VALID":
+        return Assessment(
+            rule_id=R_PRE_001,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-PRE-001 no evaluable: referencia comparable no demostrada.",
+        )
+    if reference.comparability_state != "COMPARABLE":
+        return Assessment(
+            rule_id=R_PRE_001,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason=f"R-PRE-001 no evaluable: comparabilidad {reference.comparability_state}.",
+        )
+    if reference.reference_price is None:
+        return Assessment(
+            rule_id=R_PRE_001,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-PRE-001 no evaluable: reference_price ausente.",
+        )
+
+    if recency_resolution is None or recency_evidence is None:
+        return Assessment(
+            rule_id=R_PRE_001,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-PRE-001 no evaluable: P-PRE-001 no resuelta/evidenciada.",
+        )
+    evidence_ids.append(recency_evidence.evidence_id)
+    months_value = _validated_parameter_decimal(
+        expected_id=P_PRE_001,
+        expected_unit="meses",
+        purchase=purchase,
+        context=context,
+        company_id=reference.company_scope,
+        resolved=recency_resolution,
+        evidence=recency_evidence,
+        positive_integer=True,
+    )
+    if validate_evidence(recency_evidence).status != "VALID" or months_value is None:
+        return Assessment(
+            rule_id=R_PRE_001,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-PRE-001 no evaluable: P-PRE-001 no utilizable.",
+        )
+
+    cutoff = _subtract_calendar_months(reference.evaluation_date, int(months_value))
+    if reference.reference_date < cutoff:
+        return Assessment(
+            rule_id=R_PRE_001,
+            status="EVALUABLE",
+            outcome="FALSE",
+            evidence_ids=evidence_ids,
+            reason="R-PRE-001 no demostrada: referencia comparable fuera del horizonte reciente.",
+        )
+
+    if alert_resolution is None or alert_evidence is None:
+        return Assessment(
+            rule_id=R_PRE_001,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-PRE-001 no evaluable: P-PRE-004 no resuelta/evidenciada.",
+        )
+    evidence_ids.append(alert_evidence.evidence_id)
+    threshold = _validated_parameter_decimal(
+        expected_id=P_PRE_004,
+        expected_unit="%",
+        purchase=purchase,
+        context=context,
+        company_id=reference.company_scope,
+        resolved=alert_resolution,
+        evidence=alert_evidence,
+    )
+    if validate_evidence(alert_evidence).status != "VALID" or threshold is None:
+        return Assessment(
+            rule_id=R_PRE_001,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-PRE-001 no evaluable: P-PRE-004 no utilizable.",
+        )
+
+    uplift_pct = (
+        (purchase.unit_price - reference.reference_price)
+        / reference.reference_price
+        * Decimal("100")
+    )
+    triggered = uplift_pct >= threshold
+    return Assessment(
+        rule_id=R_PRE_001,
+        status="EVALUABLE",
+        outcome="TRUE" if triggered else "FALSE",
+        evidence_ids=evidence_ids,
+        reason=(
+            "R-PRE-001 demostrada: uplift igual o superior a P-PRE-004 sobre referencia comparable reciente."
+            if triggered
+            else "R-PRE-001 no demostrada: uplift inferior a P-PRE-004."
+        ),
+    )
 
 
 def _validate_pre003_identity(
@@ -278,12 +526,16 @@ def evaluate_r_his_002(
 
 
 __all__ = [
+    "P_PRE_001",
+    "P_PRE_004",
     "P_PRE_006",
     "PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE",
     "PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE",
     "R_HIS_002",
+    "R_PRE_001",
     "R_PRE_003",
     "evaluate_r_his_002",
+    "evaluate_r_pre_001",
     "evaluate_r_pre_003",
     "price_intelligence_result_ref",
 ]

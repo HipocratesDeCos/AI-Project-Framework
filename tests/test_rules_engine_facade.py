@@ -118,8 +118,8 @@ def test_rules_engine_preserves_authorized_base_result_when_bindings_empty() -> 
 def test_rules_engine_fails_closed_for_uncatalogued_binding() -> None:
     context = _context()
     purchase = _purchase()
-    assessment = _assessment("R-PRE-001")
-    rule = Rule(rule_id="R-PRE-001", version=RULES, requires_evidence=True)
+    assessment = _assessment("R-PRE-002")
+    rule = Rule(rule_id="R-PRE-002", version=RULES, requires_evidence=True)
     trace = build_trace(context, purchase, rule, tuple(assessment.evidence_ids), assessment)
     payload = RulesEngineInput(
         purchase=purchase,
