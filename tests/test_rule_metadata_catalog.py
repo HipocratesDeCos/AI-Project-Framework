@@ -206,3 +206,16 @@ def test_dat003_true_resolves_to_information_insufficient_not_no_buy() -> None:
         base_result="COMPRAR",
     )
     assert result.crc_result.consolidated_result == "INFORMACIÓN INSUFICIENTE"
+
+
+def test_crc_fails_closed_on_unresolved_r0_result_conflict() -> None:
+    with pytest.raises(ValueError, match="conflicto de resultados"):
+        run_authorized_assessments_vertical(
+            purchase=_purchase(),
+            context=_context(),
+            assessments=(
+                _assessment("R-DAT-003", "TRUE"),
+                _assessment("R-FIN-001", "TRUE"),
+            ),
+            base_result="COMPRAR",
+        )
