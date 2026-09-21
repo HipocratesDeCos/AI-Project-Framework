@@ -185,3 +185,37 @@ Permanecen vigentes para R-PRE-002:
 - PRE-G05 — bridge/provenance de la magnitud de precio crítico cuando corresponda.
 
 R-PRE-001 no consume `PriceIntelligenceResult.pr_value` ni selecciona referencias automáticamente.
+
+
+## Reconciliación PRE002 — 21/09/2026
+
+Los gates PRE-G03 y PRE-G05 y el intake específico de R-PRE-002 quedaron satisfechos mediante:
+
+- `01_Modelo/PRE002_Critical_Price_Authority_v0.1.md`;
+- `08_Implementacion/R_PRE_002_Technical_Contract_v0.1.md`;
+- `CriticalPriceBaseline`;
+- binding SHA-256 a la `PurchaseOperation` exacta;
+- `CriticalPriceBaselineEvidence`;
+- `ResolvedConfiguration(P-PRE-005) + ParameterConfigurationEvidence`;
+- fórmula `baseline_price * (1 + threshold_pct / 100)`;
+- frontera estricta `purchase.unit_price > critical_price_limit`;
+- política fail-closed;
+- metadata R1/ALTA sin R0 automático.
+
+Materialización integrada por PR #262 en:
+
+```text
+main @ 3621424a45ee1c01ecb9327a5fa187f3bd07504f
+```
+
+CI #1044:
+
+```text
+1865 passed
+8 warnings
+SQL SUCCESS
+```
+
+**R-PRE-002 intake: CLOSED / MATERIALIZED / CI VALIDATED.**
+
+Con PRE001, PRE002 y PRE003 cerradas, el frente PRE queda cerrado en su alcance MVP actual.
