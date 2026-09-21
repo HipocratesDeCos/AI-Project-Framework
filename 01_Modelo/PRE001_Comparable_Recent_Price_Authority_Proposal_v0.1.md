@@ -1,6 +1,7 @@
 # EIOS — PRE001 Comparable Recent Price Authority Proposal v0.1
 
 **Baseline:** `main @ 2bb9eac45c69908122abc6468fab93ddb5314498`  
+**Fecha:** 21/09/2026  
 **Estado:** PROPUESTA — NO AUTORIZADA  
 **Ámbito:** `R-PRE-001 — Precio superior a compra comparable reciente`
 
