@@ -1,7 +1,7 @@
 # EIOS — CRC DAT003 vs R0 Precedence Implementation Audit v0.1
 
 **Autoridad:** `01_Modelo/CRC_DAT003_R0_Precedence_Authority_v0.1.md`  
-**Estado:** AUDIT 1 SUPERADA — CI PENDIENTE
+**Estado:** AUDIT 2 SUPERADA — CERRADO / MATERIALIZADO / CI VALIDATED
 
 ## Cobertura
 
@@ -18,4 +18,16 @@ La implementación verifica:
 
 ## Dictamen
 
-**AUDIT 1 SUPERADA — 0 BLOQUEADORES ESTÁTICOS PARA CI.**
+**AUDIT 2 SUPERADA — 0 BLOQUEADORES.**
+
+CI #1080 sobre `50008fc796f2f154b9a55e957bd37601889eb7b1`: **SUCCESS**.
+
+- Python tests → SUCCESS;
+- SQL validation → SUCCESS;
+- DAT003 TRUE + R0 TRUE → INFORMACIÓN INSUFICIENTE → SUCCESS;
+- DAT003 FALSE / NOT_EVALUABLE no activan precedencia → SUCCESS;
+- otros conflictos R0 no autorizados continúan fail-closed → SUCCESS.
+
+PR #277 integrada en `main @ 5211864009dfaad715dd8d550a577d447f1056d0`.
+
+**DICTAMEN: CRC DAT003↔R0 PRECEDENCE v0.1 CERRADA / MATERIALIZADA / CI VALIDATED.**
