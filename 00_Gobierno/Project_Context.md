@@ -814,7 +814,7 @@ R-PRE-003 → CLOSED / MATERIALIZED / CI VALIDATED
 
 R-PRE-001 → CLOSED / MATERIALIZED / CI VALIDATED
 
-R-PRE-002 → BLOCKED por semántica/binding/provenance específica
+R-PRE-002 → CLOSED / MATERIALIZED / CI VALIDATED
 ```
 
 FIN002 usa un carrier post-operación separado de Finance Basic, vinculado a la `PurchaseOperation` exacta y a `P-FIN-003` mediante `ResolvedConfiguration + Evidence`.
@@ -825,7 +825,9 @@ PRE003 quedó cerrado mediante `RecommendedPriceCeiling + RecommendedPriceCeilin
 
 PRE001 quedó cerrado mediante `ComparablePriceReference + ComparablePriceReferenceEvidence`, ligado a la `PurchaseOperation` exacta, más `ResolvedConfiguration(P-PRE-001) + Evidence` y `ResolvedConfiguration(P-PRE-004) + Evidence`. La regla utiliza una referencia individual ya seleccionada upstream, meses calendario con clipping y uplift porcentual sin defaults. PR #258: `main @ 433007bf59d1a1fdb94df9dbfcd262e14878df85`; CI #1037: 1829 passed / 8 warnings / SQL SUCCESS.
 
-Los requisitos pendientes de R-PRE-002 continúan en `00_Gobierno/Post_MGE_Functional_Gate_Intake_Addendum_v0.1.md`.
+PRE002 quedó cerrado mediante `CriticalPriceBaseline + CriticalPriceBaselineEvidence`, ligado a la `PurchaseOperation` exacta, más `ResolvedConfiguration(P-PRE-005) + Evidence`. La regla calcula el límite crítico sin default y aplica frontera estricta `purchase.unit_price > critical_limit`. PR #262: `main @ 3621424a45ee1c01ecb9327a5fa187f3bd07504f`; CI #1044: 1865 passed / 8 warnings / SQL SUCCESS.
+
+El frente PRE (R-PRE-001/002/003) queda cerrado física y documentalmente.
 
 No debe reinterpretarse `FinanceBasicResult.working_capital` como valor post-operación, `CoverageResult` como cobertura proyectada post-compra, `R-STK-004 FALSE` como ausencia de necesidad justificada, ni `PriceIntelligenceResult.pr_value` como precio máximo recomendado o como referencia individual de R-PRE-001. PRE003 preserva explícitamente `PR ≠ PMR`; PRE001 no selecciona referencias automáticamente.
 
