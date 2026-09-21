@@ -8,6 +8,7 @@ from eios.core.models import Assessment, DecisionContext, PurchaseOperation
 
 RULES_VERSION = "rules-v1"
 ALL_RULES = (
+    "R-DAT-001",
     "R-ENT-001",
     "R-FIN-001",
     "R-FIN-002",
@@ -73,6 +74,7 @@ def _patch_rule(monkeypatch, name: str, rule_id: str, outcome: str, calls: list[
 def _all_bundles():
     marker = object()
     return dict(
+        data_freshness=orchestrator.DataFreshnessRuleInputs(marker, marker, marker, marker),
         delivery=orchestrator.DeliveryRuleInputs(marker, marker, marker, marker),
         stock_coverage_need=orchestrator.StockCoverageNeedRuleInputs(
             marker, marker, marker, marker, marker, marker
@@ -109,6 +111,7 @@ def _all_bundles():
 
 def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     calls: list[str] = []
+    _patch_rule(monkeypatch, "evaluate_r_dat_001", "R-DAT-001", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_ent_001", "R-ENT-001", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_stk_001", "R-STK-001", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_stk_002", "R-STK-002", "FALSE", calls)
@@ -134,6 +137,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     )
 
     assert calls == [
+        "R-DAT-001",
         "R-ENT-001",
         "R-STK-001",
         "R-STK-002",
@@ -155,7 +159,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     assert result.omitted_rule_ids == ()
     assert tuple(item.rule_id for item in result.assessments) == ALL_RULES
     assert result.crc_result.consolidated_result == "COMPRAR CONDICIONADO"
-    assert len(result.traces) == 16
+    assert len(result.traces) == 17
     assert result.c0_capability.result_available is True
 
 
