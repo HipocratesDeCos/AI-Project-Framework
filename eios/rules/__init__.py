@@ -1,6 +1,11 @@
 """EIOS rule-engine public components."""
 
 from .catalog import authorized_rule, authorized_rule_metadata, implemented_rule_ids
+from .data_quality import (
+    P_DAT_001,
+    R_DAT_001,
+    evaluate_r_dat_001,
+)
 from .delivery import (
     BASELINE_EVIDENCE_SOURCE_TYPE,
     DELIVERY_EVIDENCE_SOURCE_TYPE,
@@ -31,6 +36,7 @@ from .finance import (
 from .orchestrator import (
     ComparableRecentPriceRuleInputs,
     CriticalPriceRuleInputs,
+    DataFreshnessRuleInputs,
     DecisionRuleExecutionResult,
     DeliveryRuleInputs,
     FinanceCapacityRuleInputs,
@@ -86,6 +92,7 @@ __all__ = [
     "BASELINE_EVIDENCE_SOURCE_TYPE",
     "ComparableRecentPriceRuleInputs",
     "CriticalPriceRuleInputs",
+    "DataFreshnessRuleInputs",
     "ConsolidatedBaseResult",
     "DELIVERY_EVIDENCE_SOURCE_TYPE",
     "DecisionRuleExecutionResult",
@@ -99,6 +106,7 @@ __all__ = [
     "RecommendedPriceRuleInputs",
     "PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE",
     "PRICE_INTELLIGENCE_EVIDENCE_SOURCE_TYPE",
+    "P_DAT_001",
     "P_FIN_002",
     "P_FIN_004",
     "P_DAT_002",
@@ -107,6 +115,7 @@ __all__ = [
     "P_PRE_005",
     "P_PRE_006",
     "ProvenancedRulesC0Invoker",
+    "R_DAT_001",
     "R_ENT_001",
     "R_FIN_001",
     "R_FIN_003",
@@ -135,6 +144,7 @@ __all__ = [
     "build_domain_rules_c0_invoker",
     "build_provenanced_rules_engine_c0_invoker",
     "build_rules_engine_c0_invoker",
+    "evaluate_r_dat_001",
     "evaluate_r_ent_001",
     "evaluate_r_fin_001",
     "evaluate_r_fin_003",
