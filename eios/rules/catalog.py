@@ -31,6 +31,7 @@ _IMPLEMENTED_RULES: dict[str, ImplementedRuleMetadata] = {
     "R-FIN-003": ImplementedRuleMetadata("R-FIN-003", "R1", "ALTA"),
     "R-HIS-002": ImplementedRuleMetadata("R-HIS-002", "R3", "INFORMATIVA"),
     "R-PRE-001": ImplementedRuleMetadata("R-PRE-001", "R2", "ALTA"),
+    "R-PRE-002": ImplementedRuleMetadata("R-PRE-002", "R1", "ALTA"),
     "R-PRE-003": ImplementedRuleMetadata("R-PRE-003", "R3", "INFORMATIVA"),
     # MGE-RULES-AUTH v0.1 authorizes ordinary metadata only; no R0 escalation.
     "R-MGE-001": ImplementedRuleMetadata("R-MGE-001", "R1", "ALTA"),
