@@ -2,7 +2,7 @@
 
 **Autoridad:** `01_Modelo/HIS001_Temporal_Reference_Authority_v0.1.md`  
 **PR:** #265  
-**Estado:** AUDIT 1 DEPURADA — AUDIT 2 PENDIENTE DE CI FINAL
+**Estado:** AUDIT 2 SUPERADA — CERRADO / MATERIALIZADO / CI VALIDATED
 
 ## Audit 1
 
@@ -50,7 +50,7 @@ Se confirma que la implementación conserva:
 
 ## Audit 2
 
-Pendiente únicamente de CI final sobre el HEAD depurado.
+CI final #1052 sobre `94c9e1155fc5cd4cfb68ae03197bbeca1aa031bc`: **SUCCESS**.
 
 Criterio de cierre:
 
@@ -59,3 +59,9 @@ Python tests → SUCCESS
 SQL validation → SUCCESS
 0 regresiones HIS001
 ```
+
+Resultado observado: Python tests **SUCCESS** y SQL validation **SUCCESS**.
+
+PR #265 integrada en `main @ 56c5d58478bef64922629e1f584ce7d02dc4cd1f`.
+
+**DICTAMEN: R-HIS-001 CERRADA / MATERIALIZADA / CI VALIDATED.**
