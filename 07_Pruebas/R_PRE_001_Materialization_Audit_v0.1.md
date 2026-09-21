@@ -1,6 +1,7 @@
 # EIOS — R-PRE-001 Materialization Audit v0.1
 
 **Baseline:** `main @ b58b8b61f87fd66269e8f55ede5242efdf69ef29`  
+**Fecha:** 21/09/2026  
 **Estado:** MATERIALIZADO — PENDIENTE CI
 
 ## 1. Superficie física
