@@ -1,7 +1,7 @@
 # EIOS — R-DAT-001 Implementation Audit v0.1
 
 **Autoridad:** `01_Modelo/DAT001_Data_Freshness_Authority_v0.1.md`  
-**Estado:** AUDIT 1 SUPERADA — CI PENDIENTE
+**Estado:** AUDIT 2 SUPERADA — CERRADO / MATERIALIZADO / CI VALIDATED
 
 ## 1. Superficies materializadas
 
@@ -74,4 +74,4 @@ No se materializa:
 
 **SUPERADA — 0 bloqueadores estáticos identificados.**
 
-Audit 2 queda supeditada a CI completa sobre el HEAD de la PR.
+CI #1059 sobre `d3ef976c14906ce4e7b01a2e13797b4338196429`: **SUCCESS**.\n\n- Python tests → SUCCESS;\n- SQL validation → SUCCESS;\n- 0 regresiones DAT001 observadas.\n\nPR #268 integrada en `main @ ff0d648a0594c3d495d5d348e6eaabdbe6d615ff`.\n\n**DICTAMEN: R-DAT-001 CERRADA / MATERIALIZADA / CI VALIDATED.**
