@@ -165,7 +165,7 @@ def test_same_execution_runtime_fails_closed_for_uncatalogued_rule() -> None:
         run_authorized_assessments_vertical(
             purchase=_purchase(),
             context=_context(),
-            assessments=(_assessment("R-PRE-001"),),
+            assessments=(_assessment("R-PRE-002"),),
             base_result="COMPRAR",
         )
 
