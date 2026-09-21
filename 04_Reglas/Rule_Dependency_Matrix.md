@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.5.14  
+**Versión:** 1.5.15  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
@@ -477,7 +477,7 @@ No se debe:
 **Ámbito:** Dependencias transversales de reglas EIOS  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
 
-Esta versión conserva la cobertura previa y reconcilia además el cierre físico de `R-DAT-003`, sus dependencias de RequirementSet/Evidence y la ausencia deliberada de parámetros DAT003 en v0.1, sin alterar las dependencias no relacionadas. Mantiene las relaciones `EVIDENCE` demostradas de ENT y Rotation, las reconciliaciones Finance ya cerradas y el resto de dependencias confirmadas. `Criticality` y `Evaluability_Impact` permanecen en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA`, `EVIDENCE` ni `COMPONENT`.
+Esta versión conserva la cobertura previa y reconcilia además la precedencia CRC autorizada entre `R-DAT-003 EVALUABLE/TRUE` y otro R0 activo, sin crear nuevas dependencias ni alterar las relaciones no relacionadas. Mantiene las relaciones `EVIDENCE` demostradas de ENT y Rotation, las reconciliaciones Finance ya cerradas y el resto de dependencias confirmadas. `Criticality` y `Evaluability_Impact` permanecen en `PENDING` donde no existe autoridad suficiente. No amplía por inferencia la cobertura `DATA`, `EVIDENCE` ni `COMPONENT`.
 
 La reconciliación DAT confirma:
 
@@ -490,7 +490,7 @@ La reconciliación DAT confirma:
 - `R-DAT-003` queda materializada con `DecisionEvidenceRequirementSet + DecisionEvidenceSufficiencyEvidence`;
 - `GAP → UNDETERMINED`, nunca `FAILED`;
 - `P-DAT-003` y `P-DAT-007` permanecen fuera de consumo DAT003 v0.1;
-- el conflicto de precedencia entre DAT003 activa y otro R0 activo permanece sin autoridad y la CRC falla cerrada;
+- la precedencia `R-DAT-003 EVALUABLE/TRUE` frente a otro R0 `EVALUABLE/TRUE → NO COMPRAR` queda autorizada y materializada: consolida `INFORMACIÓN INSUFICIENTE`, preservando el otro R0 como factor/conflicto; DAT003 `FALSE` o `NOT_EVALUABLE` no activa la excepción;
 - `Criticality` y `Evaluability_Impact` permanecen `PENDING`.
 
 La reconciliación PRE temporal confirma:
