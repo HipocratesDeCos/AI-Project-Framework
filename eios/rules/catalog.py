@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from eios.core.crc_mvp import Effect, RuleMetadata, Severity
+from eios.core.crc_mvp import ConsolidatedResult, Effect, RuleMetadata, Severity
 from eios.core.models import Rule
 
 
@@ -17,11 +17,13 @@ class ImplementedRuleMetadata:
     effect: Effect
     severity: Severity
     requires_evidence: bool = True
+    active_result: ConsolidatedResult | None = None
 
 
 _IMPLEMENTED_RULES: dict[str, ImplementedRuleMetadata] = {
     "R-DAT-001": ImplementedRuleMetadata("R-DAT-001", "R3", "INFORMATIVA"),
     "R-DAT-002": ImplementedRuleMetadata("R-DAT-002", "R3", "MEDIA"),
+    "R-DAT-003": ImplementedRuleMetadata("R-DAT-003", "R0", "CRÍTICA", active_result="INFORMACIÓN INSUFICIENTE"),
     "R-ENT-001": ImplementedRuleMetadata("R-ENT-001", "R2", "ALTA"),
     "R-STK-001": ImplementedRuleMetadata("R-STK-001", "R1", "ALTA"),
     "R-STK-002": ImplementedRuleMetadata("R-STK-002", "R2", "ALTA"),
@@ -80,6 +82,7 @@ def authorized_rule_metadata(rule_id: str, rules_version: str) -> RuleMetadata:
         version=rules_version,
         effect=item.effect,
         severity=item.severity,
+        active_result=item.active_result,
     )
 
 

@@ -12,11 +12,18 @@ from eios.data_freshness import (
     data_snapshot_freshness_ref,
     data_snapshot_purchase_ref,
 )
+from eios.data_sufficiency import (
+    DECISION_EVIDENCE_SUFFICIENCY_EVIDENCE_SOURCE_TYPE,
+    DecisionEvidenceSufficiencyObservation,
+    decision_evidence_purchase_ref,
+    decision_evidence_sufficiency_ref,
+)
 from eios.parameters import ResolvedConfiguration
 
 
 R_DAT_001 = "R-DAT-001"
 R_DAT_002 = "R-DAT-002"
+R_DAT_003 = "R-DAT-003"
 P_DAT_001 = "P-DAT-001"
 PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE = "ParameterConfigurationEvidence"
 
@@ -319,10 +326,100 @@ def evaluate_r_dat_002(
     )
 
 
+def _validate_dat003_identity(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    observation: DecisionEvidenceSufficiencyObservation,
+) -> None:
+    if purchase.decision_id != context.decision_id:
+        raise ValueError("PurchaseOperation y DecisionContext tienen decision_id distintos")
+    if purchase.scenario_id != context.scenario_id:
+        raise ValueError("PurchaseOperation y DecisionContext tienen scenario_id distintos")
+    if rule.rule_id != R_DAT_003:
+        raise ValueError("El bridge solo evalúa R-DAT-003")
+    if rule.version != context.rules_version:
+        raise ValueError("Rule.version incompatible con DecisionContext.rules_version")
+    if not rule.requires_evidence:
+        raise ValueError("R-DAT-003 requiere evidencia")
+    if observation.decision_id != context.decision_id:
+        raise ValueError("DecisionEvidenceSufficiencyObservation pertenece a otra decisión")
+    if observation.scenario_id != context.scenario_id:
+        raise ValueError("DecisionEvidenceSufficiencyObservation pertenece a otro escenario")
+    if observation.data_snapshot_id != context.data_snapshot_id:
+        raise ValueError("DecisionEvidenceSufficiencyObservation pertenece a otro data_snapshot_id")
+    if observation.evaluation_date != purchase.operation_date:
+        raise ValueError("DecisionEvidenceSufficiencyObservation usa otra evaluation_date")
+    if observation.purchase_operation_ref != decision_evidence_purchase_ref(purchase):
+        raise ValueError(
+            "DecisionEvidenceSufficiencyObservation no está vinculada a la PurchaseOperation exacta"
+        )
+
+
+def evaluate_r_dat_003(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    observation: DecisionEvidenceSufficiencyObservation,
+    sufficiency_evidence: Evidence,
+) -> Assessment:
+    """Evaluate whether required evidence coverage is insufficient."""
+    _validate_dat003_identity(purchase, context, rule, observation)
+
+    if sufficiency_evidence.source_type != DECISION_EVIDENCE_SUFFICIENCY_EVIDENCE_SOURCE_TYPE:
+        raise ValueError("sufficiency_evidence.source_type incompatible")
+    if sufficiency_evidence.captured_at != observation.evaluation_date:
+        raise ValueError("sufficiency_evidence debe corresponder a evaluation_date")
+    if (
+        sufficiency_evidence.state == "DEMONSTRATED"
+        and sufficiency_evidence.demonstration_ref
+        != decision_evidence_sufficiency_ref(observation)
+    ):
+        raise ValueError(
+            "sufficiency_evidence no está vinculada a DecisionEvidenceSufficiencyObservation"
+        )
+
+    evidence_ids = [sufficiency_evidence.evidence_id]
+    if validate_evidence(sufficiency_evidence).status != "VALID":
+        return Assessment(
+            rule_id=R_DAT_003,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-DAT-003 no evaluable: suficiencia no demostrada.",
+        )
+    if observation.state != "AVAILABLE":
+        return Assessment(
+            rule_id=R_DAT_003,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason=f"R-DAT-003 no evaluable: estado de suficiencia {observation.state}.",
+        )
+
+    insufficient = bool(
+        observation.failed_requirement_ids
+        or observation.undetermined_requirement_ids
+    )
+    return Assessment(
+        rule_id=R_DAT_003,
+        status="EVALUABLE",
+        outcome="TRUE" if insufficient else "FALSE",
+        evidence_ids=evidence_ids,
+        reason=(
+            "R-DAT-003 demostrada: existe requisito necesario failed o undetermined."
+            if insufficient
+            else "R-DAT-003 no demostrada: todos los requisitos necesarios están satisfechos."
+        ),
+    )
+
+
 __all__ = [
     "P_DAT_001",
     "R_DAT_001",
     "R_DAT_002",
+    "R_DAT_003",
     "evaluate_r_dat_001",
     "evaluate_r_dat_002",
+    "evaluate_r_dat_003",
 ]

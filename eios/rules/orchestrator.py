@@ -13,6 +13,7 @@ from pydantic import BaseModel, ConfigDict
 
 from eios.core.models import DecisionContext, Evidence, PurchaseOperation
 from eios.data_freshness import DataSnapshotFreshnessObservation
+from eios.data_sufficiency import DecisionEvidenceSufficiencyObservation
 from eios.delivery.models import DeliveryStockoutAnalysisInput, DeliveryStockoutAnalysisResult
 from eios.finance import PostOperationWorkingCapitalPosition, ProvenancedFinanceBasicExecution
 from eios.parameters import ResolvedConfiguration
@@ -28,7 +29,7 @@ from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
 from eios.stock.rule_inputs import JustifiedNeedState, ProjectedCoverageAfterPurchase
 
 from .catalog import authorized_rule, implemented_rule_ids
-from .data_quality import R_DAT_001, R_DAT_002, evaluate_r_dat_001, evaluate_r_dat_002
+from .data_quality import R_DAT_001, R_DAT_002, R_DAT_003, evaluate_r_dat_001, evaluate_r_dat_002, evaluate_r_dat_003
 from .delivery import R_ENT_001, R_STK_001, evaluate_r_ent_001, evaluate_r_stk_001
 from .finance import (
     R_FIN_001,
@@ -80,6 +81,12 @@ class DataFreshnessRuleInputs:
     freshness_evidence: Evidence
     maximum_age_resolution: ResolvedConfiguration | None
     parameter_evidence: Evidence | None
+
+
+@dataclass(frozen=True)
+class DataSufficiencyRuleInputs:
+    observation: DecisionEvidenceSufficiencyObservation
+    sufficiency_evidence: Evidence
 
 
 @dataclass(frozen=True)
@@ -228,6 +235,7 @@ def run_domain_rules(
     context: DecisionContext,
     base_result: ConsolidatedBaseResult,
     data_freshness: DataFreshnessRuleInputs | None = None,
+    data_sufficiency: DataSufficiencyRuleInputs | None = None,
     delivery: DeliveryRuleInputs | None = None,
     stock_coverage_need: StockCoverageNeedRuleInputs | None = None,
     stock_excess: StockExcessRuleInputs | None = None,
@@ -265,6 +273,16 @@ def run_domain_rules(
             data_freshness.freshness_evidence,
             data_freshness.maximum_age_resolution,
             data_freshness.parameter_evidence,
+        )
+
+    if data_sufficiency is not None:
+        rule = authorized_rule(R_DAT_003, context.rules_version)
+        assessments_by_rule[R_DAT_003] = evaluate_r_dat_003(
+            purchase,
+            context,
+            rule,
+            data_sufficiency.observation,
+            data_sufficiency.sufficiency_evidence,
         )
 
     if delivery is not None:
@@ -475,6 +493,7 @@ __all__ = [
     "ComparableRecentPriceRuleInputs",
     "CriticalPriceRuleInputs",
     "DataFreshnessRuleInputs",
+    "DataSufficiencyRuleInputs",
     "DecisionRuleExecutionResult",
     "DeliveryRuleInputs",
     "FinanceCapacityRuleInputs",

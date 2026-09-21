@@ -51,6 +51,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
     assert implemented_rule_ids() == (
         "R-DAT-001",
         "R-DAT-002",
+        "R-DAT-003",
         "R-ENT-001",
         "R-FIN-001",
         "R-FIN-002",
@@ -75,6 +76,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
     (
         ("R-DAT-001", "R3", "INFORMATIVA"),
         ("R-DAT-002", "R3", "MEDIA"),
+        ("R-DAT-003", "R0", "CRÍTICA"),
         ("R-ENT-001", "R2", "ALTA"),
         ("R-STK-001", "R1", "ALTA"),
         ("R-STK-002", "R2", "ALTA"),
@@ -186,6 +188,34 @@ def test_same_execution_runtime_rejects_duplicate_rule_ids() -> None:
             assessments=(
                 _assessment("R-STK-003"),
                 _assessment("R-STK-003", "FALSE"),
+            ),
+            base_result="COMPRAR",
+        )
+
+
+def test_dat003_catalog_carries_authorized_insufficient_result() -> None:
+    metadata = authorized_rule_metadata("R-DAT-003", RULES)
+    assert metadata.active_result == "INFORMACIÓN INSUFICIENTE"
+
+
+def test_dat003_true_resolves_to_information_insufficient_not_no_buy() -> None:
+    result = run_authorized_assessments_vertical(
+        purchase=_purchase(),
+        context=_context(),
+        assessments=(_assessment("R-DAT-003", "TRUE"),),
+        base_result="COMPRAR",
+    )
+    assert result.crc_result.consolidated_result == "INFORMACIÓN INSUFICIENTE"
+
+
+def test_crc_fails_closed_on_unresolved_r0_result_conflict() -> None:
+    with pytest.raises(ValueError, match="conflicto de resultados"):
+        run_authorized_assessments_vertical(
+            purchase=_purchase(),
+            context=_context(),
+            assessments=(
+                _assessment("R-DAT-003", "TRUE"),
+                _assessment("R-FIN-001", "TRUE"),
             ),
             base_result="COMPRAR",
         )
