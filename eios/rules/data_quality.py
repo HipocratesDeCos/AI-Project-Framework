@@ -16,6 +16,7 @@ from eios.parameters import ResolvedConfiguration
 
 
 R_DAT_001 = "R-DAT-001"
+R_DAT_002 = "R-DAT-002"
 P_DAT_001 = "P-DAT-001"
 PARAMETER_CONFIGURATION_EVIDENCE_SOURCE_TYPE = "ParameterConfigurationEvidence"
 
@@ -201,8 +202,127 @@ def evaluate_r_dat_001(
     )
 
 
+def _validate_dat002_identity(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    observation: DataSnapshotFreshnessObservation,
+) -> None:
+    if purchase.decision_id != context.decision_id:
+        raise ValueError("PurchaseOperation y DecisionContext tienen decision_id distintos")
+    if purchase.scenario_id != context.scenario_id:
+        raise ValueError("PurchaseOperation y DecisionContext tienen scenario_id distintos")
+    if rule.rule_id != R_DAT_002:
+        raise ValueError("El bridge solo evalúa R-DAT-002")
+    if rule.version != context.rules_version:
+        raise ValueError("Rule.version incompatible con DecisionContext.rules_version")
+    if not rule.requires_evidence:
+        raise ValueError("R-DAT-002 requiere evidencia")
+    if observation.decision_id != context.decision_id:
+        raise ValueError("DataSnapshotFreshnessObservation pertenece a otra decisión")
+    if observation.scenario_id != context.scenario_id:
+        raise ValueError("DataSnapshotFreshnessObservation pertenece a otro escenario")
+    if observation.data_snapshot_id != context.data_snapshot_id:
+        raise ValueError("DataSnapshotFreshnessObservation pertenece a otro data_snapshot_id")
+    if observation.evaluation_date != purchase.operation_date:
+        raise ValueError("DataSnapshotFreshnessObservation usa otra evaluation_date")
+    if observation.purchase_operation_ref != data_snapshot_purchase_ref(purchase):
+        raise ValueError("DataSnapshotFreshnessObservation no está vinculada a la PurchaseOperation exacta")
+
+
+def evaluate_r_dat_002(
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    rule: Rule,
+    observation: DataSnapshotFreshnessObservation,
+    freshness_evidence: Evidence,
+    maximum_age_resolution: ResolvedConfiguration | None,
+    parameter_evidence: Evidence | None,
+) -> Assessment:
+    """Evaluate whether the selected snapshot exceeds P-DAT-001 maximum age."""
+    _validate_dat002_identity(purchase, context, rule, observation)
+    _validate_observation_evidence(observation, freshness_evidence)
+    evidence_ids = [freshness_evidence.evidence_id]
+
+    if validate_evidence(freshness_evidence).status != "VALID":
+        return Assessment(
+            rule_id=R_DAT_002,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-DAT-002 no evaluable: frescura del snapshot no demostrada.",
+        )
+    if observation.state != "AVAILABLE":
+        return Assessment(
+            rule_id=R_DAT_002,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason=f"R-DAT-002 no evaluable: estado de frescura {observation.state}.",
+        )
+
+    updated = observation.source_updated_date
+    if updated is None:
+        return Assessment(
+            rule_id=R_DAT_002,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-DAT-002 no evaluable: source_updated_date ausente.",
+        )
+    if updated > observation.evaluation_date:
+        return Assessment(
+            rule_id=R_DAT_002,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-DAT-002 no evaluable: source_updated_date futura.",
+        )
+    if maximum_age_resolution is None or parameter_evidence is None:
+        return Assessment(
+            rule_id=R_DAT_002,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-DAT-002 no evaluable: P-DAT-001 no resuelta/evidenciada.",
+        )
+
+    evidence_ids.append(parameter_evidence.evidence_id)
+    weeks = _validated_weeks(
+        purchase=purchase,
+        context=context,
+        company_scope=observation.company_scope,
+        resolved=maximum_age_resolution,
+        evidence=parameter_evidence,
+    )
+    if validate_evidence(parameter_evidence).status != "VALID" or weeks is None:
+        return Assessment(
+            rule_id=R_DAT_002,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=evidence_ids,
+            reason="R-DAT-002 no evaluable: P-DAT-001 no utilizable.",
+        )
+
+    cutoff = observation.evaluation_date - timedelta(days=weeks * 7)
+    stale = updated < cutoff
+    return Assessment(
+        rule_id=R_DAT_002,
+        status="EVALUABLE",
+        outcome="TRUE" if stale else "FALSE",
+        evidence_ids=evidence_ids,
+        reason=(
+            "R-DAT-002 demostrada: snapshot supera el horizonte P-DAT-001."
+            if stale
+            else "R-DAT-002 no demostrada: snapshot no supera el horizonte P-DAT-001."
+        ),
+    )
+
+
 __all__ = [
     "P_DAT_001",
     "R_DAT_001",
+    "R_DAT_002",
     "evaluate_r_dat_001",
+    "evaluate_r_dat_002",
 ]
