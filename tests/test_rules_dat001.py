@@ -14,7 +14,7 @@ from eios.data_freshness import (
 from eios.parameters import ResolvedConfiguration
 from eios.parameters.center import Configuration
 from eios.rules.catalog import authorized_rule, authorized_rule_metadata
-from eios.rules.data_quality import P_DAT_001, R_DAT_001, evaluate_r_dat_001
+from eios.rules.data_quality import P_DAT_001, R_DAT_001, R_DAT_002, evaluate_r_dat_001, evaluate_r_dat_002
 from eios.rules.orchestrator import DataFreshnessRuleInputs, run_domain_rules
 
 
@@ -284,8 +284,11 @@ def test_orchestrator_executes_dat001_bundle():
         ),
     )
     assert R_DAT_001 in result.executed_rule_ids
+    assert R_DAT_002 in result.executed_rule_ids
     assessment = next(x for x in result.assessments if x.rule_id == R_DAT_001)
+    stale = next(x for x in result.assessments if x.rule_id == R_DAT_002)
     assert assessment.outcome == "TRUE"
+    assert stale.outcome == "FALSE"
     assert result.crc_result.consolidated_result == "COMPRAR"
 
 
@@ -296,3 +299,4 @@ def test_orchestrator_omits_dat001_without_bundle():
         base_result="COMPRAR",
     )
     assert R_DAT_001 in result.omitted_rule_ids
+    assert R_DAT_002 in result.omitted_rule_ids
