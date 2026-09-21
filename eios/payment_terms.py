@@ -1,6 +1,7 @@
 """Canonical offered-payment-term adapter for PAG001 input preparation."""
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
 from typing import Literal
 
@@ -41,7 +42,7 @@ class OfferedPaymentTermObservation(BaseModel):
     company_scope: str = Field(min_length=1, max_length=128)
     article_id: str = Field(min_length=1, max_length=128)
     supplier_id: str = Field(min_length=1, max_length=128)
-    evaluation_date: object
+    evaluation_date: date
     source_observation_id: str | None = Field(default=None, max_length=128)
     offered_payment_term_days: Decimal | None = None
     state: OfferedPaymentTermState
