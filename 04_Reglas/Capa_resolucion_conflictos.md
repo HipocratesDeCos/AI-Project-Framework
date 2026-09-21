@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 2.0
+**Versión:** 2.1
 Estado: APROBADO — Baseline EIOS Vertical MVP
 **Ubicación:** `04_Reglas/Capa_resolucion_conflictos.md`
 
@@ -867,10 +867,46 @@ La CRC consolida la evaluación; **EIOS recomienda y el decisor decide**.
 
 ---
 
+## 34.1 Precedencia de fiabilidad — R-DAT-003 frente a otro R0
+
+La autoridad especializada `CRC_DAT003_R0_Precedence_Authority_v0.1.md` establece una única excepción explícita dentro del efecto dominante R0.
+
+Cuando coexistan:
+
+```text
+R-DAT-003 = EVALUABLE / TRUE
+otro R0   = EVALUABLE / TRUE
+resultado del otro R0 = NO COMPRAR
+```
+
+la CRC consolidará:
+
+```text
+INFORMACIÓN INSUFICIENTE
+```
+
+con el motivo de `R-DAT-003` como motivo dominante.
+
+El otro R0:
+
+- no se anula;
+- no se rebaja;
+- no se convierte en FALSE;
+- se conserva como factor crítico;
+- se conserva como conflicto trazable.
+
+La regla responde a una precedencia de **fiabilidad de la recomendación**, no a una prioridad empresarial general entre reglas R0.
+
+`R-DAT-003 FALSE` y `R-DAT-003 NOT_EVALUABLE` no activan esta excepción.
+
+Cualquier otro conflicto entre resultados distintos con el mismo efecto dominante que no disponga de autoridad específica deberá seguir fallando cerrado.
+
+---
+
 # 35. Estado documental
 
 **Versión:** 2.0
-**Estado:** v2.0 — preparada para aprobación y posterior sustitución en GitHub
+**Estado:** v2.1 — vigente; incorpora precedencia autorizada DAT003↔R0
 **Baseline:** EIOS Vertical MVP
 **Autoridad:** Resolución de conflictos entre reglas y evaluaciones
 **Control:** Sujeto a Matriz de Autoridad Documental y Salvaguarda Oficial EIOS Vertical MVP
