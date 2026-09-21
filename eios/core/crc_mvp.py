@@ -34,6 +34,7 @@ class RuleMetadata:
     version: str
     effect: Effect
     severity: Severity
+    active_result: ConsolidatedResult | None = None
 
 
 @dataclass(frozen=True)
@@ -132,7 +133,7 @@ def resolve_crc(
         active.sort(key=lambda pair: _EFFECT_PRIORITY[pair[1].effect])
         dominant_assessment, dominant_rule = active[0]
         dominant_effect = dominant_rule.effect
-        consolidated = _EFFECT_RESULT[dominant_effect] or crc_input.base_result
+        consolidated = dominant_rule.active_result or _EFFECT_RESULT[dominant_effect] or crc_input.base_result
 
         relevant = tuple(
             item.reason
