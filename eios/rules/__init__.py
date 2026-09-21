@@ -4,7 +4,9 @@ from .catalog import authorized_rule, authorized_rule_metadata, implemented_rule
 from .data_quality import (
     P_DAT_001,
     R_DAT_001,
+    R_DAT_002,
     evaluate_r_dat_001,
+    evaluate_r_dat_002,
 )
 from .delivery import (
     BASELINE_EVIDENCE_SOURCE_TYPE,
@@ -116,6 +118,7 @@ __all__ = [
     "P_PRE_006",
     "ProvenancedRulesC0Invoker",
     "R_DAT_001",
+    "R_DAT_002",
     "R_ENT_001",
     "R_FIN_001",
     "R_FIN_003",
@@ -145,6 +148,7 @@ __all__ = [
     "build_provenanced_rules_engine_c0_invoker",
     "build_rules_engine_c0_invoker",
     "evaluate_r_dat_001",
+    "evaluate_r_dat_002",
     "evaluate_r_ent_001",
     "evaluate_r_fin_001",
     "evaluate_r_fin_003",

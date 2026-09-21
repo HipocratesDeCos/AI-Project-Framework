@@ -28,7 +28,7 @@ from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
 from eios.stock.rule_inputs import JustifiedNeedState, ProjectedCoverageAfterPurchase
 
 from .catalog import authorized_rule, implemented_rule_ids
-from .data_quality import R_DAT_001, evaluate_r_dat_001
+from .data_quality import R_DAT_001, R_DAT_002, evaluate_r_dat_001, evaluate_r_dat_002
 from .delivery import R_ENT_001, R_STK_001, evaluate_r_ent_001, evaluate_r_stk_001
 from .finance import (
     R_FIN_001,
@@ -251,6 +251,16 @@ def run_domain_rules(
             purchase,
             context,
             rule,
+            data_freshness.observation,
+            data_freshness.freshness_evidence,
+            data_freshness.maximum_age_resolution,
+            data_freshness.parameter_evidence,
+        )
+        stale_rule = authorized_rule(R_DAT_002, context.rules_version)
+        assessments_by_rule[R_DAT_002] = evaluate_r_dat_002(
+            purchase,
+            context,
+            stale_rule,
             data_freshness.observation,
             data_freshness.freshness_evidence,
             data_freshness.maximum_age_resolution,
