@@ -20,6 +20,7 @@ class ImplementedRuleMetadata:
 
 
 _IMPLEMENTED_RULES: dict[str, ImplementedRuleMetadata] = {
+    "R-DAT-001": ImplementedRuleMetadata("R-DAT-001", "R3", "INFORMATIVA"),
     "R-ENT-001": ImplementedRuleMetadata("R-ENT-001", "R2", "ALTA"),
     "R-STK-001": ImplementedRuleMetadata("R-STK-001", "R1", "ALTA"),
     "R-STK-002": ImplementedRuleMetadata("R-STK-002", "R2", "ALTA"),
