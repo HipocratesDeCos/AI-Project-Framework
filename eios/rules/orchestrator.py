@@ -32,7 +32,13 @@ from eios.pricing.historical_comparability import (
 )
 from eios.profitability import ProvenancedProfitabilityExecution
 from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
-from eios.supplier.models import SupplierEvidenceResult
+from eios.supplier.alternatives import (
+    SupplierAlternativeComparabilityDetermination,
+    SupplierAlternativeOpportunityDetermination,
+    SupplierAlternativeSetCoverage,
+    SupplierAlternativeSignificantImprovementDetermination,
+)
+from eios.supplier.models import SupplierEvidenceInput, SupplierEvidenceResult
 from eios.stock.rule_inputs import JustifiedNeedState, ProjectedCoverageAfterPurchase
 
 from .catalog import authorized_rule, implemented_rule_ids
@@ -79,6 +85,12 @@ from .runtime import (
     ConsolidatedBaseResult,
     RuleSetVerticalResult,
     run_authorized_assessments_vertical,
+)
+from .supplier_alternatives import (
+    R_PROV_001,
+    R_PROV_002,
+    evaluate_r_prov_001,
+    evaluate_r_prov_002,
 )
 from .stock import (
     R_STK_002,
@@ -248,6 +260,29 @@ class PaymentFinancialRuleInputs:
     documentary_capture: DocumentaryPaymentCapture
 
 
+@dataclass(frozen=True)
+class SupplierAlternativeOpportunityRuleInputs:
+    supplier_input: SupplierEvidenceInput
+    coverage: SupplierAlternativeSetCoverage
+    opportunity_determinations: tuple[
+        SupplierAlternativeOpportunityDetermination, ...
+    ]
+    prov_evidences: tuple[Evidence, ...]
+
+
+@dataclass(frozen=True)
+class SupplierAlternativeComparisonRuleInputs:
+    supplier_input: SupplierEvidenceInput
+    coverage: SupplierAlternativeSetCoverage
+    comparability_determinations: tuple[
+        SupplierAlternativeComparabilityDetermination, ...
+    ]
+    significant_improvement_determinations: tuple[
+        SupplierAlternativeSignificantImprovementDetermination, ...
+    ]
+    prov_evidences: tuple[Evidence, ...]
+
+
 class DecisionRuleExecutionResult(BaseModel):
     """Rules result plus explicit coverage of implemented rule bridges."""
 
@@ -301,6 +336,8 @@ def run_domain_rules(
     profitability: ProfitabilityRuleInputs | None = None,
     payment_terms: PaymentTermRuleInputs | None = None,
     payment_financial: PaymentFinancialRuleInputs | None = None,
+    supplier_alternative_opportunity: SupplierAlternativeOpportunityRuleInputs | None = None,
+    supplier_alternative_comparison: SupplierAlternativeComparisonRuleInputs | None = None,
 ) -> DecisionRuleExecutionResult:
     """Evaluate supplied domain bundles and compose them in the same execution."""
     assessments_by_rule = {}
@@ -512,6 +549,37 @@ def run_domain_rules(
             finance=finance_inputs,
         )
 
+    if supplier_alternative_opportunity is not None:
+        rule = authorized_rule(R_PROV_001, context.rules_version)
+        assessments_by_rule[R_PROV_001] = evaluate_r_prov_001(
+            purchase=purchase,
+            context=context,
+            rule=rule,
+            supplier_input=supplier_alternative_opportunity.supplier_input,
+            coverage=supplier_alternative_opportunity.coverage,
+            opportunity_determinations=(
+                supplier_alternative_opportunity.opportunity_determinations
+            ),
+            prov_evidences=supplier_alternative_opportunity.prov_evidences,
+        )
+
+    if supplier_alternative_comparison is not None:
+        rule = authorized_rule(R_PROV_002, context.rules_version)
+        assessments_by_rule[R_PROV_002] = evaluate_r_prov_002(
+            purchase=purchase,
+            context=context,
+            rule=rule,
+            supplier_input=supplier_alternative_comparison.supplier_input,
+            coverage=supplier_alternative_comparison.coverage,
+            comparability_determinations=(
+                supplier_alternative_comparison.comparability_determinations
+            ),
+            significant_improvement_determinations=(
+                supplier_alternative_comparison.significant_improvement_determinations
+            ),
+            prov_evidences=supplier_alternative_comparison.prov_evidences,
+        )
+
     if comparable_recent_price is not None:
         rule = authorized_rule(R_PRE_001, context.rules_version)
         assessments_by_rule[R_PRE_001] = evaluate_r_pre_001(
@@ -616,5 +684,7 @@ __all__ = [
     "StockAbsorptionRuleInputs",
     "StockCoverageNeedRuleInputs",
     "StockExcessRuleInputs",
+    "SupplierAlternativeComparisonRuleInputs",
+    "SupplierAlternativeOpportunityRuleInputs",
     "run_domain_rules",
 ]
