@@ -1,7 +1,7 @@
 # EIOS — R-HIS-003 Provenance-Safe Core Implementation Audit v0.1
 
 **Fecha:** 22/09/2026  
-**Estado:** AUDIT 1 SUPERADA — CI PENDIENTE
+**Estado:** AUDIT 2 SUPERADA — CERRADO / MATERIALIZADO / CI VALIDATED
 
 ## A1 — Semántica
 
@@ -104,3 +104,33 @@ en los tests de:
 No se modifica código productivo ni semántica HIS003.
 
 **DEPURACIÓN 1 APLICADA — NUEVA CI REQUERIDA.**
+
+
+## Audit 2 final
+
+CI #1149 sobre `d980b59d7ce5bdc2537fc9437782ab555cade156`: **SUCCESS**.
+
+Validado:
+
+- suite Python completa → SUCCESS;
+- SQL → SUCCESS;
+- 22 reglas implementadas en catálogo/orquestador;
+- carrier HIS003 reconstruido dentro del bridge;
+- siete dimensiones obligatorias;
+- NOT_APPLICABLE gobernado por evidencia;
+- any MATERIAL_DIFFERENT → NON_COMPARABLE;
+- unresolved sin causa material → NOT_DETERMINABLE;
+- Price Intelligence comparability no se promociona;
+- no scoring, pesos ni umbrales nuevos.
+
+```text
+DISEÑAR       ✅
+AUDITAR       ✅
+DEPURAR       ✅
+AUDITAR 2     ✅
+CERRAR        ✅
+MATERIALIZAR  ✅
+CI            ✅ #1149
+```
+
+**DICTAMEN: R-HIS-003 PROVENANCE-SAFE CORE v0.1 — CERRADO, sujeto únicamente a CI del HEAD documental final y merge.**
