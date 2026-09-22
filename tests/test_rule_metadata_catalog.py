@@ -181,7 +181,7 @@ def test_same_execution_runtime_fails_closed_for_uncatalogued_rule() -> None:
         run_authorized_assessments_vertical(
             purchase=_purchase(),
             context=_context(),
-            assessments=(_assessment("R-HIS-003"),),
+            assessments=(_assessment("R-UNKNOWN-001"),),
             base_result="COMPRAR",
         )
 
