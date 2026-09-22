@@ -93,7 +93,7 @@ def _semantic_authority():
     )
 
 
-def _resolved(parameter_id, value, unit):
+def _resolved(parameter_id, value, unit, *, effective_at=EFFECTIVE_AT):
     cfg = Configuration(
         configuration_id={"P-PAG-002": 2, "P-PAG-003": 3, "P-PAG-004": 4}[parameter_id],
         parameter_id=parameter_id,
@@ -109,7 +109,7 @@ def _resolved(parameter_id, value, unit):
     return ResolvedConfiguration(
         configuration=cfg,
         parameters_version="params-v1",
-        effective_at=EFFECTIVE_AT,
+        effective_at=effective_at,
     )
 
 
@@ -254,3 +254,47 @@ def test_catalog_metadata_is_r2_high_negotiate():
 def test_discount_control_is_not_required_by_core():
     result = _evaluate(offered_days=60)
     assert result.outcome == "TRUE"
+
+
+def test_parameter_effective_context_must_match_exactly():
+    target_r = _resolved("P-PAG-002", "90", "días")
+    tolerance_r = _resolved("P-PAG-003", "15", "días")
+    control_r = _resolved(
+        "P-PAG-004",
+        "Sí",
+        "Sí/No",
+        effective_at=EFFECTIVE_AT + timedelta(hours=1),
+    )
+    parameters = PAG001ParameterBundle(
+        target_resolution=target_r,
+        target_evidence=_evidence(target_r, "TARGET"),
+        tolerance_resolution=tolerance_r,
+        tolerance_evidence=_evidence(tolerance_r, "TOL"),
+        control_resolution=control_r,
+        control_evidence=_evidence(control_r, "CTRL"),
+    )
+    result = _evaluate(parameters=parameters)
+    assert result.status == "NOT_EVALUABLE"
+    assert "mismo contexto efectivo" in result.reason
+
+
+def test_parameter_evidence_id_cannot_be_reused_across_parameters():
+    parameters = _bundle()
+    assert parameters.control_evidence is not None
+    assert parameters.target_evidence is not None
+    reused = parameters.target_evidence.model_copy(
+        update={
+            "evidence_id": parameters.control_evidence.evidence_id,
+        }
+    )
+    parameters = PAG001ParameterBundle(
+        target_resolution=parameters.target_resolution,
+        target_evidence=reused,
+        tolerance_resolution=parameters.tolerance_resolution,
+        tolerance_evidence=parameters.tolerance_evidence,
+        control_resolution=parameters.control_resolution,
+        control_evidence=parameters.control_evidence,
+    )
+    result = _evaluate(parameters=parameters)
+    assert result.status == "NOT_EVALUABLE"
+    assert "reutilizada" in result.reason
