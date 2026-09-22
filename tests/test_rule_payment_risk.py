@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import timedelta
 from decimal import Decimal
 
@@ -75,8 +76,9 @@ def _prepared_rule_case(
     kwargs = dict(kwargs)
     effective = kwargs["effective_at"]
 
-    configs["P-FIN-002"] = configs["P-FIN-002"].model_copy(
-        update={"value": str(threshold)}
+    configs["P-FIN-002"] = replace(
+        configs["P-FIN-002"],
+        value=str(threshold),
     )
 
     first = kwargs["finance_input"].cash_flows[0].model_copy(
