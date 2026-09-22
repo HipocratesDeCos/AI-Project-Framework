@@ -67,6 +67,8 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
         "R-PRE-001",
         "R-PRE-002",
         "R-PRE-003",
+        "R-PROV-001",
+        "R-PROV-002",
         "R-STK-001",
         "R-STK-002",
         "R-STK-003",
@@ -99,6 +101,8 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
         ("R-PRE-001", "R2", "ALTA"),
         ("R-PRE-002", "R1", "ALTA"),
         ("R-PRE-003", "R3", "INFORMATIVA"),
+        ("R-PROV-001", "R2", "MEDIA"),
+        ("R-PROV-002", "R2", "ALTA"),
     ),
 )
 def test_catalog_resolves_authorized_metadata(rule_id: str, effect: str, severity: str) -> None:
@@ -271,3 +275,10 @@ def test_dat003_not_evaluable_does_not_absorb_concurrent_r0_true() -> None:
 def test_pag002_catalog_carries_authorized_conditional_result() -> None:
     metadata = authorized_rule_metadata("R-PAG-002", RULES)
     assert metadata.active_result == "COMPRAR CONDICIONADO"
+
+
+def test_prov_catalog_carries_authorized_negotiation_results() -> None:
+    prov001 = authorized_rule_metadata("R-PROV-001", RULES)
+    prov002 = authorized_rule_metadata("R-PROV-002", RULES)
+    assert prov001.active_result == "NEGOCIAR"
+    assert prov002.active_result == "NEGOCIAR"
