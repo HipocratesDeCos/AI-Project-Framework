@@ -22,9 +22,13 @@ from eios.payment_terms import PaymentTermSemanticAuthority
 from eios.pricing import (
     PriceIntelligenceAssessmentContext,
     PriceIntelligenceInput,
+    PriceReference,
     RecommendedPriceCeiling,
     ComparablePriceReference,
     HistoricalReferenceTemporalObservation,
+)
+from eios.pricing.historical_comparability import (
+    HistoricalComparabilityDimensionDetermination,
 )
 from eios.profitability import ProvenancedProfitabilityExecution
 from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
@@ -42,6 +46,7 @@ from .finance import (
     evaluate_r_fin_002,
     evaluate_r_fin_003,
 )
+from .history_comparability import R_HIS_003, evaluate_r_his_003
 from .payment import PAG001ParameterBundle, R_PAG_001, evaluate_r_pag_001
 from .payment_risk import (
     PAG002FinanceInputs,
@@ -198,6 +203,13 @@ class HistorySufficiencyRuleInputs:
 
 
 @dataclass(frozen=True)
+class HistoryComparabilityRuleInputs:
+    reference: PriceReference
+    dimension_determinations: tuple[HistoricalComparabilityDimensionDetermination, ...]
+    dimension_evidences: tuple[Evidence, ...]
+
+
+@dataclass(frozen=True)
 class ProfitabilityRuleInputs:
     profitability_execution: ProvenancedProfitabilityExecution
     profitability_evidence: Evidence
@@ -282,6 +294,7 @@ def run_domain_rules(
     finance_safety_margin: FinanceSafetyMarginRuleInputs | None = None,
     history_temporal: HistoryTemporalRuleInputs | None = None,
     history_sufficiency: HistorySufficiencyRuleInputs | None = None,
+    history_comparability: HistoryComparabilityRuleInputs | None = None,
     comparable_recent_price: ComparableRecentPriceRuleInputs | None = None,
     critical_price: CriticalPriceRuleInputs | None = None,
     recommended_price: RecommendedPriceRuleInputs | None = None,
@@ -444,6 +457,17 @@ def run_domain_rules(
             history_sufficiency.parameter_evidence,
         )
 
+    if history_comparability is not None:
+        rule = authorized_rule(R_HIS_003, context.rules_version)
+        assessments_by_rule[R_HIS_003] = evaluate_r_his_003(
+            purchase=purchase,
+            context=context,
+            rule=rule,
+            reference=history_comparability.reference,
+            dimension_determinations=history_comparability.dimension_determinations,
+            dimension_evidences=history_comparability.dimension_evidences,
+        )
+
     if payment_terms is not None:
         rule = authorized_rule(R_PAG_001, context.rules_version)
         pag_bundle = PAG001ParameterBundle(
@@ -582,6 +606,7 @@ __all__ = [
     "FinanceCapacityRuleInputs",
     "FinanceSafetyMarginRuleInputs",
     "FinanceWorkingCapitalRuleInputs",
+    "HistoryComparabilityRuleInputs",
     "HistoryTemporalRuleInputs",
     "HistorySufficiencyRuleInputs",
     "PaymentFinancialRuleInputs",
