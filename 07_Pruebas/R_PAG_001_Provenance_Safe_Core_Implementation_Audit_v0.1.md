@@ -36,6 +36,14 @@ Identity mismatch lanza error de integridad.
 
 Estados no utilizables producen NOT_EVALUABLE, nunca FALSE.
 
+## A4.1 — Correcciones de depuración
+
+Antes de CI se endurece la integración:
+
+- P-PAG-002/003/004 deben compartir exactamente el mismo `effective_at` cuando están presentes;
+- un mismo `evidence_id` no puede reutilizarse para parámetros PAG distintos;
+- incoherencia de contexto o evidencia reutilizada → NOT_EVALUABLE.
+
 ## A5 — Tests
 
 Cubren:
@@ -50,7 +58,9 @@ Cubren:
 - threshold ausente;
 - supplier identity mismatch;
 - metadata R2/ALTA/NEGOCIAR;
-- ausencia de P-PAG-005 como requisito.
+- ausencia de P-PAG-005 como requisito;
+- effective_at incoherente entre P-PAG-002/003/004;
+- evidence_id reutilizado entre parámetros.
 
 ## Dictamen
 
