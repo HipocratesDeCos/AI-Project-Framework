@@ -102,3 +102,31 @@ Corrección:
 - no se modifica código productivo ni semántica.
 
 **DEPURACIÓN 2 APLICADA — NUEVA CI REQUERIDA.**
+
+
+## Audit 2 final
+
+CI #1117 sobre `610baa044d5aada9e4107f9dd892c4e9961d7cf1`: **SUCCESS**.
+
+Validado:
+
+- suite Python completa → SUCCESS;
+- validación SQL → SUCCESS;
+- core R-PAG-001 → integrado en catálogo;
+- core R-PAG-001 → integrado en run_domain_rules;
+- cobertura de reglas implementadas → 20;
+- reconstrucción provenance-safe → preservada;
+- P-PAG-005 → no bloqueante;
+- no se introdujo semántica adicional durante las dos depuraciones.
+
+```text
+DISEÑAR       ✅
+AUDITAR       ✅
+DEPURAR       ✅
+AUDITAR 2     ✅
+CERRAR        ✅
+MATERIALIZAR  ✅
+CI            ✅ #1117
+```
+
+**DICTAMEN: R-PAG-001 PROVENANCE-SAFE CORE v0.1 — CERRADO, sujeto únicamente a CI del HEAD documental final y merge.**
