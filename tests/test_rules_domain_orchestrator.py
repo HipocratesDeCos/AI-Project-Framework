@@ -20,6 +20,7 @@ ALL_RULES = (
     "R-MGE-001",
     "R-MGE-002",
     "R-MGE-003",
+    "R-PAG-001",
     "R-PRE-001",
     "R-PRE-002",
     "R-PRE-003",
@@ -65,8 +66,9 @@ def _assessment(rule_id: str, outcome: str) -> Assessment:
 
 def _patch_rule(monkeypatch, name: str, rule_id: str, outcome: str, calls: list[str]):
     def fake(*args, **kwargs):
-        assert args[2].rule_id == rule_id
-        assert args[2].version == RULES_VERSION
+        rule = args[2] if len(args) > 2 else kwargs["rule"]
+        assert rule.rule_id == rule_id
+        assert rule.version == RULES_VERSION
         calls.append(rule_id)
         return _assessment(rule_id, outcome)
 
@@ -109,6 +111,9 @@ def _all_bundles():
         profitability=orchestrator.ProfitabilityRuleInputs(
             marker, marker, marker, marker, marker, marker, marker, marker
         ),
+        payment_terms=orchestrator.PaymentTermRuleInputs(
+            marker, marker, marker, marker, marker, marker, marker, marker
+        ),
     )
 
 
@@ -133,6 +138,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     _patch_rule(monkeypatch, "evaluate_r_mge_001", "R-MGE-001", "FALSE", calls)
     _patch_rule(monkeypatch, "evaluate_r_mge_002", "R-MGE-002", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_mge_003", "R-MGE-003", "FALSE", calls)
+    _patch_rule(monkeypatch, "evaluate_r_pag_001", "R-PAG-001", "FALSE", calls)
 
     result = orchestrator.run_domain_rules(
         purchase=_purchase(),
@@ -155,6 +161,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
         "R-FIN-003",
         "R-HIS-001",
         "R-HIS-002",
+        "R-PAG-001",
         "R-PRE-001",
         "R-PRE-002",
         "R-PRE-003",
@@ -166,7 +173,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     assert result.omitted_rule_ids == ()
     assert tuple(item.rule_id for item in result.assessments) == ALL_RULES
     assert result.crc_result.consolidated_result == "COMPRAR CONDICIONADO"
-    assert len(result.traces) == 19
+    assert len(result.traces) == 20
     assert result.c0_capability.result_available is True
 
 

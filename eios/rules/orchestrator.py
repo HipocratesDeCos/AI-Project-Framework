@@ -17,6 +17,7 @@ from eios.data_sufficiency import DecisionEvidenceSufficiencyObservation
 from eios.delivery.models import DeliveryStockoutAnalysisInput, DeliveryStockoutAnalysisResult
 from eios.finance import PostOperationWorkingCapitalPosition, ProvenancedFinanceBasicExecution
 from eios.parameters import ResolvedConfiguration
+from eios.payment_terms import PaymentTermSemanticAuthority
 from eios.pricing import (
     PriceIntelligenceAssessmentContext,
     PriceIntelligenceInput,
@@ -26,6 +27,7 @@ from eios.pricing import (
 )
 from eios.profitability import ProvenancedProfitabilityExecution
 from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
+from eios.supplier.models import SupplierEvidenceResult
 from eios.stock.rule_inputs import JustifiedNeedState, ProjectedCoverageAfterPurchase
 
 from .catalog import authorized_rule, implemented_rule_ids
@@ -39,6 +41,7 @@ from .finance import (
     evaluate_r_fin_002,
     evaluate_r_fin_003,
 )
+from .payment import PAG001ParameterBundle, R_PAG_001, evaluate_r_pag_001
 from .pricing import (
     R_HIS_001,
     R_HIS_002,
@@ -199,6 +202,18 @@ class ProfitabilityRuleInputs:
     tolerance_evidence: Evidence | None
 
 
+@dataclass(frozen=True)
+class PaymentTermRuleInputs:
+    supplier_result: SupplierEvidenceResult
+    semantic_authority: PaymentTermSemanticAuthority
+    target_resolution: ResolvedConfiguration | None
+    target_evidence: Evidence | None
+    tolerance_resolution: ResolvedConfiguration | None
+    tolerance_evidence: Evidence | None
+    control_resolution: ResolvedConfiguration | None
+    control_evidence: Evidence | None
+
+
 class DecisionRuleExecutionResult(BaseModel):
     """Rules result plus explicit coverage of implemented rule bridges."""
 
@@ -249,6 +264,7 @@ def run_domain_rules(
     critical_price: CriticalPriceRuleInputs | None = None,
     recommended_price: RecommendedPriceRuleInputs | None = None,
     profitability: ProfitabilityRuleInputs | None = None,
+    payment_terms: PaymentTermRuleInputs | None = None,
 ) -> DecisionRuleExecutionResult:
     """Evaluate supplied domain bundles and compose them in the same execution."""
     assessments_by_rule = {}
@@ -405,6 +421,25 @@ def run_domain_rules(
             history_sufficiency.parameter_evidence,
         )
 
+    if payment_terms is not None:
+        rule = authorized_rule(R_PAG_001, context.rules_version)
+        pag_bundle = PAG001ParameterBundle(
+            target_resolution=payment_terms.target_resolution,
+            target_evidence=payment_terms.target_evidence,
+            tolerance_resolution=payment_terms.tolerance_resolution,
+            tolerance_evidence=payment_terms.tolerance_evidence,
+            control_resolution=payment_terms.control_resolution,
+            control_evidence=payment_terms.control_evidence,
+        )
+        assessments_by_rule[R_PAG_001] = evaluate_r_pag_001(
+            purchase=purchase,
+            context=context,
+            rule=rule,
+            supplier_result=payment_terms.supplier_result,
+            semantic_authority=payment_terms.semantic_authority,
+            parameters=pag_bundle,
+        )
+
     if comparable_recent_price is not None:
         rule = authorized_rule(R_PRE_001, context.rules_version)
         assessments_by_rule[R_PRE_001] = evaluate_r_pre_001(
@@ -501,6 +536,7 @@ __all__ = [
     "FinanceWorkingCapitalRuleInputs",
     "HistoryTemporalRuleInputs",
     "HistorySufficiencyRuleInputs",
+    "PaymentTermRuleInputs",
     "ProfitabilityRuleInputs",
     "RecommendedPriceRuleInputs",
     "StockAbsorptionRuleInputs",
