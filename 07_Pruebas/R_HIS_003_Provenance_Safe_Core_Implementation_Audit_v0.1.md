@@ -133,4 +133,19 @@ MATERIALIZAR  ✅
 CI            ✅ #1149
 ```
 
-**DICTAMEN: R-HIS-003 PROVENANCE-SAFE CORE v0.1 — CERRADO, sujeto únicamente a CI del HEAD documental final y merge.**
+CI #1150 sobre `79b8b3d20719700567ae3af3dc10ecb1128d522c`: **SUCCESS**.
+
+PR #301 integrada en `main @ 59edd74eee9e43d6fb3c79a8f6190e474c5f81e4`.
+
+Validación final:
+
+- Python → SUCCESS;
+- SQL → SUCCESS;
+- catálogo/orquestador → 22 reglas implementadas;
+- R-HIS-003 R3 / MEDIA;
+- carrier global reconstruido internamente;
+- seven-dimension coverage obligatoria;
+- ninguna promoción automática desde Price Intelligence;
+- autoridades empresariales dimensionales no inventadas.
+
+**DICTAMEN: R-HIS-003 PROVENANCE-SAFE CORE v0.1 — CERRADO / MATERIALIZADO / CI VALIDATED EN SU ALCANCE AUTORIZADO.**
