@@ -22,14 +22,23 @@ from eios.finance.provenance import (
     ProvenancedFinanceBasicExecution,
     validate_provenanced_finance_basic_execution,
 )
-from eios.payment_term_minimum import MinimumPaymentTermResolution
-from eios.payment_terms import OfferedPaymentTermObservation
+from eios.core.models import Evidence
+from eios.parameters import ResolvedConfiguration
+from eios.payment_term_minimum import resolve_minimum_payment_term
+from eios.payment_terms import PaymentTermObservationAdapter, PaymentTermSemanticAuthority
+from eios.supplier.models import SupplierEvidenceResult
 
 PAG002_CF_AUTHORITY_REF = "01_Modelo/PAG002_Counterfactual_Due_Date_Authority_v0.1.md"
 PAG002_CF_METHODOLOGY_REF = (
     "08_Implementacion/PAG002_Counterfactual_Due_Date_Technical_Contract_v0.1.md"
 )
 PAG002_CF_ORIGIN = "PAG002-CF-DUE-DATE-v0.1"
+PAG001_OFFERED_TERM_AUTHORITY_REF = (
+    "01_Modelo/PAG001_Offered_Payment_Term_Authority_v0.1.md"
+)
+PAG001_OFFERED_TERM_METHODOLOGY_REF = (
+    "08_Implementacion/PAG001_Offered_Payment_Term_Adapter_Technical_Contract_v0.1.md"
+)
 
 CounterfactualScheduleState = Literal["AVAILABLE", "NOT_EVALUABLE"]
 CounterfactualScheduleReasonCode = Literal[
@@ -155,8 +164,10 @@ def build_pag002_counterfactual_payment_schedule(
     *,
     capture: DocumentaryPaymentCapture,
     baseline_execution: ProvenancedFinanceBasicExecution,
-    offered_term: OfferedPaymentTermObservation,
-    minimum_term: MinimumPaymentTermResolution,
+    supplier_result: SupplierEvidenceResult,
+    semantic_authority: PaymentTermSemanticAuthority,
+    minimum_resolution: ResolvedConfiguration | None,
+    minimum_evidence: Evidence | None,
 ) -> CounterfactualPaymentSchedule:
     """Build one authorized SCENARIO_ONLY payment due-date change."""
 
@@ -182,6 +193,18 @@ def build_pag002_counterfactual_payment_schedule(
 
     if captured_finance != baseline_execution.finance_input:
         return _not_evaluable(identity, "CAPTURE_BASELINE_MISMATCH")
+
+    offered_term = PaymentTermObservationAdapter(
+        authority_ref=PAG001_OFFERED_TERM_AUTHORITY_REF,
+        methodology_ref=PAG001_OFFERED_TERM_METHODOLOGY_REF,
+    ).adapt(supplier_result, semantic_authority)
+    minimum_term = resolve_minimum_payment_term(
+        context=captured_context,
+        company_scope=captured_finance.snapshot.company_scope,
+        evaluation_date=purchase.operation_date,
+        minimum_resolution=minimum_resolution,
+        minimum_evidence=minimum_evidence,
+    )
 
     if len(payload["bindings"]) != 1:
         return _not_evaluable(identity, "PAYMENT_BINDING_NOT_SINGLE")
@@ -359,6 +382,8 @@ __all__ = [
     "PAG002_CF_AUTHORITY_REF",
     "PAG002_CF_METHODOLOGY_REF",
     "PAG002_CF_ORIGIN",
+    "PAG001_OFFERED_TERM_AUTHORITY_REF",
+    "PAG001_OFFERED_TERM_METHODOLOGY_REF",
     "build_pag002_counterfactual_finance_execution",
     "build_pag002_counterfactual_payment_schedule",
     "validate_pag002_counterfactual_finance_execution",
