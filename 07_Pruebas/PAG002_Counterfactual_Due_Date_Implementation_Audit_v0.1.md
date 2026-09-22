@@ -1,0 +1,65 @@
+# EIOS — PAG002 Counterfactual Due-Date Implementation Audit v0.1
+
+**Autoridad:** `01_Modelo/PAG002_Counterfactual_Due_Date_Authority_v0.1.md`  
+**Estado:** AUDIT 1 SUPERADA — CI PENDIENTE
+
+## A1 — Frontera factual
+
+El `CashFlow` factual permanece intacto.
+
+La fecha contrafactual no se escribe en `CashFlow.due_date` ni usa `evidence_state=DEMONSTRATED`.
+
+## A2 — Provenance
+
+El productor reconstruye internamente plazo ofrecido y P-PAG-001 desde fuentes autorizadas.
+
+No acepta resultados derivados desprendidos.
+
+## A3 — Pago único
+
+`len(bindings) != 1 → NOT_EVALUABLE`.
+
+No existe lógica de multicuota.
+
+## A4 — O2
+
+Un único `AuthorizedScenarioChange` se entrega a `create_scenario`.
+
+No se fabrica scenario_id ni fingerprint.
+
+## A5 — Finance Basic
+
+Se añade una frontera scenario-only con overrides de fecha externos al modelo factual.
+
+El algoritmo de proyección, working capital y safety margin sigue siendo el mismo.
+
+## A6 — Fail closed
+
+Se cubren:
+
+- mismatch capture/baseline;
+- payment binding no único;
+- flow no utilizable;
+- term inputs no disponibles;
+- mismatch de identidad;
+- días fraccionarios;
+- minimum <= offered;
+- overflow de fecha;
+- ejecución contrafactual alterada.
+
+## A7 — Tests
+
+Cobertura explícita de:
+
+- fórmula delta;
+- preservación del CashFlow factual;
+- escenario O2;
+- no extensión de horizonte;
+- multicuota;
+- no redondeo;
+- ausencia de plazo;
+- revalidación de resultado.
+
+## Dictamen
+
+**AUDIT 1 SUPERADA — 0 BLOQUEADORES ESTÁTICOS PARA CI.**
