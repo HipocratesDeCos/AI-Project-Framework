@@ -26,6 +26,8 @@ ALL_RULES = (
     "R-PRE-001",
     "R-PRE-002",
     "R-PRE-003",
+    "R-PROV-001",
+    "R-PROV-002",
     "R-STK-001",
     "R-STK-002",
     "R-STK-003",
@@ -123,6 +125,12 @@ def _all_bundles():
             marker, marker, marker, marker, marker, marker, marker, marker,
             marker, marker, marker
         ),
+        supplier_alternative_opportunity=orchestrator.SupplierAlternativeOpportunityRuleInputs(
+            marker, marker, (marker,), (marker,)
+        ),
+        supplier_alternative_comparison=orchestrator.SupplierAlternativeComparisonRuleInputs(
+            marker, marker, (marker,), (marker,), (marker,)
+        ),
     )
 
 
@@ -150,6 +158,8 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     _patch_rule(monkeypatch, "evaluate_r_mge_003", "R-MGE-003", "FALSE", calls)
     _patch_rule(monkeypatch, "evaluate_r_pag_001", "R-PAG-001", "FALSE", calls)
     _patch_rule(monkeypatch, "evaluate_r_pag_002", "R-PAG-002", "TRUE", calls)
+    _patch_rule(monkeypatch, "evaluate_r_prov_001", "R-PROV-001", "TRUE", calls)
+    _patch_rule(monkeypatch, "evaluate_r_prov_002", "R-PROV-002", "TRUE", calls)
 
     result = orchestrator.run_domain_rules(
         purchase=_purchase(),
@@ -175,6 +185,8 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
         "R-HIS-003",
         "R-PAG-001",
         "R-PAG-002",
+        "R-PROV-001",
+        "R-PROV-002",
         "R-PRE-001",
         "R-PRE-002",
         "R-PRE-003",
@@ -186,7 +198,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     assert result.omitted_rule_ids == ()
     assert tuple(item.rule_id for item in result.assessments) == ALL_RULES
     assert result.crc_result.consolidated_result == "COMPRAR CONDICIONADO"
-    assert len(result.traces) == 22
+    assert len(result.traces) == 24
     assert result.c0_capability.result_available is True
 
 
