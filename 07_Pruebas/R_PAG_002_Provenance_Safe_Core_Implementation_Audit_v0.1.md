@@ -1,7 +1,7 @@
 # EIOS — R-PAG-002 Provenance-Safe Core Implementation Audit v0.1
 
 **Fecha:** 22/09/2026  
-**Estado:** AUDIT 1 SUPERADA — CI PENDIENTE
+**Estado:** AUDIT 2 SUPERADA — READY TO MERGE
 
 ## A1 — Semántica
 
@@ -110,3 +110,34 @@ No se modifica:
 - integración del orquestador.
 
 **DEPURACIÓN 1 APLICADA — NUEVA CI REQUERIDA.**
+
+
+## Audit 2 final
+
+CI #1138 sobre `b15830d8b96aa583cd3182d8db2bc424a9d48d1e`: **SUCCESS**.
+
+Validado:
+
+- suite Python completa → SUCCESS;
+- validación SQL → SUCCESS;
+- R-PAG-002 integrada en catálogo;
+- R-PAG-002 integrada en `run_domain_rules`;
+- cobertura del catálogo/orquestador → 21 reglas;
+- baseline Finance Basic revalidado;
+- counterfactual SCENARIO_ONLY reconstruido internamente;
+- metadata R1 / ALTA / COMPRAR CONDICIONADO;
+- multicuota → NOT_EVALUABLE;
+- P-PAG-005 no bloqueante;
+- ninguna semántica nueva introducida durante la depuración.
+
+```text
+DISEÑAR       ✅
+AUDITAR       ✅
+DEPURAR       ✅
+AUDITAR 2     ✅
+CERRAR        ✅
+MATERIALIZAR  ✅
+CI            ✅ #1138
+```
+
+**DICTAMEN: R-PAG-002 PROVENANCE-SAFE CORE v0.1 — CERRADO, sujeto únicamente a CI del HEAD documental final y merge.**
