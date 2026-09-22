@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.5.18  
+**Versión:** 1.5.19  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
@@ -351,7 +351,7 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 | DEP-PAG-003-RPAG-001 | `R-PAG-001` | `DERIVED` | `P-PAG-003` | PARAMETER | Modulación del objetivo de pago | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md`; `01_Modelo/PAG001_Payment_Term_Tolerance_Authority_v0.1.md`; `08_Implementacion/PAG001_Payment_Term_Tolerance_Technical_Contract_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Transformación materializada: `effective_threshold_days = P-PAG-002 - P-PAG-003`, con same-context `ResolvedConfiguration + ParameterConfigurationEvidence`, sin clamp ni conversión. PR #283, CI #1094 SUCCESS. |
 | DEP-PAG-004-RPAG-001 | `R-PAG-001` | `CONTROL` | `P-PAG-004` | PARAMETER | Control de consideración del plazo | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md`; `01_Modelo/PAG001_Consider_Payment_Term_Control_Authority_v0.1.md`; `08_Implementacion/PAG001_Consider_Payment_Term_Control_Technical_Contract_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Control materializado: `Sí → ENABLED`, `No → DISABLED`; DISABLED preserva exclusión de criterio y no fabrica FALSE. Ausencia/config/evidence inválida → NOT_EVALUABLE. PR #286, CI #1102 SUCCESS. |
 | DEP-PAG-004-RPAG-002 | `R-PAG-002` | `CONTROL` | `P-PAG-004` | PARAMETER | Control de consideración del plazo | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Control documentado. |
-| DEP-PAG-005-RPAG-001 | `R-PAG-001` | `DERIVED` | `P-PAG-005` | PARAMETER | Contexto económico de negociación | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Naturaleza derivada documentada. |
+| DEP-PAG-005-RPAG-001 | `R-PAG-001` | `CONTROL` | `P-PAG-005` | PARAMETER | Control opcional de consideración del contexto económico de pronto pago | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md`; `01_Modelo/PAG001_Early_Payment_Discount_Control_Authority_v0.1.md`; `08_Implementacion/PAG001_Early_Payment_Discount_Control_Technical_Contract_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Reconciliado: `Sí → ENABLED`, `No → DISABLED`; no representa porcentaje/importe/coste efectivo y no es prerequisito de evaluabilidad del core R-PAG-001. PR #289, CI #1109 SUCCESS. |
 | DEP-PAG-005-RPAG-002 | `R-PAG-002` | `DERIVED` | `P-PAG-005` | PARAMETER | Contexto económico de negociación | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Naturaleza derivada documentada. |
 | DEP-DAT-001-RDAT-001 | `R-DAT-001` | `PARAMETER` | `P-DAT-001` | PARAMETER | Antigüedad máxima del snapshot operativo evaluado | PENDING | `02_Parametros/Matriz_Parametros_Reglas_MVP.md`; `01_Modelo/DAT001_Data_Freshness_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Binding físico cerrado mediante `ResolvedConfiguration(P-DAT-001) + ParameterConfigurationEvidence`; PR #268, CI #1059 SUCCESS. No valida 6 semanas como política empresarial definitiva. |
 | DEP-DAT001-FRESHNESS-EVIDENCE | `R-DAT-001` | `EVIDENCE` | `DataSnapshotFreshnessEvidence` | DATA FRESHNESS | Demuestra la fecha canónica explícita de actualización del snapshot exacto y su binding a contexto/operación | PENDING | `01_Modelo/DAT001_Data_Freshness_Authority_v0.1.md`; `08_Implementacion/R_DAT_001_Technical_Contract_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Materializada mediante `DataSnapshotFreshnessProducer + DataSnapshotFreshnessObservation`; no deriva fecha desde `data_snapshot_id`, Evidence, DIP ni reloj del sistema. |
@@ -503,7 +503,8 @@ La reconciliación PAG001 factual confirma:
 - no se normalizan cuotas/vencimientos a un escalar;
 - `P-PAG-003` queda materializado como transformación `target - tolerance`, con missing/invalid/incoherent/evidence-invalid diferenciados y misma configuración efectiva obligatoria;
 - `P-PAG-004` queda materializado para R-PAG-001 con ENABLED/DISABLED/NOT_EVALUABLE y causas separadas;
-- `P-PAG-005` y la regla R-PAG-001 completa permanecen pendientes.
+- `P-PAG-005` queda materializado como control de contexto económico independiente y no bloqueante del comparator base;
+- la regla R-PAG-001 completa permanece pendiente únicamente de integración ejecutable provenance-safe.
 
 La reconciliación PRE temporal confirma:
 
