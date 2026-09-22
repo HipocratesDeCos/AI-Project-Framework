@@ -1,7 +1,7 @@
 # EIOS — PAG002 Minimum-Term & Financial-State Implementation Audit v0.1
 
 **Authority:** `01_Modelo/PAG002_Financial_Viability_Counterfactual_Authority_v0.1.md`  
-**State:** AUDIT 2 PASSED — READY TO MERGE
+**State:** AUDIT 2 PASSED — CLOSED / MATERIALIZED / CI VALIDATED
 
 ## Findings
 
@@ -46,4 +46,10 @@ MATERIALIZAR  ✅ partial scope
 CI            ✅ #1125
 ```
 
-**DICTAMEN: PAG002 MINIMUM-TERM & FINANCIAL-STATE v0.1 — CERRADO EN ALCANCE PARCIAL, SUJETO A CI DEL HEAD DOCUMENTAL FINAL Y MERGE.**
+CI #1126 on `1ab5a81c14283c33b434da2ce25bdedc7671efa4`: **SUCCESS**.
+
+PR #294 merged into `main @ 3fdf4b48ed20a5c25143ddba55b8e00c1f9eecba`.
+
+**DICTAMEN: PAG002 MINIMUM-TERM & FINANCIAL-STATE v0.1 — CLOSED / MATERIALIZED / CI VALIDATED IN AUTHORIZED PARTIAL SCOPE.**
+
+The only remaining blocker for the full R-PAG-002 core is `PAG002-CF-DUE-DATE`.
