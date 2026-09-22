@@ -1,7 +1,7 @@
 # EIOS — R-PAG-002 Provenance-Safe Core Implementation Audit v0.1
 
 **Fecha:** 22/09/2026  
-**Estado:** AUDIT 2 SUPERADA — READY TO MERGE
+**Estado:** AUDIT 2 SUPERADA — CERRADO / MATERIALIZADO / CI VALIDATED
 
 ## A1 — Semántica
 
@@ -140,4 +140,17 @@ MATERIALIZAR  ✅
 CI            ✅ #1138
 ```
 
-**DICTAMEN: R-PAG-002 PROVENANCE-SAFE CORE v0.1 — CERRADO, sujeto únicamente a CI del HEAD documental final y merge.**
+CI #1139 sobre `8d8f9a89ed1726f2896ce93356fb5bb356647077`: **SUCCESS**.
+
+PR #298 integrada en `main @ d405f0de6eb40e982af71fabb9d2ab297673bfba`.
+
+Validación postintegración:
+
+- 21 reglas materializadas en catálogo/orquestador;
+- R-PAG-002 R1 / ALTA / COMPRAR CONDICIONADO;
+- pago único end-to-end;
+- counterfactual SCENARIO_ONLY;
+- multicuota fail-closed;
+- baseline y counterfactual reconstruidos provenance-safe.
+
+**DICTAMEN: R-PAG-002 PROVENANCE-SAFE CORE v0.1 — CERRADO / MATERIALIZADO / CI VALIDATED EN ALCANCE PAGO ÚNICO.**

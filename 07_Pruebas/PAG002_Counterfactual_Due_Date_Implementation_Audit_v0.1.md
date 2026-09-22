@@ -1,7 +1,7 @@
 # EIOS — PAG002 Counterfactual Due-Date Implementation Audit v0.1
 
 **Autoridad:** `01_Modelo/PAG002_Counterfactual_Due_Date_Authority_v0.1.md`  
-**Estado:** AUDIT 2 SUPERADA — READY TO MERGE
+**Estado:** AUDIT 2 SUPERADA — CERRADO / MATERIALIZADO / CI VALIDATED
 
 ## A1 — Frontera factual
 
@@ -88,4 +88,10 @@ MATERIALIZAR  ✅
 CI            ✅ #1133
 ```
 
-**DICTAMEN: PAG002 COUNTERFACTUAL DUE-DATE v0.1 — CERRADO, sujeto únicamente a CI del HEAD documental final y merge.**
+CI #1134 sobre `292774d295a2e5c15b4a3d6afc73004c6366c8e5`: **SUCCESS**.
+
+PR #297 integrada en `main @ 26232c98e78d0052243c8f82c0f1d390f8f8c224`.
+
+Posteriormente consumida por el core R-PAG-002 en PR #298 / CI #1139.
+
+**DICTAMEN: PAG002 COUNTERFACTUAL DUE-DATE v0.1 — CERRADO / MATERIALIZADO / CI VALIDATED EN ALCANCE PAGO ÚNICO.**
