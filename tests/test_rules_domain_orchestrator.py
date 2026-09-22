@@ -66,8 +66,9 @@ def _assessment(rule_id: str, outcome: str) -> Assessment:
 
 def _patch_rule(monkeypatch, name: str, rule_id: str, outcome: str, calls: list[str]):
     def fake(*args, **kwargs):
-        assert args[2].rule_id == rule_id
-        assert args[2].version == RULES_VERSION
+        rule = args[2] if len(args) > 2 else kwargs["rule"]
+        assert rule.rule_id == rule_id
+        assert rule.version == RULES_VERSION
         calls.append(rule_id)
         return _assessment(rule_id, outcome)
 
