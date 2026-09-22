@@ -118,6 +118,17 @@ def _base(
     )
 
 
+def _resolution_is_active(resolved: ResolvedConfiguration) -> bool:
+    configuration = resolved.configuration
+    try:
+        return configuration.valid_from <= resolved.effective_at and (
+            configuration.valid_to is None
+            or resolved.effective_at < configuration.valid_to
+        )
+    except TypeError:
+        return False
+
+
 def _parse_days(resolved: ResolvedConfiguration) -> Decimal | None:
     if resolved.unit != "días":
         return None
@@ -181,6 +192,18 @@ def resolve_payment_term_tolerance(
             evidence_ids=evidence_ids,
         )
 
+    if target_evidence.evidence_id == tolerance_evidence.evidence_id:
+        return _base(
+            context=context,
+            company_scope=company_scope,
+            evaluation_date=evaluation_date,
+            state="NOT_EVALUABLE",
+            reason_code="INVALID_EVIDENCE",
+            target=target_resolution,
+            tolerance=tolerance_resolution,
+            evidence_ids=(target_evidence.evidence_id,),
+        )
+
     evidence_ids = (target_evidence.evidence_id, tolerance_evidence.evidence_id)
 
     if (
@@ -213,6 +236,20 @@ def resolve_payment_term_tolerance(
             evaluation_date=evaluation_date,
             state="NOT_EVALUABLE",
             reason_code="INCOHERENT_CONFIGURATION",
+            target=target_resolution,
+            tolerance=tolerance_resolution,
+            evidence_ids=evidence_ids,
+        )
+
+    if not _resolution_is_active(target_resolution) or not _resolution_is_active(
+        tolerance_resolution
+    ):
+        return _base(
+            context=context,
+            company_scope=company_scope,
+            evaluation_date=evaluation_date,
+            state="NOT_EVALUABLE",
+            reason_code="INVALID_CONFIGURATION",
             target=target_resolution,
             tolerance=tolerance_resolution,
             evidence_ids=evidence_ids,
