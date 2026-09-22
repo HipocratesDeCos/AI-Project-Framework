@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.5.16  
+**Versión:** 1.5.17  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
@@ -348,7 +348,7 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 | DEP-PAG-001-RPAG-002 | `R-PAG-002` | `PARAMETER` | `P-PAG-001` | PARAMETER | Plazo mínimo aceptable | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa. |
 | DEP-PAG-002-RPAG-001 | `R-PAG-001` | `PARAMETER` | `P-PAG-002` | PARAMETER | Plazo objetivo | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa. |
 | DEP-PAG001-OFFERED-TERM | `R-PAG-001` | `DATA` | `OfferedPaymentTermObservation` | PAYMENT TERM | Escalar canónico de plazo ofrecido del proveedor actual en días | PENDING | `01_Modelo/PAG001_Offered_Payment_Term_Authority_v0.1.md`; `08_Implementacion/PAG001_Offered_Payment_Term_Adapter_Technical_Contract_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Carrier materializado por `PaymentTermObservationAdapter` desde Supplier Evidence con `PaymentTermSemanticAuthority` explícita. No autoriza R-PAG-001 completa ni normalización multicuota. PR #280, CI #1087 SUCCESS. |
-| DEP-PAG-003-RPAG-001 | `R-PAG-001` | `DERIVED` | `P-PAG-003` | PARAMETER | Modulación del objetivo de pago | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Naturaleza derivada documentada. |
+| DEP-PAG-003-RPAG-001 | `R-PAG-001` | `DERIVED` | `P-PAG-003` | PARAMETER | Modulación del objetivo de pago | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md`; `01_Modelo/PAG001_Payment_Term_Tolerance_Authority_v0.1.md`; `08_Implementacion/PAG001_Payment_Term_Tolerance_Technical_Contract_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Transformación materializada: `effective_threshold_days = P-PAG-002 - P-PAG-003`, con same-context `ResolvedConfiguration + ParameterConfigurationEvidence`, sin clamp ni conversión. PR #283, CI #1094 SUCCESS. |
 | DEP-PAG-004-RPAG-001 | `R-PAG-001` | `CONTROL` | `P-PAG-004` | PARAMETER | Control de consideración del plazo | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Control documentado. |
 | DEP-PAG-004-RPAG-002 | `R-PAG-002` | `CONTROL` | `P-PAG-004` | PARAMETER | Control de consideración del plazo | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Control documentado. |
 | DEP-PAG-005-RPAG-001 | `R-PAG-001` | `DERIVED` | `P-PAG-005` | PARAMETER | Contexto económico de negociación | PENDING | `04_Reglas/Especificacion_Reglas_Configuracion_Pagos_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Naturaleza derivada documentada. |
@@ -501,7 +501,8 @@ La reconciliación PAG001 factual confirma:
 - múltiples PAYMENT_TERM aplicables → `CONFLICTING_DATA`;
 - observación KNOWN presente pero no utilizable → `NOT_DETERMINABLE`;
 - no se normalizan cuotas/vencimientos a un escalar;
-- `P-PAG-003`, `P-PAG-005` y la regla R-PAG-001 completa permanecen pendientes.
+- `P-PAG-003` queda materializado como transformación `target - tolerance`, con missing/invalid/incoherent/evidence-invalid diferenciados y misma configuración efectiva obligatoria;
+- `P-PAG-004`, `P-PAG-005` y la regla R-PAG-001 completa permanecen pendientes.
 
 La reconciliación PRE temporal confirma:
 
