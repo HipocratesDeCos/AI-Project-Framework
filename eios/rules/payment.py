@@ -134,6 +134,47 @@ def evaluate_r_pag_001(
             ),
         )
 
+    parameter_evidences = tuple(
+        item
+        for item in (
+            parameters.control_evidence,
+            parameters.target_evidence,
+            parameters.tolerance_evidence,
+        )
+        if item is not None
+    )
+    parameter_evidence_ids = tuple(item.evidence_id for item in parameter_evidences)
+    if len(parameter_evidence_ids) != len(set(parameter_evidence_ids)):
+        return Assessment(
+            rule_id=R_PAG_001,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=list(dict.fromkeys(parameter_evidence_ids)),
+            reason=(
+                "R-PAG-001 no evaluable: evidencia de configuración reutilizada "
+                "entre parámetros PAG distintos."
+            ),
+        )
+
+    resolved_parameters = (
+        parameters.control_resolution,
+        parameters.target_resolution,
+        parameters.tolerance_resolution,
+    )
+    if all(item is not None for item in resolved_parameters):
+        effective_times = {item.effective_at for item in resolved_parameters if item is not None}
+        if len(effective_times) != 1:
+            return Assessment(
+                rule_id=R_PAG_001,
+                status="NOT_EVALUABLE",
+                outcome=None,
+                evidence_ids=list(dict.fromkeys(parameter_evidence_ids)),
+                reason=(
+                    "R-PAG-001 no evaluable: P-PAG-002/003/004 no pertenecen "
+                    "al mismo contexto efectivo de configuración."
+                ),
+            )
+
     offered = PaymentTermObservationAdapter(
         authority_ref=PAG001_OFFERED_TERM_ADAPTER_AUTHORITY_REF,
         methodology_ref=PAG001_OFFERED_TERM_ADAPTER_METHODOLOGY_REF,
