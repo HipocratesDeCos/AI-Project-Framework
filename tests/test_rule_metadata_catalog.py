@@ -62,6 +62,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
         "R-MGE-002",
         "R-MGE-003",
         "R-PAG-001",
+        "R-PAG-002",
         "R-PRE-001",
         "R-PRE-002",
         "R-PRE-003",
@@ -92,6 +93,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
         ("R-MGE-002", "R2", "MEDIA"),
         ("R-MGE-003", "R3", "INFORMATIVA"),
         ("R-PAG-001", "R2", "ALTA"),
+        ("R-PAG-002", "R1", "ALTA"),
         ("R-PRE-001", "R2", "ALTA"),
         ("R-PRE-002", "R1", "ALTA"),
         ("R-PRE-003", "R3", "INFORMATIVA"),
@@ -262,3 +264,8 @@ def test_dat003_not_evaluable_does_not_absorb_concurrent_r0_true() -> None:
     )
     assert result.crc_result.consolidated_result == "NO COMPRAR"
     assert result.crc_result.dominant_reason == "R-FIN-001 assessment."
+
+
+def test_pag002_catalog_carries_authorized_conditional_result() -> None:
+    metadata = authorized_rule_metadata("R-PAG-002", RULES)
+    assert metadata.active_result == "COMPRAR CONDICIONADO"
