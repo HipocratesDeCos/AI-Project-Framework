@@ -21,6 +21,7 @@ ALL_RULES = (
     "R-MGE-002",
     "R-MGE-003",
     "R-PAG-001",
+    "R-PAG-002",
     "R-PRE-001",
     "R-PRE-002",
     "R-PRE-003",
@@ -114,6 +115,10 @@ def _all_bundles():
         payment_terms=orchestrator.PaymentTermRuleInputs(
             marker, marker, marker, marker, marker, marker, marker, marker
         ),
+        payment_financial=orchestrator.PaymentFinancialRuleInputs(
+            marker, marker, marker, marker, marker, marker, marker, marker,
+            marker, marker, marker
+        ),
     )
 
 
@@ -139,6 +144,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     _patch_rule(monkeypatch, "evaluate_r_mge_002", "R-MGE-002", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_mge_003", "R-MGE-003", "FALSE", calls)
     _patch_rule(monkeypatch, "evaluate_r_pag_001", "R-PAG-001", "FALSE", calls)
+    _patch_rule(monkeypatch, "evaluate_r_pag_002", "R-PAG-002", "TRUE", calls)
 
     result = orchestrator.run_domain_rules(
         purchase=_purchase(),
@@ -162,6 +168,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
         "R-HIS-001",
         "R-HIS-002",
         "R-PAG-001",
+        "R-PAG-002",
         "R-PRE-001",
         "R-PRE-002",
         "R-PRE-003",
@@ -173,7 +180,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     assert result.omitted_rule_ids == ()
     assert tuple(item.rule_id for item in result.assessments) == ALL_RULES
     assert result.crc_result.consolidated_result == "COMPRAR CONDICIONADO"
-    assert len(result.traces) == 20
+    assert len(result.traces) == 21
     assert result.c0_capability.result_available is True
 
 
