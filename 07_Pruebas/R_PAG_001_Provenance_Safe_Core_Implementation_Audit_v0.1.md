@@ -64,4 +64,23 @@ Cubren:
 
 ## Dictamen
 
-**AUDIT 1 SUPERADA — 0 BLOQUEADORES ESTÁTICOS PARA CI.**
+## CI inicial y depuración de integración
+
+CI #1113 sobre `ffe4b0d24743c1e32cfad504b10bfd536550e8c2`: **FAILURE**.
+
+Resultado:
+
+- 2025 tests passed;
+- 4 tests failed;
+- los 4 fallos correspondían exclusivamente a que R-PAG-001 había sido registrada en el catálogo pero todavía no estaba incorporada a `run_domain_rules` ni a las invariantes de cobertura del catálogo/orquestador.
+
+Corrección aplicada:
+
+- `PaymentTermRuleInputs` añadido al orquestador;
+- `evaluate_r_pag_001` integrado en la misma ejecución de dominio;
+- invariantes de catálogo actualizadas;
+- cobertura del orquestador actualizada de 19 a 20 reglas implementadas.
+
+No se ha cambiado la semántica de R-PAG-001.
+
+**AUDIT 1 DEPURADA — NUEVA CI REQUERIDA.**
