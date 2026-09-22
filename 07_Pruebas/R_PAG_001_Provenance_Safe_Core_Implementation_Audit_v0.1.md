@@ -84,3 +84,21 @@ Corrección aplicada:
 No se ha cambiado la semántica de R-PAG-001.
 
 **AUDIT 1 DEPURADA — NUEVA CI REQUERIDA.**
+
+
+## CI de integración #1116 — segunda depuración
+
+CI #1116 sobre `12964e6f69168b7a12639aa6c774670bc80d0155`: **FAILURE**.
+
+Resultado:
+
+- 2029 tests passed;
+- 1 test failed;
+- fallo exclusivo del helper de monkeypatch del test de orquestación: asumía evaluadores posicionales (`args[2]`), mientras `evaluate_r_pag_001` posee contrato keyword-only y el orquestador lo invoca correctamente con keywords.
+
+Corrección:
+
+- el helper de test admite tanto `args[2]` como `kwargs["rule"]`;
+- no se modifica código productivo ni semántica.
+
+**DEPURACIÓN 2 APLICADA — NUEVA CI REQUERIDA.**
