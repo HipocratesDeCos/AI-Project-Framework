@@ -1,7 +1,7 @@
 # EIOS — R-PAG-001 Provenance-Safe Core Implementation Audit v0.1
 
 **Fecha:** 22/09/2026  
-**Estado:** AUDIT 1 SUPERADA — CI PENDIENTE
+**Estado:** AUDIT 2 SUPERADA — CERRADO / MATERIALIZADO / CI VALIDATED
 
 ## A1 — Semántica
 
@@ -129,4 +129,20 @@ MATERIALIZAR  ✅
 CI            ✅ #1117
 ```
 
-**DICTAMEN: R-PAG-001 PROVENANCE-SAFE CORE v0.1 — CERRADO, sujeto únicamente a CI del HEAD documental final y merge.**
+CI #1118 sobre `242034b1486ca76a3decddf8f1b02205c2a7cfb1`: **SUCCESS**.
+
+PR #291 integrada en `main @ 6f30406bc10bab17545ab29706009518662fc89c`.
+
+Validación final:
+
+- Python → SUCCESS;
+- SQL → SUCCESS;
+- catálogo/orquestador → 20 reglas implementadas;
+- no resultados derivados desprendidos;
+- igualdad de threshold → FALSE;
+- P-PAG-004 DISABLED → NOT_EVALUABLE;
+- P-PAG-005 no bloqueante;
+- coherencia `effective_at` P-PAG-002/003/004;
+- no reutilización de `evidence_id` entre parámetros.
+
+**DICTAMEN: R-PAG-001 PROVENANCE-SAFE CORE v0.1 — CERRADO / MATERIALIZADO / CI VALIDATED.**
