@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections import defaultdict
 from datetime import date, timedelta
 from decimal import Decimal
+from typing import Mapping
 
 from .models import (
     CalculationStatus,
@@ -34,7 +35,10 @@ def _dedupe(values: list[str]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(values))
 
 
-def _calculate_projection(payload: FinanceBasicInput) -> ProjectionResult:
+def _calculate_projection(
+    payload: FinanceBasicInput,
+    scenario_due_dates: Mapping[str, date] | None = None,
+) -> ProjectionResult:
     snapshot = payload.snapshot
     horizon_end = snapshot.as_of_date + timedelta(days=payload.horizon_days)
     statuses: list[CalculationStatus] = []
@@ -46,8 +50,9 @@ def _calculate_projection(payload: FinanceBasicInput) -> ProjectionResult:
         statuses.append("NOT_EVIDENCED")
         limitations.append("MISSING_OPENING_TREASURY")
 
+    overrides = scenario_due_dates or {}
     for flow in payload.cash_flows:
-        due_date = flow.due_date
+        due_date = overrides.get(flow.flow_id, flow.due_date)
 
         if flow.evidence_state == "DEMONSTRATED":
             # The model guarantees amount, currency, due_date and source_ref.
@@ -230,12 +235,12 @@ def _calculate_safety_margin(
     return SafetyMarginResult(status="DETERMINED", value_pct=value, limitations=())
 
 
-def calculate_finance_basic(payload: FinanceBasicInput) -> FinanceBasicResult:
-    """Calculate Finance Basic analytical consequences without making a decision."""
-    projection = _calculate_projection(payload)
+def _assemble_result(
+    payload: FinanceBasicInput,
+    projection: ProjectionResult,
+) -> FinanceBasicResult:
     working_capital = _calculate_working_capital(payload)
     safety_margin = _calculate_safety_margin(payload, projection)
-
     return FinanceBasicResult(
         decision_id=payload.context.decision_id,
         scenario_id=payload.context.scenario_id,
@@ -249,4 +254,35 @@ def calculate_finance_basic(payload: FinanceBasicInput) -> FinanceBasicResult:
     )
 
 
-__all__ = ["calculate_finance_basic"]
+def calculate_finance_basic(payload: FinanceBasicInput) -> FinanceBasicResult:
+    """Calculate Finance Basic analytical consequences without making a decision."""
+    return _assemble_result(payload, _calculate_projection(payload))
+
+
+def calculate_finance_basic_scenario_due_dates(
+    payload: FinanceBasicInput,
+    *,
+    scenario_due_dates: Mapping[str, date],
+) -> FinanceBasicResult:
+    """Calculate a scenario-only view without mutating factual CashFlow due dates.
+
+    This boundary does not alter CashFlow.evidence_state or due_date_evidenced.
+    The supplied override dates are hypothetical scenario inputs and remain
+    external to the factual FinanceBasicInput model.
+    """
+    if not isinstance(scenario_due_dates, Mapping):
+        raise TypeError("scenario_due_dates debe ser Mapping")
+    flow_ids = {flow.flow_id for flow in payload.cash_flows}
+    if not scenario_due_dates:
+        raise ValueError("scenario_due_dates requiere al menos un override")
+    if any(flow_id not in flow_ids for flow_id in scenario_due_dates):
+        raise ValueError("scenario_due_dates contiene flow_id ajeno al input")
+    if any(not isinstance(value, date) for value in scenario_due_dates.values()):
+        raise TypeError("scenario_due_dates solo admite date")
+    return _assemble_result(
+        payload,
+        _calculate_projection(payload, scenario_due_dates=scenario_due_dates),
+    )
+
+
+__all__ = ["calculate_finance_basic", "calculate_finance_basic_scenario_due_dates"]
