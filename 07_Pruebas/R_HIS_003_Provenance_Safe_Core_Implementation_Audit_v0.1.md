@@ -72,3 +72,35 @@ CI            ⏳
 ```
 
 **0 bloqueadores estáticos identificados antes de CI.**
+
+
+## CI #1146 — depuración de invariantes legacy
+
+CI #1146 sobre `b7b83175f4b2e24ab15b88d18c365a25d2399b55`: **FAILURE**.
+
+Resultado:
+
+- 2064 tests passed;
+- 3 tests failed;
+- SQL omitido por el fallo Python previo.
+
+Los tres fallos no pertenecen al carrier ni al bridge HIS003. Eran invariantes legacy que utilizaban `R-HIS-003` como identificador deliberadamente no catalogado.
+
+Tras materializar R-HIS-003, ese supuesto deja de ser válido.
+
+Corrección aplicada:
+
+```text
+R-HIS-003
+→ R-UNKNOWN-001
+```
+
+en los tests de:
+
+- runtime same-execution fail-closed;
+- execution boundary unknown rule;
+- rules-engine facade unknown binding.
+
+No se modifica código productivo ni semántica HIS003.
+
+**DEPURACIÓN 1 APLICADA — NUEVA CI REQUERIDA.**
