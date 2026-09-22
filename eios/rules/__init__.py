@@ -46,6 +46,7 @@ from .orchestrator import (
     DeliveryRuleInputs,
     FinanceCapacityRuleInputs,
     FinanceSafetyMarginRuleInputs,
+    HistoryComparabilityRuleInputs,
     HistorySufficiencyRuleInputs,
     HistoryTemporalRuleInputs,
     RecommendedPriceRuleInputs,
@@ -54,6 +55,7 @@ from .orchestrator import (
     StockExcessRuleInputs,
     run_domain_rules,
 )
+from .history_comparability import R_HIS_003, evaluate_r_his_003
 from .pricing import (
     P_DAT_002,
     P_PRE_001,
@@ -107,6 +109,7 @@ __all__ = [
     "FINANCE_BASIC_EVIDENCE_SOURCE_TYPE",
     "FinanceCapacityRuleInputs",
     "FinanceSafetyMarginRuleInputs",
+    "HistoryComparabilityRuleInputs",
     "HistorySufficiencyRuleInputs",
     "HistoryTemporalRuleInputs",
     "RecommendedPriceRuleInputs",
@@ -129,6 +132,7 @@ __all__ = [
     "R_FIN_003",
     "R_HIS_001",
     "R_HIS_002",
+    "R_HIS_003",
     "R_PRE_001",
     "R_PRE_002",
     "R_PRE_003",
@@ -160,6 +164,7 @@ __all__ = [
     "evaluate_r_fin_003",
     "evaluate_r_his_001",
     "evaluate_r_his_002",
+    "evaluate_r_his_003",
     "evaluate_r_pre_001",
     "evaluate_r_pre_002",
     "evaluate_r_pre_003",

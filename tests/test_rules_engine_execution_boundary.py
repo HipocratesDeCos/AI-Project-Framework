@@ -139,8 +139,8 @@ def test_rules_engine_invoker_empty_set_remains_explicitly_not_evaluable() -> No
 
 
 def test_rules_engine_invoker_unknown_rule_fails_closed_in_boundary() -> None:
-    assessment = _assessment("R-HIS-003")
-    rule = Rule(rule_id="R-HIS-003", version="rules-v1", requires_evidence=True)
+    assessment = _assessment("R-UNKNOWN-001")
+    rule = Rule(rule_id="R-UNKNOWN-001", version="rules-v1", requires_evidence=True)
     trace = build_trace(
         _context(),
         _purchase(),
