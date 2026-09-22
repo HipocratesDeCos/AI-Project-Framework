@@ -5,7 +5,10 @@ from dataclasses import dataclass
 
 from eios.core.documentary_payment_capture import DocumentaryPaymentCapture
 from eios.core.models import Assessment, DecisionContext, Evidence, PurchaseOperation, Rule
-from eios.finance.provenance import ProvenancedFinanceBasicExecution
+from eios.finance.provenance import (
+    ProvenancedFinanceBasicExecution,
+    validate_provenanced_finance_basic_execution,
+)
 from eios.parameters import ResolvedConfiguration
 from eios.payment_term_control import resolve_payment_term_control
 from eios.payment_term_counterfactual import (
@@ -83,6 +86,7 @@ def _validate_identity(
         if actual != expected:
             raise ValueError(f"SupplierEvidenceResult incompatible en {label}")
 
+    validate_provenanced_finance_basic_execution(finance.baseline_execution)
     baseline_input = finance.baseline_execution.finance_input
     if baseline_input.context != context:
         raise ValueError("Finance Basic baseline pertenece a otro DecisionContext")
