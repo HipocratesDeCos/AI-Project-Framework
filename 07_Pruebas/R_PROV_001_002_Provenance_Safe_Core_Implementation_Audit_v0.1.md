@@ -1,8 +1,8 @@
 # EIOS — R-PROV-001 / R-PROV-002 Provenance-Safe Core Implementation Audit v0.1
 
-**Baseline:** `main @ 08421400f62148d1513512f38e299fa0c1882f7a`  
+**Baseline de integración:** `main @ a4d31e7731e1dffb51f7f375afe91d77b36d48c9`  
 **Fecha:** 22/09/2026  
-**Estado:** AUDIT 2 DE IMPLEMENTACIÓN — SIN BLOQUEADORES ESTÁTICOS  
+**Estado:** CERRADO / MATERIALIZADO / CI VALIDATED  
 **Autoridad:** `01_Modelo/PROV_Supplier_Alternatives_Authority_v0.1.md`  
 **Contrato:** `08_Implementacion/R_PROV_001_002_Provenance_Safe_Core_Technical_Contract_v0.1.md`
 
@@ -172,6 +172,25 @@ La suite específica cubre:
 - metadata;
 - integración de orchestrator.
 
+## A12 — Validación CI e integración
+
+PR #305 (`feat(prov): materialize provenance-safe supplier alternatives rules`) fue validada por CI #1158: **SUCCESS**.
+
+La PR se integró sin deriva sobre el baseline esperado:
+
+```text
+main @ a4d31e7731e1dffb51f7f375afe91d77b36d48c9
+```
+
+La CI post-merge #1159 ejecutó y superó:
+
+- suite Python completa;
+- validación SQL Server C0;
+- validación Decision Versioning;
+- validación Parameter Configuration.
+
+**Resultado:** CONFORME.
+
 ## Dictamen
 
 ```text
@@ -179,9 +198,13 @@ DISEÑAR       ✅
 AUDITAR       ✅
 DEPURAR       ✅
 AUDITAR 2     ✅
-CERRAR        ✅ contrato y semántica
+CERRAR        ✅
 MATERIALIZAR  ✅
-CI            ⏳ pendiente
+CI PR         ✅ #1158
+MERGE         ✅ PR #305
+CI MAIN       ✅ #1159
 ```
 
-**0 bloqueadores estáticos. La integración queda condicionada a CI satisfactoria.**
+**DICTAMEN: R-PROV-001 / R-PROV-002 PROVENANCE-SAFE CORE v0.1 — CERRADO / MATERIALIZADO / CI VALIDATED EN SU ALCANCE AUTORIZADO.**
+
+Persisten fuera del alcance los productores empresariales que determinen `POTENTIALLY_BETTER`, `COMPARABLE` o `SIGNIFICANT_IMPROVEMENT`; su ausencia no invalida el core y debe conservarse como `NOT_DETERMINABLE / NOT_EVALUABLE` cuando proceda.
