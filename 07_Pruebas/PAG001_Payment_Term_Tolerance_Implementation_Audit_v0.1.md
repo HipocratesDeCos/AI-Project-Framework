@@ -1,7 +1,7 @@
 # EIOS — PAG001 Payment-Term Tolerance Implementation Audit v0.1
 
 **Autoridad:** `01_Modelo/PAG001_Payment_Term_Tolerance_Authority_v0.1.md`  
-**Estado:** AUDIT 1 SUPERADA — CI PENDIENTE
+**Estado:** AUDIT 2 SUPERADA — CERRADO / MATERIALIZADO / CI VALIDATED
 
 ## Cobertura
 
@@ -47,4 +47,19 @@ Se cubren:
 
 ## Dictamen
 
-**AUDIT 1 SUPERADA — 0 BLOQUEADORES ESTÁTICOS PARA CI.**
+**AUDIT 2 SUPERADA — 0 BLOQUEADORES.**
+
+CI #1094 sobre `4f07aa271dae2e3f3a4bedfeac1ac76bf9aec939`: **SUCCESS**.
+
+- Python tests → SUCCESS;
+- SQL validation → SUCCESS;
+- target - tolerance → SUCCESS;
+- missing ≠ invalid ≠ incoherent ≠ invalid evidence → SUCCESS;
+- revalidación de vigencia y mismo contexto efectivo → SUCCESS;
+- sin conversiones/clamp/hardcodes → SUCCESS.
+
+PR #283 integrada en `main @ ae898f2cf1aec11c0067c60da19ab509b688acc7`.
+
+**DICTAMEN: PAG001 PAYMENT-TERM TOLERANCE v0.1 CERRADA / MATERIALIZADA / CI VALIDATED.**
+
+Este cierre materializa P-PAG-003. `R-PAG-001` completa permanece abierta.
