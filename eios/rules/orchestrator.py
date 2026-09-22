@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from pydantic import BaseModel, ConfigDict
 
+from eios.core.documentary_payment_capture import DocumentaryPaymentCapture
 from eios.core.models import DecisionContext, Evidence, PurchaseOperation
 from eios.data_freshness import DataSnapshotFreshnessObservation
 from eios.data_sufficiency import DecisionEvidenceSufficiencyObservation
@@ -42,6 +43,12 @@ from .finance import (
     evaluate_r_fin_003,
 )
 from .payment import PAG001ParameterBundle, R_PAG_001, evaluate_r_pag_001
+from .payment_risk import (
+    PAG002FinanceInputs,
+    PAG002ParameterBundle,
+    R_PAG_002,
+    evaluate_r_pag_002,
+)
 from .pricing import (
     R_HIS_001,
     R_HIS_002,
@@ -214,6 +221,21 @@ class PaymentTermRuleInputs:
     control_evidence: Evidence | None
 
 
+@dataclass(frozen=True)
+class PaymentFinancialRuleInputs:
+    supplier_result: SupplierEvidenceResult
+    semantic_authority: PaymentTermSemanticAuthority
+    minimum_resolution: ResolvedConfiguration | None
+    minimum_evidence: Evidence | None
+    control_resolution: ResolvedConfiguration | None
+    control_evidence: Evidence | None
+    treasury_minimum_resolution: ResolvedConfiguration | None
+    treasury_minimum_evidence: Evidence | None
+    baseline_execution: ProvenancedFinanceBasicExecution
+    baseline_evidence: Evidence
+    documentary_capture: DocumentaryPaymentCapture
+
+
 class DecisionRuleExecutionResult(BaseModel):
     """Rules result plus explicit coverage of implemented rule bridges."""
 
@@ -265,6 +287,7 @@ def run_domain_rules(
     recommended_price: RecommendedPriceRuleInputs | None = None,
     profitability: ProfitabilityRuleInputs | None = None,
     payment_terms: PaymentTermRuleInputs | None = None,
+    payment_financial: PaymentFinancialRuleInputs | None = None,
 ) -> DecisionRuleExecutionResult:
     """Evaluate supplied domain bundles and compose them in the same execution."""
     assessments_by_rule = {}
@@ -440,6 +463,31 @@ def run_domain_rules(
             parameters=pag_bundle,
         )
 
+    if payment_financial is not None:
+        rule = authorized_rule(R_PAG_002, context.rules_version)
+        parameters = PAG002ParameterBundle(
+            minimum_resolution=payment_financial.minimum_resolution,
+            minimum_evidence=payment_financial.minimum_evidence,
+            control_resolution=payment_financial.control_resolution,
+            control_evidence=payment_financial.control_evidence,
+            treasury_minimum_resolution=payment_financial.treasury_minimum_resolution,
+            treasury_minimum_evidence=payment_financial.treasury_minimum_evidence,
+        )
+        finance_inputs = PAG002FinanceInputs(
+            baseline_execution=payment_financial.baseline_execution,
+            baseline_evidence=payment_financial.baseline_evidence,
+            documentary_capture=payment_financial.documentary_capture,
+        )
+        assessments_by_rule[R_PAG_002] = evaluate_r_pag_002(
+            purchase=purchase,
+            context=context,
+            rule=rule,
+            supplier_result=payment_financial.supplier_result,
+            semantic_authority=payment_financial.semantic_authority,
+            parameters=parameters,
+            finance=finance_inputs,
+        )
+
     if comparable_recent_price is not None:
         rule = authorized_rule(R_PRE_001, context.rules_version)
         assessments_by_rule[R_PRE_001] = evaluate_r_pre_001(
@@ -536,6 +584,7 @@ __all__ = [
     "FinanceWorkingCapitalRuleInputs",
     "HistoryTemporalRuleInputs",
     "HistorySufficiencyRuleInputs",
+    "PaymentFinancialRuleInputs",
     "PaymentTermRuleInputs",
     "ProfitabilityRuleInputs",
     "RecommendedPriceRuleInputs",
