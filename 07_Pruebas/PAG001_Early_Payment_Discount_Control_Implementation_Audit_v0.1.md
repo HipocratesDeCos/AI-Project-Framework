@@ -1,7 +1,7 @@
 # EIOS — PAG001 Early-Payment Discount Control Implementation Audit v0.1
 
 **Authority:** `01_Modelo/PAG001_Early_Payment_Discount_Control_Authority_v0.1.md`  
-**State:** AUDIT 1 PASSED — CI PENDING
+**State:** AUDIT 2 PASSED — CLOSED / MATERIALIZED / CI VALIDATED
 
 ## Findings
 
@@ -19,4 +19,12 @@ Covers Sí, No, missing, aliases, wrong parameter/company/version, expiry, GAP e
 
 ## Dictamen
 
-**AUDIT 1 PASSED — 0 STATIC BLOCKERS FOR CI.**
+**AUDIT 2 PASSED — 0 BLOCKERS.**
+
+CI #1109 on `0c58e76cc02f0297ac2073ed28ef47ef85344257`: **SUCCESS**.
+
+PR #289 merged into `main @ 54b1907a187cdcc6a433683ba7c186eb38528e6c`.
+
+**DICTAMEN: PAG001 EARLY-PAYMENT DISCOUNT CONTROL v0.1 CLOSED / MATERIALIZED / CI VALIDATED.**
+
+P-PAG-005 is not a blocker for the R-PAG-001 core comparator.
