@@ -1,4 +1,20 @@
 """Supplier Evidence Core factual contracts and deterministic evaluation."""
+from .alternatives import (
+    PROV_COMPARABILITY_EVIDENCE_SOURCE_TYPE,
+    PROV_COVERAGE_EVIDENCE_SOURCE_TYPE,
+    PROV_OPPORTUNITY_EVIDENCE_SOURCE_TYPE,
+    PROV_SIGNIFICANT_IMPROVEMENT_EVIDENCE_SOURCE_TYPE,
+    SupplierAlternativeComparabilityDetermination,
+    SupplierAlternativeOpportunityDetermination,
+    SupplierAlternativeSetCoverage,
+    SupplierAlternativeSignificantImprovementDetermination,
+    supplier_alternative_comparability_ref,
+    supplier_alternative_coverage_ref,
+    supplier_alternative_opportunity_ref,
+    supplier_alternative_purchase_operation_ref,
+    supplier_alternative_significant_improvement_ref,
+    supplier_evidence_result_ref,
+)
 from .engine import evaluate_supplier_evidence
 from .models import (
     CandidateResolution,
@@ -18,6 +34,14 @@ from .models import (
 )
 
 __all__ = [
+    "PROV_COMPARABILITY_EVIDENCE_SOURCE_TYPE",
+    "PROV_COVERAGE_EVIDENCE_SOURCE_TYPE",
+    "PROV_OPPORTUNITY_EVIDENCE_SOURCE_TYPE",
+    "PROV_SIGNIFICANT_IMPROVEMENT_EVIDENCE_SOURCE_TYPE",
+    "SupplierAlternativeComparabilityDetermination",
+    "SupplierAlternativeOpportunityDetermination",
+    "SupplierAlternativeSetCoverage",
+    "SupplierAlternativeSignificantImprovementDetermination",
     "CandidateResolution",
     "ExternalSupplierMetric",
     "StructuralComparisonRequest",
@@ -33,4 +57,10 @@ __all__ = [
     "SupplierSignal",
     "SUPPLIER_EVIDENCE_METHODOLOGY_VERSION",
     "evaluate_supplier_evidence",
+    "supplier_alternative_comparability_ref",
+    "supplier_alternative_coverage_ref",
+    "supplier_alternative_opportunity_ref",
+    "supplier_alternative_purchase_operation_ref",
+    "supplier_alternative_significant_improvement_ref",
+    "supplier_evidence_result_ref",
 ]
