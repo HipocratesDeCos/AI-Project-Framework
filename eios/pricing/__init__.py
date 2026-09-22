@@ -55,3 +55,32 @@ from .historical_reference import (
     historical_reference_purchase_ref,
     historical_reference_temporal_ref,
 )
+
+
+from .historical_comparability import (
+    HIS003_AUTHORITY_REF,
+    HIS003_DIMENSION_EVIDENCE_SOURCE_TYPE,
+    HIS003_METHODOLOGY_REF,
+    HIS003_REQUIRED_DIMENSIONS,
+    HistoricalCommercialComparabilityObservation,
+    HistoricalComparabilityDimensionAuthority,
+    HistoricalComparabilityDimensionDetermination,
+    aggregate_historical_comparability,
+    build_historical_commercial_comparability_observation,
+    historical_comparability_dimension_ref,
+    historical_comparability_reference_ref,
+)
+
+__all__ += [
+    "HIS003_AUTHORITY_REF",
+    "HIS003_DIMENSION_EVIDENCE_SOURCE_TYPE",
+    "HIS003_METHODOLOGY_REF",
+    "HIS003_REQUIRED_DIMENSIONS",
+    "HistoricalCommercialComparabilityObservation",
+    "HistoricalComparabilityDimensionAuthority",
+    "HistoricalComparabilityDimensionDetermination",
+    "aggregate_historical_comparability",
+    "build_historical_commercial_comparability_observation",
+    "historical_comparability_dimension_ref",
+    "historical_comparability_reference_ref",
+]
