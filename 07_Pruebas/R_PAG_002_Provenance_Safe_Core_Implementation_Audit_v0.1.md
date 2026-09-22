@@ -73,3 +73,40 @@ Pruebas explícitas:
 ## Dictamen
 
 **AUDIT 1 SUPERADA — 0 BLOQUEADORES ESTÁTICOS PARA CI.**
+
+
+## CI #1136 — depuración de fixture
+
+CI #1136 sobre `a27a3e66649c6134506e9b228ba87d0cdb675e3c`: **FAILURE**.
+
+Resultado:
+
+- 2048 tests passed;
+- 6 tests failed;
+- SQL no ejecutado por fallo previo de Python.
+
+Los seis fallos comparten una única causa en el fixture de `tests/test_rule_payment_risk.py`:
+
+```text
+Configuration.model_copy
+→ AttributeError
+```
+
+`Configuration` es un dataclass, no un modelo Pydantic.
+
+Corrección:
+
+```text
+dataclasses.replace(Configuration, value=...)
+```
+
+No se modifica:
+
+- código productivo;
+- fórmula;
+- autoridad;
+- provenance;
+- estados TRUE/FALSE/NOT_EVALUABLE;
+- integración del orquestador.
+
+**DEPURACIÓN 1 APLICADA — NUEVA CI REQUERIDA.**
