@@ -1,7 +1,7 @@
 # EIOS — PAG002 Counterfactual Due-Date Implementation Audit v0.1
 
 **Autoridad:** `01_Modelo/PAG002_Counterfactual_Due_Date_Authority_v0.1.md`  
-**Estado:** AUDIT 1 SUPERADA — CI PENDIENTE
+**Estado:** AUDIT 2 SUPERADA — READY TO MERGE
 
 ## A1 — Frontera factual
 
@@ -62,4 +62,30 @@ Cobertura explícita de:
 
 ## Dictamen
 
-**AUDIT 1 SUPERADA — 0 BLOQUEADORES ESTÁTICOS PARA CI.**
+**AUDIT 2 SUPERADA — 0 BLOQUEADORES.**
+
+CI #1133 sobre `b0a1146436486c1cfc7048b4cfa2eff6f9e29971`: **SUCCESS**.
+
+Validado:
+
+- Python → SUCCESS;
+- SQL → SUCCESS;
+- CashFlow factual permanece sin mutación;
+- due_date simulada vive fuera del modelo factual;
+- reconstrucción interna de plazo ofrecido y P-PAG-001;
+- pago único fail-closed;
+- O2 conserva scenario_id/fingerprint;
+- mismo horizonte Finance Basic;
+- revalidación de ejecución contrafactual.
+
+```text
+DISEÑAR       ✅
+AUDITAR       ✅
+DEPURAR       ✅
+AUDITAR 2     ✅
+CERRAR        ✅
+MATERIALIZAR  ✅
+CI            ✅ #1133
+```
+
+**DICTAMEN: PAG002 COUNTERFACTUAL DUE-DATE v0.1 — CERRADO, sujeto únicamente a CI del HEAD documental final y merge.**
