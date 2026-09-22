@@ -53,6 +53,8 @@ from .orchestrator import (
     StockAbsorptionRuleInputs,
     StockCoverageNeedRuleInputs,
     StockExcessRuleInputs,
+    SupplierAlternativeComparisonRuleInputs,
+    SupplierAlternativeOpportunityRuleInputs,
     run_domain_rules,
 )
 from .history_comparability import R_HIS_003, evaluate_r_his_003
@@ -83,6 +85,12 @@ from .provenance import (
     validate_assessment_trace_binding,
 )
 from .runtime import ConsolidatedBaseResult, RuleSetVerticalResult, RuleVerticalResult
+from .supplier_alternatives import (
+    R_PROV_001,
+    R_PROV_002,
+    evaluate_r_prov_001,
+    evaluate_r_prov_002,
+)
 from .stock import (
     R_STK_002,
     R_STK_003,
@@ -136,6 +144,8 @@ __all__ = [
     "R_PRE_001",
     "R_PRE_002",
     "R_PRE_003",
+    "R_PROV_001",
+    "R_PROV_002",
     "R_STK_001",
     "R_STK_002",
     "R_STK_003",
@@ -151,6 +161,8 @@ __all__ = [
     "StockAbsorptionRuleInputs",
     "StockCoverageNeedRuleInputs",
     "StockExcessRuleInputs",
+    "SupplierAlternativeComparisonRuleInputs",
+    "SupplierAlternativeOpportunityRuleInputs",
     "authorized_rule",
     "authorized_rule_metadata",
     "build_domain_rules_c0_invoker",
@@ -168,6 +180,8 @@ __all__ = [
     "evaluate_r_pre_001",
     "evaluate_r_pre_002",
     "evaluate_r_pre_003",
+    "evaluate_r_prov_001",
+    "evaluate_r_prov_002",
     "evaluate_r_stk_001",
     "evaluate_r_stk_002",
     "evaluate_r_stk_003",
