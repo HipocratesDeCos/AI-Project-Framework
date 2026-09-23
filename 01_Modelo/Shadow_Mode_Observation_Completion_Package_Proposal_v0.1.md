@@ -2,7 +2,7 @@
 
 **Baseline:** `main @ 30e69833c663769ae1015d991da215556382b0f6`  
 **Fecha:** 23/09/2026  
-**Estado:** PROPUESTA CONSOLIDADA — NO AUTORIZADA / NO VIGENTE
+**Estado:** 🔒 AUTORIZADO — VIGENTE
 
 ## 1. Objetivo
 
@@ -354,6 +354,10 @@ AUTORIZAR
 → CI main
 ```
 
-## 21. Estado
+## 21. Autorización humana
 
-**SHADOW MODE OBSERVATION COMPLETION PACKAGE v0.1 — PROPUESTA / NO VIGENTE.**
+Autorizado expresamente el 23/09/2026 como paquete único de Shadow Mode v0.1.
+
+La autorización comprende ObservedHumanDecision, reutilización descriptiva de la taxonomía CRC, estados de comparación/visibilidad/elegibilidad, regla temporal mínima y prohibición de feedback automático.
+
+**SHADOW MODE OBSERVATION COMPLETION PACKAGE v0.1 — 🔒 AUTORIZADO / VIGENTE.**
