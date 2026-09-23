@@ -10,9 +10,16 @@ def test_public_rules_namespace_exposes_only_provenance_safe_reuse_entrypoints()
         "run_provenanced_assessments_vertical",
         "build_rules_engine_c0_invoker",
         "build_provenanced_rules_engine_c0_invoker",
+        "VF_MINIMAL_CATALOG",
+        "produce_frontier_assessments",
+        "evaluate_provenanced_viability",
+        "ProvenancedScenarioAnalyticsInput",
+        "build_authorized_scenario_analytics_from_provenanced_assessments",
+        "complete_provenanced_o4_o2_o3_orchestration",
     }
     for name in safe_names:
         assert hasattr(rules, name), name
+        assert name in rules.__all__
 
     quarantined_internal_names = {
         "RuleAssessmentBinding",
@@ -24,16 +31,13 @@ def test_public_rules_namespace_exposes_only_provenance_safe_reuse_entrypoints()
     for name in quarantined_internal_names:
         assert not hasattr(rules, name), name
 
-    quarantined_stage2_and_dependent_names = {
-        "ProvenancedScenarioAnalyticsInput",
-        "build_authorized_scenario_analytics_from_provenanced_assessments",
-        "complete_provenanced_o4_o2_o3_orchestration",
+    still_quarantined_dependent_names = {
         "DecisionTwinInvoker",
         "ProvenancedDecisionTwinAlternativeInput",
         "build_provenanced_decision_twin_comparison",
         "build_provenanced_decision_twin_invoker",
     }
-    for name in quarantined_stage2_and_dependent_names:
+    for name in still_quarantined_dependent_names:
         assert not hasattr(rules, name), name
         assert name not in rules.__all__
 
