@@ -31,6 +31,7 @@ from eios.pricing.historical_comparability import (
     HistoricalComparabilityDimensionDetermination,
 )
 from eios.profitability import ProvenancedProfitabilityExecution
+from eios.rotation import RotationExceptionEvidence, SalesActivityWindowEvidence
 from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
 from eios.supplier.alternatives import (
     SupplierAlternativeComparabilityDetermination,
@@ -81,6 +82,7 @@ from .profitability import (
     evaluate_r_mge_002,
     evaluate_r_mge_003,
 )
+from .rotation import R_ROT_002, evaluate_r_rot_002
 from .runtime import (
     ConsolidatedBaseResult,
     RuleSetVerticalResult,
@@ -271,6 +273,13 @@ class SupplierAlternativeOpportunityRuleInputs:
 
 
 @dataclass(frozen=True)
+class RotationRuleInputs:
+    sales_activity: SalesActivityWindowEvidence
+    rotation_exceptions: RotationExceptionEvidence
+    evidences: tuple[Evidence, ...]
+
+
+@dataclass(frozen=True)
 class SupplierAlternativeComparisonRuleInputs:
     supplier_input: SupplierEvidenceInput
     coverage: SupplierAlternativeSetCoverage
@@ -338,6 +347,7 @@ def run_domain_rules(
     payment_financial: PaymentFinancialRuleInputs | None = None,
     supplier_alternative_opportunity: SupplierAlternativeOpportunityRuleInputs | None = None,
     supplier_alternative_comparison: SupplierAlternativeComparisonRuleInputs | None = None,
+    rotation: RotationRuleInputs | None = None,
 ) -> DecisionRuleExecutionResult:
     """Evaluate supplied domain bundles and compose them in the same execution."""
     assessments_by_rule = {}
@@ -580,6 +590,17 @@ def run_domain_rules(
             prov_evidences=supplier_alternative_comparison.prov_evidences,
         )
 
+    if rotation is not None:
+        rule = authorized_rule(R_ROT_002, context.rules_version)
+        assessments_by_rule[R_ROT_002] = evaluate_r_rot_002(
+            purchase=purchase,
+            context=context,
+            rule=rule,
+            sales_activity=rotation.sales_activity,
+            exceptions=rotation.rotation_exceptions,
+            evidences=rotation.evidences,
+        )
+
     if comparable_recent_price is not None:
         rule = authorized_rule(R_PRE_001, context.rules_version)
         assessments_by_rule[R_PRE_001] = evaluate_r_pre_001(
@@ -681,6 +702,7 @@ __all__ = [
     "PaymentTermRuleInputs",
     "ProfitabilityRuleInputs",
     "RecommendedPriceRuleInputs",
+    "RotationRuleInputs",
     "StockAbsorptionRuleInputs",
     "StockCoverageNeedRuleInputs",
     "StockExcessRuleInputs",
