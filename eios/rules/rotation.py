@@ -131,6 +131,18 @@ def evaluate_r_rot_002(
             reason="R-ROT-002 no evaluable: evidencia de actividad de ventas insuficiente.",
         )
 
+    if exceptions.evidence_refs and not all(
+        _is_demonstrated(evidence_by_id.get(evidence_id))
+        for evidence_id in exceptions.evidence_refs
+    ):
+        return Assessment(
+            rule_id=R_ROT_002,
+            status="NOT_EVALUABLE",
+            outcome=None,
+            evidence_ids=list(activity_refs),
+            reason="R-ROT-002 no evaluable: evidencia de excepciones insuficiente.",
+        )
+
     exception_status = _exception_state(exceptions, evidence_by_id)
     evidence_ids = list(
         dict.fromkeys(
