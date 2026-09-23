@@ -60,9 +60,11 @@ def _preparation():
     )
 
 
-def _binding(scenario_id: str, *, outcome: str):
+def _binding(scenario_id: str, *, outcome: str, quantity: Decimal):
     context = _context().model_copy(update={"scenario_id": scenario_id})
-    purchase = _purchase().model_copy(update={"scenario_id": scenario_id})
+    purchase = _purchase().model_copy(
+        update={"scenario_id": scenario_id, "quantity": quantity}
+    )
     assessment = Assessment(
         rule_id="R-DAT-003",
         status="EVALUABLE",
@@ -95,7 +97,7 @@ def _inputs(preparation):
                 update={"scenario_id": scenario_ids[0], "quantity": Decimal("11")}
             ),
             assessment_bindings=(
-                _binding(scenario_ids[0], outcome="FALSE"),
+                _binding(scenario_ids[0], outcome="FALSE", quantity=Decimal("11")),
             ),
         ),
         ProvenancedScenarioAnalyticsInput(
@@ -104,7 +106,7 @@ def _inputs(preparation):
                 update={"scenario_id": scenario_ids[1], "quantity": Decimal("12")}
             ),
             assessment_bindings=(
-                _binding(scenario_ids[1], outcome="TRUE"),
+                _binding(scenario_ids[1], outcome="TRUE", quantity=Decimal("12")),
             ),
         ),
     )
