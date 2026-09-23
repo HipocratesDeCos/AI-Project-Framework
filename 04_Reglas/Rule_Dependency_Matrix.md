@@ -380,6 +380,9 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 | DEP-ROT-CONTEXT-RROT-002 | `R-ROT-002` | `CONTEXT` | `PurchaseOperation.article_id + PurchaseOperation.operation_date` | C0 / ROT002 PERIOD AUTHORITY | Vincula artículo y evaluation_date a la operación exacta; operation_date es el extremo final de la ventana | PENDING | `01_Modelo/ROT002_Configured_Sales_Inactivity_Period_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | No puede sustituirse por reloj del sistema, captured_at, effective_at ni snapshot. |
 | DEP-ROT-PERIOD-EVID-RROT-002 | `R-ROT-002` | `EVIDENCE` | `ResolvedConfiguration(P-ROT-001) + Evidence` | ROT002 PERIOD AUTHORITY / PARAMETER CENTER | Demuestra valor, vigencia, scope y binding a Parameters_Version para la ventana aplicada | PENDING | `01_Modelo/ROT002_Configured_Sales_Inactivity_Period_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Entero desprendido no es autoridad; ausencia o invalidez conserva NOT_EVALUABLE. |
 | DEP-ROT-SAW-RROT-002 | `R-ROT-002` | `EVIDENCE` | `SalesActivityWindowEvidence` | ROTATION / TRACK A METHODOLOGY | Soporte factual para demostrar actividad o ausencia demostrada de ventas válidas en la ventana aplicable | PENDING | `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Relación validada por `01_Modelo/Rotation_Methodological_Audit_2_Final_v0.3.md`; ROT-G01 queda cerrado; el carrier factual debe corresponder exactamente a la ventana derivada de P-ROT-001 y a la operación evaluada. |
+| DEP-ROT-SOURCE-RROT-002 | `R-ROT-002` | `DATA` | `SalesActivitySourceEvidence` | ROTATION / TRACK A UPSTREAM | Fuente factual upstream ya calificada que permite producir SalesActivityWindowEvidence sin reinterpretar documentos comerciales | PENDING | `01_Modelo/ROT002_Completion_Package_Proposal_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | coverage_state explícito; presencia positiva no exige cobertura total; ausencia exige COMPLETE + completitud demostrada. |
+| DEP-ROT-EXCEPTION-RROT-002 | `R-ROT-002` | `EVIDENCE` | `RotationExceptionEvidence` | ROTATION / RULES | Demuestra presencia o ausencia exhaustiva de las cuatro excepciones MVP autorizadas | PENDING | `01_Modelo/ROT002_Completion_Package_Proposal_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Universo MVP exhaustivo: CONFIRMED_ORDER, PLANNED_CAMPAIGN, STRATEGIC_OPERATION, EXPLICIT_BUSINESS_DECISION; ausencia requiere 4/4 NOT_PRESENT + scope completo. |
+| DEP-ROT-CRC-RROT-002 | `R-ROT-002` | `CONTROL` | `RuleMetadata(active_result=NO COMPRAR)` | CRC / ROTATION | Preserva el resultado documental NO COMPRAR manteniendo efecto R1/ALTA sin escalada automática a R0 | PENDING | `01_Modelo/ROT002_Completion_Package_Proposal_v0.1.md` | CONFIRMED | PENDING | NONE | CRC | Evita degradación por mapping genérico R1→COMPRAR CONDICIONADO; R0 automático permanece prohibido. |
 
 ---
 
@@ -562,7 +565,7 @@ La reconciliación ROT confirma:
 - `P-ROT-001 → R-ROT-002` queda `PARAMETER / CONFIRMED`;
 - el binding contextual a `PurchaseOperation.article_id/operation_date` queda `CONTEXT / CONFIRMED`;
 - la configuración resuelta y evidenciada queda `EVIDENCE / CONFIRMED`;
-- Track A conserva su semántica factual y no aplica excepciones; el bridge completo R-ROT-002 continúa sujeto a gates posteriores.
+- Track A conserva su semántica factual y no aplica excepciones; el bridge completo R-ROT-002 queda autorizado por `ROT002_Completion_Package_Proposal_v0.1.md`, incluyendo excepciones MVP exhaustivas y binding CRC R1/ALTA con `active_result=NO COMPRAR`; no se autoriza escalada R0.
 
 La reconciliación FIN confirma:
 
