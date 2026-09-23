@@ -273,13 +273,13 @@ class SupplierAlternativeOpportunityRuleInputs:
 
 
 @dataclass(frozen=True)
-@dataclass(frozen=True)
 class RotationRuleInputs:
     sales_activity: SalesActivityWindowEvidence
     rotation_exceptions: RotationExceptionEvidence
     evidences: tuple[Evidence, ...]
 
 
+@dataclass(frozen=True)
 class SupplierAlternativeComparisonRuleInputs:
     supplier_input: SupplierEvidenceInput
     coverage: SupplierAlternativeSetCoverage
