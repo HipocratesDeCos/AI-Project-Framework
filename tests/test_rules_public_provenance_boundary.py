@@ -20,6 +20,11 @@ def test_public_rules_namespace_exposes_only_provenance_safe_reuse_entrypoints()
         "ProvenancedDecisionTwinAlternativeInput",
         "build_provenanced_decision_twin_comparison",
         "build_provenanced_decision_twin_invoker",
+        "NegotiationContentEvidence",
+        "produce_negotiation_intelligence",
+        "produce_negotiation_ladder",
+        "build_provenanced_negotiation_intelligence_invoker",
+        "build_provenanced_ni_ladder_invokers",
     }
     for name in safe_names:
         assert hasattr(rules, name), name
