@@ -1,7 +1,7 @@
 # EIOS — Supplier Risk / Value External Assessment Proposal Audit v0.1
 
 **Fecha:** 23/09/2026  
-**Estado:** AUDIT DE PROPUESTA — APTA PARA AUTORIZACIÓN ÚNICA
+**Estado:** AUDIT DE PROPUESTA SUPERADA — AUTORIZACIÓN HUMANA RECIBIDA
 
 ## 1. Compatibilidad con Supplier Evidence Core
 
@@ -71,10 +71,10 @@ No se requiere aprobar fórmulas, porque no se introduce ninguna.
 ```text
 EXPLORAR       ✅
 CONSOLIDAR     ✅
-AUTORIZAR      ⏳ HUMANO
+AUTORIZAR      ✅ HUMANO
 AUDITAR        ✅ propuesta
-MATERIALIZAR  ⛔
-CI            ⛔
+MATERIALIZAR  ✅ AUTORIZADO
+CI            ⏳ implementación
 ```
 
 **0 bloqueadores documentales para solicitar una única autorización humana.**
