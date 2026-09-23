@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from decimal import Decimal
 
 import pytest
@@ -28,6 +29,7 @@ ALL_RULES = (
     "R-PRE-003",
     "R-PROV-001",
     "R-PROV-002",
+    "R-ROT-001",
     "R-ROT-002",
     "R-STK-001",
     "R-STK-002",
@@ -132,6 +134,10 @@ def _all_bundles():
         supplier_alternative_comparison=orchestrator.SupplierAlternativeComparisonRuleInputs(
             marker, marker, (marker,), (marker,), (marker,)
         ),
+        rotation_metric=orchestrator.RotationMetricRuleInputs(
+            SimpleNamespace(purchase=_purchase(), context=_context()),
+            marker,
+        ),
         rotation=orchestrator.RotationRuleInputs(marker, marker, (marker,)),
     )
 
@@ -162,6 +168,10 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     _patch_rule(monkeypatch, "evaluate_r_pag_002", "R-PAG-002", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_prov_001", "R-PROV-001", "TRUE", calls)
     _patch_rule(monkeypatch, "evaluate_r_prov_002", "R-PROV-002", "TRUE", calls)
+    def fake_rot001(package, source):
+        calls.append("R-ROT-001")
+        return _assessment("R-ROT-001", "FALSE")
+    monkeypatch.setattr(orchestrator, "evaluate_r_rot_001", fake_rot001)
     _patch_rule(monkeypatch, "evaluate_r_rot_002", "R-ROT-002", "FALSE", calls)
 
     result = orchestrator.run_domain_rules(
@@ -190,6 +200,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
         "R-PAG-002",
         "R-PROV-001",
         "R-PROV-002",
+        "R-ROT-001",
         "R-ROT-002",
         "R-PRE-001",
         "R-PRE-002",
@@ -202,7 +213,7 @@ def test_orchestrator_executes_all_implemented_rule_bridges(monkeypatch):
     assert result.omitted_rule_ids == ()
     assert tuple(item.rule_id for item in result.assessments) == ALL_RULES
     assert result.crc_result.consolidated_result == "COMPRAR CONDICIONADO"
-    assert len(result.traces) == 25
+    assert len(result.traces) == 26
     assert result.c0_capability.result_available is True
 
 
