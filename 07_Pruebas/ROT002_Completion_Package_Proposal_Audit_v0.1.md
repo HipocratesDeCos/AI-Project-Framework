@@ -2,7 +2,7 @@
 
 **Baseline:** `main @ 5e9f80565906b336191924349c0740eb9f9dc703`  
 **Fecha:** 23/09/2026  
-**Estado:** AUDIT DE PROPUESTA — APTA PARA AUTORIZACIÓN ÚNICA
+**Estado:** AUDIT DE PROPUESTA SUPERADA — AUTORIZACIÓN HUMANA RECIBIDA
 
 ## 1. Objeto
 
@@ -141,10 +141,10 @@ Estos gaps no bloquean la materialización del carrier si los eventos llegan ya 
 ```text
 EXPLORAR       ✅
 CONSOLIDAR     ✅
-AUTORIZAR      ⏳ HUMANO
+AUTORIZAR      ✅ HUMANO
 AUDITAR        ✅ propuesta
-MATERIALIZAR  ⛔ hasta autorización
-CI            ⛔ hasta materialización
+MATERIALIZAR  ✅ AUTORIZADO
+CI            ⏳ implementación
 ```
 
 **0 bloqueadores documentales para solicitar una única autorización humana.**
