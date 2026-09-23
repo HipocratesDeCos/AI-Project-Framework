@@ -2,9 +2,10 @@
 
 **Baseline:** `main @ d0e94c47eb8d1622c2fbb3125c7e1da63756e4fc`  
 **Fecha:** 23/09/2026  
-**Estado:** DISEÑAR — PROPUESTA TÉCNICA ACOTADA  
+**Estado:** DEPURADO TRAS AUDIT 1  
 **Autoridad:** `01_Modelo/ROT002_Configured_Sales_Inactivity_Period_Authority_v0.1.md`  
 **Metodología:** `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md`  
+**Aggregate de entrada:** `DecisionInputPackage`  
 **Regla relacionada:** `R-ROT-002`
 
 ## 1. Propósito
@@ -12,13 +13,18 @@
 Materializar la frontera técnica mínima y provenance-safe que une:
 
 ```text
-PurchaseOperation
-+
-DecisionContext
-+
-ResolvedConfiguration(P-ROT-001)
+DecisionInputPackage
+├── company_id
+├── effective_at
+├── purchase
+├── context
+├── configurations
+├── missing_parameter_ids
+└── evidence
 +
 fuente factual autorizada de ventas
+↓
+validación P-ROT-001
 ↓
 ventana temporal exacta
 ↓
@@ -27,16 +33,47 @@ SalesActivityWindowEvidence
 
 Esta unidad no materializa todavía el bridge decisional completo de `R-ROT-002`, no aplica excepciones y no modifica CRC.
 
-## 2. Alcance autorizado
+## 2. Razón de usar DecisionInputPackage
 
-La unidad implementable debe cubrir exclusivamente:
+`PurchaseOperation` no contiene `company_id`. Aceptar por separado `PurchaseOperation + DecisionContext + ResolvedConfiguration` permitiría ensamblar identidades desprendidas o requerir un argumento empresarial paralelo.
 
-1. validación de `P-ROT-001`;
-2. derivación determinista de la ventana;
-3. binding exacto a `PurchaseOperation.article_id` y `operation_date`;
-4. construcción/revalidación de `SalesActivityWindowEvidence`;
-5. conservación de provenance factual;
-6. estados Track A autorizados.
+`DecisionInputPackage` ya captura canónicamente:
+
+```text
+company_id
+effective_at
+purchase
+context
+requested_parameter_ids
+configurations
+missing_parameter_ids
+evidence
+```
+
+y valida:
+
+```text
+purchase.decision_id == context.decision_id
+purchase.scenario_id == context.scenario_id
+configuration.company_id == DIP.company_id
+resolved.parameters_version == context.parameters_version
+resolved.effective_at == DIP.effective_at
+```
+
+Por tanto, la frontera ROT no crea una segunda identidad ni un segundo sistema de resolución.
+
+## 3. Alcance autorizado
+
+La unidad implementable cubre exclusivamente:
+
+1. lectura/revalidación del `DecisionInputPackage`;
+2. localización de `P-ROT-001` dentro del aggregate;
+3. validación de configuración y evidencia;
+4. derivación determinista de la ventana;
+5. binding exacto a `purchase.article_id` y `purchase.operation_date`;
+6. construcción/revalidación de `SalesActivityWindowEvidence`;
+7. conservación de provenance factual;
+8. estados Track A autorizados.
 
 No cubre:
 
@@ -48,7 +85,7 @@ No cubre:
 - `Assessment`;
 - recomendación empresarial.
 
-## 3. Carrier físico autorizado
+## 4. Carrier físico autorizado
 
 El carrier físico se denomina exactamente:
 
@@ -56,7 +93,7 @@ El carrier físico se denomina exactamente:
 SalesActivityWindowEvidence
 ```
 
-Debe ser inmutable y conservar, como mínimo, los campos ya autorizados documentalmente:
+Debe ser inmutable y conservar, como mínimo, los campos autorizados:
 
 ```text
 article_id
@@ -74,9 +111,9 @@ state
 
 No se añaden campos decisionales.
 
-## 4. Estados
+## 5. Estados
 
-`state` solo puede utilizar los estados cerrados de Track A:
+`state` solo puede utilizar:
 
 ```text
 SALES_ACTIVITY_PRESENT
@@ -86,7 +123,7 @@ CONFLICTING_DATA
 NOT_DETERMINABLE
 ```
 
-No se autoriza:
+No se autoriza dentro del carrier:
 
 ```text
 TRUE
@@ -96,15 +133,64 @@ NEGOCIAR
 NO_COMPRAR
 ```
 
-dentro de este carrier.
+## 6. Selección de P-ROT-001 desde DIP
 
-## 5. Derivación de ventana
+La frontera pública no acepta un `ResolvedConfiguration` separado.
 
-La ventana debe derivarse exclusivamente de:
+Debe verificar:
 
 ```text
-evaluation_date = PurchaseOperation.operation_date
-period_days = ResolvedConfiguration(P-ROT-001).value
+"P-ROT-001" ∈ DIP.requested_parameter_ids
+"P-ROT-001" ∉ DIP.missing_parameter_ids
+```
+
+y localizar exactamente una configuración con:
+
+```text
+resolution.parameter_id == "P-ROT-001"
+```
+
+Debe además revalidar:
+
+```text
+resolution.company_id == DIP.company_id
+resolution.parameters_version == DIP.context.parameters_version
+resolution.effective_at == DIP.effective_at
+```
+
+y la vigencia del `Configuration` contenido.
+
+Cualquier ausencia, duplicidad o mismatch falla cerrado.
+
+## 7. Tipo y unidad de P-ROT-001
+
+Debe cumplirse:
+
+```text
+unit == "días"
+value = entero finito y positivo
+value >= 1
+```
+
+No se autorizan:
+
+- cero;
+- negativos;
+- decimales;
+- NaN;
+- Infinity;
+- texto no numérico;
+- conversión implícita desde meses/años.
+
+No existe fallback.
+
+## 8. Derivación de ventana
+
+La única derivación autorizada es:
+
+```text
+evaluation_date = DIP.purchase.operation_date
+period_days = resolved P-ROT-001
 window_end = evaluation_date
 window_start = evaluation_date - (period_days - 1 días)
 ```
@@ -115,55 +201,74 @@ La ventana es inclusiva:
 window_start <= sale_event_date <= window_end
 ```
 
-No existe fallback a otro parámetro ni a un valor hardcoded.
+No puede derivarse desde:
 
-## 6. Validación de P-ROT-001
+- reloj del sistema;
+- `Evidence.captured_at`;
+- `DIP.effective_at`;
+- `data_snapshot_id`;
+- otro parámetro temporal.
 
-Antes de construir la ventana debe verificarse:
+## 9. Evidencia de configuración
 
-1. `parameter_id == "P-ROT-001"`;
-2. `parameters_version == DecisionContext.parameters_version`;
-3. scope/company compatible con la configuración requerida por la operación;
-4. configuración vigente en `effective_at`;
-5. unidad canónica `días`;
-6. valor entero, finito y positivo;
-7. ausencia de conversión implícita desde meses/años;
-8. `configuration_ref` disponible para `window_authority_ref`.
+`ResolvedConfiguration.configuration_ref` es una referencia técnica estable, no una prueba empresarial por sí sola.
 
-La ausencia o invalidez de configuración no autoriza inventar ventana.
+La frontera debe comprobar que la configuración está soportada por Evidence aplicable conforme al contrato C0/Evidence vigente.
 
-## 7. Binding de identidad
+No se inventa en este contrato una nueva semántica de Evidence.
+
+La implementación deberá:
+
+- seleccionar evidencia pertinente desde `DIP.evidence`;
+- exigir estado suficiente conforme al contrato vigente;
+- conservar su `evidence_id`;
+- no tratar la mera presencia de `configuration_ref` como demostración.
+
+Si la evidencia requerida no puede demostrarse, no se inventa una ventana autorizada.
+
+## 10. window_authority_ref
+
+Cuando P-ROT-001 haya sido validado:
+
+```text
+window_authority_ref = resolution.configuration_ref
+```
+
+Esta referencia permite reproducibilidad técnica.
+
+No reemplaza:
+
+- Evidence;
+- autoridad documental;
+- source semantics.
+
+## 11. Binding de identidad
 
 Debe cumplirse:
 
 ```text
 SalesActivityWindowEvidence.article_id
 =
-PurchaseOperation.article_id
+DIP.purchase.article_id
 
 SalesActivityWindowEvidence.evaluation_date
 =
-PurchaseOperation.operation_date
+DIP.purchase.operation_date
 
 SalesActivityWindowEvidence.window_end
 =
-PurchaseOperation.operation_date
+DIP.purchase.operation_date
 
 SalesActivityWindowEvidence.window_start
 =
 derived_window_start(P-ROT-001)
 ```
 
-Además:
-
-```text
-DecisionContext.decision_id == PurchaseOperation.decision_id
-DecisionContext.scenario_id == PurchaseOperation.scenario_id
-```
+La identidad decisional ya viene ligada por DIP y debe revalidarse antes de producción/reutilización.
 
 Cualquier mismatch falla cerrado.
 
-## 8. Provenance factual
+## 12. Provenance factual
 
 El carrier debe conservar:
 
@@ -176,15 +281,13 @@ evidence_refs
 trace_refs
 ```
 
-`window_authority_ref` debe derivarse de la configuración resuelta de `P-ROT-001`.
+`source_semantics_ref` identifica la autoridad upstream que determina qué constituye una venta válida.
 
-`source_semantics_ref` identifica la autoridad que determina qué cuenta como venta válida.
+`completeness_ref` demuestra la cobertura factual de toda la ventana.
 
-`completeness_ref` demuestra la cobertura factual de la ventana.
+Un literal de referencia no constituye autoridad por sí solo.
 
-Un literal de referencia no sustituye la autoridad upstream correspondiente.
-
-## 9. Semántica de estados
+## 13. Semántica de estados
 
 ### SALES_ACTIVITY_PRESENT
 
@@ -192,9 +295,9 @@ Solo cuando existe al menos un evento de venta válido demostrado dentro de la v
 
 ### ZERO_VALID_SALES_DEMONSTRATED
 
-Solo cuando la fuente autorizada y la evidencia de completitud demuestran cobertura suficiente de toda la ventana y ausencia de eventos de venta válidos.
+Solo cuando una fuente autorizada, con semántica identificada y cobertura suficiente de toda la ventana, demuestra ausencia de eventos de venta válidos.
 
-No puede derivarse de:
+Nunca se deriva de:
 
 - cero filas;
 - GAP;
@@ -207,22 +310,28 @@ Cuando falta evidencia necesaria para sostener una determinación factual.
 
 ### CONFLICTING_DATA
 
-Cuando existen fuentes o evidencias incompatibles sin resolución autorizada.
+Cuando existen evidencias incompatibles sin resolución autorizada.
 
 ### NOT_DETERMINABLE
 
 Cuando la evidencia existe pero no permite una determinación válida bajo la metodología autorizada.
 
-## 10. Frontera de ejecución provenance-safe
+## 14. Frontera provenance-safe
 
-La implementación debe seguir el patrón:
+La implementación debe seguir:
 
 ```text
-inputs autorizados
+DecisionInputPackage
++
+input factual autorizado de ventas
 ↓
 snapshot / deep copy
 ↓
-validación de contexto + P-ROT-001
+validación DIP
+↓
+selección y revalidación P-ROT-001
+↓
+validación Evidence
 ↓
 derivación de ventana
 ↓
@@ -233,21 +342,23 @@ SalesActivityWindowEvidence
 revalidación antes de reutilización
 ```
 
-Un `SalesActivityWindowEvidence` construido manualmente o desprendido no debe aceptarse automáticamente como autoridad suficiente en Rules.
+Un carrier construido manualmente o desprendido no se acepta automáticamente en Rules.
 
-La frontera de reutilización deberá reconstruirlo o revalidar:
+La frontera de reutilización debe reconstruirlo o revalidar:
 
+- aggregate de origen;
 - identidad;
 - ventana;
 - configuración;
+- evidencia;
 - provenance factual;
 - estado.
 
-## 11. Separación de responsabilidades
+## 15. Separación de responsabilidades
 
-El productor Track A:
+Track A:
 
-- produce evidencia factual;
+- produce soporte factual;
 - no crea `Assessment`;
 - no aplica excepciones;
 - no decide `NO COMPRAR`;
@@ -256,7 +367,7 @@ El productor Track A:
 
 El futuro bridge `R-ROT-002` será una unidad separada.
 
-## 12. Relación con C0 Evidence
+## 16. Relación con C0 Evidence
 
 Los estados Track A no sustituyen:
 
@@ -265,11 +376,11 @@ Evidence.state
 EvidenceValidation.status
 ```
 
-Cuando se utilicen evidencias C0, deberán mantenerse sus invariantes y referencias.
+La implementación debe reutilizar los contratos C0 existentes y no crear un segundo sistema de evidence status.
 
-## 13. No alcance técnico
+## 17. No alcance técnico
 
-Esta unidad no introduce:
+No se introduce:
 
 - nuevo parámetro;
 - nuevo ID de regla;
@@ -281,56 +392,63 @@ Esta unidad no introduce:
 - stock;
 - política de devoluciones/anulaciones;
 - fallback temporal;
+- identidad empresarial paralela;
 - decisión humana automatizada.
 
-## 14. Tests obligatorios
+## 18. Tests obligatorios
 
 La materialización deberá probar al menos:
 
-1. configuración válida `P-ROT-001`;
-2. rechazo de otro parameter_id;
-3. rechazo de parameters_version distinta;
-4. rechazo de unidad distinta de `días`;
-5. rechazo de valor cero, negativo, decimal, NaN, Infinity o texto;
-6. cálculo correcto de ventana para 1 día;
-7. cálculo correcto de ventana para N días;
-8. mismatch de article_id;
-9. mismatch de decision_id;
-10. mismatch de scenario_id;
-11. mismatch de evaluation_date;
-12. mismatch de window_start/window_end;
-13. ausencia de filas no produce `ZERO_VALID_SALES_DEMONSTRATED`;
-14. suma neta cero no produce cero ventas;
-15. cobertura parcial no produce cero ventas;
-16. evidencia completa + ausencia demostrada produce `ZERO_VALID_SALES_DEMONSTRATED`;
-17. evento válido demostrado produce `SALES_ACTIVITY_PRESENT`;
-18. conflicto produce `CONFLICTING_DATA`;
-19. evidencia insuficiente conserva `NOT_EVIDENCED/NOT_DETERMINABLE`;
-20. revalidación rechaza carrier forjado/desprendido.
+1. DIP válido con P-ROT-001;
+2. P-ROT-001 no solicitado;
+3. P-ROT-001 declarado missing;
+4. ausencia de resolución;
+5. resolución duplicada/ambigua;
+6. parameter_id incorrecto;
+7. company_id distinto del DIP;
+8. parameters_version distinta;
+9. effective_at distinto;
+10. configuración fuera de vigencia;
+11. unidad distinta de `días`;
+12. valor cero, negativo, decimal, NaN, Infinity o texto;
+13. cálculo correcto de ventana para 1 día;
+14. cálculo correcto para N días;
+15. ausencia de Evidence suficiente para configuración;
+16. mismatch de article_id;
+17. mismatch de evaluation_date;
+18. mismatch de window_start/window_end;
+19. cero filas no produce ZERO_VALID_SALES_DEMONSTRATED;
+20. net quantity cero no produce ZERO_VALID_SALES_DEMONSTRATED;
+21. cobertura parcial no produce ZERO_VALID_SALES_DEMONSTRATED;
+22. evidencia completa + ausencia demostrada produce ZERO_VALID_SALES_DEMONSTRATED;
+23. evento válido produce SALES_ACTIVITY_PRESENT;
+24. conflicto produce CONFLICTING_DATA;
+25. insuficiencia conserva NOT_EVIDENCED/NOT_DETERMINABLE;
+26. revalidación rechaza carrier forjado/desprendido.
 
-## 15. Gates
+## 19. Gates
 
 ```text
-ROT002-AW-G01 → carrier físico exacto
-ROT002-AW-G02 → P-ROT-001 provenance
-ROT002-AW-G03 → contexto/identidad
-ROT002-AW-G04 → ventana inclusiva exacta
-ROT002-AW-G05 → source semantics
-ROT002-AW-G06 → completeness
-ROT002-AW-G07 → estados Track A
-ROT002-AW-G08 → revalidación provenance-safe
-ROT002-AW-G09 → sin Assessment/CRC/excepciones
+ROT002-AW-G01 → DecisionInputPackage como raíz
+ROT002-AW-G02 → selección P-ROT-001 dentro del DIP
+ROT002-AW-G03 → company/context/effective_at
+ROT002-AW-G04 → Evidence de configuración
+ROT002-AW-G05 → ventana inclusiva exacta
+ROT002-AW-G06 → source semantics
+ROT002-AW-G07 → completeness
+ROT002-AW-G08 → estados Track A
+ROT002-AW-G09 → revalidación provenance-safe
+ROT002-AW-G10 → sin Assessment/CRC/excepciones
 ```
 
-## 16. Criterio de cierre
+## 20. Criterio de cierre
 
 La unidad solo podrá cerrarse cuando:
 
-1. Audit 1 no detecte ambigüedades de contrato;
-2. DEPURAR incorpore correcciones;
-3. Audit 2 confirme que no se introducen semánticas de Rules;
-4. código y tests respeten exactamente el contrato;
+1. Audit 2 confirme que Audit 1 quedó resuelta;
+2. código y tests respeten exactamente el contrato;
+3. no exista ruta pública que acepte una P-ROT-001 desprendida para producir el carrier;
+4. no exista promoción Track A → decisión;
 5. CI pre-merge sea satisfactoria;
 6. se integre el mismo head;
 7. CI post-merge sea satisfactoria.
-
