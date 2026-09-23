@@ -64,8 +64,15 @@ def test_scenario_stage2_public_completion_is_reopened_only_through_safe_boundar
     assert "viability_result" not in scenario_integration.ProvenancedScenarioAnalyticsInput.model_fields
 
 
-def test_decision_twin_stage2_dependent_public_wrapper_remains_quarantined():
-    assert decision_twin_integration.__all__ == []
+def test_decision_twin_wrapper_is_reopened_only_through_safe_stage2_boundary():
+    assert set(decision_twin_integration.__all__) == {
+        "DecisionTwinInvoker",
+        "ProvenancedDecisionTwinAlternativeInput",
+        "build_provenanced_decision_twin_comparison",
+        "build_provenanced_decision_twin_invoker",
+    }
+    fields = set(decision_twin_integration.ProvenancedDecisionTwinAlternativeInput.model_fields)
+    assert fields == {"representation_ref", "scenario_input"}
 
 
 def test_synthetic_foundation_stages_remain_private():

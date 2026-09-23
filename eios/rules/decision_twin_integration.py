@@ -1,18 +1,174 @@
-"""Decision Twin public provenance integration quarantine.
-
-The former public wrapper depended on the Scenario Stage 2 provenance-safe
-completion boundary. That boundary is quarantined because it accepted a
-caller-constructed ``ViabilityResult`` and therefore could prove contextual
-consistency but not Viability Frontier producer provenance.
-
-Decision Twin comparison mechanics remain available in their closed core
-domain. EIOS must not expose a public Decision Twin integration that inherits
-the quarantined Stage 2 provenance claim. Reopening this boundary requires a
-provenance-safe Stage 2/VF producer path that can be audited end to end.
-"""
+"""Public provenance-safe Decision Twin wrapper backed by safe Stage 2 completion."""
 from __future__ import annotations
 
-# Intentional quarantine: no public provenance-safe Decision Twin integration
-# symbols are exported while Scenario Stage 2 / VF producer provenance remains
-# objectively blocked.
-__all__: list[str] = []
+from copy import deepcopy
+from collections.abc import Callable
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from eios.core.capability_adapters import adapt_twin
+from eios.core.decision_twin import AlternativeRepresentation, DecisionTwinComparison, DecisionTwinComparisonInput
+from eios.core.decision_twin_engine import compare_alternatives
+from eios.core.models import DecisionContext, PurchaseOperation
+from eios.core.o4_o2_o3_orchestration import O4O2O3Preparation
+from eios.core.orchestration import CapabilityExecution
+
+from .scenario_integration import (
+    ProvenancedScenarioAnalyticsInput,
+    complete_provenanced_o4_o2_o3_orchestration,
+)
+
+
+DecisionTwinInvoker = Callable[[PurchaseOperation, DecisionContext], CapabilityExecution]
+
+
+class ProvenancedDecisionTwinAlternativeInput(BaseModel):
+    """One Twin alternative bound to provenance-safe Stage-2 input."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    representation_ref: str = Field(min_length=1, max_length=256)
+    scenario_input: ProvenancedScenarioAnalyticsInput
+
+    @model_validator(mode="after")
+    def validate_representation(self) -> "ProvenancedDecisionTwinAlternativeInput":
+        if not self.representation_ref.strip():
+            raise ValueError("representation_ref no puede estar vacía")
+        return self
+
+
+def _validate_root_binding(
+    *,
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    preparation: O4O2O3Preparation,
+) -> None:
+    prepared = preparation.context
+    for field in (
+        "decision_id",
+        "scenario_id",
+        "rules_version",
+        "parameters_version",
+        "data_snapshot_id",
+    ):
+        if getattr(context, field) != getattr(prepared, field):
+            raise ValueError(f"DecisionContext.{field} incompatible con preparation.context")
+    if purchase.decision_id != context.decision_id:
+        raise ValueError("PurchaseOperation.decision_id incompatible con DecisionContext")
+    if purchase.scenario_id != context.scenario_id:
+        raise ValueError("PurchaseOperation.scenario_id incompatible con DecisionContext")
+
+
+def build_provenanced_decision_twin_comparison(
+    *,
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    preparation: O4O2O3Preparation,
+    alternatives: tuple[ProvenancedDecisionTwinAlternativeInput, ...],
+) -> DecisionTwinComparison:
+    """Rebuild Stage 2 and compare two or more alternatives without detached results."""
+
+    purchase_snapshot = purchase.model_copy(deep=True)
+    context_snapshot = context.model_copy(deep=True)
+    preparation_snapshot = preparation.model_copy(deep=True)
+    alternative_snapshots = tuple(item.model_copy(deep=True) for item in alternatives)
+
+    _validate_root_binding(
+        purchase=purchase_snapshot,
+        context=context_snapshot,
+        preparation=preparation_snapshot,
+    )
+
+    if len(alternative_snapshots) < 2:
+        raise ValueError("Decision Twin requiere al menos dos alternativas")
+
+    refs = tuple(item.representation_ref for item in alternative_snapshots)
+    if len(refs) != len(set(refs)):
+        raise ValueError("representation_ref duplicada")
+
+    scenario_ids = tuple(item.scenario_input.scenario_id for item in alternative_snapshots)
+    if len(scenario_ids) != len(set(scenario_ids)):
+        raise ValueError("scenario_id analítico duplicado")
+
+    stage2 = complete_provenanced_o4_o2_o3_orchestration(
+        preparation=preparation_snapshot,
+        inputs=tuple(item.scenario_input for item in alternative_snapshots),
+    )
+    evaluations_by_scenario = {item.scenario_id: item for item in stage2.evaluations}
+
+    representations: list[AlternativeRepresentation] = []
+    for item in alternative_snapshots:
+        evaluation = evaluations_by_scenario.get(item.scenario_input.scenario_id)
+        if evaluation is None:
+            raise ValueError("Falta ScenarioEvaluationResult para una alternativa")
+
+        viability_payload = evaluation.viability_result
+        if not isinstance(viability_payload, dict):
+            raise ValueError("ScenarioEvaluationResult.viability_result debe ser payload canónico")
+        viability = viability_payload.get("status")
+        if viability not in {
+            "VIABLE",
+            "VIABLE_CON_CONDICIONES",
+            "NOT_VIABLE",
+            "NOT_EVALUABLE",
+        }:
+            raise ValueError("Viability status no soportado por Decision Twin")
+
+        representations.append(
+            AlternativeRepresentation(
+                representation_ref=item.representation_ref,
+                scenario_id=evaluation.scenario_id,
+                viability=viability,
+                results={
+                    "status": evaluation.status.value,
+                    "assessments": tuple(deepcopy(evaluation.assessments)),
+                    "limitations": tuple(evaluation.limitations),
+                    "failure_reason": evaluation.failure_reason,
+                },
+                conditions={},
+                consequences={},
+                risk_refs=(),
+                trace_refs=tuple(evaluation.trace_references),
+            )
+        )
+
+    return compare_alternatives(
+        DecisionTwinComparisonInput(alternatives=tuple(representations))
+    )
+
+
+def build_provenanced_decision_twin_invoker(
+    *,
+    preparation: O4O2O3Preparation,
+    alternatives: tuple[ProvenancedDecisionTwinAlternativeInput, ...],
+) -> DecisionTwinInvoker:
+    """Freeze source material and return the O1-compatible Decision Twin invoker."""
+
+    preparation_snapshot = preparation.model_copy(deep=True)
+    alternative_snapshots = tuple(item.model_copy(deep=True) for item in alternatives)
+
+    if len(alternative_snapshots) < 2:
+        raise ValueError("Decision Twin requiere al menos dos alternativas")
+
+    refs = tuple(item.representation_ref for item in alternative_snapshots)
+    if len(refs) != len(set(refs)):
+        raise ValueError("representation_ref duplicada")
+
+    def invoke(purchase: PurchaseOperation, context: DecisionContext) -> CapabilityExecution:
+        comparison = build_provenanced_decision_twin_comparison(
+            purchase=purchase.model_copy(deep=True),
+            context=context.model_copy(deep=True),
+            preparation=preparation_snapshot.model_copy(deep=True),
+            alternatives=tuple(item.model_copy(deep=True) for item in alternative_snapshots),
+        )
+        return adapt_twin(comparison)
+
+    return invoke
+
+
+__all__ = [
+    "DecisionTwinInvoker",
+    "ProvenancedDecisionTwinAlternativeInput",
+    "build_provenanced_decision_twin_comparison",
+    "build_provenanced_decision_twin_invoker",
+]

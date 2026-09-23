@@ -2,7 +2,7 @@
 
 ## Estado
 
-DISEÑADO → AUDITADO → DEPURADO → AUDITORÍA 2 SUPERADA → MATERIALIZADO. Pendiente de CI e integración.
+🔒 CONTRATO CERRADO — DEPENDENCIA STAGE 2 RESUELTA — REMATERIALIZADO EN RUTA PROVENANCE-SAFE. Pendiente de CI e integración de esta reactivación.
 
 ## 1. Propósito
 
@@ -150,3 +150,9 @@ La implementación y Auditoría 2 quedan cerradas en rama. La unidad no se consi
 1. CI de PR satisfactoria sobre el head exacto;
 2. merge de ese mismo head;
 3. CI post-merge satisfactoria.
+
+## 12. Reactivación 23/09/2026
+
+La dependencia que justificaba la cuarentena pública —ausencia de un productor VF provenance-safe— quedó resuelta por `VF Minimal Provenance Producer v0.1` y la reapertura segura de Stage 2.
+
+La presente reactivación no introduce nueva autoridad empresarial. Materializa el contrato ya cerrado y conserva exactamente sus límites.
