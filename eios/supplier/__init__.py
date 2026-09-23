@@ -16,6 +16,14 @@ from .alternatives import (
     supplier_evidence_result_ref,
 )
 from .engine import evaluate_supplier_evidence
+from .risk_value import (
+    SupplierRiskDimensionAssessment,
+    SupplierRiskValueInvoker,
+    SupplierRiskValueResult,
+    SupplierValueDimensionAssessment,
+    build_provenanced_supplier_risk_value_invoker,
+    produce_supplier_risk_value,
+)
 from .models import (
     CandidateResolution,
     ExternalSupplierMetric,
@@ -55,8 +63,14 @@ __all__ = [
     "SupplierObservation",
     "SupplierResultIdentity",
     "SupplierSignal",
+    "SupplierRiskDimensionAssessment",
+    "SupplierRiskValueInvoker",
+    "SupplierRiskValueResult",
+    "SupplierValueDimensionAssessment",
     "SUPPLIER_EVIDENCE_METHODOLOGY_VERSION",
     "evaluate_supplier_evidence",
+    "build_provenanced_supplier_risk_value_invoker",
+    "produce_supplier_risk_value",
     "supplier_alternative_comparability_ref",
     "supplier_alternative_coverage_ref",
     "supplier_alternative_opportunity_ref",
