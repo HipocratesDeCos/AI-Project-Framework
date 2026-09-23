@@ -4,7 +4,9 @@ import eios.rules.scenario_integration as scenario_boundary
 
 _SAFE_STAGE2_SYMBOLS = (
     "ProvenancedScenarioAnalyticsInput",
+    "ScenarioCoordinationInvoker",
     "build_authorized_scenario_analytics_from_provenanced_assessments",
+    "build_provenanced_scenario_coordination_invoker",
     "complete_provenanced_o4_o2_o3_orchestration",
 )
 
