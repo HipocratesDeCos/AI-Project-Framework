@@ -85,6 +85,12 @@ from .provenance import (
     validate_assessment_trace_binding,
 )
 from .runtime import ConsolidatedBaseResult, RuleSetVerticalResult, RuleVerticalResult
+from .decision_twin_integration import (
+    DecisionTwinInvoker,
+    ProvenancedDecisionTwinAlternativeInput,
+    build_provenanced_decision_twin_comparison,
+    build_provenanced_decision_twin_invoker,
+)
 from .scenario_integration import (
     ProvenancedScenarioAnalyticsInput,
     build_authorized_scenario_analytics_from_provenanced_assessments,
@@ -122,6 +128,7 @@ __all__ = [
     "ConsolidatedBaseResult",
     "DELIVERY_EVIDENCE_SOURCE_TYPE",
     "DecisionRuleExecutionResult",
+    "DecisionTwinInvoker",
     "DeliveryRuleInputs",
     "DomainRulesC0Invoker",
     "FINANCE_BASIC_EVIDENCE_SOURCE_TYPE",
@@ -141,6 +148,7 @@ __all__ = [
     "P_PRE_004",
     "P_PRE_005",
     "P_PRE_006",
+    "ProvenancedDecisionTwinAlternativeInput",
     "ProvenancedRulesC0Invoker",
     "ProvenancedScenarioAnalyticsInput",
     "R_DAT_001",
@@ -178,6 +186,8 @@ __all__ = [
     "authorized_rule",
     "authorized_rule_metadata",
     "build_domain_rules_c0_invoker",
+    "build_provenanced_decision_twin_comparison",
+    "build_provenanced_decision_twin_invoker",
     "build_authorized_scenario_analytics_from_provenanced_assessments",
     "build_provenanced_rules_engine_c0_invoker",
     "build_rules_engine_c0_invoker",
