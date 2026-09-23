@@ -31,11 +31,11 @@ La nueva taxonomía se sitúa por encima de esa frontera.
 
 ## 3. Semántica canónica
 
-| Case kind | Fuente canónica | Naturaleza material | Modo QTG aplicable | Ruta operacional | Efecto por clasificación | Finalidad |
+| Case kind | Fuente canónica | Naturaleza material | Política QTG | Ruta operacional | Efecto por clasificación | Finalidad |
 |---|---|---|---|---|---|---|
-| `SYNTHETIC_TEST` | `ProjectionMockDataset` | `SYNTHETIC` | `SYNTHETIC_TEST` | `FORBIDDEN` | `NO_OPERATIONAL_EFFECT` | prueba técnica |
-| `REFERENCE_OPERATIONAL_SIMULATION` | `ProjectionOnlySyntheticMaterialBundle` | `SYNTHETIC` | `SYNTHETIC_TEST` | `FORBIDDEN` | `NO_OPERATIONAL_EFFECT` | validación E2E de producto |
-| `PRESENTED_OPERATIONAL` | `OperationalExpedientIntakeManifest` | `PRESENTED_OPERATIONAL` | `OPERATIONAL` solo tras admisión | `REQUIRES_ADMISSION` | `NOT_GRANTED_BY_CLASSIFICATION` | caso presentado por empresa |
+| `SYNTHETIC_TEST` | `ProjectionMockDataset` | `SYNTHETIC` | `SYNTHETIC_TEST_ONLY` | `FORBIDDEN` | `NO_OPERATIONAL_EFFECT` | prueba técnica |
+| `REFERENCE_OPERATIONAL_SIMULATION` | `ProjectionOnlySyntheticMaterialBundle` | `SYNTHETIC` | `SYNTHETIC_TEST_ONLY` | `FORBIDDEN` | `NO_OPERATIONAL_EFFECT` | validación E2E de producto |
+| `PRESENTED_OPERATIONAL` | `OperationalExpedientIntakeManifest` | `PRESENTED_OPERATIONAL` | `OPERATIONAL_AFTER_ADMISSION` | `REQUIRES_ADMISSION` | `NOT_GRANTED_BY_CLASSIFICATION` | caso presentado por empresa |
 
 ## 4. SYNTHETIC_TEST
 
@@ -127,7 +127,7 @@ Su fingerprint liga, como mínimo:
 - tipo de fuente;
 - fingerprint exacto de la fuente;
 - naturaleza material;
-- modo QTG;
+- política de modo QTG;
 - ruta operacional;
 - alcance de efectos;
 - alcance de validación;
@@ -214,7 +214,7 @@ MVP con material sintético realista, preservando en todo momento:
 
 ```text
 material_nature = SYNTHETIC
-qtg_execution_mode = SYNTHETIC_TEST
+qtg_mode_policy = SYNTHETIC_TEST_ONLY
 operational_path = FORBIDDEN
 effect_scope = NO_OPERATIONAL_EFFECT
 decision_authority = false
