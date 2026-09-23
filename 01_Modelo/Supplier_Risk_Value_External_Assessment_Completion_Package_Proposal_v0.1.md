@@ -2,7 +2,7 @@
 
 **Baseline:** `main @ e4638f871efc2e2cb30506fba8000c6e499b44e1`  
 **Fecha:** 23/09/2026  
-**Estado:** PROPUESTA CONSOLIDADA — NO AUTORIZADA / NO VIGENTE
+**Estado:** 🔒 AUTORIZADO — VIGENTE
 
 ## 1. Objetivo
 
@@ -310,6 +310,10 @@ AUTORIZAR
 → CI main
 ```
 
-## 17. Estado
+## 17. Autorización humana
 
-**SUPPLIER RISK / VALUE EXTERNAL ASSESSMENT COMPLETION PACKAGE v0.1 — PROPUESTA / NO VIGENTE.**
+Autorizado expresamente el 23/09/2026 como paquete único de cierre Supplier Risk / Value v0.1.
+
+La autorización comprende las taxonomías Risk/Value, sus estados, carriers de determinaciones externas, regla de no agregación y exposición O1 informativa, sin fórmulas ni scores nativos.
+
+**SUPPLIER RISK / VALUE EXTERNAL ASSESSMENT COMPLETION PACKAGE v0.1 — 🔒 AUTORIZADO / VIGENTE.**
