@@ -3,7 +3,7 @@
 **Baseline:** `main @ d0e94c47eb8d1622c2fbb3125c7e1da63756e4fc`  
 **Fecha:** 23/09/2026  
 **Objeto:** `08_Implementacion/ROT002_Sales_Activity_Window_Provenance_Contract_v0.1.md`  
-**Estado:** AUDIT 2 — SUPERADA  
+**Estado:** AUDIT 2 — BLOQUEADA POR EVIDENCE BINDING  
 **Audit 1:** `07_Pruebas/ROT002_Sales_Activity_Window_Provenance_Audit_1_v0.1.md`
 
 ## 1. Verificación de la corrección principal
@@ -94,9 +94,7 @@ Sin default.
 
 ## 5. Evidence
 
-El contrato no convierte `configuration_ref` en prueba empresarial.
-
-Mantiene separado:
+El contrato no convierte `configuration_ref` en prueba empresarial y mantiene separado:
 
 ```text
 configuration_ref → referencia técnica reproducible
@@ -104,9 +102,24 @@ Evidence → soporte de evidencia
 authority document → autoridad normativa
 ```
 
-Los estados Track A tampoco sustituyen `Evidence.state` ni `EvidenceValidation.status`.
+Sin embargo, el Evidence Contract general no define la relación concreta que demuestra que una Evidence corresponde a una determinada ResolvedConfiguration.
 
-**Resultado:** CONFORME.
+No está autorizado inferir:
+
+```text
+source_ref == configuration_ref
+demonstration_ref == configuration_ref
+source_type fijo
+captured_at == effective_at
+```
+
+Por tanto permanece abierto:
+
+```text
+ROT002-AW-EVID-G01
+```
+
+**Resultado:** BLOQUEADOR DOCUMENTAL CONTROLADO.
 
 ## 6. Carrier factual
 
@@ -201,7 +214,7 @@ El carrier debe reconstruirse o revalidarse contra DIP + configuración + eviden
 ROT002-AW-G01 → CLOSED — DIP root
 ROT002-AW-G02 → CLOSED — P-ROT-001 inside DIP
 ROT002-AW-G03 → CLOSED — identity/scope/effective_at
-ROT002-AW-G04 → CLOSED — configuration Evidence preserved
+ROT002-AW-G04 → OPEN — binding Evidence ↔ ResolvedConfiguration no autorizado
 ROT002-AW-G05 → CLOSED — exact inclusive window
 ROT002-AW-G06 → CLOSED — source semantics separated
 ROT002-AW-G07 → CLOSED — completeness required
@@ -216,12 +229,12 @@ ROT002-AW-G10 → CLOSED — no Rules/CRC/exceptions
 DISEÑAR       ✅
 AUDITAR       ✅ Audit 1
 DEPURAR       ✅
-AUDITAR 2     ✅
-CERRAR        ✅ contrato técnico
-MATERIALIZAR  ⏳ siguiente unidad
-CI            ⏳ después de materialización
+AUDITAR 2     ⚠️ bloqueado por ROT002-AW-EVID-G01
+CERRAR        ⛔
+MATERIALIZAR  ⛔
+CI            ⛔
 ```
 
-**0 bloqueadores contractuales para materializar Track A physical carrier + provenance boundary.**
+**1 bloqueador contractual:** falta autoridad para el binding específico `Evidence ↔ ResolvedConfiguration(P-ROT-001)`.
 
-No se autoriza todavía el bridge completo de `R-ROT-002`.
+No se autoriza materializar Track A físico ni el bridge completo de `R-ROT-002` hasta cerrar ese gate.
