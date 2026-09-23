@@ -19,6 +19,7 @@ MVP_CAPABILITY_ORDER = (
     "QTG",
     "PRICE",
     "TCO",
+    "SUPPLIER_RISK_VALUE",
     "C0",
     "DECISION_TWIN",
     "SCENARIO_COORDINATION",
@@ -34,6 +35,7 @@ def run_mvp_execution(
     policy_version: str,
     price_invoker: CapabilityInvoker | None = None,
     tco_invoker: CapabilityInvoker | None = None,
+    supplier_risk_value_invoker: CapabilityInvoker | None = None,
     rules_invoker: CapabilityInvoker | None = None,
     decision_twin_invoker: CapabilityInvoker | None = None,
     scenario_coordination_invoker: CapabilityInvoker | None = None,
@@ -42,7 +44,7 @@ def run_mvp_execution(
 ) -> ExecutionOutcome:
     """Execute supplied MVP capabilities through the controlled boundary.
 
-    PRICE, TCO, Decision Twin, Scenario Coordination, Negotiation Intelligence
+    PRICE, TCO, Supplier Risk/Value, Decision Twin, Scenario Coordination, Negotiation Intelligence
     and Negotiation Ladder must arrive through explicit invokers; this service
     never re-labels detached raw results for those capabilities into the current
     context. Invoker presence alone is not provenance proof. QTG remains in the
@@ -56,6 +58,8 @@ def run_mvp_execution(
         invokers["PRICE"] = price_invoker
     if tco_invoker is not None:
         invokers["TCO"] = tco_invoker
+    if supplier_risk_value_invoker is not None:
+        invokers["SUPPLIER_RISK_VALUE"] = supplier_risk_value_invoker
     if rules_invoker is not None:
         invokers["C0"] = rules_invoker
     if decision_twin_invoker is not None:
