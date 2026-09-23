@@ -2,7 +2,7 @@
 
 **Baseline:** `main @ 169e50771c9f2dafbb316dab60a9d2866a398534`  
 **Fecha:** 23/09/2026  
-**Estado:** PROPUESTA CONSOLIDADA — NO AUTORIZADA / NO VIGENTE  
+**Estado:** 🔒 AUTORIZADO — VIGENTE  
 **Reglas:** `R-COM-001`, `R-COM-002`
 
 ## 1. Objetivo
@@ -374,6 +374,10 @@ AUTORIZAR
 
 Sin micro-gates intermedios dentro de este alcance.
 
-## 13. Estado
+## 13. Autorización humana
 
-**COMMERCIAL COM001/COM002 COMPLETION PACKAGE v0.1 — PROPUESTA / NO VIGENTE.**
+Autorizado expresamente el 23/09/2026 como paquete único de cierre COM001/COM002.
+
+La autorización comprende la semántica factual de descuento, la aplicabilidad confirmada, el rappel lineal confirmado, la fórmula económica local, metadata CRC y límites de no alcance definidos en este documento.
+
+**COMMERCIAL COM001/COM002 COMPLETION PACKAGE v0.1 — 🔒 AUTORIZADO / VIGENTE.**
