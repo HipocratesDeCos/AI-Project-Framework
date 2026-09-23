@@ -457,9 +457,7 @@ sin solicitar nuevas aprobaciones intermedias mientras la implementación no exc
 
 ---
 
-## 17. Estado
-
-## 18. Autorización humana
+## 17. Autorización humana
 
 Autorizado expresamente el 23/09/2026 como paquete único de cierre de ROT002.
 
