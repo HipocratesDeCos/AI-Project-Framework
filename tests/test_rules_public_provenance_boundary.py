@@ -16,6 +16,10 @@ def test_public_rules_namespace_exposes_only_provenance_safe_reuse_entrypoints()
         "ProvenancedScenarioAnalyticsInput",
         "build_authorized_scenario_analytics_from_provenanced_assessments",
         "complete_provenanced_o4_o2_o3_orchestration",
+        "DecisionTwinInvoker",
+        "ProvenancedDecisionTwinAlternativeInput",
+        "build_provenanced_decision_twin_comparison",
+        "build_provenanced_decision_twin_invoker",
     }
     for name in safe_names:
         assert hasattr(rules, name), name
@@ -31,12 +35,7 @@ def test_public_rules_namespace_exposes_only_provenance_safe_reuse_entrypoints()
     for name in quarantined_internal_names:
         assert not hasattr(rules, name), name
 
-    still_quarantined_dependent_names = {
-        "DecisionTwinInvoker",
-        "ProvenancedDecisionTwinAlternativeInput",
-        "build_provenanced_decision_twin_comparison",
-        "build_provenanced_decision_twin_invoker",
-    }
+    still_quarantined_dependent_names = set()
     for name in still_quarantined_dependent_names:
         assert not hasattr(rules, name), name
         assert name not in rules.__all__
