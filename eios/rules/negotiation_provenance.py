@@ -217,7 +217,10 @@ def produce_negotiation_ladder(
     })
 
     return NegotiationLadderResult(
-        ladder_id=f"ladder:{negotiation_result.negotiation_result_id}:{structure_fp}",
+        ladder_id=(
+            f"ladder:{negotiation_result.negotiation_result_id}:"
+            f"{structure_fp[:max(1, 128 - len('ladder:') - len(negotiation_result.negotiation_result_id) - 1)]}"
+        ),
         context_references=LadderContextReferences(
             negotiation_result_id=negotiation_result.negotiation_result_id,
             decision_id=context.decision_id,
