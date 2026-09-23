@@ -29,28 +29,25 @@ def _preparation():
     )
 
 
-def test_scenario_e2e_reaches_stage1_but_stops_before_unproven_vf_stage2() -> None:
+def test_scenario_e2e_reaches_stage1_and_exposes_safe_stage2_boundary() -> None:
     preparation = _preparation()
-
     assert preparation.materialization.scenarios
     assert all(
         scenario.decision_id == preparation.context.decision_id
         for scenario in preparation.materialization.scenarios
     )
-    assert not hasattr(rules, "complete_provenanced_o4_o2_o3_orchestration")
+    assert hasattr(rules, "complete_provenanced_o4_o2_o3_orchestration")
 
 
-def test_e2e_does_not_expose_caller_constructed_vf_as_provenance_safe_input() -> None:
-    assert not hasattr(rules, "ProvenancedScenarioAnalyticsInput")
-    assert not hasattr(
-        rules,
-        "build_authorized_scenario_analytics_from_provenanced_assessments",
-    )
+def test_e2e_stage2_does_not_accept_caller_constructed_vf() -> None:
+    assert hasattr(rules, "ProvenancedScenarioAnalyticsInput")
+    fields = set(rules.ProvenancedScenarioAnalyticsInput.model_fields)
+    assert "viability_result" not in fields
+    assert {"scenario_id", "purchase", "assessment_bindings"} <= fields
 
 
-def test_quarantine_does_not_remove_c0_provenance_or_stage1_scenario_generation() -> None:
+def test_safe_reopening_preserves_c0_provenance_and_stage1_generation() -> None:
     preparation = _preparation()
-
     assert "AssessmentTraceBinding" in rules.__all__
     assert "validate_assessment_trace_binding" in rules.__all__
     assert callable(rules.validate_assessment_trace_binding)
