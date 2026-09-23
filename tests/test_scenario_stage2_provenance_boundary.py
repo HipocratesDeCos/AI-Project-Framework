@@ -6,7 +6,9 @@ from eios.core.viability_frontier import evaluate_viability
 
 _PROVENANCE_SAFE_PUBLIC_SYMBOLS = (
     "ProvenancedScenarioAnalyticsInput",
+    "ScenarioCoordinationInvoker",
     "build_authorized_scenario_analytics_from_provenanced_assessments",
+    "build_provenanced_scenario_coordination_invoker",
     "complete_provenanced_o4_o2_o3_orchestration",
 )
 

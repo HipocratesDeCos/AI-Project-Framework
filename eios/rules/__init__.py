@@ -100,7 +100,9 @@ from .decision_twin_integration import (
 )
 from .scenario_integration import (
     ProvenancedScenarioAnalyticsInput,
+    ScenarioCoordinationInvoker,
     build_authorized_scenario_analytics_from_provenanced_assessments,
+    build_provenanced_scenario_coordination_invoker,
     complete_provenanced_o4_o2_o3_orchestration,
 )
 from .viability_provenance import (
@@ -159,6 +161,7 @@ __all__ = [
     "NegotiationContentEvidence",
     "ProvenancedRulesC0Invoker",
     "ProvenancedScenarioAnalyticsInput",
+    "ScenarioCoordinationInvoker",
     "R_DAT_001",
     "R_DAT_002",
     "R_DAT_003",
@@ -199,6 +202,7 @@ __all__ = [
     "build_provenanced_negotiation_intelligence_invoker",
     "build_provenanced_ni_ladder_invokers",
     "build_authorized_scenario_analytics_from_provenanced_assessments",
+    "build_provenanced_scenario_coordination_invoker",
     "build_provenanced_rules_engine_c0_invoker",
     "build_rules_engine_c0_invoker",
     "complete_provenanced_o4_o2_o3_orchestration",

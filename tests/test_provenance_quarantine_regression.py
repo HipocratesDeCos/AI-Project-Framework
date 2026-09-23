@@ -58,7 +58,9 @@ def test_vertical_facade_preserves_qtg_and_raw_result_quarantines():
 def test_scenario_stage2_public_completion_is_reopened_only_through_safe_boundary():
     assert set(scenario_integration.__all__) == {
         "ProvenancedScenarioAnalyticsInput",
+        "ScenarioCoordinationInvoker",
         "build_authorized_scenario_analytics_from_provenanced_assessments",
+        "build_provenanced_scenario_coordination_invoker",
         "complete_provenanced_o4_o2_o3_orchestration",
     }
     assert "viability_result" not in scenario_integration.ProvenancedScenarioAnalyticsInput.model_fields
