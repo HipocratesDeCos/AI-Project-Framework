@@ -85,6 +85,16 @@ from .provenance import (
     validate_assessment_trace_binding,
 )
 from .runtime import ConsolidatedBaseResult, RuleSetVerticalResult, RuleVerticalResult
+from .scenario_integration import (
+    ProvenancedScenarioAnalyticsInput,
+    build_authorized_scenario_analytics_from_provenanced_assessments,
+    complete_provenanced_o4_o2_o3_orchestration,
+)
+from .viability_provenance import (
+    VF_MINIMAL_CATALOG,
+    evaluate_provenanced_viability,
+    produce_frontier_assessments,
+)
 from .supplier_alternatives import (
     R_PROV_001,
     R_PROV_002,
@@ -132,6 +142,7 @@ __all__ = [
     "P_PRE_005",
     "P_PRE_006",
     "ProvenancedRulesC0Invoker",
+    "ProvenancedScenarioAnalyticsInput",
     "R_DAT_001",
     "R_DAT_002",
     "R_DAT_003",
@@ -150,6 +161,7 @@ __all__ = [
     "R_STK_002",
     "R_STK_003",
     "R_STK_004",
+    "VF_MINIMAL_CATALOG",
     "REnt001VerticalResult",
     "RuleSetVerticalResult",
     "RuleVerticalResult",
@@ -166,8 +178,11 @@ __all__ = [
     "authorized_rule",
     "authorized_rule_metadata",
     "build_domain_rules_c0_invoker",
+    "build_authorized_scenario_analytics_from_provenanced_assessments",
     "build_provenanced_rules_engine_c0_invoker",
     "build_rules_engine_c0_invoker",
+    "complete_provenanced_o4_o2_o3_orchestration",
+    "evaluate_provenanced_viability",
     "evaluate_r_dat_001",
     "evaluate_r_dat_002",
     "evaluate_r_dat_003",
@@ -189,6 +204,7 @@ __all__ = [
     "finance_basic_result_ref",
     "implemented_rule_ids",
     "price_intelligence_result_ref",
+    "produce_frontier_assessments",
     "run_domain_rules",
     "run_provenanced_assessments_vertical",
     "run_r_ent_001_vertical",
