@@ -239,9 +239,7 @@ def produce_shadow_mode_result(
         eligibility = "NOT_DETERMINABLE"
         limitations.append("La visibilidad de la evaluación EIOS es UNKNOWN.")
 
-    system_trace_refs = tuple(
-        f"crc:{rule_id}" for rule_id in crc_snapshot.traceability.assessment_rule_ids
-    )
+    system_trace_refs = (execution_ref,)
     human_trace_refs = human_snapshot.trace_refs
     trace_refs = tuple(sorted(set((*system_trace_refs, *human_trace_refs))))
 
