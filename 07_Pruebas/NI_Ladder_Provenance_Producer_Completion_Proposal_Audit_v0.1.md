@@ -1,7 +1,7 @@
 # EIOS — NI + Ladder Provenance Producer Completion Proposal Audit v0.1
 
 **Fecha:** 23/09/2026  
-**Estado:** AUDIT DE PROPUESTA — APTA PARA AUTORIZACIÓN ÚNICA
+**Estado:** AUDIT DE PROPUESTA SUPERADA — AUTORIZACIÓN HUMANA RECIBIDA
 
 ## 1. Gap real
 
@@ -77,10 +77,10 @@ No se reintroducen aliases raw.
 ```text
 EXPLORAR       ✅
 CONSOLIDAR     ✅
-AUTORIZAR      ⏳ HUMANO
+AUTORIZAR      ✅ HUMANO
 AUDITAR        ✅ propuesta
-MATERIALIZAR  ⛔
-CI            ⛔
+MATERIALIZAR  ✅ AUTORIZADO
+CI            ⏳ implementación
 ```
 
 **0 bloqueadores documentales para solicitar una única autorización humana.**
