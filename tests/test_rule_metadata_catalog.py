@@ -69,6 +69,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
         "R-PRE-003",
         "R-PROV-001",
         "R-PROV-002",
+        "R-ROT-002",
         "R-STK-001",
         "R-STK-002",
         "R-STK-003",
@@ -103,6 +104,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
         ("R-PRE-003", "R3", "INFORMATIVA"),
         ("R-PROV-001", "R2", "MEDIA"),
         ("R-PROV-002", "R2", "ALTA"),
+        ("R-ROT-002", "R1", "ALTA"),
     ),
 )
 def test_catalog_resolves_authorized_metadata(rule_id: str, effect: str, severity: str) -> None:
