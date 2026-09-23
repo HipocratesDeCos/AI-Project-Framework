@@ -2,7 +2,7 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 1.5.24  
+**Versión:** 1.5.25  
 **Estado:** CERRADO  
 **Baseline:** EIOS Vertical MVP  
 **Autoridad:** `00_Gobierno/Matriz_Autoridad_Documental.md`
@@ -376,7 +376,10 @@ La cobertura de esta versión se limita deliberadamente a relaciones cuya **exis
 | DEP-PROV002-SIGNIFICANT-IMPROVEMENT | `R-PROV-002` | `EVIDENCE` | `SupplierAlternativeSignificantImprovementDetermination + Evidence` | PROV AUTHORITY | Determina por candidato `SIGNIFICANT_IMPROVEMENT / NO_SIGNIFICANT_IMPROVEMENT / NOT_DETERMINABLE` sobre dimensiones autorizadas | PENDING | `01_Modelo/PROV_Supplier_Alternatives_Authority_v0.1.md`; `08_Implementacion/R_PROV_001_002_Provenance_Safe_Core_Technical_Contract_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Dimensiones autorizadas: PRICE, PAYMENT_TERM, COMMERCIAL_CONDITIONS, RELIABILITY, AVAILABILITY. No se introducen thresholds, scoring, pesos ni productor empresarial implícito. |
 | DEP-ENT-BSQ-RENT-001 | `R-ENT-001` | `EVIDENCE` | `BaselineStockoutQualification` | STK / ENT METHODOLOGY | Timing de agotamiento cualificado desde escenario base sin la compra evaluada | PENDING | `04_Reglas/Especificacion_Reglas_Entrega_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Exige provenance de baseline y exclusión de la compra; no implica dependencia COMPONENT directa a STK. |
 | DEP-ENT-DTE-RENT-001 | `R-ENT-001` | `EVIDENCE` | `PurchaseSpecificDeliveryTimingEvidence` | DELIVERY / SUPPLIER EVIDENCE ADAPTER | Fecha prevista de entrega aplicable específicamente a la propuesta evaluada | PENDING | `04_Reglas/Especificacion_Reglas_Entrega_MVP.md` | CONFIRMED | PENDING | NONE | NONE | Supplier DELIVERY_DATE es fuente opcional adaptada, no dependencia COMPONENT obligatoria. |
-| DEP-ROT-SAW-RROT-002 | `R-ROT-002` | `EVIDENCE` | `SalesActivityWindowEvidence` | ROTATION / TRACK A METHODOLOGY | Soporte factual para demostrar actividad o ausencia demostrada de ventas válidas en la ventana aplicable | PENDING | `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Relación validada por `01_Modelo/Rotation_Methodological_Audit_2_Final_v0.3.md`; no resuelve `ROT-G01` ni las dependencias `DATA`/`PARAMETER` pendientes de `ROT-G04-A`. |
+| DEP-ROT-PERIOD-RROT-002 | `R-ROT-002` | `PARAMETER` | `P-ROT-001 / ResolvedConfiguration` | ROT002 PERIOD AUTHORITY | Define el periodo configurado de inactividad de ventas; entero positivo en días, sin default | PENDING | `01_Modelo/ROT002_Configured_Sales_Inactivity_Period_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Relación directa autorizada por ROT-G01; no gobierna R-ROT-001 ni fija valor empresarial. |
+| DEP-ROT-CONTEXT-RROT-002 | `R-ROT-002` | `CONTEXT` | `PurchaseOperation.article_id + PurchaseOperation.operation_date` | C0 / ROT002 PERIOD AUTHORITY | Vincula artículo y evaluation_date a la operación exacta; operation_date es el extremo final de la ventana | PENDING | `01_Modelo/ROT002_Configured_Sales_Inactivity_Period_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | No puede sustituirse por reloj del sistema, captured_at, effective_at ni snapshot. |
+| DEP-ROT-PERIOD-EVID-RROT-002 | `R-ROT-002` | `EVIDENCE` | `ResolvedConfiguration(P-ROT-001) + Evidence` | ROT002 PERIOD AUTHORITY / PARAMETER CENTER | Demuestra valor, vigencia, scope y binding a Parameters_Version para la ventana aplicada | PENDING | `01_Modelo/ROT002_Configured_Sales_Inactivity_Period_Authority_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Entero desprendido no es autoridad; ausencia o invalidez conserva NOT_EVALUABLE. |
+| DEP-ROT-SAW-RROT-002 | `R-ROT-002` | `EVIDENCE` | `SalesActivityWindowEvidence` | ROTATION / TRACK A METHODOLOGY | Soporte factual para demostrar actividad o ausencia demostrada de ventas válidas en la ventana aplicable | PENDING | `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md` | CONFIRMED | PENDING | NONE | NONE | Relación validada por `01_Modelo/Rotation_Methodological_Audit_2_Final_v0.3.md`; ROT-G01 queda cerrado; el carrier factual debe corresponder exactamente a la ventana derivada de P-ROT-001 y a la operación evaluada. |
 
 ---
 
@@ -430,7 +433,7 @@ El cruce individual `P-STK/P-PYE ↔ R-STK` deja de formar parte de los pendient
 
 El cruce `R-ENT-001 ↔ evidencia temporal` deja de formar parte de los pendientes generales: queda demostrado por `04_Reglas/Especificacion_Reglas_Entrega_MVP.md` y se materializa mediante dos dependencias `EVIDENCE / CONFIRMED`. Permanecen `PENDING` la criticidad y el impacto de evaluabilidad por no existir autoridad suficiente para asignarlos.
 
-El cruce `R-ROT-002 ↔ SalesActivityWindowEvidence` deja de formar parte de los pendientes generales de evidencia: queda demostrado por `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md` y validado por `01_Modelo/Rotation_Methodological_Audit_2_Final_v0.3.md`. Permanecen pendientes `ROT-G01` y las dependencias `DATA`/`PARAMETER` todavía no demostradas de `ROT-G04-A`; este registro no autoriza implementación de Rotation.
+El cruce `R-ROT-002 ↔ SalesActivityWindowEvidence` deja de formar parte de los pendientes generales de evidencia: queda demostrado por `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md` y validado por `01_Modelo/Rotation_Methodological_Audit_2_Final_v0.3.md`. `ROT-G01` queda cerrado por `ROT002_Configured_Sales_Inactivity_Period_Authority_v0.1.md`; se confirman la dependencia PARAMETER de `P-ROT-001`, el binding CONTEXT a `PurchaseOperation.article_id/operation_date` y la evidencia de configuración resuelta. Este registro todavía no autoriza por sí solo el bridge completo de R-ROT-002 ni sus excepciones.
 
 El cruce derivado `P-FIN-001 → R-FIN-001` deja de formar parte de los pendientes de parámetros: queda demostrado por `01_Modelo/Finance_Basic_Authority_v0.1.md` FIN-AUTH-01/05/06 y reconciliado con `02_Parametros/Matriz_Parametros_Reglas_MVP.md`. `FIN-PROV-HORIZON-01` quedó cerrado físicamente mediante la frontera provenance-safe `ProvenancedFinanceBasicExecution`, integrada por PR #150 con CI #808/#809 SUCCESS; este cierre no valida el valor inicial de 30 días ni determina `Criticality` o `Evaluability_Impact`.
 
@@ -555,9 +558,11 @@ La reconciliación ROT confirma:
 - `R-ROT-002 → SalesActivityWindowEvidence` como `EVIDENCE / CONFIRMED`;
 - `Criticality = PENDING` y `Evaluability_Impact = PENDING`;
 - `Fallback = NONE` y ausencia de dependencia COMPONENT inferida;
-- `ROT-G01` permanece abierto;
-- las dependencias `DATA` y `PARAMETER` restantes de `ROT-G04-A` permanecen pendientes;
-- Track A continúa no autorizado para implementación.
+- `ROT-G01` queda CERRADO por autoridad humana;
+- `P-ROT-001 → R-ROT-002` queda `PARAMETER / CONFIRMED`;
+- el binding contextual a `PurchaseOperation.article_id/operation_date` queda `CONTEXT / CONFIRMED`;
+- la configuración resuelta y evidenciada queda `EVIDENCE / CONFIRMED`;
+- Track A conserva su semántica factual y no aplica excepciones; el bridge completo R-ROT-002 continúa sujeto a gates posteriores.
 
 La reconciliación FIN confirma:
 

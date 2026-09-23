@@ -2,10 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.9.4
-**Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO / STK
+**Versión:** 0.9.5
+**Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO / STK / ROT-G01
 **Baseline:** EIOS Vertical MVP
-**Fecha:** 16/09/2026
+**Fecha:** 23/09/2026
 
 ---
 
@@ -103,6 +103,7 @@ La numeración funcional se conserva; el prefijo identifica el tipo de entidad.
 | **P-PYE-004** | Proyección | **Sin consumidor directo demostrado; control metodológico de temporalidad/lead time** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / SIN CONSUMIDOR DIRECTO** |
 | **P-PYE-005** | Proyección | **Sin consumidor directo; no autoriza transformación ventas → demanda** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / NO OPERATIVO COMO TRANSFORMACIÓN** |
 | **P-PYE-006** | Proyección | **Sin consumidor directo demostrado; R-STK-001 no usa umbral fijo de días en su condición vigente** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / SIN CONSUMIDOR DIRECTO** |
+| **P-ROT-001** | Rotación | **R-ROT-002 — periodo configurado de inactividad de ventas** | Según regla | Sí, sujeto a control y evidencia | Sí | Sí | **CONFIRMADO — ROT-G01** |
 | **P-MGE-001** | Rentabilidad | **R-MGE-001** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
 | **P-MGE-002** | Rentabilidad | **R-MGE-003** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
 | **P-MGE-003** | Rentabilidad | **R-MGE-002** | Según regla | Sí | Sí | Sí | **CONFIRMADO** |
@@ -174,6 +175,7 @@ Las siguientes relaciones quedan confirmadas por el cruce documental realizado y
 | `P-STK-004` | `R-STK-002` | Directa | CONFIRMADO — STK |
 | `P-STK-004` | `R-STK-003` | Derivada | CONFIRMADO — STK |
 | `P-STK-005` | `R-STK-003` | Derivada | CONFIRMADO — STK |
+| `P-ROT-001` | `R-ROT-002` | Directa — periodo temporal de la condición | CONFIRMADO — ROT-G01 |
 | `P-MGE-001` | `R-MGE-001` | Directa | CONFIRMADO |
 | `P-MGE-002` | `R-MGE-003` | Directa | CONFIRMADO |
 | `P-MGE-003` | `R-MGE-002` | Directa | CONFIRMADO |
@@ -269,6 +271,7 @@ La creación de un parámetro `HIS-*` queda expresamente descartada.
 - `GAP-HIS-02` queda resuelto mediante la determinación de `P-PRE-006` como consumidor efectivo de `R-HIS-002` y la no sustitución por `P-DAT-003`.
 - `GAP-STK-PARAM-RULE` queda resuelto sin asignar consumidores por inferencia ni validar valores iniciales.
 - `P-FIN-001 → R-FIN-001` queda reconciliado como relación derivada demostrada por FIN-AUTH-01, manteniendo separado `FIN-PROV-HORIZON-01`.
+- `P-ROT-001 → R-ROT-002` queda autorizado como relación directa para el periodo configurado de inactividad de ventas; no gobierna `R-ROT-001`, no fija duración empresarial y no autoriza excepciones ni escalada R0.
 
 ---
 
@@ -291,8 +294,8 @@ Estos pendientes son de alcance general del MVP y **no mantienen abiertos GAP-PI
 
 # 11. ESTADO
 
-**Versión:** 0.9.4
-**Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO / STK
+**Versión:** 0.9.5
+**Estado:** APROBADO — CIERRE FUNCIONAL F3 / C-07 / HISTÓRICO / STK / ROT-G01
 **Baseline:** EIOS Vertical MVP
 
 `GAP-PI-TEMP-01` queda reconciliado documentalmente: `P-PRE-001 → R-PRE-001` se confirma exclusivamente como horizonte temporal de “reciente”. Esta confirmación no implementa `R-PRE-001`, no modifica PRICE C1 y no valida 3 meses como política empresarial definitiva. `P-PRE-002` permanece sin consumidor directo adicional demostrado.
@@ -302,3 +305,9 @@ Estos pendientes son de alcance general del MVP y **no mantienen abiertos GAP-PI
 La reconciliación Finance incorpora `P-FIN-001 → R-FIN-001` como relación derivada demostrada por FIN-AUTH-01 y reconoce `FIN-PROV-HORIZON-01` como físicamente CERRADO mediante `ProvenancedFinanceBasicExecution`, integrado por PR #150 con CI #808/#809 SUCCESS; incorpora asimismo `P-FIN-002 → R-FIN-003` exclusivamente como relación derivada demostrada por FIN-AUTH-07, sin alterar la relación directa `P-FIN-004 → R-FIN-003`, los valores configurados ni la autoridad de Rules. Este cierre físico no valida 30 días como política empresarial definitiva.
 
 Los valores iniciales del catálogo permanecen pendientes de validación empresarial y no se convierten en política por este cierre.
+
+### Reconciliación Rotation — P-ROT-001 → R-ROT-002
+
+`01_Modelo/ROT002_Configured_Sales_Inactivity_Period_Authority_v0.1.md` cierra `ROT-G01` y establece `P-ROT-001` como parámetro directo y exclusivo del periodo configurado utilizado por `R-ROT-002`.
+
+La relación autorizada no define métrica general de rotación, no afecta a `R-ROT-001`, no fija un valor empresarial por defecto y exige configuración vigente/evidenciada. La materialización del rule bridge completo continúa sujeta a los gates posteriores de metadata CRC y excepciones.
