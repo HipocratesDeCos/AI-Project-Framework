@@ -2,7 +2,7 @@
 
 **Baseline:** `main @ 45aae65ee7b8ec793229eef136bccdcecb6f49bc`  
 **Fecha:** 23/09/2026  
-**Estado:** PROPUESTA CONSOLIDADA — NO AUTORIZADA / NO VIGENTE
+**Estado:** 🔒 AUTORIZADO — VIGENTE
 
 ## 1. Objetivo
 
@@ -266,6 +266,17 @@ AUTORIZAR
 → CI main
 ```
 
-## 13. Estado
+## 13. Autorización humana
 
-**VF MINIMAL PROVENANCE PRODUCER v0.1 — PROPUESTA / NO VIGENTE.**
+Autorizado expresamente el 23/09/2026 como autoridad mínima VF v0.1.
+
+La autorización comprende exclusivamente:
+
+- R-FIN-001 → H;
+- R-PAG-002 → K;
+- R-DAT-003 → U;
+- productor desde AssessmentTraceBinding;
+- evaluate_provenanced_viability;
+- reapertura Stage 2 únicamente mediante reconstrucción interna de VF.
+
+**VF MINIMAL PROVENANCE PRODUCER v0.1 — 🔒 AUTORIZADO / VIGENTE.**
