@@ -1,8 +1,16 @@
+from datetime import timedelta
+from decimal import Decimal
 from pathlib import Path
 
 from eios.core.c0_reproducibility import build_trace
 from eios.core.case_provenance import classify_reference_operational_simulation
-from eios.core.models import DecisionContext, Evidence, PurchaseOperation
+from eios.core.models import (
+    DecisionContext,
+    Evidence,
+    EvidenceValidation,
+    PurchaseOperation,
+)
+from eios.core.price_integration import build_provenanced_price_invoker
 from eios.core.projection_mock_dataset import load_projection_mock_dataset
 from eios.core.projection_quality_consumer import consume_projection_quality
 from eios.core.projection_quality_producer import produce_projection_quality
@@ -12,6 +20,7 @@ from eios.core.projection_synthetic_adapter import (
 from eios.core.reference_simulation_execution import (
     run_reference_operational_simulation,
 )
+from eios.core.tco_integration import build_provenanced_tco_invoker
 from eios.data_sufficiency import (
     DECISION_EVIDENCE_SUFFICIENCY_EVIDENCE_SOURCE_TYPE,
     DecisionEvidenceRequirementSet,
@@ -23,6 +32,14 @@ from eios.data_sufficiency import (
 from eios.rules import AssessmentTraceBinding, build_provenanced_rules_engine_c0_invoker
 from eios.rules.catalog import authorized_rule
 from eios.rules.data_quality import evaluate_r_dat_003
+from eios.pricing.models import (
+    PriceIntelligenceAssessmentContext,
+    PriceIntelligenceInput,
+    PriceReference,
+)
+from eios.pricing.representativeness import RepresentativenessObservation
+from eios.pricing.sufficiency import SufficiencyObservation
+from eios.tco.models import TCOInput
 
 
 SEMANTIC = (
@@ -140,6 +157,94 @@ def _provenanced_c0_invoker(purchase, context):
     return invoker, assessment, trace
 
 
+
+def _provenanced_price_invoker(purchase, context):
+    reference_ids = ("REF-PRICE-TX-001", "REF-PRICE-TX-002")
+    evidence_ids = ("E-REF-PRICE-001", "E-REF-PRICE-002")
+    references = (
+        PriceReference(
+            source_transaction_id=reference_ids[0],
+            article_identity=purchase.article_id,
+            supplier_identity="SUPPLIER-REFERENCE-A",
+            quantity=Decimal("8"),
+            unit="UNIT",
+            unit_price=Decimal("19.50"),
+            currency="EUR",
+            operation_date=purchase.operation_date - timedelta(days=10),
+            evidence_refs=(evidence_ids[0],),
+        ),
+        PriceReference(
+            source_transaction_id=reference_ids[1],
+            article_identity=purchase.article_id,
+            supplier_identity="SUPPLIER-REFERENCE-B",
+            quantity=Decimal("12"),
+            unit="UNIT",
+            unit_price=Decimal("21.00"),
+            currency="EUR",
+            operation_date=purchase.operation_date - timedelta(days=5),
+            evidence_refs=(evidence_ids[1],),
+        ),
+    )
+    validations = tuple(
+        EvidenceValidation(
+            evidence_id=evidence_id,
+            status="VALID",
+            reason="Synthetic reference price evidence validated for product test",
+        )
+        for evidence_id in evidence_ids
+    )
+    price_input = PriceIntelligenceInput(
+        decision_context=context.model_copy(deep=True),
+        purchase_operation=purchase.model_copy(deep=True),
+        references=references,
+        evidence_validations=validations,
+        normalization_basis=None,
+        economic_basis_evidence=(),
+        methodology_version="REF-BUSINESS-001-PRICE-v1",
+    )
+    representativeness = {
+        reference_id: RepresentativenessObservation(
+            ordinary_market_context=True,
+            exceptional_condition=False,
+            material_commercial_distortion=False,
+            contradiction_material_unresolved=False,
+            evidence_refs=(evidence_id,),
+            rule_reference="REF-BUSINESS-001-REPRESENTATIVENESS-v1",
+            trace_reference=f"trace:reference:price:{reference_id}",
+        )
+        for reference_id, evidence_id in zip(reference_ids, evidence_ids)
+    }
+    assessment_context = PriceIntelligenceAssessmentContext(
+        temporal={
+            reference_id: (
+                "ELIGIBLE",
+                f"trace:reference:price:temporal:{reference_id}",
+            )
+            for reference_id in reference_ids
+        },
+        representativeness=representativeness,
+        sufficiency=SufficiencyObservation(
+            evidence_sufficient=True,
+            contradictions_resolved=True,
+            methodological_limitations=(),
+            evidence_refs=evidence_ids,
+            rule_reference="REF-BUSINESS-001-PRICE-SUFFICIENCY-v1",
+            trace_reference="trace:reference:price:sufficiency",
+            selected_reference_ids=reference_ids,
+        ),
+    )
+    return build_provenanced_price_invoker(
+        payload=price_input,
+        assessment_context=assessment_context,
+    )
+
+
+def _provenanced_tco_invoker(purchase):
+    return build_provenanced_tco_invoker(
+        payload=TCOInput(purchase_operation=purchase.model_copy(deep=True))
+    )
+
+
 def test_reference_business_case_001_uses_physical_synthetic_dataset():
     dataset, bundle = _bundle()
     purchase, context = _runtime(bundle)
@@ -202,3 +307,44 @@ def test_reference_business_case_001_preserves_known_qtg_limitation():
     assert quality["confidence"] == "BAJA"
     assert receipt.to_payload()["operational_effect"] is False
     assert consumption.to_payload()["operational_effect"] is False
+
+
+def test_reference_business_case_001_extends_to_price_tco_and_c0():
+    _, bundle = _bundle()
+    purchase, context = _runtime(bundle)
+    receipt, consumption = _qtg(bundle)
+    provenance = classify_reference_operational_simulation(
+        bundle=bundle,
+        reference_case_id=REFERENCE_CASE_ID,
+    )
+    c0_invoker, _, _ = _provenanced_c0_invoker(purchase, context)
+
+    execution = run_reference_operational_simulation(
+        provenance=provenance,
+        bundle=bundle,
+        receipt=receipt,
+        consumption=consumption,
+        purchase=purchase,
+        context=context,
+        policy_version="REF-BUSINESS-001-v2",
+        price_invoker=_provenanced_price_invoker(purchase, context),
+        tco_invoker=_provenanced_tco_invoker(purchase),
+        rules_invoker=c0_invoker,
+    )
+    payload = execution.to_payload()
+    capability_results = {
+        item["capability"]: item
+        for item in payload["execution_outcome"]["capability_results"]
+    }
+
+    assert payload["capability_sequence"] == ["QTG", "PRICE", "TCO", "C0"]
+    assert payload["execution_outcome"]["status"] == "COMPLETED"
+    assert set(capability_results) == {"PRICE", "TCO", "C0"}
+    assert all(
+        item["status"] == "COMPLETED" and item["result_available"] is True
+        for item in capability_results.values()
+    )
+    assert payload["qtg_quality_result"]["status"] == "NO_APTO"
+    assert payload["qtg_quality_result"]["confidence"] == "BAJA"
+    assert payload["operational_effect"] is False
+    assert payload["decision_authority"] is False
