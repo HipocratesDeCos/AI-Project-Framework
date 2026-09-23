@@ -1,6 +1,6 @@
 # EIOS — Projection Quality ↔ O1 Causal Binding Contract v0.1
 
-**Estado:** CERRADO — DISEÑO APROBABLE — IMPLEMENTACIÓN BLOQUEADA POR FIXTURE OPERACIONAL AUSENTE
+**Estado:** 🔒 CERRADO — IMPLEMENTACIÓN MATERIALIZADA / E2E OPERACIONAL POSITIVO PENDIENTE
 
 **Baseline:** `main @ 714cb0c3423c4418f6cd307be284e3297701f033`
 
@@ -190,3 +190,28 @@ La modificación local ajena de `08_Implementacion/Viability_Frontier_Scenario_A
 La integración documental exige suite completa, PR de un solo archivo, CI exact-head, merge protegido por SHA y CI post-merge.
 
 El éxito de CI no elimina el bloqueo operacional ni habilita QTG.
+
+
+## 8. Reactivación técnica — 23/09/2026
+
+Tras el cierre del Operational Admission Preflight y del intake manifest, se materializa el contrato físico sin fabricar un caso operacional positivo.
+
+Implementado:
+
+- `ProjectionQualityO1InputBinding`;
+- `ProjectionQualityO1BoundExecution`;
+- `build_projection_quality_o1_input_binding(...)`;
+- `run_mvp_execution_with_projection_quality_binding(...)`.
+
+La fachada:
+- revalida consumo QTG exclusivamente OPERATIONAL;
+- comprueba fingerprints receipt/envelope/consumption;
+- recupera PurchaseOperation + DecisionContext desde el DIP anidado;
+- exige igualdad completa con runtime;
+- conserva policy_version explícita;
+- delega una sola vez en `run_mvp_execution(...)`;
+- no expone cierre terminal post-hoc;
+- no añade QTG al catálogo de invocadores;
+- mantiene `decision_authority=false`.
+
+Permanece pendiente únicamente el **E2E positivo con expediente operacional real autorizado**. La suite no crea una fixture `PRESENTED_OPERATIONAL` artificial.
