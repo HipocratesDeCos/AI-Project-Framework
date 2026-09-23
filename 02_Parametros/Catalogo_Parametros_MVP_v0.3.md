@@ -2,10 +2,10 @@
 
 ## EIOS — Enterprise Intelligent Operations System
 
-**Versión:** 0.3
+**Versión:** 0.3.1
 **Estado:** APROBADO
 **Baseline:** EIOS Vertical MVP
-**Última actualización:** 13/09/2026 — migración documental GAP-ID-01
+**Última actualización:** 23/09/2026 — autorización P-ROT-001 / cierre ROT-G01
 
 ---
 
@@ -67,6 +67,16 @@ Ningún parámetro ordinario puede desactivar una regla crítica, anular una res
 | P-PYE-004 | Considerar plazo de entrega | Sí | Sí/No | Pendiente de validación |
 | P-PYE-005 | Considerar ventas históricas | Sí | Sí/No | Pendiente de validación |
 | P-PYE-006 | Umbral de riesgo de rotura | 15 | días | Pendiente de validación |
+
+---
+
+# 5A. Parámetros de rotación
+
+| ID | Parámetro | Valor inicial | Unidad | Afecta a | Estado |
+|---|---|---|---|---|---|
+| P-ROT-001 | Periodo de inactividad de ventas | Definido por empresa | días | R-ROT-002 | Autorizado — valor empresarial pendiente |
+
+**Semántica autorizada:** entero positivo (>= 1), sin default silencioso; la ventana se evalúa sobre `PurchaseOperation.operation_date` y requiere `ResolvedConfiguration + Evidence`. No gobierna `R-ROT-001`.
 
 ---
 
@@ -174,6 +184,7 @@ El Centro de Parametrización deberá organizarlos por categorías:
 - Precios
 - Stock
 - Proyección
+- Rotación
 - Rentabilidad
 - Finanzas
 - Pagos y negociación
@@ -249,6 +260,6 @@ El catálogo se considera estructuralmente alineado con las decisiones aprobadas
 
 # 18. Estado
 
-**Versión:** 0.3
-**Estado:** APROBADO
+**Versión:** 0.3.1
+**Estado:** APROBADO — P-ROT-001 / ROT-G01
 **Baseline:** EIOS Vertical MVP
