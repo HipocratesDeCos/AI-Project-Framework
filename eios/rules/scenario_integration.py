@@ -2,11 +2,16 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from eios.core.models import DecisionContext, PurchaseOperation
+from eios.core.orchestration import CapabilityExecution
+from eios.core.orchestration_support_integration import (
+    build_o2_support_from_orchestration,
+)
+from eios.core.scenario_coordination_adapter import adapt_scenario_coordination
 from eios.core.o4_o2_o3_orchestration import (
     AuthorizedScenarioAnalytics,
     O4O2O3OrchestrationResult,
@@ -120,8 +125,98 @@ def complete_provenanced_o4_o2_o3_orchestration(
     )
 
 
+ScenarioCoordinationInvoker = Callable[
+    [PurchaseOperation, DecisionContext],
+    CapabilityExecution,
+]
+
+
+def _validate_root_runtime(
+    *,
+    purchase: PurchaseOperation,
+    context: DecisionContext,
+    preparation: O4O2O3Preparation,
+) -> None:
+    prepared = preparation.context
+    for field in (
+        "decision_id",
+        "scenario_id",
+        "rules_version",
+        "parameters_version",
+        "data_snapshot_id",
+    ):
+        if getattr(context, field) != getattr(prepared, field):
+            raise ValueError(
+                f"DecisionContext.{field} incompatible con preparation.context"
+            )
+    if purchase.decision_id != context.decision_id:
+        raise ValueError(
+            "PurchaseOperation.decision_id incompatible con DecisionContext"
+        )
+    if purchase.scenario_id != context.scenario_id:
+        raise ValueError(
+            "PurchaseOperation.scenario_id incompatible con DecisionContext"
+        )
+
+
+def build_provenanced_scenario_coordination_invoker(
+    *,
+    preparation: O4O2O3Preparation,
+    inputs: Sequence[ProvenancedScenarioAnalyticsInput],
+) -> ScenarioCoordinationInvoker:
+    """Freeze provenanced Stage-2 sources and rebuild coordination at runtime.
+
+    The returned invoker never accepts a detached orchestration or O2 support
+    package. Each invocation re-establishes C0/VF provenance through the
+    public provenance-safe Stage-2 completion before adapting the resulting
+    support package to SCENARIO_COORDINATION.
+    """
+    preparation_snapshot = preparation.model_copy(deep=True)
+    input_snapshots = tuple(item.model_copy(deep=True) for item in inputs)
+
+    if not input_snapshots:
+        raise ValueError(
+            "SCENARIO_COORDINATION provenance-safe requiere inputs no vacíos"
+        )
+    scenario_ids = tuple(item.scenario_id for item in input_snapshots)
+    if len(scenario_ids) != len(set(scenario_ids)):
+        raise ValueError(
+            "scenario_id duplicado en SCENARIO_COORDINATION provenance-safe"
+        )
+
+    def invoke(
+        purchase: PurchaseOperation,
+        context: DecisionContext,
+    ) -> CapabilityExecution:
+        purchase_snapshot = purchase.model_copy(deep=True)
+        context_snapshot = context.model_copy(deep=True)
+        preparation_runtime = preparation_snapshot.model_copy(deep=True)
+        inputs_runtime = tuple(
+            item.model_copy(deep=True) for item in input_snapshots
+        )
+
+        _validate_root_runtime(
+            purchase=purchase_snapshot,
+            context=context_snapshot,
+            preparation=preparation_runtime,
+        )
+        orchestration = complete_provenanced_o4_o2_o3_orchestration(
+            preparation=preparation_runtime,
+            inputs=inputs_runtime,
+        )
+        support = build_o2_support_from_orchestration(
+            purchase_operation=purchase_snapshot,
+            orchestration_result=orchestration,
+        )
+        return adapt_scenario_coordination(support)
+
+    return invoke
+
+
 __all__ = [
     "ProvenancedScenarioAnalyticsInput",
+    "ScenarioCoordinationInvoker",
     "build_authorized_scenario_analytics_from_provenanced_assessments",
+    "build_provenanced_scenario_coordination_invoker",
     "complete_provenanced_o4_o2_o3_orchestration",
 ]
