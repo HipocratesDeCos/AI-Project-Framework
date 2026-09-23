@@ -2,7 +2,7 @@
 
 **Baseline:** `main @ d0e94c47eb8d1622c2fbb3125c7e1da63756e4fc`  
 **Fecha:** 23/09/2026  
-**Estado:** DEPURADO TRAS AUDIT 1  
+**Estado:** DEPURADO — BLOQUEADO POR EVIDENCE BINDING  
 **Autoridad:** `01_Modelo/ROT002_Configured_Sales_Inactivity_Period_Authority_v0.1.md`  
 **Metodología:** `01_Modelo/Rotation_Track_A_Methodological_Closure_v0.1.md`  
 **Aggregate de entrada:** `DecisionInputPackage`  
@@ -213,18 +213,27 @@ No puede derivarse desde:
 
 `ResolvedConfiguration.configuration_ref` es una referencia técnica estable, no una prueba empresarial por sí sola.
 
-La frontera debe comprobar que la configuración está soportada por Evidence aplicable conforme al contrato C0/Evidence vigente.
+La autoridad vigente exige Evidence de configuración, pero el Evidence Contract general no define qué relación concreta vincula una Evidence a una ResolvedConfiguration determinada.
 
-No se inventa en este contrato una nueva semántica de Evidence.
+Por tanto, este contrato **no autoriza inventar** ninguna de estas relaciones:
 
-La implementación deberá:
+```text
+Evidence.source_ref == ResolvedConfiguration.configuration_ref
+Evidence.demonstration_ref == configuration_ref
+source_type fijo inventado
+captured_at == effective_at
+```
 
-- seleccionar evidencia pertinente desde `DIP.evidence`;
-- exigir estado suficiente conforme al contrato vigente;
-- conservar su `evidence_id`;
-- no tratar la mera presencia de `configuration_ref` como demostración.
+hasta que exista autoridad especializada.
 
-Si la evidencia requerida no puede demostrarse, no se inventa una ventana autorizada.
+La materialización física queda bloqueada por:
+
+```text
+ROT002-AW-EVID-G01
+→ binding canónico Evidence ↔ ResolvedConfiguration(P-ROT-001)
+```
+
+Mientras el gate permanezca abierto, no se puede declarar una ventana autorizada ni producir un carrier concluyente desde P-ROT-001.
 
 ## 10. window_authority_ref
 
@@ -432,7 +441,7 @@ La materialización deberá probar al menos:
 ROT002-AW-G01 → DecisionInputPackage como raíz
 ROT002-AW-G02 → selección P-ROT-001 dentro del DIP
 ROT002-AW-G03 → company/context/effective_at
-ROT002-AW-G04 → Evidence de configuración
+ROT002-AW-G04 → OPEN — Evidence de configuración requiere binding especializado
 ROT002-AW-G05 → ventana inclusiva exacta
 ROT002-AW-G06 → source semantics
 ROT002-AW-G07 → completeness
@@ -445,10 +454,12 @@ ROT002-AW-G10 → sin Assessment/CRC/excepciones
 
 La unidad solo podrá cerrarse cuando:
 
-1. Audit 2 confirme que Audit 1 quedó resuelta;
-2. código y tests respeten exactamente el contrato;
-3. no exista ruta pública que acepte una P-ROT-001 desprendida para producir el carrier;
-4. no exista promoción Track A → decisión;
-5. CI pre-merge sea satisfactoria;
-6. se integre el mismo head;
-7. CI post-merge sea satisfactoria.
+1. exista autoridad explícita para `ROT002-AW-EVID-G01`;
+2. el contrato incorpore ese binding sin crear un segundo Evidence Contract;
+3. Audit 2 confirme cierre de Audit 1 y del gate de Evidence;
+4. código y tests respeten exactamente el contrato;
+5. no exista ruta pública que acepte una P-ROT-001 desprendida;
+6. no exista promoción Track A → decisión;
+7. CI pre-merge sea satisfactoria;
+8. se integre el mismo head;
+9. CI post-merge sea satisfactoria.
