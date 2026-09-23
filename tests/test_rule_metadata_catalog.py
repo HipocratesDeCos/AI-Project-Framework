@@ -49,6 +49,8 @@ def _assessment(rule_id: str, outcome: str = "TRUE") -> Assessment:
 
 def test_catalog_contains_exactly_implemented_rules() -> None:
     assert implemented_rule_ids() == (
+        "R-COM-001",
+        "R-COM-002",
         "R-DAT-001",
         "R-DAT-002",
         "R-DAT-003",
@@ -81,6 +83,8 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
 @pytest.mark.parametrize(
     ("rule_id", "effect", "severity"),
     (
+        ("R-COM-001", "R2", "MEDIA"),
+        ("R-COM-002", "R3", "MEDIA"),
         ("R-DAT-001", "R3", "INFORMATIVA"),
         ("R-DAT-002", "R3", "MEDIA"),
         ("R-DAT-003", "R0", "CRÍTICA"),
