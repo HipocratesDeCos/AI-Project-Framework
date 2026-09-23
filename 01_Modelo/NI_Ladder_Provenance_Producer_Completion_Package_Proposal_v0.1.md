@@ -2,7 +2,7 @@
 
 **Baseline:** `main @ 65d1ed3930ba81c739f420e3cb2cc58396500107`  
 **Fecha:** 23/09/2026  
-**Estado:** PROPUESTA CONSOLIDADA — NO AUTORIZADA / NO VIGENTE
+**Estado:** 🔒 AUTORIZADO — VIGENTE
 
 ## 1. Objetivo
 
@@ -357,6 +357,10 @@ AUTORIZAR
 → CI main
 ```
 
-## 20. Estado
+## 20. Autorización humana
 
-**NI + LADDER PROVENANCE PRODUCER COMPLETION PACKAGE v0.1 — PROPUESTA / NO VIGENTE.**
+Autorizado expresamente el 23/09/2026 como paquete único NI + Ladder provenance-safe.
+
+La autorización comprende el carrier NegotiationContentEvidence, estado AUTHORIZED, identidades deterministas, orden Ladder lineal, exclusiones de campos sin StepType y límites de no estrategia automática.
+
+**NI + LADDER PROVENANCE PRODUCER COMPLETION PACKAGE v0.1 — 🔒 AUTORIZADO / VIGENTE.**
