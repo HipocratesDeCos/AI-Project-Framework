@@ -1,3 +1,4 @@
+import inspect
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from types import SimpleNamespace
@@ -269,3 +270,11 @@ def test_validator_does_not_promote_activity_state_to_rule_result() -> None:
     assert "assessment" not in payload
     assert "outcome" not in payload
     assert "result" not in payload
+
+
+def test_public_validator_does_not_accept_detached_configuration() -> None:
+    parameters = inspect.signature(validate_sales_activity_window_evidence).parameters
+    assert tuple(parameters) == ("package", "carrier")
+    assert "resolution" not in parameters
+    assert "resolved_configuration" not in parameters
+    assert "period_days" not in parameters
