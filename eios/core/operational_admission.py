@@ -13,6 +13,7 @@ from typing import Literal
 from .projection_material_envelope import ProjectionMaterialEnvelope
 from .projection_quality_producer import (
     ProjectionQualityReceipt,
+    _validate_envelope,
     produce_projection_quality,
     validate_projection_quality_receipt,
 )
@@ -70,9 +71,7 @@ def preflight_projection_only_operational_envelope(
     if not isinstance(envelope, ProjectionMaterialEnvelope):
         raise TypeError("Expected constructed ProjectionMaterialEnvelope")
 
-    payload = envelope.to_payload()
-    if payload.get("profile") != "PROJECTION_ONLY":
-        raise ValueError("Operational admission requires PROJECTION_ONLY profile")
+    payload = _validate_envelope(envelope)
 
     membership = payload.get("recomputed_membership")
     if not isinstance(membership, dict):
