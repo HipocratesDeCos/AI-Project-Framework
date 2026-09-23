@@ -43,6 +43,8 @@ _IMPLEMENTED_RULES: dict[str, ImplementedRuleMetadata] = {
     "R-PAG-002": ImplementedRuleMetadata("R-PAG-002", "R1", "ALTA", active_result="COMPRAR CONDICIONADO"),
     "R-PROV-001": ImplementedRuleMetadata("R-PROV-001", "R2", "MEDIA", active_result="NEGOCIAR"),
     "R-PROV-002": ImplementedRuleMetadata("R-PROV-002", "R2", "ALTA", active_result="NEGOCIAR"),
+    # ROT002 Completion Package v0.1: R1 remains ordinary; no automatic R0 escalation.
+    "R-ROT-002": ImplementedRuleMetadata("R-ROT-002", "R1", "ALTA", active_result="NO COMPRAR"),
     # MGE-RULES-AUTH v0.1 authorizes ordinary metadata only; no R0 escalation.
     "R-MGE-001": ImplementedRuleMetadata("R-MGE-001", "R1", "ALTA"),
     "R-MGE-002": ImplementedRuleMetadata("R-MGE-002", "R2", "MEDIA"),
