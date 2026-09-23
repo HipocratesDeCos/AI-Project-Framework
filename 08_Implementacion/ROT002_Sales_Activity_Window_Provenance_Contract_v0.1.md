@@ -106,14 +106,14 @@ source_semantics_ref
 completeness_ref
 evidence_refs
 trace_refs
-state
+activity_state
 ```
 
 No se añaden campos decisionales.
 
 ## 5. Estados
 
-`state` solo puede utilizar:
+`activity_state` solo puede utilizar:
 
 ```text
 SALES_ACTIVITY_PRESENT
@@ -358,7 +358,7 @@ La frontera de reutilización debe reconstruirlo o revalidar:
 - configuración;
 - evidencia;
 - provenance factual;
-- estado.
+- activity_state.
 
 ## 15. Separación de responsabilidades
 
