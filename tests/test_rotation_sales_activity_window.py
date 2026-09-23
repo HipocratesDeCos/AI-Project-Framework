@@ -205,7 +205,7 @@ def test_unrelated_demonstrated_evidence_does_not_demonstrate_binding() -> None:
     "override,match",
     [
         ({"article_id": "ART-OTHER"}, "article_id"),
-        ({"evaluation_date": date(2026, 9, 22)}, "evaluation_date"),
+        ({"evaluation_date": date(2026, 9, 24)}, "evaluation_date"),
         ({"window_end": date(2026, 9, 22)}, "window_end"),
         ({"window_start": date(2026, 8, 26)}, "window_start"),
         ({"window_authority_ref": "parameter_configuration:other"}, "window_authority_ref"),
