@@ -69,6 +69,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
         "R-PRE-003",
         "R-PROV-001",
         "R-PROV-002",
+        "R-ROT-001",
         "R-ROT-002",
         "R-STK-001",
         "R-STK-002",
@@ -104,6 +105,7 @@ def test_catalog_contains_exactly_implemented_rules() -> None:
         ("R-PRE-003", "R3", "INFORMATIVA"),
         ("R-PROV-001", "R2", "MEDIA"),
         ("R-PROV-002", "R2", "ALTA"),
+        ("R-ROT-001", "R2", "ALTA"),
         ("R-ROT-002", "R1", "ALTA"),
     ),
 )
