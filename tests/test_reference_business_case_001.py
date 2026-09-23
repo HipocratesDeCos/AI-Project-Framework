@@ -40,6 +40,12 @@ from eios.pricing.models import (
 from eios.pricing.representativeness import RepresentativenessObservation
 from eios.pricing.sufficiency import SufficiencyObservation
 from eios.tco.models import TCOInput
+from eios.supplier import (
+    SupplierEvidenceInput,
+    SupplierRiskDimensionAssessment,
+    build_provenanced_supplier_risk_value_invoker,
+    evaluate_supplier_evidence,
+)
 
 
 SEMANTIC = (
@@ -245,6 +251,58 @@ def _provenanced_tco_invoker(purchase):
     )
 
 
+
+def _provenanced_supplier_risk_invoker(purchase, context):
+    supplier_result = evaluate_supplier_evidence(
+        SupplierEvidenceInput(
+            context=context.model_copy(deep=True),
+            purchase_operation=purchase.model_copy(deep=True),
+            company_scope=REFERENCE_COMPANY_ID,
+            evaluation_date=purchase.operation_date,
+            candidates=(),
+            observations=(),
+            historical_facts=(),
+            external_metrics=(),
+            signals=(),
+            comparison_requests=(),
+        )
+    )
+    evidences = (
+        Evidence(
+            evidence_id="E-REF-SRV-AUTH",
+            source_type="supplier-risk",
+            source_ref="reference:business:001:supplier:risk:authority",
+            captured_at=purchase.operation_date,
+            state="DEMONSTRATED",
+            demonstration_ref="authority:reference:business:001:supplier:risk",
+        ),
+        Evidence(
+            evidence_id="E-REF-SRV-RISK",
+            source_type="supplier-risk",
+            source_ref="reference:business:001:supplier:risk:assessment",
+            captured_at=purchase.operation_date,
+            state="DEMONSTRATED",
+            demonstration_ref="assessment:reference:business:001:supplier:risk",
+        ),
+    )
+    risk = SupplierRiskDimensionAssessment(
+        supplier_id=purchase.supplier_id,
+        dimension="RELIABILITY",
+        state="FAVORABLE",
+        authority_ref="authority:reference:business:001:supplier:risk",
+        methodology_ref="method:reference:business:001:supplier:risk:v1",
+        assessment_ref="assessment:reference:business:001:supplier:risk",
+        evidence_refs=("E-REF-SRV-RISK",),
+        trace_refs=("trace:reference:business:001:supplier:risk",),
+    )
+    return build_provenanced_supplier_risk_value_invoker(
+        supplier_result=supplier_result,
+        risk_assessments=(risk,),
+        value_assessments=(),
+        evidences=evidences,
+    )
+
+
 def test_reference_business_case_001_uses_physical_synthetic_dataset():
     dataset, bundle = _bundle()
     purchase, context = _runtime(bundle)
@@ -346,5 +404,54 @@ def test_reference_business_case_001_extends_to_price_tco_and_c0():
     )
     assert payload["qtg_quality_result"]["status"] == "NO_APTO"
     assert payload["qtg_quality_result"]["confidence"] == "BAJA"
+    assert payload["operational_effect"] is False
+    assert payload["decision_authority"] is False
+
+
+def test_reference_business_case_001_extends_to_supplier_risk_value():
+    _, bundle = _bundle()
+    purchase, context = _runtime(bundle)
+    receipt, consumption = _qtg(bundle)
+    provenance = classify_reference_operational_simulation(
+        bundle=bundle,
+        reference_case_id=REFERENCE_CASE_ID,
+    )
+    c0_invoker, _, _ = _provenanced_c0_invoker(purchase, context)
+
+    execution = run_reference_operational_simulation(
+        provenance=provenance,
+        bundle=bundle,
+        receipt=receipt,
+        consumption=consumption,
+        purchase=purchase,
+        context=context,
+        policy_version="REF-BUSINESS-001-v3",
+        price_invoker=_provenanced_price_invoker(purchase, context),
+        tco_invoker=_provenanced_tco_invoker(purchase),
+        supplier_risk_value_invoker=_provenanced_supplier_risk_invoker(
+            purchase, context
+        ),
+        rules_invoker=c0_invoker,
+    )
+    payload = execution.to_payload()
+    capability_results = {
+        item["capability"]: item
+        for item in payload["execution_outcome"]["capability_results"]
+    }
+
+    assert payload["capability_sequence"] == [
+        "QTG",
+        "PRICE",
+        "TCO",
+        "SUPPLIER_RISK_VALUE",
+        "C0",
+    ]
+    assert payload["execution_outcome"]["status"] == "COMPLETED"
+    assert capability_results["SUPPLIER_RISK_VALUE"]["status"] == "COMPLETED"
+    assert capability_results["SUPPLIER_RISK_VALUE"]["result_available"] is True
+    assert capability_results["SUPPLIER_RISK_VALUE"]["trace_references"] == [
+        "trace:reference:business:001:supplier:risk"
+    ]
+    assert payload["qtg_quality_result"]["status"] == "NO_APTO"
     assert payload["operational_effect"] is False
     assert payload["decision_authority"] is False
