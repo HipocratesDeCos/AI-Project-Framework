@@ -2,7 +2,7 @@
 
 **Baseline:** `main @ 5e9f80565906b336191924349c0740eb9f9dc703`  
 **Fecha:** 23/09/2026  
-**Estado:** PROPUESTA CONSOLIDADA — NO AUTORIZADA / NO VIGENTE  
+**Estado:** 🔒 AUTORIZADO — VIGENTE  
 **Objetivo:** cerrar de una sola vez la arquitectura restante de `R-ROT-002`.
 
 ---
@@ -459,4 +459,10 @@ sin solicitar nuevas aprobaciones intermedias mientras la implementación no exc
 
 ## 17. Estado
 
-**ROT002 COMPLETION PACKAGE v0.1 — PROPUESTA CONSOLIDADA / NO VIGENTE.**
+## 18. Autorización humana
+
+Autorizado expresamente el 23/09/2026 como paquete único de cierre de ROT002.
+
+La autorización comprende toda la semántica de este documento y permite materialización sin micro-gates intermedios mientras no se exceda su alcance.
+
+**ROT002 COMPLETION PACKAGE v0.1 — 🔒 AUTORIZADO / VIGENTE.**
