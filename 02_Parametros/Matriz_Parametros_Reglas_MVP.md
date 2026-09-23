@@ -104,6 +104,8 @@ La numeración funcional se conserva; el prefijo identifica el tipo de entidad.
 | **P-PYE-005** | Proyección | **Sin consumidor directo; no autoriza transformación ventas → demanda** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / NO OPERATIVO COMO TRANSFORMACIÓN** |
 | **P-PYE-006** | Proyección | **Sin consumidor directo demostrado; R-STK-001 no usa umbral fijo de días en su condición vigente** | Según política STK | Sí, sujeto a control | Sí | Sí | **RESUELTO STK / SIN CONSUMIDOR DIRECTO** |
 | **P-ROT-001** | Rotación | **R-ROT-002 — periodo configurado de inactividad de ventas** | Según regla | Sí, sujeto a control y evidencia | Sí | Sí | **CONFIRMADO — ROT-G01** |
+| **P-ROT-002** | Rotación | **R-ROT-001 — periodo de cálculo de la frecuencia de eventos válidos** | Según regla | Sí, sujeto a control y evidencia | Sí | Sí | **CONFIRMADO — ROT TRACK B** |
+| **P-ROT-003** | Rotación | **R-ROT-001 — umbral mínimo de frecuencia de ventas (eventos/día)** | Según regla | Sí, sujeto a control y evidencia | Sí | Sí | **CONFIRMADO — ROT TRACK B** |
 | **P-MGE-001** | Rentabilidad | **R-MGE-001** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
 | **P-MGE-002** | Rentabilidad | **R-MGE-003** | Según regla | Sí, sujeto a control | Sí | Sí | **CONFIRMADO** |
 | **P-MGE-003** | Rentabilidad | **R-MGE-002** | Según regla | Sí | Sí | Sí | **CONFIRMADO** |
@@ -176,6 +178,8 @@ Las siguientes relaciones quedan confirmadas por el cruce documental realizado y
 | `P-STK-004` | `R-STK-003` | Derivada | CONFIRMADO — STK |
 | `P-STK-005` | `R-STK-003` | Derivada | CONFIRMADO — STK |
 | `P-ROT-001` | `R-ROT-002` | Directa — periodo temporal de la condición | CONFIRMADO — ROT-G01 |
+| `P-ROT-002` | `R-ROT-001` | Directa — ventana de cálculo de la métrica Track B | CONFIRMADO — ROT TRACK B |
+| `P-ROT-003` | `R-ROT-001` | Directa — umbral de frecuencia de eventos válidos | CONFIRMADO — ROT TRACK B |
 | `P-MGE-001` | `R-MGE-001` | Directa | CONFIRMADO |
 | `P-MGE-002` | `R-MGE-003` | Directa | CONFIRMADO |
 | `P-MGE-003` | `R-MGE-002` | Directa | CONFIRMADO |

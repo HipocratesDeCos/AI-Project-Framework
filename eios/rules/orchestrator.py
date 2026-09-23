@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pydantic import BaseModel, ConfigDict
 
 from eios.core.documentary_payment_capture import DocumentaryPaymentCapture
+from eios.core.decision_input_package import DecisionInputPackage
 from eios.core.models import DecisionContext, Evidence, PurchaseOperation
 from eios.data_freshness import DataSnapshotFreshnessObservation
 from eios.data_sufficiency import DecisionEvidenceSufficiencyObservation
@@ -31,7 +32,13 @@ from eios.pricing.historical_comparability import (
     HistoricalComparabilityDimensionDetermination,
 )
 from eios.profitability import ProvenancedProfitabilityExecution
-from eios.rotation import RotationExceptionEvidence, SalesActivityWindowEvidence
+from eios.rotation import (
+    RotationExceptionEvidence,
+    RotationMetricSourceEvidence,
+    SalesActivityWindowEvidence,
+    R_ROT_001,
+    evaluate_r_rot_001,
+)
 from eios.stock.models import ConfirmedDemandAbsorptionResult, ExcessResult
 from eios.supplier.alternatives import (
     SupplierAlternativeComparabilityDetermination,
@@ -273,6 +280,12 @@ class SupplierAlternativeOpportunityRuleInputs:
 
 
 @dataclass(frozen=True)
+class RotationMetricRuleInputs:
+    package: DecisionInputPackage
+    source: RotationMetricSourceEvidence
+
+
+@dataclass(frozen=True)
 class RotationRuleInputs:
     sales_activity: SalesActivityWindowEvidence
     rotation_exceptions: RotationExceptionEvidence
@@ -347,6 +360,7 @@ def run_domain_rules(
     payment_financial: PaymentFinancialRuleInputs | None = None,
     supplier_alternative_opportunity: SupplierAlternativeOpportunityRuleInputs | None = None,
     supplier_alternative_comparison: SupplierAlternativeComparisonRuleInputs | None = None,
+    rotation_metric: RotationMetricRuleInputs | None = None,
     rotation: RotationRuleInputs | None = None,
 ) -> DecisionRuleExecutionResult:
     """Evaluate supplied domain bundles and compose them in the same execution."""
@@ -590,6 +604,16 @@ def run_domain_rules(
             prov_evidences=supplier_alternative_comparison.prov_evidences,
         )
 
+    if rotation_metric is not None:
+        if rotation_metric.package.purchase != purchase:
+            raise ValueError("RotationMetricRuleInputs.package.purchase incompatible")
+        if rotation_metric.package.context != context:
+            raise ValueError("RotationMetricRuleInputs.package.context incompatible")
+        assessments_by_rule[R_ROT_001] = evaluate_r_rot_001(
+            rotation_metric.package,
+            rotation_metric.source,
+        )
+
     if rotation is not None:
         rule = authorized_rule(R_ROT_002, context.rules_version)
         assessments_by_rule[R_ROT_002] = evaluate_r_rot_002(
@@ -702,6 +726,7 @@ __all__ = [
     "PaymentTermRuleInputs",
     "ProfitabilityRuleInputs",
     "RecommendedPriceRuleInputs",
+    "RotationMetricRuleInputs",
     "RotationRuleInputs",
     "StockAbsorptionRuleInputs",
     "StockCoverageNeedRuleInputs",
