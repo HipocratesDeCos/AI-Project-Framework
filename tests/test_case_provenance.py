@@ -37,7 +37,7 @@ def test_synthetic_test_classification_preserves_nonoperational_semantics():
     assert payload["source_type"] == "ProjectionMockDataset"
     assert payload["source_fingerprint"] == dataset.fingerprint
     assert payload["material_nature"] == "SYNTHETIC"
-    assert payload["qtg_execution_mode"] == "SYNTHETIC_TEST"
+    assert payload["qtg_mode_policy"] == "SYNTHETIC_TEST_ONLY"
     assert payload["operational_path"] == "FORBIDDEN"
     assert payload["effect_scope"] == "NO_OPERATIONAL_EFFECT"
     assert payload["validation_scope"] == "TECHNICAL_TEST"
@@ -58,7 +58,7 @@ def test_reference_simulation_is_product_e2e_but_remains_synthetic():
     assert payload["source_fingerprint"] == bundle.fingerprint
     assert payload["reference_case_id"] == "REF-PROJECTION-001"
     assert payload["material_nature"] == "SYNTHETIC"
-    assert payload["qtg_execution_mode"] == "SYNTHETIC_TEST"
+    assert payload["qtg_mode_policy"] == "SYNTHETIC_TEST_ONLY"
     assert payload["operational_path"] == "FORBIDDEN"
     assert payload["effect_scope"] == "NO_OPERATIONAL_EFFECT"
     assert payload["validation_scope"] == "PRODUCT_REFERENCE_E2E"
@@ -78,7 +78,7 @@ def test_presented_operational_classification_grants_no_admission_or_effect():
     assert payload["source_type"] == "OperationalExpedientIntakeManifest"
     assert payload["source_fingerprint"] == manifest.manifest_fingerprint
     assert payload["material_nature"] == "PRESENTED_OPERATIONAL"
-    assert payload["qtg_execution_mode"] == "OPERATIONAL"
+    assert payload["qtg_mode_policy"] == "OPERATIONAL_AFTER_ADMISSION"
     assert payload["operational_path"] == "REQUIRES_ADMISSION"
     assert payload["effect_scope"] == "NOT_GRANTED_BY_CLASSIFICATION"
     assert payload["validation_scope"] == "ENTERPRISE_PRESENTED_CASE"
