@@ -1,7 +1,7 @@
 # EIOS — VF Minimal Provenance Producer Proposal Audit v0.1
 
 **Fecha:** 23/09/2026  
-**Estado:** AUDIT DE PROPUESTA — APTA PARA AUTORIZACIÓN ÚNICA
+**Estado:** AUDIT DE PROPUESTA SUPERADA — AUTORIZACIÓN HUMANA RECIBIDA
 
 ## 1. No inferencia
 
@@ -70,10 +70,10 @@ No se pierde funcionalidad autorizada: simplemente no producen consecuencia VF.
 ```text
 EXPLORAR       ✅
 CONSOLIDAR     ✅
-AUTORIZAR      ⏳ HUMANO
+AUTORIZAR      ✅ HUMANO
 AUDITAR        ✅ propuesta
-MATERIALIZAR  ⛔
-CI            ⛔
+MATERIALIZAR  ✅ AUTORIZADO
+CI            ⏳ implementación
 ```
 
 **0 bloqueadores documentales para solicitar autorización única.**
