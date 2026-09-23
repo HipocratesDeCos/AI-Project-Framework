@@ -12,6 +12,14 @@ from dataclasses import dataclass
 from pydantic import BaseModel, ConfigDict
 
 from eios.core.documentary_payment_capture import DocumentaryPaymentCapture
+from eios.commercial import (
+    DiscountOpportunityEvidence,
+    RappelApplicabilityEvidence,
+    R_COM_001,
+    R_COM_002,
+    evaluate_r_com_001,
+    evaluate_r_com_002,
+)
 from eios.core.decision_input_package import DecisionInputPackage
 from eios.core.models import DecisionContext, Evidence, PurchaseOperation
 from eios.data_freshness import DataSnapshotFreshnessObservation
@@ -109,6 +117,18 @@ from .stock import (
     evaluate_r_stk_003,
     evaluate_r_stk_004,
 )
+
+
+@dataclass(frozen=True)
+class CommercialDiscountRuleInputs:
+    discount: DiscountOpportunityEvidence
+    evidences: tuple[Evidence, ...]
+
+
+@dataclass(frozen=True)
+class CommercialRappelRuleInputs:
+    rappel: RappelApplicabilityEvidence
+    evidences: tuple[Evidence, ...]
 
 
 @dataclass(frozen=True)
@@ -340,6 +360,8 @@ def run_domain_rules(
     purchase: PurchaseOperation,
     context: DecisionContext,
     base_result: ConsolidatedBaseResult,
+    commercial_discount: CommercialDiscountRuleInputs | None = None,
+    commercial_rappel: CommercialRappelRuleInputs | None = None,
     data_freshness: DataFreshnessRuleInputs | None = None,
     data_sufficiency: DataSufficiencyRuleInputs | None = None,
     delivery: DeliveryRuleInputs | None = None,
@@ -365,6 +387,26 @@ def run_domain_rules(
 ) -> DecisionRuleExecutionResult:
     """Evaluate supplied domain bundles and compose them in the same execution."""
     assessments_by_rule = {}
+
+    if commercial_discount is not None:
+        rule = authorized_rule(R_COM_001, context.rules_version)
+        assessments_by_rule[R_COM_001] = evaluate_r_com_001(
+            purchase=purchase,
+            context=context,
+            rule=rule,
+            discount=commercial_discount.discount,
+            evidences=commercial_discount.evidences,
+        )
+
+    if commercial_rappel is not None:
+        rule = authorized_rule(R_COM_002, context.rules_version)
+        assessments_by_rule[R_COM_002] = evaluate_r_com_002(
+            purchase=purchase,
+            context=context,
+            rule=rule,
+            rappel=commercial_rappel.rappel,
+            evidences=commercial_rappel.evidences,
+        )
 
     if data_freshness is not None:
         rule = authorized_rule(R_DAT_001, context.rules_version)
@@ -710,6 +752,8 @@ def run_domain_rules(
 
 
 __all__ = [
+    "CommercialDiscountRuleInputs",
+    "CommercialRappelRuleInputs",
     "ComparableRecentPriceRuleInputs",
     "CriticalPriceRuleInputs",
     "DataFreshnessRuleInputs",
