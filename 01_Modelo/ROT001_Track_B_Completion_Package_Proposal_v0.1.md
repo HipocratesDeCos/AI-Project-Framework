@@ -2,7 +2,7 @@
 
 **Baseline:** `main @ 5bc4031ae9d201804206abdd2b8e1c39c4fa8975`  
 **Fecha:** 23/09/2026  
-**Estado:** PROPUESTA CONSOLIDADA — NO AUTORIZADA / NO VIGENTE  
+**Estado:** 🔒 AUTORIZADO — VIGENTE  
 **Regla:** `R-ROT-001 — Producto de baja rotación`
 
 ---
@@ -330,12 +330,15 @@ No se incorpora dependencia directa a:
 
 ## 14. Orchestrator
 
-Se propone bundle:
+Se materializa el bundle técnico:
 
 ```text
 RotationMetricRuleInputs
+├── package: DecisionInputPackage
 └── source: RotationMetricSourceEvidence
 ```
+
+El DIP no añade autoridad empresarial nueva: transporta el contexto/configuraciones ya exigidos por el bridge provenance-safe.
 
 El bundle se suministra opcionalmente a `run_domain_rules(...)`.
 
@@ -422,6 +425,10 @@ No se requerirán micro-autorizaciones adicionales dentro de este alcance.
 
 ---
 
-## 18. Estado
+## 18. Autorización humana
 
-**ROT001 TRACK B COMPLETION PACKAGE v0.1 — PROPUESTA / NO VIGENTE.**
+Autorizado expresamente el 23/09/2026 como paquete único de cierre de ROT001 Track B.
+
+La autorización comprende la métrica, P-ROT-002, P-ROT-003, la condición de umbral, metadata R2/ALTA/NEGOCIAR y límites de no escalada definidos en este documento.
+
+**ROT001 TRACK B COMPLETION PACKAGE v0.1 — 🔒 AUTORIZADO / VIGENTE.**
