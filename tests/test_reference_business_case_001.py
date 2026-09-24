@@ -12,6 +12,7 @@ from eios.core.models import (
     EvidenceValidation,
     PurchaseOperation,
 )
+from eios.core.negotiation_intelligence import NegotiationContent
 from eios.core.o4_o2_o3_orchestration import prepare_o4_o2_o3_orchestration
 from eios.core.scenario_generation import GenerationPolicy, GenerationVariable
 from eios.core.price_integration import build_provenanced_price_invoker
@@ -37,8 +38,10 @@ from eios.rules import (
     AssessmentTraceBinding,
     ProvenancedDecisionTwinAlternativeInput,
     ProvenancedScenarioAnalyticsInput,
+    NegotiationContentEvidence,
     build_provenanced_decision_twin_comparison,
     build_provenanced_decision_twin_invoker,
+    build_provenanced_ni_ladder_invokers,
     build_provenanced_rules_engine_c0_invoker,
     build_provenanced_scenario_coordination_invoker,
 )
@@ -661,3 +664,98 @@ def test_reference_business_case_001_rejects_duplicate_twin_representations():
             purchase=purchase, context=context, preparation=preparation,
             alternatives=(first, duplicate),
         )
+
+
+def _synthetic_negotiation_sources(purchase, context, trace_id):
+    authority_ref = "authority:synthetic:ref-business-001:negotiation:v1"
+    evidence = Evidence(
+        evidence_id="E-REF-NI-AUTH",
+        source_type="synthetic-negotiation-authority",
+        source_ref="reference:business:001:negotiation:authority",
+        captured_at=purchase.operation_date,
+        state="DEMONSTRATED",
+        demonstration_ref=authority_ref,
+    )
+    carrier = NegotiationContentEvidence(
+        decision_id=context.decision_id,
+        scenario_id=context.scenario_id,
+        authority_ref=authority_ref,
+        negotiation_content=NegotiationContent(
+            objective="Explore a conditional improvement in the synthetic offer",
+            opening_request="Request a revised written quotation",
+            fallback="Retain the simulated offer pending human review",
+        ),
+        evidence_refs=(evidence.evidence_id,),
+        trace_refs=(trace_id,),
+        authority_state="AUTHORIZED",
+    )
+    return carrier, (evidence,)
+
+
+def test_reference_business_case_001_runs_synthetic_negotiation_and_ladder():
+    _, bundle = _bundle()
+    purchase, context = _runtime(bundle)
+    receipt, consumption = _qtg(bundle)
+    provenance = classify_reference_operational_simulation(
+        bundle=bundle, reference_case_id=REFERENCE_CASE_ID,
+    )
+    preparation, inputs, _ = _scenario_sources(purchase, context)
+    c0_invoker, _, trace = _provenanced_c0_invoker(purchase, context)
+    carrier, evidences = _synthetic_negotiation_sources(
+        purchase, context, trace.trace_id
+    )
+    ni_invoker, ladder_invoker = build_provenanced_ni_ladder_invokers(
+        content_evidence=carrier, evidences=evidences,
+    )
+    execution = run_reference_operational_simulation(
+        provenance=provenance, bundle=bundle, receipt=receipt,
+        consumption=consumption, purchase=purchase, context=context,
+        policy_version="REF-BUSINESS-001-v6",
+        price_invoker=_provenanced_price_invoker(purchase, context),
+        tco_invoker=_provenanced_tco_invoker(purchase),
+        supplier_risk_value_invoker=_provenanced_supplier_risk_invoker(
+            purchase, context
+        ),
+        rules_invoker=c0_invoker,
+        decision_twin_invoker=build_provenanced_decision_twin_invoker(
+            preparation=preparation, alternatives=_twin_alternatives(inputs),
+        ),
+        scenario_coordination_invoker=(
+            build_provenanced_scenario_coordination_invoker(
+                preparation=preparation, inputs=inputs,
+            )
+        ),
+        negotiation_intelligence_invoker=ni_invoker,
+        negotiation_ladder_invoker=ladder_invoker,
+    )
+    payload = execution.to_payload()
+    results = payload["execution_outcome"]["capability_results"]
+    assert payload["capability_sequence"] == [
+        "QTG", "PRICE", "TCO", "SUPPLIER_RISK_VALUE", "C0",
+        "DECISION_TWIN", "SCENARIO_COORDINATION",
+        "NEGOTIATION_INTELLIGENCE", "NEGOTIATION_LADDER",
+    ]
+    assert payload["execution_outcome"]["status"] == "COMPLETED"
+    assert all(item["status"] == "COMPLETED" for item in results)
+    assert results[-2]["trace_references"] == [trace.trace_id]
+    assert results[-1]["trace_references"] == [trace.trace_id]
+    assert payload["qtg_quality_result"]["status"] == "NO_APTO"
+    assert payload["case_provenance"]["material_nature"] == "SYNTHETIC"
+    assert payload["operational_path"] == "FORBIDDEN"
+    assert payload["operational_effect"] is False
+    assert payload["decision_authority"] is False
+
+
+def test_reference_business_case_001_rejects_unauthorized_negotiation():
+    _, bundle = _bundle()
+    purchase, context = _runtime(bundle)
+    c0_invoker, _, trace = _provenanced_c0_invoker(purchase, context)
+    carrier, evidences = _synthetic_negotiation_sources(
+        purchase, context, trace.trace_id
+    )
+    denied = carrier.model_copy(update={"authority_state": "NOT_AUTHORIZED"})
+    ni_invoker, _ = build_provenanced_ni_ladder_invokers(
+        content_evidence=denied, evidences=evidences,
+    )
+    with pytest.raises(ValueError, match="no autorizado"):
+        ni_invoker(purchase, context)
