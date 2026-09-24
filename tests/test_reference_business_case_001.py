@@ -35,7 +35,10 @@ from eios.data_sufficiency import (
 )
 from eios.rules import (
     AssessmentTraceBinding,
+    ProvenancedDecisionTwinAlternativeInput,
     ProvenancedScenarioAnalyticsInput,
+    build_provenanced_decision_twin_comparison,
+    build_provenanced_decision_twin_invoker,
     build_provenanced_rules_engine_c0_invoker,
     build_provenanced_scenario_coordination_invoker,
 )
@@ -570,3 +573,91 @@ def test_reference_business_case_001_rejects_foreign_child_trace():
 
     with pytest.raises(ValueError):
         invoker(purchase, context)
+
+
+def _twin_alternatives(inputs):
+    return tuple(
+        ProvenancedDecisionTwinAlternativeInput(
+            representation_ref=f"REF-BUSINESS-001-ALT-{index}",
+            scenario_input=item,
+        )
+        for index, item in enumerate(inputs, start=1)
+    )
+
+
+def test_reference_business_case_001_compares_provenanced_alternatives():
+    _, bundle = _bundle()
+    purchase, context = _runtime(bundle)
+    receipt, consumption = _qtg(bundle)
+    provenance = classify_reference_operational_simulation(
+        bundle=bundle, reference_case_id=REFERENCE_CASE_ID,
+    )
+    preparation, inputs, traces = _scenario_sources(purchase, context)
+    alternatives = _twin_alternatives(inputs)
+    comparison = build_provenanced_decision_twin_comparison(
+        purchase=purchase, context=context, preparation=preparation,
+        alternatives=alternatives,
+    )
+    c0_invoker, _, _ = _provenanced_c0_invoker(purchase, context)
+    execution = run_reference_operational_simulation(
+        provenance=provenance,
+        bundle=bundle,
+        receipt=receipt,
+        consumption=consumption,
+        purchase=purchase,
+        context=context,
+        policy_version="REF-BUSINESS-001-v5",
+        price_invoker=_provenanced_price_invoker(purchase, context),
+        tco_invoker=_provenanced_tco_invoker(purchase),
+        supplier_risk_value_invoker=_provenanced_supplier_risk_invoker(
+            purchase, context
+        ),
+        rules_invoker=c0_invoker,
+        decision_twin_invoker=build_provenanced_decision_twin_invoker(
+            preparation=preparation, alternatives=alternatives,
+        ),
+        scenario_coordination_invoker=(
+            build_provenanced_scenario_coordination_invoker(
+                preparation=preparation, inputs=inputs,
+            )
+        ),
+    )
+    payload = execution.to_payload()
+    results = payload["execution_outcome"]["capability_results"]
+
+    assert comparison.alternatives == tuple(
+        item.representation_ref for item in alternatives
+    )
+    assert set(comparison.trace_refs) == set(traces)
+    by_attribute = {item.attribute: item for item in comparison.observations}
+    assert all(value == {} for _, value in by_attribute["conditions"].values)
+    assert all(value == {} for _, value in by_attribute["consequences"].values)
+    assert all(value == () for _, value in by_attribute["risk_refs"].values)
+    assert payload["capability_sequence"] == [
+        "QTG", "PRICE", "TCO", "SUPPLIER_RISK_VALUE", "C0",
+        "DECISION_TWIN", "SCENARIO_COORDINATION",
+    ]
+    assert payload["execution_outcome"]["status"] == "COMPLETED"
+    assert [item["capability"] for item in results] == payload["capability_sequence"][1:]
+    assert results[-2]["status"] == "COMPLETED"
+    assert set(results[-2]["trace_references"]) == set(traces)
+    assert payload["qtg_quality_result"]["status"] == "NO_APTO"
+    assert payload["case_provenance"]["material_nature"] == "SYNTHETIC"
+    assert payload["operational_path"] == "FORBIDDEN"
+    assert payload["operational_effect"] is False
+    assert payload["decision_authority"] is False
+
+
+def test_reference_business_case_001_rejects_duplicate_twin_representations():
+    _, bundle = _bundle()
+    purchase, context = _runtime(bundle)
+    preparation, inputs, _ = _scenario_sources(purchase, context)
+    first, second = _twin_alternatives(inputs)
+    duplicate = second.model_copy(
+        update={"representation_ref": first.representation_ref}, deep=True
+    )
+    with pytest.raises(ValueError, match="representation_ref duplicada"):
+        build_provenanced_decision_twin_comparison(
+            purchase=purchase, context=context, preparation=preparation,
+            alternatives=(first, duplicate),
+        )
