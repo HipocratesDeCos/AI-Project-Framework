@@ -39,9 +39,9 @@ from eios.rules import (
     ProvenancedDecisionTwinAlternativeInput,
     ProvenancedScenarioAnalyticsInput,
     NegotiationContentEvidence,
+    build_c0_bound_ni_ladder_invokers,
     build_provenanced_decision_twin_comparison,
     build_provenanced_decision_twin_invoker,
-    build_provenanced_ni_ladder_invokers,
     build_provenanced_rules_engine_c0_invoker,
     build_provenanced_scenario_coordination_invoker,
 )
@@ -703,12 +703,13 @@ def test_reference_business_case_001_runs_synthetic_negotiation_and_ladder():
         bundle=bundle, reference_case_id=REFERENCE_CASE_ID,
     )
     preparation, inputs, _ = _scenario_sources(purchase, context)
-    c0_invoker, _, trace = _provenanced_c0_invoker(purchase, context)
+    c0_invoker, assessment, trace = _provenanced_c0_invoker(purchase, context)
     carrier, evidences = _synthetic_negotiation_sources(
         purchase, context, trace.trace_id
     )
-    ni_invoker, ladder_invoker = build_provenanced_ni_ladder_invokers(
+    ni_invoker, ladder_invoker = build_c0_bound_ni_ladder_invokers(
         content_evidence=carrier, evidences=evidences,
+        bindings=(AssessmentTraceBinding(assessment=assessment, trace=trace),),
     )
     execution = run_reference_operational_simulation(
         provenance=provenance, bundle=bundle, receipt=receipt,
@@ -752,15 +753,59 @@ def test_reference_business_case_001_runs_synthetic_negotiation_and_ladder():
 def test_reference_business_case_001_rejects_unauthorized_negotiation():
     _, bundle = _bundle()
     purchase, context = _runtime(bundle)
-    c0_invoker, _, trace = _provenanced_c0_invoker(purchase, context)
+    _, assessment, trace = _provenanced_c0_invoker(purchase, context)
     carrier, evidences = _synthetic_negotiation_sources(
         purchase, context, trace.trace_id
     )
     denied = carrier.model_copy(update={"authority_state": "NOT_AUTHORIZED"})
-    ni_invoker, _ = build_provenanced_ni_ladder_invokers(
+    ni_invoker, _ = build_c0_bound_ni_ladder_invokers(
         content_evidence=denied, evidences=evidences,
+        bindings=(AssessmentTraceBinding(assessment=assessment, trace=trace),),
     )
     with pytest.raises(ValueError, match="no autorizado"):
+        ni_invoker(purchase, context)
+
+
+def test_reference_negotiation_rejects_foreign_or_unclaimed_c0_trace():
+    _, bundle = _bundle()
+    purchase, context = _runtime(bundle)
+    _, assessment, trace = _provenanced_c0_invoker(purchase, context)
+    carrier, evidences = _synthetic_negotiation_sources(
+        purchase, context, trace.trace_id
+    )
+    binding = AssessmentTraceBinding(assessment=assessment, trace=trace)
+    with pytest.raises(ValueError, match="trace_refs no coincide"):
+        build_c0_bound_ni_ladder_invokers(
+            content_evidence=carrier.model_copy(
+                update={"trace_refs": ("FOREIGN-TRACE",)}
+            ),
+            evidences=evidences, bindings=(binding,),
+        )
+
+    ni_invoker, ladder_invoker = build_c0_bound_ni_ladder_invokers(
+        content_evidence=carrier, evidences=evidences, bindings=(binding,),
+    )
+    foreign_purchase = purchase.model_copy(
+        update={"quantity": purchase.quantity + Decimal("1")}
+    )
+    for invoker in (ni_invoker, ladder_invoker):
+        with pytest.raises(ValueError, match="input_fingerprint incompatible"):
+            invoker(foreign_purchase, context)
+
+
+def test_reference_negotiation_rejects_tampered_c0_assessment():
+    _, bundle = _bundle()
+    purchase, context = _runtime(bundle)
+    _, assessment, trace = _provenanced_c0_invoker(purchase, context)
+    carrier, evidences = _synthetic_negotiation_sources(
+        purchase, context, trace.trace_id
+    )
+    tampered = assessment.model_copy(update={"reason": "altered"})
+    ni_invoker, _ = build_c0_bound_ni_ladder_invokers(
+        content_evidence=carrier, evidences=evidences,
+        bindings=(AssessmentTraceBinding(assessment=tampered, trace=trace),),
+    )
+    with pytest.raises(ValueError, match="assessment_fingerprint incompatible"):
         ni_invoker(purchase, context)
 
 
@@ -773,12 +818,13 @@ def test_reference_business_case_001_qtg_eligible_runs_full_synthetic_sequence()
         bundle=bundle, reference_case_id="REF-BUSINESS-001-QTG-ELIGIBLE",
     )
     preparation, inputs, _ = _scenario_sources(purchase, context)
-    c0_invoker, _, trace = _provenanced_c0_invoker(purchase, context)
+    c0_invoker, assessment, trace = _provenanced_c0_invoker(purchase, context)
     carrier, evidences = _synthetic_negotiation_sources(
         purchase, context, trace.trace_id
     )
-    ni_invoker, ladder_invoker = build_provenanced_ni_ladder_invokers(
+    ni_invoker, ladder_invoker = build_c0_bound_ni_ladder_invokers(
         content_evidence=carrier, evidences=evidences,
+        bindings=(AssessmentTraceBinding(assessment=assessment, trace=trace),),
     )
     execution = run_reference_operational_simulation(
         provenance=provenance, bundle=bundle, receipt=receipt,

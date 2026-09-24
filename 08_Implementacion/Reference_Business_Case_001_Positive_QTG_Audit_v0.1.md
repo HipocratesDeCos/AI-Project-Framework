@@ -35,8 +35,10 @@ identical to the original fixture.
   `operational_path=FORBIDDEN`, `operational_effect=false`, and
   `decision_authority=false`.
 - This fixture demonstrates functional product behavior. It contains no real
-  company mandate or operational admission. The previously documented NI
-  cross-capability trace limitation still applies.
+  company mandate or operational admission. The C0-bound NI wrapper now
+  validates the claimed trace for the runtime purchase/context; derivation of
+  NI content and identity of a separately executed C0 invoker remain outside
+  that guarantee.
 
 ## Materialization
 

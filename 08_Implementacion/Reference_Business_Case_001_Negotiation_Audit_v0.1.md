@@ -29,6 +29,12 @@ from the same frozen source, reproducing NI independently before Ladder.
   nonempty trace references, but **does not itself recompute their relation to
   C0**. This test uses the actual trace from the same root purchase; the
   terminal artifact must not be interpreted as a cross-capability proof.
+
+**Follow-up:** `Negotiation_C0_Trace_Binding_Contract_v0.1.md` adds a public
+wrapper that revalidates the claimed C0 assessment and trace against runtime
+purchase/context. The reference tests now use it. The absence of proof that
+NI content was derived from C0 or that the separate C0 invoker executed the
+same binding remains a limitation.
 - QTG remains `NO_APTO/BAJA`; all capabilities may complete as product tests
   without operational effect, admission, approval or decision authority.
 
