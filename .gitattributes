@@ -1,0 +1,3 @@
+# Synthetic fixtures are hash-bound to their exact Git blob bytes.
+# Disable platform line-ending conversion, including core.autocrlf on Windows.
+tests/fixtures/** -text
