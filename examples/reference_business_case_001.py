@@ -417,6 +417,7 @@ def execute_reference_business_case(*, variant: str):
 def main() -> None:
     import argparse
     import json
+    import sys
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--variant", choices=("negative", "qtg-eligible"),
@@ -442,6 +443,15 @@ def main() -> None:
         "decision_authority": payload["decision_authority"],
         "terminal_fingerprint": payload["terminal_fingerprint"],
     }, ensure_ascii=False, sort_keys=True))
+    print(
+        "Interpretación: execution_status="
+        f"{payload['execution_outcome']['status']} indica el estado de la "
+        "simulación técnica; no es una aprobación. "
+        f"QTG={payload['qtg_quality_result']['status']} describe la calidad "
+        "funcional del caso sintético. La ruta operacional permanece prohibida "
+        "y no se concede autoridad decisional.",
+        file=sys.stderr,
+    )
 
 
 if __name__ == "__main__":
