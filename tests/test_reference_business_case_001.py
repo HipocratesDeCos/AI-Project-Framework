@@ -66,6 +66,9 @@ from eios.supplier import (
 SEMANTIC = (
     Path(__file__).parent / "fixtures" / "projection_only_semantic_dataset_01"
 )
+QTG_ELIGIBLE = (
+    Path(__file__).parent / "fixtures" / "reference_business_case_001_qtg_eligible"
+)
 REFERENCE_CASE_ID = "REF-BUSINESS-001"
 REFERENCE_COMPANY_ID = "COMPANY-MOCK-001"
 
@@ -759,3 +762,59 @@ def test_reference_business_case_001_rejects_unauthorized_negotiation():
     )
     with pytest.raises(ValueError, match="no autorizado"):
         ni_invoker(purchase, context)
+
+
+def test_reference_business_case_001_qtg_eligible_runs_full_synthetic_sequence():
+    dataset = load_projection_mock_dataset(QTG_ELIGIBLE)
+    bundle = build_projection_only_synthetic_material_bundle(dataset)
+    purchase, context = _runtime(bundle)
+    receipt, consumption = _qtg(bundle)
+    provenance = classify_reference_operational_simulation(
+        bundle=bundle, reference_case_id="REF-BUSINESS-001-QTG-ELIGIBLE",
+    )
+    preparation, inputs, _ = _scenario_sources(purchase, context)
+    c0_invoker, _, trace = _provenanced_c0_invoker(purchase, context)
+    carrier, evidences = _synthetic_negotiation_sources(
+        purchase, context, trace.trace_id
+    )
+    ni_invoker, ladder_invoker = build_provenanced_ni_ladder_invokers(
+        content_evidence=carrier, evidences=evidences,
+    )
+    execution = run_reference_operational_simulation(
+        provenance=provenance, bundle=bundle, receipt=receipt,
+        consumption=consumption, purchase=purchase, context=context,
+        policy_version="REF-BUSINESS-001-QTG-ELIGIBLE-v1",
+        price_invoker=_provenanced_price_invoker(purchase, context),
+        tco_invoker=_provenanced_tco_invoker(purchase),
+        supplier_risk_value_invoker=_provenanced_supplier_risk_invoker(
+            purchase, context
+        ),
+        rules_invoker=c0_invoker,
+        decision_twin_invoker=build_provenanced_decision_twin_invoker(
+            preparation=preparation, alternatives=_twin_alternatives(inputs),
+        ),
+        scenario_coordination_invoker=(
+            build_provenanced_scenario_coordination_invoker(
+                preparation=preparation, inputs=inputs,
+            )
+        ),
+        negotiation_intelligence_invoker=ni_invoker,
+        negotiation_ladder_invoker=ladder_invoker,
+    )
+    payload = execution.to_payload()
+    assert dataset.to_payload()["dataset_id"] == (
+        "EIOS-REFERENCE-BUSINESS-001-QTG-ELIGIBLE"
+    )
+    assert payload["qtg_quality_result"]["status"] == "APTO"
+    assert payload["qtg_quality_result"]["confidence"] == "ALTA"
+    assert payload["capability_sequence"] == [
+        "QTG", "PRICE", "TCO", "SUPPLIER_RISK_VALUE", "C0",
+        "DECISION_TWIN", "SCENARIO_COORDINATION",
+        "NEGOTIATION_INTELLIGENCE", "NEGOTIATION_LADDER",
+    ]
+    assert payload["execution_outcome"]["status"] == "COMPLETED"
+    assert payload["case_provenance"]["material_nature"] == "SYNTHETIC"
+    assert payload["case_provenance"]["qtg_mode_policy"] == "SYNTHETIC_TEST_ONLY"
+    assert payload["operational_path"] == "FORBIDDEN"
+    assert payload["operational_effect"] is False
+    assert payload["decision_authority"] is False
