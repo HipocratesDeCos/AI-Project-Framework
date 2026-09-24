@@ -1,5 +1,8 @@
 from decimal import Decimal
 from pathlib import Path
+import json
+import subprocess
+import sys
 
 import pytest
 
@@ -533,3 +536,29 @@ def test_executable_reference_runner_preserves_nonoperational_boundary(
     assert payload["operational_path"] == "FORBIDDEN"
     assert payload["operational_effect"] is False
     assert payload["decision_authority"] is False
+
+
+@pytest.mark.parametrize(
+    ("variant", "expected_status"),
+    (("negative", "NO_APTO"), ("qtg-eligible", "APTO")),
+)
+def test_reference_cli_distinguishes_technical_completion_from_qtg(
+    tmp_path, variant, expected_status,
+):
+    output = tmp_path / "terminal.json"
+    completed = subprocess.run(
+        [sys.executable, "-m", "examples.reference_business_case_001",
+         "--variant", variant, "--output", str(output)],
+        cwd=Path(__file__).resolve().parent.parent,
+        capture_output=True, text=True, check=True,
+    )
+    summary = json.loads(completed.stdout)
+    terminal = json.loads(output.read_text(encoding="utf-8"))
+    assert summary["execution_status"] == "COMPLETED"
+    assert summary["qtg_status"] == terminal["qtg_quality_result"]["status"]
+    assert summary["qtg_status"] == expected_status
+    assert "simulación técnica; no es una aprobación" in completed.stderr
+    assert f"QTG={expected_status}" in completed.stderr
+    assert "ruta operacional permanece prohibida" in completed.stderr
+    assert terminal["operational_path"] == "FORBIDDEN"
+    assert terminal["decision_authority"] is False
