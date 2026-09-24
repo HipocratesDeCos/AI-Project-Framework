@@ -2,6 +2,8 @@ from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 
+import pytest
+
 from eios.core.c0_reproducibility import build_trace
 from eios.core.case_provenance import classify_reference_operational_simulation
 from eios.core.models import (
@@ -10,6 +12,8 @@ from eios.core.models import (
     EvidenceValidation,
     PurchaseOperation,
 )
+from eios.core.o4_o2_o3_orchestration import prepare_o4_o2_o3_orchestration
+from eios.core.scenario_generation import GenerationPolicy, GenerationVariable
 from eios.core.price_integration import build_provenanced_price_invoker
 from eios.core.projection_mock_dataset import load_projection_mock_dataset
 from eios.core.projection_quality_consumer import consume_projection_quality
@@ -29,7 +33,12 @@ from eios.data_sufficiency import (
     decision_evidence_purchase_ref,
     decision_evidence_sufficiency_ref,
 )
-from eios.rules import AssessmentTraceBinding, build_provenanced_rules_engine_c0_invoker
+from eios.rules import (
+    AssessmentTraceBinding,
+    ProvenancedScenarioAnalyticsInput,
+    build_provenanced_rules_engine_c0_invoker,
+    build_provenanced_scenario_coordination_invoker,
+)
 from eios.rules.catalog import authorized_rule
 from eios.rules.data_quality import evaluate_r_dat_003
 from eios.pricing.models import (
@@ -303,6 +312,48 @@ def _provenanced_supplier_risk_invoker(purchase, context):
     )
 
 
+def _scenario_sources(purchase, context):
+    preparation = prepare_o4_o2_o3_orchestration(
+        context=context,
+        variables=(
+            GenerationVariable(
+                variable_id="quantity_delta",
+                value_type="integer",
+                base_value=0,
+                domain=(1, 2),
+            ),
+        ),
+        policy=GenerationPolicy(policy_version="REF-BUSINESS-001-SCENARIOS-v1"),
+    )
+    valid = tuple(
+        item for item in preparation.materialization.scenarios
+        if item.status.value == "VALID"
+    )
+    assert len(valid) == 2
+    inputs = []
+    traces = []
+    for scenario, delta in zip(valid, (1, 2)):
+        child_purchase = purchase.model_copy(update={
+            "scenario_id": scenario.scenario_id,
+            "quantity": purchase.quantity + Decimal(delta),
+        }, deep=True)
+        child_context = context.model_copy(
+            update={"scenario_id": scenario.scenario_id}, deep=True
+        )
+        _, assessment, trace = _provenanced_c0_invoker(
+            child_purchase, child_context
+        )
+        inputs.append(ProvenancedScenarioAnalyticsInput(
+            scenario_id=scenario.scenario_id,
+            purchase=child_purchase,
+            assessment_bindings=(AssessmentTraceBinding(
+                assessment=assessment, trace=trace,
+            ),),
+        ))
+        traces.append(trace.trace_id)
+    return preparation, tuple(inputs), tuple(traces)
+
+
 def test_reference_business_case_001_uses_physical_synthetic_dataset():
     dataset, bundle = _bundle()
     purchase, context = _runtime(bundle)
@@ -455,3 +506,67 @@ def test_reference_business_case_001_extends_to_supplier_risk_value():
     assert payload["qtg_quality_result"]["status"] == "NO_APTO"
     assert payload["operational_effect"] is False
     assert payload["decision_authority"] is False
+
+
+def test_reference_business_case_001_coordinates_provenanced_scenarios():
+    _, bundle = _bundle()
+    purchase, context = _runtime(bundle)
+    receipt, consumption = _qtg(bundle)
+    provenance = classify_reference_operational_simulation(
+        bundle=bundle, reference_case_id=REFERENCE_CASE_ID,
+    )
+    preparation, inputs, traces = _scenario_sources(purchase, context)
+    c0_invoker, _, _ = _provenanced_c0_invoker(purchase, context)
+
+    execution = run_reference_operational_simulation(
+        provenance=provenance,
+        bundle=bundle,
+        receipt=receipt,
+        consumption=consumption,
+        purchase=purchase,
+        context=context,
+        policy_version="REF-BUSINESS-001-v4",
+        price_invoker=_provenanced_price_invoker(purchase, context),
+        tco_invoker=_provenanced_tco_invoker(purchase),
+        supplier_risk_value_invoker=_provenanced_supplier_risk_invoker(
+            purchase, context
+        ),
+        rules_invoker=c0_invoker,
+        scenario_coordination_invoker=(
+            build_provenanced_scenario_coordination_invoker(
+                preparation=preparation, inputs=inputs,
+            )
+        ),
+    )
+    payload = execution.to_payload()
+    results = payload["execution_outcome"]["capability_results"]
+    assert payload["capability_sequence"] == [
+        "QTG", "PRICE", "TCO", "SUPPLIER_RISK_VALUE", "C0",
+        "SCENARIO_COORDINATION",
+    ]
+    assert payload["execution_outcome"]["status"] == "COMPLETED"
+    assert [item["capability"] for item in results] == payload["capability_sequence"][1:]
+    assert results[-1]["status"] == "COMPLETED"
+    assert results[-1]["trace_references"] == list(traces)
+    assert payload["qtg_quality_result"]["status"] == "NO_APTO"
+    assert payload["case_provenance"]["material_nature"] == "SYNTHETIC"
+    assert payload["case_provenance"]["qtg_mode_policy"] == "SYNTHETIC_TEST_ONLY"
+    assert payload["operational_path"] == "FORBIDDEN"
+    assert payload["operational_effect"] is False
+    assert payload["decision_authority"] is False
+
+
+def test_reference_business_case_001_rejects_foreign_child_trace():
+    _, bundle = _bundle()
+    purchase, context = _runtime(bundle)
+    preparation, inputs, _ = _scenario_sources(purchase, context)
+    first, second = inputs
+    foreign = first.model_copy(update={
+        "assessment_bindings": second.assessment_bindings,
+    }, deep=True)
+    invoker = build_provenanced_scenario_coordination_invoker(
+        preparation=preparation, inputs=(foreign, second),
+    )
+
+    with pytest.raises(ValueError):
+        invoker(purchase, context)
