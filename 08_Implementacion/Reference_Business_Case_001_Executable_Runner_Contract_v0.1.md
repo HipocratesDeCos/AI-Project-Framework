@@ -52,3 +52,14 @@ Run from the repository root after installing project dependencies. The
   variants;
 - direct CLI execution and terminal JSON output were checked locally;
 - CI status is determined by the PR and subsequent `main` workflow runs.
+
+## Windows checkout correction
+
+The dataset manifest hashes exact component bytes. Git's `core.autocrlf=true`
+can rewrite LF as CRLF during Windows checkout and invalidate those hashes.
+`.gitattributes` now marks all `tests/fixtures/**` files `-text`, preserving
+their Git blob bytes on every platform. The two affected flow JSON components
+and their manifest digests were refreshed so an ordinary pull rewrites those
+files in existing checkouts. Their parsed values and QTG semantics are
+unchanged. A fresh checkout with `core.autocrlf=true` executed the positive
+variant successfully.
