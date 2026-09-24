@@ -87,6 +87,7 @@ from .provenance import (
 from .runtime import ConsolidatedBaseResult, RuleSetVerticalResult, RuleVerticalResult
 from .negotiation_provenance import (
     NegotiationContentEvidence,
+    build_c0_bound_ni_ladder_invokers,
     build_provenanced_negotiation_intelligence_invoker,
     build_provenanced_ni_ladder_invokers,
     produce_negotiation_intelligence,
@@ -201,6 +202,7 @@ __all__ = [
     "build_provenanced_decision_twin_invoker",
     "build_provenanced_negotiation_intelligence_invoker",
     "build_provenanced_ni_ladder_invokers",
+    "build_c0_bound_ni_ladder_invokers",
     "build_authorized_scenario_analytics_from_provenanced_assessments",
     "build_provenanced_scenario_coordination_invoker",
     "build_provenanced_rules_engine_c0_invoker",

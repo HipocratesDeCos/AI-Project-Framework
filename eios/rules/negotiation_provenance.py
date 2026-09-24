@@ -26,6 +26,8 @@ from eios.core.negotiation_ladder import (
 from eios.core.orchestration import CapabilityExecution
 from eios.core.validation import validate_evidence
 
+from .provenance import AssessmentTraceBinding, validate_assessment_trace_binding
+
 
 AuthorityState = Literal["AUTHORIZED", "NOT_AUTHORIZED", "NOT_DETERMINABLE", "CONFLICTING"]
 
@@ -288,10 +290,66 @@ def build_provenanced_ni_ladder_invokers(
     return ni_invoker, ladder_invoker
 
 
+def build_c0_bound_ni_ladder_invokers(
+    *,
+    content_evidence: NegotiationContentEvidence,
+    evidences: tuple[Evidence, ...],
+    bindings: tuple[AssessmentTraceBinding, ...],
+) -> tuple:
+    """Revalidate exact C0 provenance before producing NI or Ladder.
+
+    The binding proves each claimed trace against the runtime purchase/context.
+    It does not claim that NI content was derived from C0 or that a separate
+    C0 capability was executed in the same plan.
+    """
+    content_snapshot = content_evidence.model_copy(deep=True)
+    evidence_snapshot = tuple(item.model_copy(deep=True) for item in evidences)
+    binding_snapshots = tuple(item.model_copy(deep=True) for item in bindings)
+    if not binding_snapshots:
+        raise ValueError("NI requiere bindings C0 no vacíos")
+    trace_ids = tuple(item.trace.trace_id for item in binding_snapshots)
+    if len(trace_ids) != len(set(trace_ids)):
+        raise ValueError("NI no acepta trace_id C0 duplicado")
+    if set(content_snapshot.trace_refs) != set(trace_ids) or len(content_snapshot.trace_refs) != len(trace_ids):
+        raise ValueError("NI trace_refs no coincide con bindings C0")
+
+    def validated_result(
+        purchase: PurchaseOperation, context: DecisionContext,
+    ) -> NegotiationIntelligenceResult:
+        purchase_snapshot = purchase.model_copy(deep=True)
+        context_snapshot = context.model_copy(deep=True)
+        for binding in binding_snapshots:
+            validate_assessment_trace_binding(
+                purchase=purchase_snapshot,
+                context=context_snapshot,
+                binding=binding,
+            )
+        return produce_negotiation_intelligence(
+            purchase=purchase_snapshot,
+            context=context_snapshot,
+            content_evidence=content_snapshot.model_copy(deep=True),
+            evidences=tuple(item.model_copy(deep=True) for item in evidence_snapshot),
+        )
+
+    def ni_invoker(purchase: PurchaseOperation, context: DecisionContext) -> CapabilityExecution:
+        return adapt_ni(validated_result(purchase, context))
+
+    def ladder_invoker(purchase: PurchaseOperation, context: DecisionContext) -> CapabilityExecution:
+        result = validated_result(purchase, context)
+        return adapt_nl(produce_negotiation_ladder(
+            negotiation_result=result,
+            purchase=purchase.model_copy(deep=True),
+            context=context.model_copy(deep=True),
+        ))
+
+    return ni_invoker, ladder_invoker
+
+
 __all__ = [
     "NegotiationContentEvidence",
     "build_provenanced_negotiation_intelligence_invoker",
     "build_provenanced_ni_ladder_invokers",
+    "build_c0_bound_ni_ladder_invokers",
     "produce_negotiation_intelligence",
     "produce_negotiation_ladder",
 ]
