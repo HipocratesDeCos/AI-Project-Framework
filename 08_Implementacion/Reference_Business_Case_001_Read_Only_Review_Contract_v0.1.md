@@ -22,6 +22,10 @@ rechaza violaciones de las invariantes sintéticas. Escapa el contenido dinámic
 `COMPLETED` se identifica expresamente como ejecución técnica y se presenta
 separado de la calificación QTG.
 
+La etiqueta de cada entrada también se vincula a su identidad y calificación
+QTG esperadas. Invertir los dos archivos o atribuir `APTO/ALTA` al caso
+`negative` detiene la generación en vez de presentar un encabezado engañoso.
+
 ## AUDITAR 2
 
 Las pruebas cubren comparación de ambas variantes, manipulación de huella,

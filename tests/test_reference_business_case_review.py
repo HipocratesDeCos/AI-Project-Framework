@@ -60,5 +60,10 @@ def test_review_escapes_trace_text(results):
 
 
 def test_review_requires_two_distinct_cases(results):
-    with pytest.raises(ValueError, match="distinct identifiers"):
+    with pytest.raises(ValueError, match="case identity or QTG variant mismatch"):
         render_review(results[0], results[0])
+
+
+def test_review_rejects_swapped_variant_files(results):
+    with pytest.raises(ValueError, match="negative: case identity or QTG variant mismatch"):
+        render_review(results[1], results[0])
