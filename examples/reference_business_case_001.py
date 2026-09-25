@@ -15,12 +15,15 @@ from eios.core.price_integration import (
     build_provenanced_price_invoker, build_reference_observed_price_invoker,
 )
 from eios.core.reference_price_observation import _close_reference_price_observation
+from eios.core.reference_tco_observation import _close_reference_tco_observation
 from eios.core.projection_mock_dataset import load_projection_mock_dataset
 from eios.core.projection_quality_consumer import consume_projection_quality
 from eios.core.projection_quality_producer import produce_projection_quality
 from eios.core.projection_synthetic_adapter import build_projection_only_synthetic_material_bundle
 from eios.core.reference_simulation_execution import run_reference_operational_simulation
-from eios.core.tco_integration import build_provenanced_tco_invoker
+from eios.core.tco_integration import (
+    build_provenanced_tco_invoker, build_reference_observed_tco_invoker,
+)
 from eios.data_sufficiency import (
     DECISION_EVIDENCE_SUFFICIENCY_EVIDENCE_SOURCE_TYPE,
     DecisionEvidenceRequirementSet, DecisionEvidenceSufficiencyProducer,
@@ -241,10 +244,13 @@ def _provenanced_price_invoker(purchase, context, *, observed=False,
         )
     return build_provenanced_price_invoker(**kwargs)
 
-def _provenanced_tco_invoker(purchase):
-    return build_provenanced_tco_invoker(
-        payload=TCOInput(purchase_operation=purchase.model_copy(deep=True))
-    )
+def _provenanced_tco_invoker(purchase, *, observed=False, reference_case_id=None):
+    payload = TCOInput(purchase_operation=purchase.model_copy(deep=True))
+    if observed:
+        return build_reference_observed_tco_invoker(
+            payload=payload, reference_case_id=reference_case_id,
+        )
+    return build_provenanced_tco_invoker(payload=payload)
 
 def _provenanced_supplier_risk_invoker(purchase, context):
     supplier_result = evaluate_supplier_evidence(
@@ -372,7 +378,8 @@ def _synthetic_negotiation_sources(purchase, context, trace_id):
     return carrier, (evidence,)
 
 
-def _execute_reference_business_case(*, variant: str, observe_price: bool):
+def _execute_reference_business_case(*, variant: str, observe_price: bool,
+                                     observe_tco: bool = False):
     """Run the full closed reference sequence from one of two physical fixtures."""
     if variant not in {"negative", "qtg-eligible"}:
         raise ValueError("variant must be negative or qtg-eligible")
@@ -401,12 +408,15 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool):
         purchase, context, observed=observe_price,
         reference_case_id=reference_case_id,
     )
+    tco_invoker = _provenanced_tco_invoker(
+        purchase, observed=observe_tco, reference_case_id=reference_case_id,
+    )
     execution = run_reference_operational_simulation(
         provenance=provenance, bundle=bundle, receipt=receipt,
         consumption=consumption, purchase=purchase, context=context,
         policy_version=f"REF-BUSINESS-001-{variant}-v1",
         price_invoker=price_invoker,
-        tco_invoker=_provenanced_tco_invoker(purchase),
+        tco_invoker=tco_invoker,
         supplier_risk_value_invoker=_provenanced_supplier_risk_invoker(
             purchase, context
         ),
@@ -422,6 +432,10 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool):
         negotiation_intelligence_invoker=ni_invoker,
         negotiation_ladder_invoker=ladder_invoker,
     )
+    if observe_tco:
+        return execution, _close_reference_tco_observation(
+            execution=execution, tco_invoker=tco_invoker,
+        )
     if observe_price:
         return execution, _close_reference_price_observation(
             execution=execution, price_invoker=price_invoker,
@@ -437,6 +451,13 @@ def execute_reference_business_case(*, variant: str):
 def execute_reference_business_case_with_price_observation(*, variant: str):
     """Return terminal and same-run synthetic PRICE observation."""
     return _execute_reference_business_case(variant=variant, observe_price=True)
+
+
+def execute_reference_business_case_with_tco_observation(*, variant: str):
+    """Return terminal and same-run synthetic TCO observation."""
+    return _execute_reference_business_case(
+        variant=variant, observe_price=False, observe_tco=True,
+    )
 
 
 def main() -> None:

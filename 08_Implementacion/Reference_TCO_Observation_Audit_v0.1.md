@@ -1,7 +1,7 @@
 # EIOS — Reference TCO Observation: auditoría y diseño v0.1
 
 **Base:** `main @ c2f52d857e624868677974f2f6fa7a4e83ab20d4`.
-**Estado:** diseño auditado; implementación pendiente.
+**Estado:** diseño cerrado; captura de núcleo materializada en la unidad siguiente.
 
 ## DISEÑAR
 
@@ -79,3 +79,19 @@ Permanecen `SYNTHETIC_TEST_ONLY`, `FORBIDDEN`, `NO_OPERATIONAL_EFFECT` y
 Esta unidad documental no cambia el runtime. La implementación y su CI
 serán una unidad separada, con el mecanismo de captura compartido auditado
 antes de exportar o representar TCO.
+
+## Unidad de captura — AUDITAR 2 / CERRAR / MATERIALIZAR
+
+La implementación extrae la sesión genérica de un solo uso a
+`eios/core/observed_invocation.py`. PRICE mantiene su constructor, builder,
+resultado y mensajes de error; TCO conserva su validación específica y el
+builder previo. La sesión TCO registra el resultado y la reducción O1 de la
+misma llamada al productor. Una excepción consume la sesión y no habilita
+captura. El sidecar `EIOS-REFERENCE-TCO-OBSERVATION-01/v0.1` verifica las
+identidades y las huellas de entrada, resultado y terminal; coteja el estado
+O1 con el terminal y declara `trace_references=[]`. La entrada del fixture
+incluye únicamente la adquisición, sin costes atribuibles adicionales.
+
+Se admite un resultado incompleto con importe nulo y componentes pendientes
+sin transformarlo en `COMPLETED`. La exportación y la vista quedan para la
+unidad posterior. El terminal y el modo PRICE existentes conservan su salida.
