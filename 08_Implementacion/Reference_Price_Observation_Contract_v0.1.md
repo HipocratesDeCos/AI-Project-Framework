@@ -98,6 +98,9 @@ vínculo de caso y los tres estados funcionales de precio. La repetición de
 ambas variantes con y sin observación mantiene exactamente las huellas
 terminales originales. Suite local: **2336 passed, 6 warnings**.
 
-La observación aún no se exporta por la CLI ni se representa en HTML. Eso
-requerirá una unidad de presentación que valide este artefacto y explicite
-que el precio de referencia sintético no es un techo ni una autorización.
+La unidad posterior de exportación incorpora dos sidecars PRICE opcionales
+al paquete de demostración con `--with-price`. La vista valida sus huellas,
+identidad, trazas, estado PRICE y cierre sintético antes de representar el
+valor del productor. `--verify-dir` repite y compara también ambos sidecars.
+El precio de referencia se etiqueta expresamente como distinto de un techo,
+una oferta o una autorización; ninguna vista lo eleva a decisión.

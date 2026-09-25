@@ -8,6 +8,9 @@ import json
 from pathlib import Path
 
 from eios.core.reference_simulation_execution import SCHEMA_VERSION
+from eios.core.reference_price_observation import (
+    validate_reference_price_observation_payload,
+)
 
 
 def _digest(value: object) -> str:
@@ -88,12 +91,20 @@ def _checked(payload: dict, label: str) -> dict:
     return payload
 
 
-def render_review(negative: dict, eligible: dict) -> str:
+def render_review(
+    negative: dict, eligible: dict,
+    price_observations: tuple[dict, dict] | None = None,
+) -> str:
     """Validate terminal artifacts and produce an inert HTML comparison."""
     negative = _checked(negative, "negative")
     eligible = _checked(eligible, "qtg-eligible")
     if negative["reference_case_id"] == eligible["reference_case_id"]:
         raise ValueError("The two reference cases must have distinct identifiers")
+    if price_observations is not None:
+        if not isinstance(price_observations, tuple) or len(price_observations) != 2:
+            raise ValueError("PRICE observations require both variants")
+        for observation, terminal in zip(price_observations, (negative, eligible)):
+            validate_reference_price_observation_payload(observation, terminal)
 
     def val(item: object) -> str:
         return escape(str(item), quote=True)
@@ -113,7 +124,7 @@ def render_review(negative: dict, eligible: dict) -> str:
         return "Satisfecho" if check["satisfied"] else "No satisfecho"
 
     sections = []
-    for name, payload in (("Caso negativo", negative), ("Caso QTG elegible", eligible)):
+    for index, (name, payload) in enumerate((("Caso negativo", negative), ("Caso QTG elegible", eligible))):
         rows = []
         for item in payload["execution_outcome"]["capability_results"]:
             traces = item["trace_references"]
@@ -132,6 +143,23 @@ def render_review(negative: dict, eligible: dict) -> str:
                 f'<td>{"Sí" if check["material"] else "No"}</td>'
                 f'<td>{val(check["reason"])}</td><td>{evidence}</td></tr>'
             )
+        price_html = ""
+        if price_observations is not None:
+            observation = price_observations[index]
+            price = observation["price_result"]
+            amount = (f'{val(price["pr_value"])} {val(price["currency"])}'
+                      if price["pr_value"] is not None else "Sin valor justificable")
+            limitations = ", ".join(price["pr_limitations"]) or "Sin limitaciones declaradas"
+            price_html = (
+                '<h3>Observación PRICE sintética</h3>'
+                '<p>Precio de referencia del productor C1; no es un techo, '
+                'una oferta ni una autorización de compra.</p>'
+                f'<p>Valor: {amount} · Estado: {val(price["pr_status"])} '
+                f'· Suficiencia: {val(price["sufficiency_status"])}</p>'
+                f'<p>Limitaciones: {val(limitations)}</p>'
+                f'<p>Referencias seleccionadas: {val(", ".join(price["reference_set"]) or "Ninguna")}</p>'
+                f'<p>Huella de la observación: <code>{val(observation["observation_fingerprint"])}</code></p>'
+            )
         sections.append(f'<section><h2>{val(name)}: {val(payload["reference_case_id"])}</h2>'
                         f'<p>Secuencia: {val(" → ".join(payload["capability_sequence"]))}</p>'
                         '<div class="table-scroll"><table><caption>Controles QTG declarados</caption>'
@@ -139,6 +167,7 @@ def render_review(negative: dict, eligible: dict) -> str:
                         '<th scope="col">Crítico</th><th scope="col">Material</th>'
                         '<th scope="col">Motivo</th><th scope="col">Evidencias</th>'
                         '</tr></thead><tbody>' + "".join(check_rows) + '</tbody></table></div>'
+                        + price_html +
                         '<table><caption>Capacidades y referencias de traza</caption>'
                         '<thead><tr><th scope="col">Capacidad</th><th scope="col">Estado</th>'
                         '<th scope="col">Trazas</th></tr></thead><tbody>' + "".join(rows) + '</tbody></table>'
@@ -171,10 +200,20 @@ def main() -> None:
     parser.add_argument("--negative", type=Path, required=True)
     parser.add_argument("--qtg-eligible", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--negative-price", type=Path)
+    parser.add_argument("--qtg-eligible-price", type=Path)
     args = parser.parse_args()
     negative = json.loads(args.negative.read_text(encoding="utf-8"))
     eligible = json.loads(args.qtg_eligible.read_text(encoding="utf-8"))
-    html = render_review(negative, eligible)
+    if (args.negative_price is None) != (args.qtg_eligible_price is None):
+        parser.error("Both PRICE observation files must be supplied together")
+    observations = None
+    if args.negative_price is not None:
+        observations = (
+            json.loads(args.negative_price.read_text(encoding="utf-8")),
+            json.loads(args.qtg_eligible_price.read_text(encoding="utf-8")),
+        )
+    html = render_review(negative, eligible, price_observations=observations)
     args.output.write_text(html, encoding="utf-8")
     print(f"Vista de revisión creada: {args.output}")
 

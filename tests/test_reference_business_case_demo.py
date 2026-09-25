@@ -50,3 +50,45 @@ def test_demo_replay_detects_html_drift(tmp_path):
     review_path.write_text("stale review", encoding="utf-8")
     with pytest.raises(ValueError, match="Review HTML differs"):
         verify_reference_demo(output)
+
+
+def test_demo_exports_and_replays_both_price_observations(tmp_path):
+    output = tmp_path / "reference-with-price"
+    files = create_reference_demo(output, with_price=True)
+    assert len(files) == 5
+    negative, eligible = (json.loads(files[i].read_text(encoding="utf-8"))
+                          for i in (0, 1))
+    negative_price, eligible_price = (json.loads(files[i].read_text(encoding="utf-8"))
+                                      for i in (3, 4))
+    html = files[2].read_text(encoding="utf-8")
+    assert negative_price["terminal_fingerprint"] == negative["terminal_fingerprint"]
+    assert eligible_price["terminal_fingerprint"] == eligible["terminal_fingerprint"]
+    assert negative["qtg_quality_result"]["status"] == "NO_APTO"
+    assert negative_price["price_result"]["pr_status"] == "PR_AVAILABLE"
+    assert html.count("Observación PRICE sintética") == 2
+    assert "no es un techo" in html
+    assert "20.25 EUR" in html
+    assert verify_reference_demo(output) == (
+        negative["terminal_fingerprint"], eligible["terminal_fingerprint"],
+    )
+
+
+def test_demo_rejects_incomplete_or_changed_price_sidecar(tmp_path):
+    output = tmp_path / "reference-with-price"
+    files = create_reference_demo(output, with_price=True)
+    files[4].unlink()
+    with pytest.raises(ValueError, match="Both PRICE observations"):
+        verify_reference_demo(output)
+    files[4].write_bytes(files[3].read_bytes())
+    with pytest.raises(ValueError, match="PRICE observation identity"):
+        verify_reference_demo(output)
+
+
+def test_demo_rejects_changed_price_value(tmp_path):
+    output = tmp_path / "reference-with-price"
+    files = create_reference_demo(output, with_price=True)
+    altered = json.loads(files[3].read_text(encoding="utf-8"))
+    altered["price_result"]["pr_value"] = "999.00"
+    files[3].write_text(json.dumps(altered), encoding="utf-8")
+    with pytest.raises(ValueError, match="PRICE observation fingerprint"):
+        verify_reference_demo(output)
