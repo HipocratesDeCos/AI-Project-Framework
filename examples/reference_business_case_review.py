@@ -24,6 +24,7 @@ from eios.core.reference_decision_twin_observation import (
 from eios.core.reference_scenario_coordination_observation import (
     validate_reference_scenario_coordination_observation_payload,
 )
+from eios.core.reference_ni_observation import validate_reference_ni_observation_payload
 
 
 def _digest(value: object) -> str:
@@ -112,6 +113,7 @@ def render_review(
     c0_observations: tuple[dict, dict] | None = None,
     twin_observations: tuple[dict, dict] | None = None,
     scenario_observations: tuple[dict, dict] | None = None,
+    ni_observations: tuple[dict, dict] | None = None,
 ) -> str:
     """Validate terminal artifacts and produce an inert HTML comparison."""
     negative = _checked(negative, "negative")
@@ -148,6 +150,11 @@ def render_review(
             raise ValueError("Scenario Coordination observations require both variants")
         for observation, terminal in zip(scenario_observations, (negative, eligible)):
             validate_reference_scenario_coordination_observation_payload(observation, terminal)
+    if ni_observations is not None:
+        if not isinstance(ni_observations, tuple) or len(ni_observations) != 2:
+            raise ValueError("Negotiation Intelligence observations require both variants")
+        for observation, terminal in zip(ni_observations, (negative, eligible)):
+            validate_reference_ni_observation_payload(observation, terminal)
 
     def val(item: object) -> str:
         return escape(str(item), quote=True)
@@ -339,6 +346,27 @@ def render_review(
                 'COMPLETED no equivale a admisión QTG. Ruta operacional FORBIDDEN.</p>'
                 f'<p>Huella de la observación: <code>{val(observation["observation_fingerprint"])}</code></p>'
             )
+        ni_html = ""
+        if ni_observations is not None:
+            observation = ni_observations[index]
+            result = observation["ni_result"]
+            content = result["negotiation_content"]
+            ni_html = (
+                '<h3>Observación Negotiation Intelligence sintética</h3>'
+                '<p>Contenido de negociación ficticio declarado para una prueba del producto. '
+                'La autoridad AUTHORIZED procede de evidencia sintética del fixture; '
+                'no acredita mandato empresarial ni permite contactar a un proveedor.</p>'
+                f'<p>Objetivo: {val(content["objective"] or "No informado")}. '
+                f'Solicitud inicial: {val(content["opening_request"] or "No informada")}. '
+                f'Alternativa de espera: {val(content["fallback"] or "No informada")}.</p>'
+                f'<p>Justificaciones declaradas: {val(len(result["justification"]))}. '
+                f'Trazas C0: {val(", ".join(result["traceability_references"]))}.</p>'
+                '<p>La traza C0 está vinculada a la compra y el contexto, pero no '
+                'demuestra que el contenido se haya derivado de C0 ni que un '
+                'invocador C0 separado haya ejecutado ese binding. '
+                'Sin efecto operacional ni autoridad decisional. Ruta FORBIDDEN.</p>'
+                f'<p>Huella de la observación: <code>{val(observation["observation_fingerprint"])}</code></p>'
+            )
         sections.append(f'<section><h2>{val(name)}: {val(payload["reference_case_id"])}</h2>'
                         f'<p>Secuencia: {val(" → ".join(payload["capability_sequence"]))}</p>'
                         '<div class="table-scroll"><table><caption>Controles QTG declarados</caption>'
@@ -346,7 +374,7 @@ def render_review(
                         '<th scope="col">Crítico</th><th scope="col">Material</th>'
                         '<th scope="col">Motivo</th><th scope="col">Evidencias</th>'
                         '</tr></thead><tbody>' + "".join(check_rows) + '</tbody></table></div>'
-                        + price_html + tco_html + supplier_html + c0_html + twin_html + scenario_html +
+                        + price_html + tco_html + supplier_html + c0_html + twin_html + scenario_html + ni_html +
                         '<table><caption>Capacidades y referencias de traza</caption>'
                         '<thead><tr><th scope="col">Capacidad</th><th scope="col">Estado</th>'
                         '<th scope="col">Trazas</th></tr></thead><tbody>' + "".join(rows) + '</tbody></table>'
@@ -391,6 +419,8 @@ def main() -> None:
     parser.add_argument("--qtg-eligible-decision-twin", type=Path)
     parser.add_argument("--negative-scenario-coordination", type=Path)
     parser.add_argument("--qtg-eligible-scenario-coordination", type=Path)
+    parser.add_argument("--negative-negotiation-intelligence", type=Path)
+    parser.add_argument("--qtg-eligible-negotiation-intelligence", type=Path)
     args = parser.parse_args()
     negative = json.loads(args.negative.read_text(encoding="utf-8"))
     eligible = json.loads(args.qtg_eligible.read_text(encoding="utf-8"))
@@ -442,12 +472,21 @@ def main() -> None:
             json.loads(args.negative_scenario_coordination.read_text(encoding="utf-8")),
             json.loads(args.qtg_eligible_scenario_coordination.read_text(encoding="utf-8")),
         )
+    if (args.negative_negotiation_intelligence is None) != (args.qtg_eligible_negotiation_intelligence is None):
+        parser.error("Both Negotiation Intelligence observation files must be supplied together")
+    ni_observations = None
+    if args.negative_negotiation_intelligence is not None:
+        ni_observations = (
+            json.loads(args.negative_negotiation_intelligence.read_text(encoding="utf-8")),
+            json.loads(args.qtg_eligible_negotiation_intelligence.read_text(encoding="utf-8")),
+        )
     html = render_review(negative, eligible, price_observations=observations,
                          tco_observations=tco_observations,
                          supplier_observations=supplier_observations,
                          c0_observations=c0_observations,
                          twin_observations=twin_observations,
-                         scenario_observations=scenario_observations)
+                         scenario_observations=scenario_observations,
+                         ni_observations=ni_observations)
     args.output.write_text(html, encoding="utf-8")
     print(f"Vista de revisión creada: {args.output}")
 
