@@ -26,6 +26,11 @@ La etiqueta de cada entrada también se vincula a su identidad y calificación
 QTG esperadas. Invertir los dos archivos o atribuir `APTO/ALTA` al caso
 `negative` detiene la generación en vez de presentar un encabezado engañoso.
 
+Los controles QTG se presentan en su orden original con estado explícito
+(`Satisfecho`, `No satisfecho`, `No evaluable` o `No aplica`), criticidad,
+materialidad, motivo y referencias de evidencia. Se valida su estructura antes
+de representarlos; la vista no infiere ni recalcula el dictamen QTG agregado.
+
 ## AUDITAR 2
 
 Las pruebas cubren comparación de ambas variantes, manipulación de huella,
