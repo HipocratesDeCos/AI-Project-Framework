@@ -20,6 +20,9 @@ from eios.core.reference_supplier_risk_observation import (
     _close_reference_supplier_risk_observation,
 )
 from eios.core.reference_c0_observation import _close_reference_c0_observation
+from eios.core.reference_decision_twin_observation import (
+    _close_reference_decision_twin_observation,
+)
 from eios.core.projection_mock_dataset import load_projection_mock_dataset
 from eios.core.projection_quality_consumer import consume_projection_quality
 from eios.core.projection_quality_producer import produce_projection_quality
@@ -44,6 +47,7 @@ from eios.rules import (
 )
 from eios.rules.catalog import authorized_rule
 from eios.rules.provenance import build_reference_observed_rules_engine_c0_invoker
+from eios.rules.decision_twin_integration import build_reference_observed_decision_twin_invoker
 from eios.rules.data_quality import evaluate_r_dat_003
 from eios.pricing.models import (
     PriceIntelligenceAssessmentContext, PriceIntelligenceInput, PriceReference,
@@ -404,6 +408,7 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool,
                                      observe_tco: bool = False,
                                      observe_supplier_risk: bool = False,
                                      observe_c0: bool = False,
+                                     observe_twin: bool = False,
                                      return_observation_map: bool = False):
     """Run the full closed reference sequence from one of two physical fixtures."""
     if variant not in {"negative", "qtg-eligible"}:
@@ -443,6 +448,16 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool,
         purchase, context, observed=observe_supplier_risk,
         reference_case_id=reference_case_id,
     )
+    twin_alternatives = _twin_alternatives(inputs)
+    if observe_twin:
+        twin_invoker = build_reference_observed_decision_twin_invoker(
+            purchase=purchase, preparation=preparation,
+            alternatives=twin_alternatives, reference_case_id=reference_case_id,
+        )
+    else:
+        twin_invoker = build_provenanced_decision_twin_invoker(
+            preparation=preparation, alternatives=twin_alternatives,
+        )
     execution = run_reference_operational_simulation(
         provenance=provenance, bundle=bundle, receipt=receipt,
         consumption=consumption, purchase=purchase, context=context,
@@ -451,9 +466,7 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool,
         tco_invoker=tco_invoker,
         supplier_risk_value_invoker=supplier_invoker,
         rules_invoker=c0_invoker,
-        decision_twin_invoker=build_provenanced_decision_twin_invoker(
-            preparation=preparation, alternatives=_twin_alternatives(inputs),
-        ),
+        decision_twin_invoker=twin_invoker,
         scenario_coordination_invoker=(
             build_provenanced_scenario_coordination_invoker(
                 preparation=preparation, inputs=inputs,
@@ -478,6 +491,10 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool,
     if observe_c0:
         observations["c0"] = _close_reference_c0_observation(
             execution=execution, c0_invoker=c0_invoker,
+        )
+    if observe_twin:
+        observations["decision_twin"] = _close_reference_decision_twin_observation(
+            execution=execution, twin_invoker=twin_invoker,
         )
     if return_observation_map:
         return execution, observations
@@ -520,12 +537,21 @@ def execute_reference_business_case_with_supplier_risk_observation(*, variant: s
 def execute_reference_business_case_with_selected_observations(
     *, variant: str, with_price: bool = False, with_tco: bool = False,
     with_supplier_risk: bool = False, with_c0: bool = False,
+    with_decision_twin: bool = False,
 ):
     """Run once and return a keyed map of requested same-call captures."""
     return _execute_reference_business_case(
         variant=variant, observe_price=with_price, observe_tco=with_tco,
         observe_supplier_risk=with_supplier_risk, observe_c0=with_c0,
+        observe_twin=with_decision_twin,
         return_observation_map=True,
+    )
+
+
+def execute_reference_business_case_with_decision_twin_observation(*, variant: str):
+    """Return terminal and same-call descriptive Twin comparison."""
+    return _execute_reference_business_case(
+        variant=variant, observe_price=False, observe_twin=True,
     )
 
 

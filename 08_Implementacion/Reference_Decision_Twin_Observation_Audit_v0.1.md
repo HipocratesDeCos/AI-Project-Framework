@@ -72,3 +72,18 @@ Permanecen `SYNTHETIC`, `SYNTHETIC_TEST_ONLY`, `FORBIDDEN`,
 
 Esta unidad solo añade la auditoría. La captura y exportación requieren
 unidades separadas y CI satisfactoria antes de integración.
+
+## Unidad posterior — captura materializada
+
+`ObservedDecisionTwinInvoker` congela compra raíz, preparación y
+alternativas. Antes de producir comprueba cada campo de la compra contra el
+fixture, reutiliza `build_provenanced_decision_twin_comparison` y `adapt_twin`
+y captura resultado y `CapabilityExecution` de la misma llamada O1 con la
+sesión común de un solo uso. Mantiene intacto el `__all__` público cerrado de
+Decision Twin y la firma del builder existente.
+
+El sidecar separado guarda fuentes, huellas, comparación, trazas, ejecución
+O1 y terminal sintético. Declara `STRUCTURAL_DESCRIPTIVE_ONLY` y
+`selected_alternative=null`. Su validador coteja compra y contexto raíz,
+referencias únicas, estado y trazas O1, diferencias, faltantes y huellas.
+No se exporta ni representa en HTML durante esta unidad de captura.

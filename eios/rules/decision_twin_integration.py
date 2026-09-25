@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from collections.abc import Callable
+from dataclasses import dataclass
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -12,6 +13,7 @@ from eios.core.decision_twin_engine import compare_alternatives
 from eios.core.models import DecisionContext, PurchaseOperation
 from eios.core.o4_o2_o3_orchestration import O4O2O3Preparation
 from eios.core.orchestration import CapabilityExecution
+from eios.core.observed_invocation import SingleUseObservedInvoker
 
 from .scenario_integration import (
     ProvenancedScenarioAnalyticsInput,
@@ -20,6 +22,12 @@ from .scenario_integration import (
 
 
 DecisionTwinInvoker = Callable[[PurchaseOperation, DecisionContext], CapabilityExecution]
+
+
+@dataclass(frozen=True)
+class DecisionTwinInvocationCapture:
+    result: DecisionTwinComparison
+    capability: CapabilityExecution
 
 
 class ProvenancedDecisionTwinAlternativeInput(BaseModel):
@@ -164,6 +172,60 @@ def build_provenanced_decision_twin_invoker(
         return adapt_twin(comparison)
 
     return invoke
+
+
+class ObservedDecisionTwinInvoker(SingleUseObservedInvoker[
+    DecisionTwinComparison, DecisionTwinInvocationCapture
+]):
+    """One-shot comparison tied to the complete synthetic root purchase."""
+
+    def __init__(self, *, purchase: PurchaseOperation,
+                 preparation: O4O2O3Preparation,
+                 alternatives: tuple[ProvenancedDecisionTwinAlternativeInput, ...],
+                 reference_case_id: str) -> None:
+        self._purchase = purchase.model_copy(deep=True)
+        self._preparation = preparation.model_copy(deep=True)
+        self._alternatives = tuple(item.model_copy(deep=True) for item in alternatives)
+        if len(self._alternatives) < 2:
+            raise ValueError("Decision Twin requiere al menos dos alternativas")
+        refs = tuple(item.representation_ref for item in self._alternatives)
+        if len(refs) != len(set(refs)):
+            raise ValueError("representation_ref duplicada")
+        super().__init__(
+            label="DECISION_TWIN", reference_case_id=reference_case_id,
+            producer=self._produce, adapter=adapt_twin,
+            capture_factory=DecisionTwinInvocationCapture,
+        )
+
+    def _produce(self, purchase: PurchaseOperation,
+                 context: DecisionContext) -> DecisionTwinComparison:
+        mismatches = tuple(field for field in PurchaseOperation.model_fields
+                           if getattr(self._purchase, field) != getattr(purchase, field))
+        if mismatches:
+            raise ValueError("Observed Decision Twin purchase mismatch: "
+                             + ", ".join(mismatches))
+        return build_provenanced_decision_twin_comparison(
+            purchase=purchase, context=context, preparation=self._preparation,
+            alternatives=self._alternatives,
+        )
+
+    def source_payload(self) -> dict:
+        return {
+            "purchase": self._purchase.model_dump(mode="json"),
+            "preparation": self._preparation.model_dump(mode="json"),
+            "alternatives": [item.model_dump(mode="json") for item in self._alternatives],
+        }
+
+
+def build_reference_observed_decision_twin_invoker(
+    *, purchase: PurchaseOperation, preparation: O4O2O3Preparation,
+    alternatives: tuple[ProvenancedDecisionTwinAlternativeInput, ...],
+    reference_case_id: str,
+) -> ObservedDecisionTwinInvoker:
+    return ObservedDecisionTwinInvoker(
+        purchase=purchase, preparation=preparation,
+        alternatives=alternatives, reference_case_id=reference_case_id,
+    )
 
 
 __all__ = [
