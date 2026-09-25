@@ -1,0 +1,32 @@
+"""Single-command synthetic demonstration packaging."""
+import json
+
+import pytest
+
+from examples.reference_business_case_demo import create_reference_demo
+
+
+def test_demo_generates_both_exact_terminal_results_and_review(tmp_path):
+    output = tmp_path / "reference-demo"
+    negative_path, eligible_path, review_path = create_reference_demo(output)
+    negative = json.loads(negative_path.read_text(encoding="utf-8"))
+    eligible = json.loads(eligible_path.read_text(encoding="utf-8"))
+    html = review_path.read_text(encoding="utf-8")
+
+    assert negative["qtg_quality_result"]["status"] == "NO_APTO"
+    assert eligible["qtg_quality_result"]["status"] == "APTO"
+    assert negative["operational_path"] == eligible["operational_path"] == "FORBIDDEN"
+    assert negative["operational_effect"] is eligible["operational_effect"] is False
+    assert negative["decision_authority"] is eligible["decision_authority"] is False
+    assert negative["terminal_fingerprint"] in html
+    assert eligible["terminal_fingerprint"] in html
+
+
+def test_demo_does_not_replace_existing_output(tmp_path):
+    output = tmp_path / "reference-demo"
+    output.mkdir()
+    sentinel = output / "my-notes.txt"
+    sentinel.write_text("keep", encoding="utf-8")
+    with pytest.raises(FileExistsError, match="Output already exists"):
+        create_reference_demo(output)
+    assert sentinel.read_text(encoding="utf-8") == "keep"
