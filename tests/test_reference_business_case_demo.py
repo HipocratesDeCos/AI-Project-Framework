@@ -92,3 +92,46 @@ def test_demo_rejects_changed_price_value(tmp_path):
     files[3].write_text(json.dumps(altered), encoding="utf-8")
     with pytest.raises(ValueError, match="PRICE observation fingerprint"):
         verify_reference_demo(output)
+
+
+@pytest.mark.parametrize("with_price", [False, True])
+def test_demo_exports_and_replays_tco_observations(tmp_path, with_price):
+    output = tmp_path / "reference-with-tco"
+    files = create_reference_demo(output, with_price=with_price, with_tco=True)
+    assert len(files) == (7 if with_price else 5)
+    negative = json.loads(files[0].read_text(encoding="utf-8"))
+    eligible = json.loads(files[1].read_text(encoding="utf-8"))
+    negative_tco, eligible_tco = (
+        json.loads((output / name).read_text(encoding="utf-8"))
+        for name in ("reference-negative-tco.json", "reference-tco.json")
+    )
+    html = files[2].read_text(encoding="utf-8")
+    assert negative_tco["terminal_fingerprint"] == negative["terminal_fingerprint"]
+    assert eligible_tco["terminal_fingerprint"] == eligible["terminal_fingerprint"]
+    assert negative_tco["tco_result"]["value"] == "205.00"
+    assert negative_tco["trace_references"] == []
+    assert html.count("Observación TCO sintética") == 2
+    assert html.count("Coste de adquisición modelado") == 2
+    assert "lo no informado no equivale a coste cero" in html
+    assert html.count("Observación PRICE sintética") == (2 if with_price else 0)
+    assert verify_reference_demo(output) == (
+        negative["terminal_fingerprint"], eligible["terminal_fingerprint"],
+    )
+
+
+def test_demo_rejects_missing_or_tampered_tco_sidecar(tmp_path):
+    output = tmp_path / "reference-with-tco"
+    create_reference_demo(output, with_tco=True)
+    negative_tco = output / "reference-negative-tco.json"
+    eligible_tco = output / "reference-tco.json"
+    eligible_tco.unlink()
+    with pytest.raises(ValueError, match="Both TCO observations"):
+        verify_reference_demo(output)
+    eligible_tco.write_bytes(negative_tco.read_bytes())
+    with pytest.raises(ValueError, match="TCO observation identity"):
+        verify_reference_demo(output)
+    altered = json.loads(negative_tco.read_text(encoding="utf-8"))
+    altered["tco_result"]["value"] = "999.00"
+    negative_tco.write_text(json.dumps(altered), encoding="utf-8")
+    with pytest.raises(ValueError, match="TCO observation fingerprint"):
+        verify_reference_demo(output)

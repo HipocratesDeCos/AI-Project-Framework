@@ -11,6 +11,9 @@ from eios.core.reference_simulation_execution import SCHEMA_VERSION
 from eios.core.reference_price_observation import (
     validate_reference_price_observation_payload,
 )
+from eios.core.reference_tco_observation import (
+    validate_reference_tco_observation_payload,
+)
 
 
 def _digest(value: object) -> str:
@@ -94,6 +97,7 @@ def _checked(payload: dict, label: str) -> dict:
 def render_review(
     negative: dict, eligible: dict,
     price_observations: tuple[dict, dict] | None = None,
+    tco_observations: tuple[dict, dict] | None = None,
 ) -> str:
     """Validate terminal artifacts and produce an inert HTML comparison."""
     negative = _checked(negative, "negative")
@@ -105,6 +109,11 @@ def render_review(
             raise ValueError("PRICE observations require both variants")
         for observation, terminal in zip(price_observations, (negative, eligible)):
             validate_reference_price_observation_payload(observation, terminal)
+    if tco_observations is not None:
+        if not isinstance(tco_observations, tuple) or len(tco_observations) != 2:
+            raise ValueError("TCO observations require both variants")
+        for observation, terminal in zip(tco_observations, (negative, eligible)):
+            validate_reference_tco_observation_payload(observation, terminal)
 
     def val(item: object) -> str:
         return escape(str(item), quote=True)
@@ -160,6 +169,33 @@ def render_review(
                 f'<p>Referencias seleccionadas: {val(", ".join(price["reference_set"]) or "Ninguna")}</p>'
                 f'<p>Huella de la observación: <code>{val(observation["observation_fingerprint"])}</code></p>'
             )
+        tco_html = ""
+        if tco_observations is not None:
+            observation = tco_observations[index]
+            result = observation["tco_result"]
+            purchase = observation["tco_input"]["purchase_operation"]
+            amount = (f'{val(result["value"])} {val(result["currency"])}'
+                      if result["value"] is not None else "Importe no disponible")
+            components = ", ".join(result["contributing_components"]) or "Ninguno"
+            pending = ", ".join(result["unresolved_components"]) or "Ninguno"
+            limitations = ", ".join(result["limitations"]) or "Sin limitaciones declaradas"
+            tco_html = (
+                '<h3>Observación TCO sintética</h3>'
+                '<p>Coste de adquisición modelado para la compra ficticia; '
+                'no representa todos los costes de propiedad de una empresa.</p>'
+                f'<p>Valor: {amount} · Cantidad: {val(purchase["quantity"])} unidades '
+                f'· Precio unitario de entrada: {val(purchase["unit_price"])} '
+                f'{val(purchase["currency"])}</p>'
+                f'<p>Componentes incluidos: {val(components)}. '
+                f'Pendientes: {val(pending)}. Limitaciones: {val(limitations)}.</p>'
+                '<p>El fixture no aporta costes atribuibles adicionales. '
+                'No se han suministrado importes de transporte, seguros, aranceles, '
+                'financiación, almacenaje, obsolescencia ni devoluciones; '
+                'lo no informado no equivale a coste cero.</p>'
+                '<p>Trazas TCO: sin referencias proporcionadas por el productor. '
+                'Sin autoridad decisional ni efecto operacional.</p>'
+                f'<p>Huella de la observación: <code>{val(observation["observation_fingerprint"])}</code></p>'
+            )
         sections.append(f'<section><h2>{val(name)}: {val(payload["reference_case_id"])}</h2>'
                         f'<p>Secuencia: {val(" → ".join(payload["capability_sequence"]))}</p>'
                         '<div class="table-scroll"><table><caption>Controles QTG declarados</caption>'
@@ -167,7 +203,7 @@ def render_review(
                         '<th scope="col">Crítico</th><th scope="col">Material</th>'
                         '<th scope="col">Motivo</th><th scope="col">Evidencias</th>'
                         '</tr></thead><tbody>' + "".join(check_rows) + '</tbody></table></div>'
-                        + price_html +
+                        + price_html + tco_html +
                         '<table><caption>Capacidades y referencias de traza</caption>'
                         '<thead><tr><th scope="col">Capacidad</th><th scope="col">Estado</th>'
                         '<th scope="col">Trazas</th></tr></thead><tbody>' + "".join(rows) + '</tbody></table>'
@@ -202,6 +238,8 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--negative-price", type=Path)
     parser.add_argument("--qtg-eligible-price", type=Path)
+    parser.add_argument("--negative-tco", type=Path)
+    parser.add_argument("--qtg-eligible-tco", type=Path)
     args = parser.parse_args()
     negative = json.loads(args.negative.read_text(encoding="utf-8"))
     eligible = json.loads(args.qtg_eligible.read_text(encoding="utf-8"))
@@ -213,7 +251,16 @@ def main() -> None:
             json.loads(args.negative_price.read_text(encoding="utf-8")),
             json.loads(args.qtg_eligible_price.read_text(encoding="utf-8")),
         )
-    html = render_review(negative, eligible, price_observations=observations)
+    if (args.negative_tco is None) != (args.qtg_eligible_tco is None):
+        parser.error("Both TCO observation files must be supplied together")
+    tco_observations = None
+    if args.negative_tco is not None:
+        tco_observations = (
+            json.loads(args.negative_tco.read_text(encoding="utf-8")),
+            json.loads(args.qtg_eligible_tco.read_text(encoding="utf-8")),
+        )
+    html = render_review(negative, eligible, price_observations=observations,
+                         tco_observations=tco_observations)
     args.output.write_text(html, encoding="utf-8")
     print(f"Vista de revisión creada: {args.output}")
 
