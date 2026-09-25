@@ -1,7 +1,7 @@
 """Executable synthetic Reference Business Case 001, never operational."""
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
 
@@ -158,6 +158,10 @@ def _provenanced_c0_invoker(purchase, context, *, observed=False,
         tuple(assessment.evidence_ids),
         assessment,
     )
+    trace = trace.model_copy(update={
+        "created_at": datetime.combine(purchase.operation_date, datetime.min.time(),
+                                        tzinfo=timezone.utc),
+    })
     binding = AssessmentTraceBinding(
         assessment=assessment,
         trace=trace,

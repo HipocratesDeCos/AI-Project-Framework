@@ -176,3 +176,45 @@ def test_demo_rejects_missing_or_altered_supplier_sidecar(tmp_path):
     negative.write_text(json.dumps(altered), encoding="utf-8")
     with pytest.raises(ValueError, match="Supplier observation fingerprint"):
         verify_reference_demo(output)
+
+
+@pytest.mark.parametrize("with_others", [False, True])
+def test_demo_exports_and_replays_c0_with_qtg_context(tmp_path, with_others):
+    output = tmp_path / "reference-with-c0"
+    files = create_reference_demo(
+        output, with_c0=True, with_price=with_others,
+        with_tco=with_others, with_supplier_risk=with_others,
+    )
+    assert len(files) == (11 if with_others else 5)
+    negative, eligible = (json.loads((output / name).read_text(encoding="utf-8"))
+                          for name in ("reference-negative-c0.json", "reference-c0.json"))
+    assert (negative["qtg_status"], eligible["qtg_status"]) == ("NO_APTO", "APTO")
+    assert negative["vertical_result"]["assessments"] == eligible["vertical_result"]["assessments"]
+    assert negative["qtg_c0_derivation_proven"] is False
+    assert negative["base_result"] == "COMPRAR"
+    html = files[2].read_text(encoding="utf-8")
+    assert html.count("Observación C0/CRC sintética") == 2
+    assert "Un C0 COMPLETED no equivale a QTG APTO" in html
+    assert "no son una orden" in html
+    assert verify_reference_demo(output) == tuple(
+        json.loads(files[i].read_text(encoding="utf-8"))["terminal_fingerprint"]
+        for i in (0, 1)
+    )
+
+
+def test_demo_rejects_missing_or_modified_c0_sidecar(tmp_path):
+    output = tmp_path / "reference-with-c0"
+    create_reference_demo(output, with_c0=True)
+    negative = output / "reference-negative-c0.json"
+    eligible = output / "reference-c0.json"
+    eligible.unlink()
+    with pytest.raises(ValueError, match="Both C0 observations"):
+        verify_reference_demo(output)
+    eligible.write_bytes(negative.read_bytes())
+    with pytest.raises(ValueError, match="C0 observation identity"):
+        verify_reference_demo(output)
+    modified = json.loads(negative.read_text(encoding="utf-8"))
+    modified["crc_result"]["consolidated_result"] = "NO COMPRAR"
+    negative.write_text(json.dumps(modified), encoding="utf-8")
+    with pytest.raises(ValueError, match="C0 observation fingerprint"):
+        verify_reference_demo(output)
