@@ -432,6 +432,12 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool,
         negotiation_intelligence_invoker=ni_invoker,
         negotiation_ladder_invoker=ladder_invoker,
     )
+    if observe_price and observe_tco:
+        return execution, _close_reference_price_observation(
+            execution=execution, price_invoker=price_invoker,
+        ), _close_reference_tco_observation(
+            execution=execution, tco_invoker=tco_invoker,
+        )
     if observe_tco:
         return execution, _close_reference_tco_observation(
             execution=execution, tco_invoker=tco_invoker,
@@ -457,6 +463,13 @@ def execute_reference_business_case_with_tco_observation(*, variant: str):
     """Return terminal and same-run synthetic TCO observation."""
     return _execute_reference_business_case(
         variant=variant, observe_price=False, observe_tco=True,
+    )
+
+
+def execute_reference_business_case_with_analytical_observations(*, variant: str):
+    """Return terminal and both captures from a single reference run."""
+    return _execute_reference_business_case(
+        variant=variant, observe_price=True, observe_tco=True,
     )
 
 
