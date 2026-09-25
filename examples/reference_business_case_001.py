@@ -11,7 +11,10 @@ from eios.core.models import DecisionContext, Evidence, EvidenceValidation, Purc
 from eios.core.negotiation_intelligence import NegotiationContent
 from eios.core.o4_o2_o3_orchestration import prepare_o4_o2_o3_orchestration
 from eios.core.scenario_generation import GenerationPolicy, GenerationVariable
-from eios.core.price_integration import build_provenanced_price_invoker
+from eios.core.price_integration import (
+    build_provenanced_price_invoker, build_reference_observed_price_invoker,
+)
+from eios.core.reference_price_observation import _close_reference_price_observation
 from eios.core.projection_mock_dataset import load_projection_mock_dataset
 from eios.core.projection_quality_consumer import consume_projection_quality
 from eios.core.projection_quality_producer import produce_projection_quality
@@ -155,7 +158,8 @@ def _provenanced_c0_invoker(purchase, context):
     )
     return invoker, assessment, trace
 
-def _provenanced_price_invoker(purchase, context):
+def _provenanced_price_invoker(purchase, context, *, observed=False,
+                              reference_case_id=None):
     reference_ids = ("REF-PRICE-TX-001", "REF-PRICE-TX-002")
     evidence_ids = ("E-REF-PRICE-001", "E-REF-PRICE-002")
     references = (
@@ -230,10 +234,12 @@ def _provenanced_price_invoker(purchase, context):
             selected_reference_ids=reference_ids,
         ),
     )
-    return build_provenanced_price_invoker(
-        payload=price_input,
-        assessment_context=assessment_context,
-    )
+    kwargs = {"payload": price_input, "assessment_context": assessment_context}
+    if observed:
+        return build_reference_observed_price_invoker(
+            **kwargs, reference_case_id=reference_case_id,
+        )
+    return build_provenanced_price_invoker(**kwargs)
 
 def _provenanced_tco_invoker(purchase):
     return build_provenanced_tco_invoker(
@@ -366,7 +372,7 @@ def _synthetic_negotiation_sources(purchase, context, trace_id):
     return carrier, (evidence,)
 
 
-def execute_reference_business_case(*, variant: str):
+def _execute_reference_business_case(*, variant: str, observe_price: bool):
     """Run the full closed reference sequence from one of two physical fixtures."""
     if variant not in {"negative", "qtg-eligible"}:
         raise ValueError("variant must be negative or qtg-eligible")
@@ -391,11 +397,15 @@ def execute_reference_business_case(*, variant: str):
         content_evidence=carrier, evidences=evidences,
         bindings=(AssessmentTraceBinding(assessment=assessment, trace=trace),),
     )
-    return run_reference_operational_simulation(
+    price_invoker = _provenanced_price_invoker(
+        purchase, context, observed=observe_price,
+        reference_case_id=reference_case_id,
+    )
+    execution = run_reference_operational_simulation(
         provenance=provenance, bundle=bundle, receipt=receipt,
         consumption=consumption, purchase=purchase, context=context,
         policy_version=f"REF-BUSINESS-001-{variant}-v1",
-        price_invoker=_provenanced_price_invoker(purchase, context),
+        price_invoker=price_invoker,
         tco_invoker=_provenanced_tco_invoker(purchase),
         supplier_risk_value_invoker=_provenanced_supplier_risk_invoker(
             purchase, context
@@ -412,6 +422,21 @@ def execute_reference_business_case(*, variant: str):
         negotiation_intelligence_invoker=ni_invoker,
         negotiation_ladder_invoker=ladder_invoker,
     )
+    if observe_price:
+        return execution, _close_reference_price_observation(
+            execution=execution, price_invoker=price_invoker,
+        )
+    return execution
+
+
+def execute_reference_business_case(*, variant: str):
+    """Run the existing full synthetic reference sequence."""
+    return _execute_reference_business_case(variant=variant, observe_price=False)
+
+
+def execute_reference_business_case_with_price_observation(*, variant: str):
+    """Return terminal and same-run synthetic PRICE observation."""
+    return _execute_reference_business_case(variant=variant, observe_price=True)
 
 
 def main() -> None:
