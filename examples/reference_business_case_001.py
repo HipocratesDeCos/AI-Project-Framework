@@ -26,6 +26,7 @@ from eios.core.reference_decision_twin_observation import (
 from eios.core.reference_scenario_coordination_observation import (
     _close_reference_scenario_coordination_observation,
 )
+from eios.core.reference_ni_observation import _close_reference_ni_observation
 from eios.core.projection_mock_dataset import load_projection_mock_dataset
 from eios.core.projection_quality_consumer import consume_projection_quality
 from eios.core.projection_quality_producer import produce_projection_quality
@@ -52,6 +53,7 @@ from eios.rules.catalog import authorized_rule
 from eios.rules.provenance import build_reference_observed_rules_engine_c0_invoker
 from eios.rules.decision_twin_integration import build_reference_observed_decision_twin_invoker
 from eios.rules.scenario_integration import build_reference_observed_scenario_coordination_invoker
+from eios.rules.negotiation_provenance import build_reference_observed_c0_bound_ni_invoker
 from eios.rules.data_quality import evaluate_r_dat_003
 from eios.pricing.models import (
     PriceIntelligenceAssessmentContext, PriceIntelligenceInput, PriceReference,
@@ -414,6 +416,7 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool,
                                      observe_c0: bool = False,
                                      observe_twin: bool = False,
                                      observe_scenario: bool = False,
+                                     observe_ni: bool = False,
                                      return_observation_map: bool = False):
     """Run the full closed reference sequence from one of two physical fixtures."""
     if variant not in {"negative", "qtg-eligible"}:
@@ -442,6 +445,12 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool,
         content_evidence=carrier, evidences=evidences,
         bindings=(AssessmentTraceBinding(assessment=assessment, trace=trace),),
     )
+    if observe_ni:
+        ni_invoker = build_reference_observed_c0_bound_ni_invoker(
+            purchase=purchase, content_evidence=carrier, evidences=evidences,
+            bindings=(AssessmentTraceBinding(assessment=assessment, trace=trace),),
+            reference_case_id=reference_case_id,
+        )
     price_invoker = _provenanced_price_invoker(
         purchase, context, observed=observe_price,
         reference_case_id=reference_case_id,
@@ -509,6 +518,10 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool,
         observations["scenario_coordination"] = _close_reference_scenario_coordination_observation(
             execution=execution, scenario_invoker=scenario_invoker,
         )
+    if observe_ni:
+        observations["negotiation_intelligence"] = _close_reference_ni_observation(
+            execution=execution, ni_invoker=ni_invoker,
+        )
     if return_observation_map:
         return execution, observations
     if observations:
@@ -552,6 +565,7 @@ def execute_reference_business_case_with_selected_observations(
     with_supplier_risk: bool = False, with_c0: bool = False,
     with_decision_twin: bool = False,
     with_scenario_coordination: bool = False,
+    with_negotiation_intelligence: bool = False,
 ):
     """Run once and return a keyed map of requested same-call captures."""
     return _execute_reference_business_case(
@@ -559,7 +573,15 @@ def execute_reference_business_case_with_selected_observations(
         observe_supplier_risk=with_supplier_risk, observe_c0=with_c0,
         observe_twin=with_decision_twin,
         observe_scenario=with_scenario_coordination,
+        observe_ni=with_negotiation_intelligence,
         return_observation_map=True,
+    )
+
+
+def execute_reference_business_case_with_ni_observation(*, variant: str):
+    """Return terminal and same-call synthetic NI observation."""
+    return _execute_reference_business_case(
+        variant=variant, observe_price=False, observe_ni=True,
     )
 
 

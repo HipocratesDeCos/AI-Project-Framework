@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import dataclass
 from hashlib import sha256
 import json
 from typing import Literal
@@ -24,6 +25,7 @@ from eios.core.negotiation_ladder import (
     NegotiationLadderResult,
 )
 from eios.core.orchestration import CapabilityExecution
+from eios.core.observed_invocation import SingleUseObservedInvoker
 from eios.core.validation import validate_evidence
 
 from .provenance import AssessmentTraceBinding, validate_assessment_trace_binding
@@ -316,19 +318,10 @@ def build_c0_bound_ni_ladder_invokers(
     def validated_result(
         purchase: PurchaseOperation, context: DecisionContext,
     ) -> NegotiationIntelligenceResult:
-        purchase_snapshot = purchase.model_copy(deep=True)
-        context_snapshot = context.model_copy(deep=True)
-        for binding in binding_snapshots:
-            validate_assessment_trace_binding(
-                purchase=purchase_snapshot,
-                context=context_snapshot,
-                binding=binding,
-            )
-        return produce_negotiation_intelligence(
-            purchase=purchase_snapshot,
-            context=context_snapshot,
-            content_evidence=content_snapshot.model_copy(deep=True),
-            evidences=tuple(item.model_copy(deep=True) for item in evidence_snapshot),
+        return _produce_c0_bound_ni(
+            purchase=purchase, context=context,
+            content_evidence=content_snapshot, evidences=evidence_snapshot,
+            bindings=binding_snapshots,
         )
 
     def ni_invoker(purchase: PurchaseOperation, context: DecisionContext) -> CapabilityExecution:
@@ -343,6 +336,92 @@ def build_c0_bound_ni_ladder_invokers(
         ))
 
     return ni_invoker, ladder_invoker
+
+
+def _produce_c0_bound_ni(
+    *, purchase: PurchaseOperation, context: DecisionContext,
+    content_evidence: NegotiationContentEvidence,
+    evidences: tuple[Evidence, ...],
+    bindings: tuple[AssessmentTraceBinding, ...],
+) -> NegotiationIntelligenceResult:
+    if not bindings or len({item.trace.trace_id for item in bindings}) != len(bindings):
+        raise ValueError("NI requiere bindings C0 únicos y no vacíos")
+    if set(content_evidence.trace_refs) != {item.trace.trace_id for item in bindings}:
+        raise ValueError("NI trace_refs no coincide con bindings C0")
+    purchase_snapshot = purchase.model_copy(deep=True)
+    context_snapshot = context.model_copy(deep=True)
+    for binding in bindings:
+        validate_assessment_trace_binding(
+            purchase=purchase_snapshot, context=context_snapshot,
+            binding=binding.model_copy(deep=True),
+        )
+    return produce_negotiation_intelligence(
+        purchase=purchase_snapshot, context=context_snapshot,
+        content_evidence=content_evidence.model_copy(deep=True),
+        evidences=tuple(item.model_copy(deep=True) for item in evidences),
+    )
+
+
+@dataclass(frozen=True)
+class NIInvocationCapture:
+    result: NegotiationIntelligenceResult
+    capability: CapabilityExecution
+
+
+class ObservedC0BoundNIInvoker(SingleUseObservedInvoker[
+    NegotiationIntelligenceResult, NIInvocationCapture
+]):
+    """Capture the same C0-bound NI result adapted in the reference plan."""
+
+    def __init__(self, *, purchase: PurchaseOperation,
+                 content_evidence: NegotiationContentEvidence,
+                 evidences: tuple[Evidence, ...],
+                 bindings: tuple[AssessmentTraceBinding, ...],
+                 reference_case_id: str) -> None:
+        self._purchase = purchase.model_copy(deep=True)
+        self._content = content_evidence.model_copy(deep=True)
+        self._evidences = tuple(item.model_copy(deep=True) for item in evidences)
+        self._bindings = tuple(item.model_copy(deep=True) for item in bindings)
+        if not self._bindings:
+            raise ValueError("NI requiere bindings C0 no vacíos")
+        if len({item.trace.trace_id for item in self._bindings}) != len(self._bindings):
+            raise ValueError("NI no acepta trace_id C0 duplicado")
+        if set(self._content.trace_refs) != {item.trace.trace_id for item in self._bindings}:
+            raise ValueError("NI trace_refs no coincide con bindings C0")
+        super().__init__(label="NEGOTIATION_INTELLIGENCE",
+                         reference_case_id=reference_case_id,
+                         producer=self._produce, adapter=adapt_ni,
+                         capture_factory=NIInvocationCapture)
+
+    def _produce(self, purchase: PurchaseOperation,
+                 context: DecisionContext) -> NegotiationIntelligenceResult:
+        mismatches = tuple(field for field in PurchaseOperation.model_fields
+                           if getattr(self._purchase, field) != getattr(purchase, field))
+        if mismatches:
+            raise ValueError("Observed NI purchase mismatch: " + ", ".join(mismatches))
+        return _produce_c0_bound_ni(
+            purchase=purchase, context=context, content_evidence=self._content,
+            evidences=self._evidences, bindings=self._bindings,
+        )
+
+    def source_payload(self) -> dict:
+        return {
+            "purchase": self._purchase.model_dump(mode="json"),
+            "content_evidence": self._content.model_dump(mode="json"),
+            "evidences": [item.model_dump(mode="json") for item in self._evidences],
+            "bindings": [item.model_dump(mode="json") for item in self._bindings],
+        }
+
+
+def build_reference_observed_c0_bound_ni_invoker(
+    *, purchase: PurchaseOperation, content_evidence: NegotiationContentEvidence,
+    evidences: tuple[Evidence, ...], bindings: tuple[AssessmentTraceBinding, ...],
+    reference_case_id: str,
+) -> ObservedC0BoundNIInvoker:
+    return ObservedC0BoundNIInvoker(
+        purchase=purchase, content_evidence=content_evidence,
+        evidences=evidences, bindings=bindings, reference_case_id=reference_case_id,
+    )
 
 
 __all__ = [
