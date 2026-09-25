@@ -328,11 +328,10 @@ def build_c0_bound_ni_ladder_invokers(
         return adapt_ni(validated_result(purchase, context))
 
     def ladder_invoker(purchase: PurchaseOperation, context: DecisionContext) -> CapabilityExecution:
-        result = validated_result(purchase, context)
-        return adapt_nl(produce_negotiation_ladder(
-            negotiation_result=result,
-            purchase=purchase.model_copy(deep=True),
-            context=context.model_copy(deep=True),
+        return adapt_nl(_produce_c0_bound_ladder(
+            purchase=purchase, context=context,
+            content_evidence=content_snapshot, evidences=evidence_snapshot,
+            bindings=binding_snapshots,
         ))
 
     return ni_invoker, ladder_invoker
@@ -419,6 +418,83 @@ def build_reference_observed_c0_bound_ni_invoker(
     reference_case_id: str,
 ) -> ObservedC0BoundNIInvoker:
     return ObservedC0BoundNIInvoker(
+        purchase=purchase, content_evidence=content_evidence,
+        evidences=evidences, bindings=bindings, reference_case_id=reference_case_id,
+    )
+
+
+def _produce_c0_bound_ladder(
+    *, purchase: PurchaseOperation, context: DecisionContext,
+    content_evidence: NegotiationContentEvidence,
+    evidences: tuple[Evidence, ...],
+    bindings: tuple[AssessmentTraceBinding, ...],
+) -> NegotiationLadderResult:
+    ni = _produce_c0_bound_ni(
+        purchase=purchase, context=context, content_evidence=content_evidence,
+        evidences=evidences, bindings=bindings,
+    )
+    return produce_negotiation_ladder(
+        negotiation_result=ni, purchase=purchase.model_copy(deep=True),
+        context=context.model_copy(deep=True),
+    )
+
+
+@dataclass(frozen=True)
+class LadderInvocationCapture:
+    result: NegotiationLadderResult
+    capability: CapabilityExecution
+
+
+class ObservedC0BoundLadderInvoker(SingleUseObservedInvoker[
+    NegotiationLadderResult, LadderInvocationCapture
+]):
+    """Capture the independent NI replay and Ladder structure in one invocation."""
+
+    def __init__(self, *, purchase: PurchaseOperation,
+                 content_evidence: NegotiationContentEvidence,
+                 evidences: tuple[Evidence, ...],
+                 bindings: tuple[AssessmentTraceBinding, ...],
+                 reference_case_id: str) -> None:
+        self._purchase = purchase.model_copy(deep=True)
+        self._content = content_evidence.model_copy(deep=True)
+        self._evidences = tuple(item.model_copy(deep=True) for item in evidences)
+        self._bindings = tuple(item.model_copy(deep=True) for item in bindings)
+        if not self._bindings:
+            raise ValueError("Ladder requiere bindings C0 no vacíos")
+        trace_ids = tuple(item.trace.trace_id for item in self._bindings)
+        if len(trace_ids) != len(set(trace_ids)) or set(self._content.trace_refs) != set(trace_ids):
+            raise ValueError("Ladder trace_refs no coincide con bindings C0 únicos")
+        super().__init__(label="NEGOTIATION_LADDER",
+                         reference_case_id=reference_case_id,
+                         producer=self._produce, adapter=adapt_nl,
+                         capture_factory=LadderInvocationCapture)
+
+    def _produce(self, purchase: PurchaseOperation,
+                 context: DecisionContext) -> NegotiationLadderResult:
+        mismatches = tuple(field for field in PurchaseOperation.model_fields
+                           if getattr(self._purchase, field) != getattr(purchase, field))
+        if mismatches:
+            raise ValueError("Observed Ladder purchase mismatch: " + ", ".join(mismatches))
+        return _produce_c0_bound_ladder(
+            purchase=purchase, context=context, content_evidence=self._content,
+            evidences=self._evidences, bindings=self._bindings,
+        )
+
+    def source_payload(self) -> dict:
+        return {
+            "purchase": self._purchase.model_dump(mode="json"),
+            "content_evidence": self._content.model_dump(mode="json"),
+            "evidences": [item.model_dump(mode="json") for item in self._evidences],
+            "bindings": [item.model_dump(mode="json") for item in self._bindings],
+        }
+
+
+def build_reference_observed_c0_bound_ladder_invoker(
+    *, purchase: PurchaseOperation, content_evidence: NegotiationContentEvidence,
+    evidences: tuple[Evidence, ...], bindings: tuple[AssessmentTraceBinding, ...],
+    reference_case_id: str,
+) -> ObservedC0BoundLadderInvoker:
+    return ObservedC0BoundLadderInvoker(
         purchase=purchase, content_evidence=content_evidence,
         evidences=evidences, bindings=bindings, reference_case_id=reference_case_id,
     )
