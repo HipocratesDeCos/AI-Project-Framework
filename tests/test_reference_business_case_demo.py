@@ -218,3 +218,44 @@ def test_demo_rejects_missing_or_modified_c0_sidecar(tmp_path):
     negative.write_text(json.dumps(modified), encoding="utf-8")
     with pytest.raises(ValueError, match="C0 observation fingerprint"):
         verify_reference_demo(output)
+
+
+@pytest.mark.parametrize("combined", [False, True])
+def test_demo_exports_and_replays_structural_decision_twin(tmp_path, combined):
+    output = tmp_path / "reference-with-twin"
+    files = create_reference_demo(
+        output, with_decision_twin=True, with_price=combined,
+        with_tco=combined, with_supplier_risk=combined, with_c0=combined,
+    )
+    assert len(files) == (13 if combined else 5)
+    negative = json.loads(files[0].read_text(encoding="utf-8"))
+    twin = json.loads((output / "reference-negative-decision-twin.json").read_text(
+        encoding="utf-8",
+    ))
+    assert twin["terminal_fingerprint"] == negative["terminal_fingerprint"]
+    assert twin["selected_alternative"] is None
+    assert twin["differences"] == []
+    assert len(twin["alternative_refs"]) == 2
+    html = files[2].read_text(encoding="utf-8")
+    assert html.count("Observación Decision Twin sintética") == 2
+    assert "No hay puntuación, ranking, preferencia" in html
+    assert "no demuestra equivalencia comercial universal" in html
+    assert verify_reference_demo(output)[0] == negative["terminal_fingerprint"]
+
+
+def test_demo_rejects_missing_or_tampered_twin_sidecar(tmp_path):
+    output = tmp_path / "reference-with-twin"
+    create_reference_demo(output, with_decision_twin=True)
+    negative = output / "reference-negative-decision-twin.json"
+    eligible = output / "reference-decision-twin.json"
+    eligible.unlink()
+    with pytest.raises(ValueError, match="Both DECISION_TWIN observations"):
+        verify_reference_demo(output)
+    eligible.write_bytes(negative.read_bytes())
+    with pytest.raises(ValueError, match="Decision Twin observation identity"):
+        verify_reference_demo(output)
+    altered = json.loads(negative.read_text(encoding="utf-8"))
+    altered["comparison"]["differences"] = ["viability"]
+    negative.write_text(json.dumps(altered), encoding="utf-8")
+    with pytest.raises(ValueError, match="Decision Twin observation fingerprint"):
+        verify_reference_demo(output)
