@@ -18,6 +18,9 @@ from eios.core.reference_supplier_risk_observation import (
     validate_reference_supplier_risk_observation_payload,
 )
 from eios.core.reference_c0_observation import validate_reference_c0_observation_payload
+from eios.core.reference_decision_twin_observation import (
+    validate_reference_decision_twin_observation_payload,
+)
 
 
 def _digest(value: object) -> str:
@@ -104,6 +107,7 @@ def render_review(
     tco_observations: tuple[dict, dict] | None = None,
     supplier_observations: tuple[dict, dict] | None = None,
     c0_observations: tuple[dict, dict] | None = None,
+    twin_observations: tuple[dict, dict] | None = None,
 ) -> str:
     """Validate terminal artifacts and produce an inert HTML comparison."""
     negative = _checked(negative, "negative")
@@ -130,6 +134,11 @@ def render_review(
             raise ValueError("C0 observations require both variants")
         for observation, terminal in zip(c0_observations, (negative, eligible)):
             validate_reference_c0_observation_payload(observation, terminal)
+    if twin_observations is not None:
+        if not isinstance(twin_observations, tuple) or len(twin_observations) != 2:
+            raise ValueError("Decision Twin observations require both variants")
+        for observation, terminal in zip(twin_observations, (negative, eligible)):
+            validate_reference_decision_twin_observation_payload(observation, terminal)
 
     def val(item: object) -> str:
         return escape(str(item), quote=True)
@@ -268,6 +277,33 @@ def render_review(
                 f'Trazas C0: <code>{val(traces or "Sin referencias")}</code>.</p>'
                 f'<p>Huella de la observación: <code>{val(observation["observation_fingerprint"])}</code></p>'
             )
+        twin_html = ""
+        if twin_observations is not None:
+            observation = twin_observations[index]
+            comparison = observation["comparison"]
+            values = {item["attribute"]: item["values"]
+                      for item in comparison["observations"]}
+            viability = values.get("viability", [])
+            viability_text = ", ".join(
+                f"{ref}: {status}" for ref, status in viability
+            ) or "No informada"
+            differences = ", ".join(comparison["differences"]) or "Ninguna en los atributos incluidos"
+            missing = ", ".join(comparison["missing_attributes"]) or "Ninguno declarado"
+            twin_html = (
+                '<h3>Observación Decision Twin sintética</h3>'
+                '<p>Comparación estructural descriptiva de representaciones '
+                'transitorias. No hay puntuación, ranking, preferencia ni '
+                'alternativa seleccionada.</p>'
+                f'<p>Representaciones: {val(", ".join(comparison["alternatives"]))}. '
+                f'Viabilidad informada: {val(viability_text)}.</p>'
+                f'<p>Diferencias: {val(differences)}. '
+                f'Atributos faltantes: {val(missing)}.</p>'
+                '<p>Las condiciones, consecuencias y referencias de riesgo '
+                'están vacías en este fixture. La ausencia de diferencias '
+                'no demuestra equivalencia comercial universal ni '
+                'viabilidad empresarial real. Ruta operacional FORBIDDEN.</p>'
+                f'<p>Huella de la observación: <code>{val(observation["observation_fingerprint"])}</code></p>'
+            )
         sections.append(f'<section><h2>{val(name)}: {val(payload["reference_case_id"])}</h2>'
                         f'<p>Secuencia: {val(" → ".join(payload["capability_sequence"]))}</p>'
                         '<div class="table-scroll"><table><caption>Controles QTG declarados</caption>'
@@ -275,7 +311,7 @@ def render_review(
                         '<th scope="col">Crítico</th><th scope="col">Material</th>'
                         '<th scope="col">Motivo</th><th scope="col">Evidencias</th>'
                         '</tr></thead><tbody>' + "".join(check_rows) + '</tbody></table></div>'
-                        + price_html + tco_html + supplier_html + c0_html +
+                        + price_html + tco_html + supplier_html + c0_html + twin_html +
                         '<table><caption>Capacidades y referencias de traza</caption>'
                         '<thead><tr><th scope="col">Capacidad</th><th scope="col">Estado</th>'
                         '<th scope="col">Trazas</th></tr></thead><tbody>' + "".join(rows) + '</tbody></table>'
@@ -316,6 +352,8 @@ def main() -> None:
     parser.add_argument("--qtg-eligible-supplier-risk", type=Path)
     parser.add_argument("--negative-c0", type=Path)
     parser.add_argument("--qtg-eligible-c0", type=Path)
+    parser.add_argument("--negative-decision-twin", type=Path)
+    parser.add_argument("--qtg-eligible-decision-twin", type=Path)
     args = parser.parse_args()
     negative = json.loads(args.negative.read_text(encoding="utf-8"))
     eligible = json.loads(args.qtg_eligible.read_text(encoding="utf-8"))
@@ -351,10 +389,19 @@ def main() -> None:
             json.loads(args.negative_c0.read_text(encoding="utf-8")),
             json.loads(args.qtg_eligible_c0.read_text(encoding="utf-8")),
         )
+    if (args.negative_decision_twin is None) != (args.qtg_eligible_decision_twin is None):
+        parser.error("Both Decision Twin observation files must be supplied together")
+    twin_observations = None
+    if args.negative_decision_twin is not None:
+        twin_observations = (
+            json.loads(args.negative_decision_twin.read_text(encoding="utf-8")),
+            json.loads(args.qtg_eligible_decision_twin.read_text(encoding="utf-8")),
+        )
     html = render_review(negative, eligible, price_observations=observations,
                          tco_observations=tco_observations,
                          supplier_observations=supplier_observations,
-                         c0_observations=c0_observations)
+                         c0_observations=c0_observations,
+                         twin_observations=twin_observations)
     args.output.write_text(html, encoding="utf-8")
     print(f"Vista de revisión creada: {args.output}")
 
