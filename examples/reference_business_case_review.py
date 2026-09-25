@@ -49,6 +49,13 @@ def _checked(payload: dict, label: str) -> dict:
         raise ValueError(f"{label}: provenance fingerprint mismatch")
     if not isinstance(quality, dict) or not isinstance(quality.get("status"), str) or not isinstance(quality.get("confidence"), str):
         raise ValueError(f"{label}: QTG result missing")
+    expected_variant = {
+        "negative": ("REF-BUSINESS-001", "NO_APTO", "BAJA"),
+        "qtg-eligible": ("REF-BUSINESS-001-QTG-ELIGIBLE", "APTO", "ALTA"),
+    }
+    case_id, status, confidence = expected_variant[label]
+    if (payload.get("reference_case_id"), quality["status"], quality["confidence"]) != (case_id, status, confidence):
+        raise ValueError(f"{label}: case identity or QTG variant mismatch")
     if not isinstance(outcome, dict) or not isinstance(outcome.get("status"), str):
         raise ValueError(f"{label}: execution outcome missing")
     if payload.get("execution_outcome_fingerprint") != _digest(outcome):
