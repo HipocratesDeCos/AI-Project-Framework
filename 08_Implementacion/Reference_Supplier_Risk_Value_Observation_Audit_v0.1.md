@@ -90,3 +90,21 @@ Permanecen `material_nature=SYNTHETIC`, `qtg_mode_policy=SYNTHETIC_TEST_ONLY`,
 Esta unidad solo documenta el hallazgo y el contrato de aceptación. La
 captura, exportación y presentación serán unidades posteriores con pruebas y
 CI propias. No se modifican productor, fachada, O1, terminal ni fixtures.
+
+## Unidad posterior — captura materializada
+
+`ObservedSupplierRiskValueInvoker` reutiliza `SingleUseObservedInvoker` y
+congela la compra fuente completa, el resultado Supplier Evidence, las
+evaluaciones y sus evidencias. Compara todos los campos de compra y la
+identidad del contexto antes de una llamada a `produce_supplier_risk_value`;
+el builder original comparte la función de producción y el adaptador O1 sin
+cambiar su firma. La captura retiene copias defensivas del resultado y del
+`CapabilityExecution` exacto de esa llamada, incluso si la evaluación queda
+parcialmente completada.
+
+El sidecar separado conserva las fuentes y sus huellas, el inventario de
+fuentes factuales, el resultado, la ejecución O1 y el terminal sintético.
+Rotula la procedencia como `DECLARED_SYNTHETIC_EXTERNAL_ASSESSMENT` y declara
+si hay comparaciones Value. Su validación coteja identidad, inventario,
+declaraciones Risk/Value, referencias, estado, pendientes y trazas. No se
+agrega el resultado al terminal ni se exporta todavía desde la demo.

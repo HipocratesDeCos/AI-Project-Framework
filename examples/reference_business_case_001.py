@@ -16,6 +16,9 @@ from eios.core.price_integration import (
 )
 from eios.core.reference_price_observation import _close_reference_price_observation
 from eios.core.reference_tco_observation import _close_reference_tco_observation
+from eios.core.reference_supplier_risk_observation import (
+    _close_reference_supplier_risk_observation,
+)
 from eios.core.projection_mock_dataset import load_projection_mock_dataset
 from eios.core.projection_quality_consumer import consume_projection_quality
 from eios.core.projection_quality_producer import produce_projection_quality
@@ -50,6 +53,7 @@ from eios.supplier import (
     SupplierEvidenceInput, SupplierRiskDimensionAssessment,
     build_provenanced_supplier_risk_value_invoker, evaluate_supplier_evidence,
 )
+from eios.supplier.risk_value import build_reference_observed_supplier_risk_value_invoker
 
 FIXTURES = Path(__file__).resolve().parent.parent / "tests" / "fixtures"
 SEMANTIC = FIXTURES / "projection_only_semantic_dataset_01"
@@ -252,7 +256,8 @@ def _provenanced_tco_invoker(purchase, *, observed=False, reference_case_id=None
         )
     return build_provenanced_tco_invoker(payload=payload)
 
-def _provenanced_supplier_risk_invoker(purchase, context):
+def _provenanced_supplier_risk_invoker(purchase, context, *, observed=False,
+                                      reference_case_id=None):
     supplier_result = evaluate_supplier_evidence(
         SupplierEvidenceInput(
             context=context.model_copy(deep=True),
@@ -295,12 +300,17 @@ def _provenanced_supplier_risk_invoker(purchase, context):
         evidence_refs=("E-REF-SRV-RISK",),
         trace_refs=("trace:reference:business:001:supplier:risk",),
     )
-    return build_provenanced_supplier_risk_value_invoker(
+    kwargs = dict(
         supplier_result=supplier_result,
         risk_assessments=(risk,),
         value_assessments=(),
         evidences=evidences,
     )
+    if observed:
+        return build_reference_observed_supplier_risk_value_invoker(
+            reference_case_id=reference_case_id, purchase=purchase, **kwargs,
+        )
+    return build_provenanced_supplier_risk_value_invoker(**kwargs)
 
 def _scenario_sources(purchase, context):
     preparation = prepare_o4_o2_o3_orchestration(
@@ -379,7 +389,8 @@ def _synthetic_negotiation_sources(purchase, context, trace_id):
 
 
 def _execute_reference_business_case(*, variant: str, observe_price: bool,
-                                     observe_tco: bool = False):
+                                     observe_tco: bool = False,
+                                     observe_supplier_risk: bool = False):
     """Run the full closed reference sequence from one of two physical fixtures."""
     if variant not in {"negative", "qtg-eligible"}:
         raise ValueError("variant must be negative or qtg-eligible")
@@ -411,15 +422,17 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool,
     tco_invoker = _provenanced_tco_invoker(
         purchase, observed=observe_tco, reference_case_id=reference_case_id,
     )
+    supplier_invoker = _provenanced_supplier_risk_invoker(
+        purchase, context, observed=observe_supplier_risk,
+        reference_case_id=reference_case_id,
+    )
     execution = run_reference_operational_simulation(
         provenance=provenance, bundle=bundle, receipt=receipt,
         consumption=consumption, purchase=purchase, context=context,
         policy_version=f"REF-BUSINESS-001-{variant}-v1",
         price_invoker=price_invoker,
         tco_invoker=tco_invoker,
-        supplier_risk_value_invoker=_provenanced_supplier_risk_invoker(
-            purchase, context
-        ),
+        supplier_risk_value_invoker=supplier_invoker,
         rules_invoker=c0_invoker,
         decision_twin_invoker=build_provenanced_decision_twin_invoker(
             preparation=preparation, alternatives=_twin_alternatives(inputs),
@@ -432,6 +445,10 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool,
         negotiation_intelligence_invoker=ni_invoker,
         negotiation_ladder_invoker=ladder_invoker,
     )
+    if observe_supplier_risk:
+        return execution, _close_reference_supplier_risk_observation(
+            execution=execution, supplier_invoker=supplier_invoker,
+        )
     if observe_price and observe_tco:
         return execution, _close_reference_price_observation(
             execution=execution, price_invoker=price_invoker,
@@ -470,6 +487,13 @@ def execute_reference_business_case_with_analytical_observations(*, variant: str
     """Return terminal and both captures from a single reference run."""
     return _execute_reference_business_case(
         variant=variant, observe_price=True, observe_tco=True,
+    )
+
+
+def execute_reference_business_case_with_supplier_risk_observation(*, variant: str):
+    """Return terminal and same-run synthetic external supplier assessment."""
+    return _execute_reference_business_case(
+        variant=variant, observe_price=False, observe_supplier_risk=True,
     )
 
 

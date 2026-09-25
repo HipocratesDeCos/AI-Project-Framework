@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from eios.core.models import DecisionContext, Evidence, PurchaseOperation
 from eios.core.orchestration import CapabilityExecution, O1ExecutionStatus
+from eios.core.observed_invocation import SingleUseObservedInvoker
 from eios.core.validation import validate_evidence
 
 from .models import SupplierEvidenceResult
@@ -236,6 +238,103 @@ def produce_supplier_risk_value(
 SupplierRiskValueInvoker = Callable[[PurchaseOperation, DecisionContext], CapabilityExecution]
 
 
+@dataclass(frozen=True)
+class SupplierRiskValueInvocationCapture:
+    result: SupplierRiskValueResult
+    capability: CapabilityExecution
+
+
+def _frozen_sources(supplier_result, risk_assessments, value_assessments, evidences):
+    return (
+        supplier_result.model_copy(deep=True),
+        tuple(item.model_copy(deep=True) for item in risk_assessments),
+        tuple(item.model_copy(deep=True) for item in value_assessments),
+        tuple(item.model_copy(deep=True) for item in evidences),
+    )
+
+
+def _produce_bound(purchase, context, supplier_snapshot, risk_snapshot,
+                   value_snapshot, evidence_snapshot):
+    return produce_supplier_risk_value(
+        purchase=purchase.model_copy(deep=True),
+        context=context.model_copy(deep=True),
+        supplier_result=supplier_snapshot.model_copy(deep=True),
+        risk_assessments=tuple(item.model_copy(deep=True) for item in risk_snapshot),
+        value_assessments=tuple(item.model_copy(deep=True) for item in value_snapshot),
+        evidences=tuple(item.model_copy(deep=True) for item in evidence_snapshot),
+    )
+
+
+def _adapt_result(result: SupplierRiskValueResult) -> CapabilityExecution:
+    status = (O1ExecutionStatus.PARTIALLY_COMPLETED if result.unresolved_items
+              else O1ExecutionStatus.COMPLETED)
+    return CapabilityExecution(
+        capability="SUPPLIER_RISK_VALUE", status=status, result_available=True,
+        trace_references=result.trace_refs, unresolved_items=result.unresolved_items,
+    )
+
+
+class ObservedSupplierRiskValueInvoker(SingleUseObservedInvoker[
+    SupplierRiskValueResult, SupplierRiskValueInvocationCapture
+]):
+    """One-shot reference capture with complete frozen purchase identity."""
+
+    def __init__(self, *, reference_case_id: str, purchase: PurchaseOperation,
+                 supplier_result: SupplierEvidenceResult,
+                 risk_assessments: tuple[SupplierRiskDimensionAssessment, ...],
+                 value_assessments: tuple[SupplierValueDimensionAssessment, ...],
+                 evidences: tuple[Evidence, ...]) -> None:
+        self._purchase = purchase.model_copy(deep=True)
+        self._sources = _frozen_sources(
+            supplier_result, risk_assessments, value_assessments, evidences,
+        )
+        super().__init__(
+            label="SUPPLIER_RISK_VALUE", reference_case_id=reference_case_id,
+            producer=self._produce, adapter=_adapt_result,
+            capture_factory=SupplierRiskValueInvocationCapture,
+        )
+
+    def _produce(self, purchase: PurchaseOperation,
+                 context: DecisionContext) -> SupplierRiskValueResult:
+        mismatches = tuple(field for field in PurchaseOperation.model_fields
+                           if getattr(self._purchase, field) != getattr(purchase, field))
+        if mismatches:
+            raise ValueError("Observed supplier purchase mismatch: " + ", ".join(mismatches))
+        identity = self._sources[0].identity
+        context_mismatches = tuple(field for field in (
+            "decision_id", "scenario_id", "rules_version", "parameters_version",
+            "data_snapshot_id",
+        ) if getattr(identity, field) != getattr(context, field))
+        if context_mismatches:
+            raise ValueError("Observed supplier context mismatch: "
+                             + ", ".join(context_mismatches))
+        return _produce_bound(purchase, context, *self._sources)
+
+    def source_payload(self) -> dict:
+        supplier, risks, values, evidences = self._sources
+        return {
+            "purchase": self._purchase.model_dump(mode="json"),
+            "supplier_result": supplier.model_dump(mode="json"),
+            "risk_assessments": [x.model_dump(mode="json") for x in risks],
+            "value_assessments": [x.model_dump(mode="json") for x in values],
+            "evidences": [x.model_dump(mode="json") for x in evidences],
+        }
+
+
+def build_reference_observed_supplier_risk_value_invoker(
+    *, reference_case_id: str, purchase: PurchaseOperation,
+    supplier_result: SupplierEvidenceResult,
+    risk_assessments: tuple[SupplierRiskDimensionAssessment, ...],
+    value_assessments: tuple[SupplierValueDimensionAssessment, ...],
+    evidences: tuple[Evidence, ...],
+) -> ObservedSupplierRiskValueInvoker:
+    return ObservedSupplierRiskValueInvoker(
+        reference_case_id=reference_case_id, purchase=purchase,
+        supplier_result=supplier_result, risk_assessments=risk_assessments,
+        value_assessments=value_assessments, evidences=evidences,
+    )
+
+
 def build_provenanced_supplier_risk_value_invoker(
     *,
     supplier_result: SupplierEvidenceResult,
@@ -243,32 +342,14 @@ def build_provenanced_supplier_risk_value_invoker(
     value_assessments: tuple[SupplierValueDimensionAssessment, ...],
     evidences: tuple[Evidence, ...],
 ) -> SupplierRiskValueInvoker:
-    supplier_snapshot = supplier_result.model_copy(deep=True)
-    risk_snapshot = tuple(item.model_copy(deep=True) for item in risk_assessments)
-    value_snapshot = tuple(item.model_copy(deep=True) for item in value_assessments)
-    evidence_snapshot = tuple(item.model_copy(deep=True) for item in evidences)
+    supplier_snapshot, risk_snapshot, value_snapshot, evidence_snapshot = _frozen_sources(
+        supplier_result, risk_assessments, value_assessments, evidences,
+    )
 
     def invoke(purchase: PurchaseOperation, context: DecisionContext) -> CapabilityExecution:
-        result = produce_supplier_risk_value(
-            purchase=purchase.model_copy(deep=True),
-            context=context.model_copy(deep=True),
-            supplier_result=supplier_snapshot.model_copy(deep=True),
-            risk_assessments=tuple(item.model_copy(deep=True) for item in risk_snapshot),
-            value_assessments=tuple(item.model_copy(deep=True) for item in value_snapshot),
-            evidences=tuple(item.model_copy(deep=True) for item in evidence_snapshot),
-        )
-        status = (
-            O1ExecutionStatus.PARTIALLY_COMPLETED
-            if result.unresolved_items
-            else O1ExecutionStatus.COMPLETED
-        )
-        return CapabilityExecution(
-            capability="SUPPLIER_RISK_VALUE",
-            status=status,
-            result_available=True,
-            trace_references=result.trace_refs,
-            unresolved_items=result.unresolved_items,
-        )
+        result = _produce_bound(purchase, context, supplier_snapshot, risk_snapshot,
+                                value_snapshot, evidence_snapshot)
+        return _adapt_result(result)
 
     return invoke
 
@@ -283,5 +364,8 @@ __all__ = [
     "ValueDimension",
     "ValueState",
     "build_provenanced_supplier_risk_value_invoker",
+    "ObservedSupplierRiskValueInvoker",
+    "SupplierRiskValueInvocationCapture",
+    "build_reference_observed_supplier_risk_value_invoker",
     "produce_supplier_risk_value",
 ]
