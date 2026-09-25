@@ -56,6 +56,21 @@ def _checked(payload: dict, label: str) -> dict:
     case_id, status, confidence = expected_variant[label]
     if (payload.get("reference_case_id"), quality["status"], quality["confidence"]) != (case_id, status, confidence):
         raise ValueError(f"{label}: case identity or QTG variant mismatch")
+    checks = quality.get("checks")
+    if not isinstance(checks, list) or not checks or any(
+        not isinstance(check, dict)
+        or not isinstance(check.get("control"), str)
+        or not isinstance(check.get("reason"), str)
+        or not isinstance(check.get("applicable"), bool)
+        or not isinstance(check.get("critical"), bool)
+        or not isinstance(check.get("material"), bool)
+        or (check.get("satisfied") is not None
+            and type(check.get("satisfied")) is not bool)
+        or not isinstance(check.get("evidence_refs"), list)
+        or any(not isinstance(ref, str) for ref in check["evidence_refs"])
+        for check in checks
+    ):
+        raise ValueError(f"{label}: QTG checks malformed")
     if not isinstance(outcome, dict) or not isinstance(outcome.get("status"), str):
         raise ValueError(f"{label}: execution outcome missing")
     if payload.get("execution_outcome_fingerprint") != _digest(outcome):
@@ -90,6 +105,13 @@ def render_review(negative: dict, eligible: dict) -> str:
                 f'Ejecución técnica: {val(outcome["status"])}<br>'
                 f'Huella terminal: <code>{val(payload["terminal_fingerprint"])}</code></td>')
 
+    def check_state(check: dict) -> str:
+        if not check["applicable"]:
+            return "No aplica"
+        if check["satisfied"] is None:
+            return "No evaluable"
+        return "Satisfecho" if check["satisfied"] else "No satisfecho"
+
     sections = []
     for name, payload in (("Caso negativo", negative), ("Caso QTG elegible", eligible)):
         rows = []
@@ -98,14 +120,28 @@ def render_review(negative: dict, eligible: dict) -> str:
             refs = "<br>".join(f"<code>{val(ref)}</code>" for ref in traces) or "Sin referencias"
             rows.append(f'<tr><th scope="row">{val(item["capability"])}</th>'
                         f'<td>{val(item["status"])}</td><td>{refs}</td></tr>')
-        checks = payload["qtg_quality_result"].get("checks", [])
+        check_rows = []
+        for check in payload["qtg_quality_result"]["checks"]:
+            evidence = "<br>".join(
+                f"<code>{val(ref)}</code>" for ref in check["evidence_refs"]
+            ) or "Sin referencias"
+            check_rows.append(
+                f'<tr><th scope="row"><code>{val(check["control"])}</code></th>'
+                f'<td>{val(check_state(check))}</td>'
+                f'<td>{"Sí" if check["critical"] else "No"}</td>'
+                f'<td>{"Sí" if check["material"] else "No"}</td>'
+                f'<td>{val(check["reason"])}</td><td>{evidence}</td></tr>'
+            )
         sections.append(f'<section><h2>{val(name)}: {val(payload["reference_case_id"])}</h2>'
                         f'<p>Secuencia: {val(" → ".join(payload["capability_sequence"]))}</p>'
+                        '<div class="table-scroll"><table><caption>Controles QTG declarados</caption>'
+                        '<thead><tr><th scope="col">Control</th><th scope="col">Resultado</th>'
+                        '<th scope="col">Crítico</th><th scope="col">Material</th>'
+                        '<th scope="col">Motivo</th><th scope="col">Evidencias</th>'
+                        '</tr></thead><tbody>' + "".join(check_rows) + '</tbody></table></div>'
                         '<table><caption>Capacidades y referencias de traza</caption>'
                         '<thead><tr><th scope="col">Capacidad</th><th scope="col">Estado</th>'
                         '<th scope="col">Trazas</th></tr></thead><tbody>' + "".join(rows) + '</tbody></table>'
-                        '<details><summary>Resultado QTG completo</summary><pre>'
-                        + val(json.dumps(checks, ensure_ascii=False, indent=2)) + '</pre></details>'
                         '<details><summary>Pendientes y motivo de fallo técnico</summary><pre>'
                         + val(json.dumps({k: payload["execution_outcome"].get(k)
                                           for k in ("unresolved_items", "failure_reason")},
@@ -116,6 +152,7 @@ def render_review(negative: dict, eligible: dict) -> str:
             '<title>EIOS · Revisión sintética</title><style>'
             'body{font:16px/1.5 system-ui,sans-serif;max-width:72rem;margin:auto;padding:1.5rem;color:#182435}'
             'table{border-collapse:collapse;width:100%;margin:1rem 0 2rem}th,td{border:1px solid #8693a3;padding:.6rem;text-align:left;vertical-align:top}'
+            '.table-scroll{overflow-x:auto}.table-scroll table{min-width:50rem}'
             'thead{background:#e9eff5}section{margin-top:2rem}code,pre{overflow-wrap:anywhere;white-space:pre-wrap}'
             'details{margin:1rem 0}summary{cursor:pointer}</style></head><body>'
             '<main><h1>Revisión de simulación de referencia</h1>'
