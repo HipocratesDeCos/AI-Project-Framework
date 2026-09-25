@@ -19,6 +19,7 @@ from eios.core.reference_tco_observation import _close_reference_tco_observation
 from eios.core.reference_supplier_risk_observation import (
     _close_reference_supplier_risk_observation,
 )
+from eios.core.reference_c0_observation import _close_reference_c0_observation
 from eios.core.projection_mock_dataset import load_projection_mock_dataset
 from eios.core.projection_quality_consumer import consume_projection_quality
 from eios.core.projection_quality_producer import produce_projection_quality
@@ -42,6 +43,7 @@ from eios.rules import (
     build_provenanced_scenario_coordination_invoker,
 )
 from eios.rules.catalog import authorized_rule
+from eios.rules.provenance import build_reference_observed_rules_engine_c0_invoker
 from eios.rules.data_quality import evaluate_r_dat_003
 from eios.pricing.models import (
     PriceIntelligenceAssessmentContext, PriceIntelligenceInput, PriceReference,
@@ -87,7 +89,8 @@ def _qtg(bundle):
     )
     return receipt, consumption
 
-def _provenanced_c0_invoker(purchase, context):
+def _provenanced_c0_invoker(purchase, context, *, observed=False,
+                           reference_case_id=None):
     requirement_evidence = Evidence(
         evidence_id="E-REF-REQ-QTG",
         source_type="ReferenceRequirementEvidence",
@@ -159,10 +162,15 @@ def _provenanced_c0_invoker(purchase, context):
         assessment=assessment,
         trace=trace,
     )
-    invoker = build_provenanced_rules_engine_c0_invoker(
-        bindings=(binding,),
-        base_result="COMPRAR",
-    )
+    if observed:
+        invoker = build_reference_observed_rules_engine_c0_invoker(
+            bindings=(binding,), base_result="COMPRAR",
+            reference_case_id=reference_case_id,
+        )
+    else:
+        invoker = build_provenanced_rules_engine_c0_invoker(
+            bindings=(binding,), base_result="COMPRAR",
+        )
     return invoker, assessment, trace
 
 def _provenanced_price_invoker(purchase, context, *, observed=False,
@@ -391,6 +399,7 @@ def _synthetic_negotiation_sources(purchase, context, trace_id):
 def _execute_reference_business_case(*, variant: str, observe_price: bool,
                                      observe_tco: bool = False,
                                      observe_supplier_risk: bool = False,
+                                     observe_c0: bool = False,
                                      return_observation_map: bool = False):
     """Run the full closed reference sequence from one of two physical fixtures."""
     if variant not in {"negative", "qtg-eligible"}:
@@ -408,7 +417,10 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool,
         bundle=bundle, reference_case_id=reference_case_id,
     )
     preparation, inputs, _ = _scenario_sources(purchase, context)
-    c0_invoker, assessment, trace = _provenanced_c0_invoker(purchase, context)
+    c0_invoker, assessment, trace = _provenanced_c0_invoker(
+        purchase, context, observed=observe_c0,
+        reference_case_id=reference_case_id,
+    )
     carrier, evidences = _synthetic_negotiation_sources(
         purchase, context, trace.trace_id
     )
@@ -459,6 +471,10 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool,
         observations["supplier_risk"] = _close_reference_supplier_risk_observation(
             execution=execution, supplier_invoker=supplier_invoker,
         )
+    if observe_c0:
+        observations["c0"] = _close_reference_c0_observation(
+            execution=execution, c0_invoker=c0_invoker,
+        )
     if return_observation_map:
         return execution, observations
     if observations:
@@ -499,12 +515,20 @@ def execute_reference_business_case_with_supplier_risk_observation(*, variant: s
 
 def execute_reference_business_case_with_selected_observations(
     *, variant: str, with_price: bool = False, with_tco: bool = False,
-    with_supplier_risk: bool = False,
+    with_supplier_risk: bool = False, with_c0: bool = False,
 ):
     """Run once and return a keyed map of requested same-call captures."""
     return _execute_reference_business_case(
         variant=variant, observe_price=with_price, observe_tco=with_tco,
-        observe_supplier_risk=with_supplier_risk, return_observation_map=True,
+        observe_supplier_risk=with_supplier_risk, observe_c0=with_c0,
+        return_observation_map=True,
+    )
+
+
+def execute_reference_business_case_with_c0_observation(*, variant: str):
+    """Return terminal and same-call synthetic C0/CRC composition."""
+    return _execute_reference_business_case(
+        variant=variant, observe_price=False, observe_c0=True,
     )
 
 

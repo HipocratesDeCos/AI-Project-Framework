@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from copy import deepcopy
+from dataclasses import dataclass
 
 from pydantic import BaseModel, ConfigDict
 
@@ -17,6 +18,7 @@ from eios.core.crc_mvp import CRCInput, resolve_crc
 from eios.core.fingerprint import assessment_fingerprint, input_fingerprint
 from eios.core.models import Assessment, DecisionContext, PurchaseOperation, Rule, Trace
 from eios.core.orchestration import CapabilityExecution, build_support_package
+from eios.core.observed_invocation import SingleUseObservedInvoker
 
 from .catalog import authorized_rule, authorized_rule_metadata
 from .runtime import ConsolidatedBaseResult, RuleSetVerticalResult
@@ -32,6 +34,46 @@ class AssessmentTraceBinding(BaseModel):
 
 
 ProvenancedRulesC0Invoker = Callable[[PurchaseOperation, DecisionContext], CapabilityExecution]
+
+
+@dataclass(frozen=True)
+class C0InvocationCapture:
+    result: RuleSetVerticalResult
+    capability: CapabilityExecution
+
+
+class ObservedRulesC0Invoker(SingleUseObservedInvoker[RuleSetVerticalResult, C0InvocationCapture]):
+    """Capture the exact provenance-checked vertical result used by O1."""
+
+    def __init__(self, *, bindings: Sequence[AssessmentTraceBinding],
+                 base_result: ConsolidatedBaseResult, reference_case_id: str) -> None:
+        self._bindings = tuple(item.model_copy(deep=True) for item in bindings)
+        self._base_result = base_result
+        super().__init__(
+            label="C0", reference_case_id=reference_case_id,
+            producer=lambda purchase, context: run_provenanced_assessments_vertical(
+                purchase=purchase, context=context, bindings=self._bindings,
+                base_result=self._base_result,
+            ),
+            adapter=lambda result: result.c0_capability,
+            capture_factory=C0InvocationCapture,
+        )
+
+    def source_payload(self) -> dict:
+        return {
+            "bindings": [item.model_dump(mode="json") for item in self._bindings],
+            "base_result": self._base_result,
+        }
+
+
+def build_reference_observed_rules_engine_c0_invoker(
+    *, bindings: Sequence[AssessmentTraceBinding],
+    base_result: ConsolidatedBaseResult, reference_case_id: str,
+) -> ObservedRulesC0Invoker:
+    return ObservedRulesC0Invoker(
+        bindings=bindings, base_result=base_result,
+        reference_case_id=reference_case_id,
+    )
 
 
 def _validate_purchase_context(
@@ -224,6 +266,9 @@ __all__ = [
     "AssessmentTraceBinding",
     "ProvenancedRulesC0Invoker",
     "build_provenanced_rules_engine_c0_invoker",
+    "C0InvocationCapture",
+    "ObservedRulesC0Invoker",
+    "build_reference_observed_rules_engine_c0_invoker",
     "run_provenanced_assessments_vertical",
     "validate_assessment_trace_binding",
 ]
