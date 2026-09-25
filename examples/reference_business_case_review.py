@@ -21,6 +21,9 @@ from eios.core.reference_c0_observation import validate_reference_c0_observation
 from eios.core.reference_decision_twin_observation import (
     validate_reference_decision_twin_observation_payload,
 )
+from eios.core.reference_scenario_coordination_observation import (
+    validate_reference_scenario_coordination_observation_payload,
+)
 
 
 def _digest(value: object) -> str:
@@ -108,6 +111,7 @@ def render_review(
     supplier_observations: tuple[dict, dict] | None = None,
     c0_observations: tuple[dict, dict] | None = None,
     twin_observations: tuple[dict, dict] | None = None,
+    scenario_observations: tuple[dict, dict] | None = None,
 ) -> str:
     """Validate terminal artifacts and produce an inert HTML comparison."""
     negative = _checked(negative, "negative")
@@ -139,6 +143,11 @@ def render_review(
             raise ValueError("Decision Twin observations require both variants")
         for observation, terminal in zip(twin_observations, (negative, eligible)):
             validate_reference_decision_twin_observation_payload(observation, terminal)
+    if scenario_observations is not None:
+        if not isinstance(scenario_observations, tuple) or len(scenario_observations) != 2:
+            raise ValueError("Scenario Coordination observations require both variants")
+        for observation, terminal in zip(scenario_observations, (negative, eligible)):
+            validate_reference_scenario_coordination_observation_payload(observation, terminal)
 
     def val(item: object) -> str:
         return escape(str(item), quote=True)
@@ -304,6 +313,32 @@ def render_review(
                 'viabilidad empresarial real. Ruta operacional FORBIDDEN.</p>'
                 f'<p>Huella de la observación: <code>{val(observation["observation_fingerprint"])}</code></p>'
             )
+        scenario_html = ""
+        if scenario_observations is not None:
+            observation = scenario_observations[index]
+            support = observation["support"]
+            scenario_rows = "".join(
+                f'<tr><th scope="row"><code>{val(item["scenario_id"])}</code></th>'
+                f'<td>{val(item["status"])}</td>'
+                f'<td>{val(item["values"].get("viability_result", {}).get("status", "No informado"))}</td>'
+                f'<td>{val(", ".join(item["trace_references"]) or "Sin referencias")}</td></tr>'
+                for item in support["scenarios"]
+            )
+            scenario_html = (
+                '<h3>Observación Scenario Coordination sintética</h3>'
+                '<p>Soporte O2 descriptivo de escenarios derivados; no elige, '
+                'prioriza ni autoriza un escenario.</p>'
+                '<table><caption>Escenarios coordinados</caption><thead><tr>'
+                '<th scope="col">Escenario</th><th scope="col">Ejecución</th>'
+                '<th scope="col">Viabilidad declarada</th><th scope="col">Trazas</th>'
+                '</tr></thead><tbody>' + scenario_rows + '</tbody></table>'
+                '<p>Ambos escenarios del fixture tienen estado de viabilidad VIABLE. '
+                'La comparación O2 registra una diferencia estructural en '
+                'viability_result porque cada objeto contiene un scenario_id distinto; '
+                'esto no demuestra una diferencia de viabilidad de negocio. '
+                'COMPLETED no equivale a admisión QTG. Ruta operacional FORBIDDEN.</p>'
+                f'<p>Huella de la observación: <code>{val(observation["observation_fingerprint"])}</code></p>'
+            )
         sections.append(f'<section><h2>{val(name)}: {val(payload["reference_case_id"])}</h2>'
                         f'<p>Secuencia: {val(" → ".join(payload["capability_sequence"]))}</p>'
                         '<div class="table-scroll"><table><caption>Controles QTG declarados</caption>'
@@ -311,7 +346,7 @@ def render_review(
                         '<th scope="col">Crítico</th><th scope="col">Material</th>'
                         '<th scope="col">Motivo</th><th scope="col">Evidencias</th>'
                         '</tr></thead><tbody>' + "".join(check_rows) + '</tbody></table></div>'
-                        + price_html + tco_html + supplier_html + c0_html + twin_html +
+                        + price_html + tco_html + supplier_html + c0_html + twin_html + scenario_html +
                         '<table><caption>Capacidades y referencias de traza</caption>'
                         '<thead><tr><th scope="col">Capacidad</th><th scope="col">Estado</th>'
                         '<th scope="col">Trazas</th></tr></thead><tbody>' + "".join(rows) + '</tbody></table>'
@@ -354,6 +389,8 @@ def main() -> None:
     parser.add_argument("--qtg-eligible-c0", type=Path)
     parser.add_argument("--negative-decision-twin", type=Path)
     parser.add_argument("--qtg-eligible-decision-twin", type=Path)
+    parser.add_argument("--negative-scenario-coordination", type=Path)
+    parser.add_argument("--qtg-eligible-scenario-coordination", type=Path)
     args = parser.parse_args()
     negative = json.loads(args.negative.read_text(encoding="utf-8"))
     eligible = json.loads(args.qtg_eligible.read_text(encoding="utf-8"))
@@ -397,11 +434,20 @@ def main() -> None:
             json.loads(args.negative_decision_twin.read_text(encoding="utf-8")),
             json.loads(args.qtg_eligible_decision_twin.read_text(encoding="utf-8")),
         )
+    if (args.negative_scenario_coordination is None) != (args.qtg_eligible_scenario_coordination is None):
+        parser.error("Both Scenario Coordination observation files must be supplied together")
+    scenario_observations = None
+    if args.negative_scenario_coordination is not None:
+        scenario_observations = (
+            json.loads(args.negative_scenario_coordination.read_text(encoding="utf-8")),
+            json.loads(args.qtg_eligible_scenario_coordination.read_text(encoding="utf-8")),
+        )
     html = render_review(negative, eligible, price_observations=observations,
                          tco_observations=tco_observations,
                          supplier_observations=supplier_observations,
                          c0_observations=c0_observations,
-                         twin_observations=twin_observations)
+                         twin_observations=twin_observations,
+                         scenario_observations=scenario_observations)
     args.output.write_text(html, encoding="utf-8")
     print(f"Vista de revisión creada: {args.output}")
 
