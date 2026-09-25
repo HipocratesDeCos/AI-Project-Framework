@@ -390,7 +390,8 @@ def _synthetic_negotiation_sources(purchase, context, trace_id):
 
 def _execute_reference_business_case(*, variant: str, observe_price: bool,
                                      observe_tco: bool = False,
-                                     observe_supplier_risk: bool = False):
+                                     observe_supplier_risk: bool = False,
+                                     return_observation_map: bool = False):
     """Run the full closed reference sequence from one of two physical fixtures."""
     if variant not in {"negative", "qtg-eligible"}:
         raise ValueError("variant must be negative or qtg-eligible")
@@ -445,24 +446,23 @@ def _execute_reference_business_case(*, variant: str, observe_price: bool,
         negotiation_intelligence_invoker=ni_invoker,
         negotiation_ladder_invoker=ladder_invoker,
     )
-    if observe_supplier_risk:
-        return execution, _close_reference_supplier_risk_observation(
-            execution=execution, supplier_invoker=supplier_invoker,
-        )
-    if observe_price and observe_tco:
-        return execution, _close_reference_price_observation(
+    observations = {}
+    if observe_price:
+        observations["price"] = _close_reference_price_observation(
             execution=execution, price_invoker=price_invoker,
-        ), _close_reference_tco_observation(
-            execution=execution, tco_invoker=tco_invoker,
         )
     if observe_tco:
-        return execution, _close_reference_tco_observation(
+        observations["tco"] = _close_reference_tco_observation(
             execution=execution, tco_invoker=tco_invoker,
         )
-    if observe_price:
-        return execution, _close_reference_price_observation(
-            execution=execution, price_invoker=price_invoker,
+    if observe_supplier_risk:
+        observations["supplier_risk"] = _close_reference_supplier_risk_observation(
+            execution=execution, supplier_invoker=supplier_invoker,
         )
+    if return_observation_map:
+        return execution, observations
+    if observations:
+        return (execution, *(observations[key] for key in observations))
     return execution
 
 
@@ -494,6 +494,17 @@ def execute_reference_business_case_with_supplier_risk_observation(*, variant: s
     """Return terminal and same-run synthetic external supplier assessment."""
     return _execute_reference_business_case(
         variant=variant, observe_price=False, observe_supplier_risk=True,
+    )
+
+
+def execute_reference_business_case_with_selected_observations(
+    *, variant: str, with_price: bool = False, with_tco: bool = False,
+    with_supplier_risk: bool = False,
+):
+    """Run once and return a keyed map of requested same-call captures."""
+    return _execute_reference_business_case(
+        variant=variant, observe_price=with_price, observe_tco=with_tco,
+        observe_supplier_risk=with_supplier_risk, return_observation_map=True,
     )
 
 

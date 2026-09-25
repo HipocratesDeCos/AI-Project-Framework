@@ -8,10 +8,7 @@ import shutil
 import tempfile
 
 from .reference_business_case_001 import (
-    execute_reference_business_case,
-    execute_reference_business_case_with_price_observation,
-    execute_reference_business_case_with_tco_observation,
-    execute_reference_business_case_with_analytical_observations,
+    execute_reference_business_case_with_selected_observations,
 )
 from .reference_business_case_review import render_review
 
@@ -19,10 +16,12 @@ from .reference_business_case_review import render_review
 _NAMES = ("reference-negative-result.json", "reference-result.json", "reference-review.html")
 _PRICE_NAMES = ("reference-negative-price.json", "reference-price.json")
 _TCO_NAMES = ("reference-negative-tco.json", "reference-tco.json")
+_SUPPLIER_NAMES = ("reference-negative-supplier-risk.json", "reference-supplier-risk.json")
 
 
 def create_reference_demo(output_dir: Path, *, with_price: bool = False,
-                          with_tco: bool = False) -> tuple[Path, ...]:
+                          with_tco: bool = False,
+                          with_supplier_risk: bool = False) -> tuple[Path, ...]:
     """Reuse closed runners and publish one complete local demonstration directory."""
     output_dir = Path(output_dir)
     if output_dir.exists():
@@ -32,39 +31,25 @@ def create_reference_demo(output_dir: Path, *, with_price: bool = False,
 
     observations = None
     tco_observations = None
-    if with_price and with_tco:
-        negative_execution, negative_price, negative_tco = (
-            execute_reference_business_case_with_analytical_observations(variant="negative")
-        )
-        eligible_execution, eligible_price, eligible_tco = (
-            execute_reference_business_case_with_analytical_observations(variant="qtg-eligible")
-        )
-        negative, eligible = negative_execution.to_payload(), eligible_execution.to_payload()
-        observations = (negative_price.to_payload(), eligible_price.to_payload())
-        tco_observations = (negative_tco.to_payload(), eligible_tco.to_payload())
-    elif with_price:
-        negative_execution, negative_price = execute_reference_business_case_with_price_observation(
-            variant="negative",
-        )
-        eligible_execution, eligible_price = execute_reference_business_case_with_price_observation(
-            variant="qtg-eligible",
-        )
-        negative, eligible = negative_execution.to_payload(), eligible_execution.to_payload()
-        observations = (negative_price.to_payload(), eligible_price.to_payload())
-    elif with_tco:
-        negative_execution, negative_tco = execute_reference_business_case_with_tco_observation(
-            variant="negative",
-        )
-        eligible_execution, eligible_tco = execute_reference_business_case_with_tco_observation(
-            variant="qtg-eligible",
-        )
-        negative, eligible = negative_execution.to_payload(), eligible_execution.to_payload()
-        tco_observations = (negative_tco.to_payload(), eligible_tco.to_payload())
-    else:
-        negative = execute_reference_business_case(variant="negative").to_payload()
-        eligible = execute_reference_business_case(variant="qtg-eligible").to_payload()
+    negative_run, negative_captures = execute_reference_business_case_with_selected_observations(
+        variant="negative", with_price=with_price, with_tco=with_tco,
+        with_supplier_risk=with_supplier_risk,
+    )
+    eligible_run, eligible_captures = execute_reference_business_case_with_selected_observations(
+        variant="qtg-eligible", with_price=with_price, with_tco=with_tco,
+        with_supplier_risk=with_supplier_risk,
+    )
+    negative, eligible = negative_run.to_payload(), eligible_run.to_payload()
+    def pair(key):
+        return (negative_captures[key].to_payload(), eligible_captures[key].to_payload())
+    if with_price:
+        observations = pair("price")
+    if with_tco:
+        tco_observations = pair("tco")
+    supplier_observations = pair("supplier_risk") if with_supplier_risk else None
     html = render_review(negative, eligible, price_observations=observations,
-                         tco_observations=tco_observations)
+                         tco_observations=tco_observations,
+                         supplier_observations=supplier_observations)
 
     stage = Path(tempfile.mkdtemp(prefix=".reference-demo-", dir=output_dir.parent))
     try:
@@ -86,12 +71,19 @@ def create_reference_demo(output_dir: Path, *, with_price: bool = False,
                     json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
                     encoding="utf-8",
                 )
+        if supplier_observations is not None:
+            for name, payload in zip(_SUPPLIER_NAMES, supplier_observations):
+                (stage / name).write_text(
+                    json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
         stage.rename(output_dir)
     finally:
         if stage.exists():
             shutil.rmtree(stage)
     return tuple(output_dir / name for name in (
         _NAMES + (_PRICE_NAMES if with_price else ()) + (_TCO_NAMES if with_tco else ())
+        + (_SUPPLIER_NAMES if with_supplier_risk else ())
     ))
 
 
@@ -113,42 +105,31 @@ def verify_reference_demo(directory: Path) -> tuple[str, str]:
         raise ValueError("Both TCO observations are required together")
     tco_observations = (tuple(json.loads((directory / name).read_text(encoding="utf-8"))
                               for name in _TCO_NAMES) if all(tco_present) else None)
+    supplier_present = tuple((directory / name).exists() for name in _SUPPLIER_NAMES)
+    if any(supplier_present) and not all(supplier_present):
+        raise ValueError("Both SUPPLIER_RISK_VALUE observations are required together")
+    supplier_observations = (tuple(json.loads((directory / name).read_text(encoding="utf-8"))
+                                   for name in _SUPPLIER_NAMES) if all(supplier_present) else None)
 
     expected_html = render_review(negative, eligible, price_observations=observations,
-                                  tco_observations=tco_observations)
+                                  tco_observations=tco_observations,
+                                  supplier_observations=supplier_observations)
     if stored_html != expected_html:
         raise ValueError("Review HTML differs from the two terminal artifacts")
     for variant, stored in (("negative", negative), ("qtg-eligible", eligible)):
-        if observations is not None and tco_observations is not None:
-            replayed, replayed_price, replayed_tco = (
-                execute_reference_business_case_with_analytical_observations(variant=variant)
-            )
-            saved_price = observations[0 if variant == "negative" else 1]
-            saved_tco = tco_observations[0 if variant == "negative" else 1]
-            if saved_price != replayed_price.to_payload():
-                raise ValueError(f"{variant}: PRICE observation differs from fixture replay")
-            if saved_tco != replayed_tco.to_payload():
-                raise ValueError(f"{variant}: TCO observation differs from fixture replay")
-            replayed = replayed.to_payload()
-        elif observations is None and tco_observations is None:
-            replayed = execute_reference_business_case(variant=variant).to_payload()
-        elif observations is not None:
-            replayed, replayed_price = execute_reference_business_case_with_price_observation(
-                variant=variant,
-            )
-            replayed = replayed.to_payload()
-            saved_price = observations[0 if variant == "negative" else 1]
-            if saved_price != replayed_price.to_payload():
-                raise ValueError(f"{variant}: PRICE observation differs from fixture replay")
-        else:
-            replayed, replayed_tco = execute_reference_business_case_with_tco_observation(
-                variant=variant,
-            )
-            replayed = replayed.to_payload()
-            saved_tco = tco_observations[0 if variant == "negative" else 1]
-            if saved_tco != replayed_tco.to_payload():
-                raise ValueError(f"{variant}: TCO observation differs from fixture replay")
-        if stored != replayed:
+        replayed, captures = execute_reference_business_case_with_selected_observations(
+            variant=variant, with_price=observations is not None,
+            with_tco=tco_observations is not None,
+            with_supplier_risk=supplier_observations is not None,
+        )
+        index = 0 if variant == "negative" else 1
+        for label, saved_pair, key in (
+            ("PRICE", observations, "price"), ("TCO", tco_observations, "tco"),
+            ("SUPPLIER_RISK_VALUE", supplier_observations, "supplier_risk"),
+        ):
+            if saved_pair is not None and saved_pair[index] != captures[key].to_payload():
+                raise ValueError(f"{variant}: {label} observation differs from fixture replay")
+        if stored != replayed.to_payload():
             raise ValueError(f"{variant}: terminal differs from the current fixture replay")
     return negative["terminal_fingerprint"], eligible["terminal_fingerprint"]
 
@@ -164,17 +145,20 @@ def main() -> None:
                         help="Export both same-run PRICE observations and show them in HTML")
     parser.add_argument("--with-tco", action="store_true",
                         help="Export both same-run TCO observations and show them in HTML")
+    parser.add_argument("--with-supplier-risk", action="store_true",
+                        help="Export both synthetic supplier assessments and show their source limits")
     args = parser.parse_args()
     if args.verify_dir is not None:
-        if args.with_price or args.with_tco:
-            parser.error("--with-price/--with-tco apply only to --output-dir; verification detects sidecars")
+        if args.with_price or args.with_tco or args.with_supplier_risk:
+            parser.error("Observation flags apply only to --output-dir; verification detects sidecars")
         negative_fp, eligible_fp = verify_reference_demo(args.verify_dir)
         print("Revisión y repetición sintética coinciden; ruta operacional FORBIDDEN.")
         print(f"negative: {negative_fp}")
         print(f"qtg-eligible: {eligible_fp}")
         return
     files = create_reference_demo(args.output_dir, with_price=args.with_price,
-                                  with_tco=args.with_tco)
+                                  with_tco=args.with_tco,
+                                  with_supplier_risk=args.with_supplier_risk)
     print("Simulación sintética completada; ruta operacional FORBIDDEN.")
     for path in files:
         print(path)

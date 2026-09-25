@@ -14,6 +14,9 @@ from eios.core.reference_price_observation import (
 from eios.core.reference_tco_observation import (
     validate_reference_tco_observation_payload,
 )
+from eios.core.reference_supplier_risk_observation import (
+    validate_reference_supplier_risk_observation_payload,
+)
 
 
 def _digest(value: object) -> str:
@@ -98,6 +101,7 @@ def render_review(
     negative: dict, eligible: dict,
     price_observations: tuple[dict, dict] | None = None,
     tco_observations: tuple[dict, dict] | None = None,
+    supplier_observations: tuple[dict, dict] | None = None,
 ) -> str:
     """Validate terminal artifacts and produce an inert HTML comparison."""
     negative = _checked(negative, "negative")
@@ -114,6 +118,11 @@ def render_review(
             raise ValueError("TCO observations require both variants")
         for observation, terminal in zip(tco_observations, (negative, eligible)):
             validate_reference_tco_observation_payload(observation, terminal)
+    if supplier_observations is not None:
+        if not isinstance(supplier_observations, tuple) or len(supplier_observations) != 2:
+            raise ValueError("Supplier observations require both variants")
+        for observation, terminal in zip(supplier_observations, (negative, eligible)):
+            validate_reference_supplier_risk_observation_payload(observation, terminal)
 
     def val(item: object) -> str:
         return escape(str(item), quote=True)
@@ -196,6 +205,33 @@ def render_review(
                 'Sin autoridad decisional ni efecto operacional.</p>'
                 f'<p>Huella de la observación: <code>{val(observation["observation_fingerprint"])}</code></p>'
             )
+        supplier_html = ""
+        if supplier_observations is not None:
+            observation = supplier_observations[index]
+            result = observation["supplier_result"]
+            inventory = observation["source_inventory"]
+            declared = ", ".join(
+                f'{item["dimension"]}={item["state"]}'
+                for item in result["risk_dimensions"]
+            ) or "Ninguna"
+            inventory_text = ", ".join(
+                f"{key}: {count}" for key, count in inventory.items()
+            )
+            supplier_html = (
+                '<h3>Observación Supplier Risk/Value sintética</h3>'
+                '<p>Evaluación externa sintética declarada; el estado de riesgo '
+                'no se deduce de hechos de desempeño del proveedor en este fixture. '
+                'No constituye recomendación ni selección de proveedor.</p>'
+                f'<p>Proveedor actual: {val(result["current_supplier_id"])}. '
+                f'Dimensiones Risk declaradas: {val(declared)}.</p>'
+                f'<p>Inventario de fuentes factuales: {val(inventory_text)}. '
+                f'Dimensiones Value: {val(len(result["value_dimensions"]))}. '
+                f'Comparación Value disponible: {"Sí" if observation["value_comparison_available"] else "No"}.</p>'
+                '<p>La traza identifica la evaluación declarada; no demuestra '
+                'por sí sola fiabilidad factual ni autoridad decisional. '
+                'Ruta operacional FORBIDDEN.</p>'
+                f'<p>Huella de la observación: <code>{val(observation["observation_fingerprint"])}</code></p>'
+            )
         sections.append(f'<section><h2>{val(name)}: {val(payload["reference_case_id"])}</h2>'
                         f'<p>Secuencia: {val(" → ".join(payload["capability_sequence"]))}</p>'
                         '<div class="table-scroll"><table><caption>Controles QTG declarados</caption>'
@@ -203,7 +239,7 @@ def render_review(
                         '<th scope="col">Crítico</th><th scope="col">Material</th>'
                         '<th scope="col">Motivo</th><th scope="col">Evidencias</th>'
                         '</tr></thead><tbody>' + "".join(check_rows) + '</tbody></table></div>'
-                        + price_html + tco_html +
+                        + price_html + tco_html + supplier_html +
                         '<table><caption>Capacidades y referencias de traza</caption>'
                         '<thead><tr><th scope="col">Capacidad</th><th scope="col">Estado</th>'
                         '<th scope="col">Trazas</th></tr></thead><tbody>' + "".join(rows) + '</tbody></table>'
@@ -240,6 +276,8 @@ def main() -> None:
     parser.add_argument("--qtg-eligible-price", type=Path)
     parser.add_argument("--negative-tco", type=Path)
     parser.add_argument("--qtg-eligible-tco", type=Path)
+    parser.add_argument("--negative-supplier-risk", type=Path)
+    parser.add_argument("--qtg-eligible-supplier-risk", type=Path)
     args = parser.parse_args()
     negative = json.loads(args.negative.read_text(encoding="utf-8"))
     eligible = json.loads(args.qtg_eligible.read_text(encoding="utf-8"))
@@ -259,8 +297,17 @@ def main() -> None:
             json.loads(args.negative_tco.read_text(encoding="utf-8")),
             json.loads(args.qtg_eligible_tco.read_text(encoding="utf-8")),
         )
+    if (args.negative_supplier_risk is None) != (args.qtg_eligible_supplier_risk is None):
+        parser.error("Both supplier observation files must be supplied together")
+    supplier_observations = None
+    if args.negative_supplier_risk is not None:
+        supplier_observations = (
+            json.loads(args.negative_supplier_risk.read_text(encoding="utf-8")),
+            json.loads(args.qtg_eligible_supplier_risk.read_text(encoding="utf-8")),
+        )
     html = render_review(negative, eligible, price_observations=observations,
-                         tco_observations=tco_observations)
+                         tco_observations=tco_observations,
+                         supplier_observations=supplier_observations)
     args.output.write_text(html, encoding="utf-8")
     print(f"Vista de revisión creada: {args.output}")
 
