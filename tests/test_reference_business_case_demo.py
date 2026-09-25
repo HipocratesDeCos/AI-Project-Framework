@@ -3,7 +3,9 @@ import json
 
 import pytest
 
-from examples.reference_business_case_demo import create_reference_demo
+from examples.reference_business_case_demo import (
+    create_reference_demo, verify_reference_demo,
+)
 
 
 def test_demo_generates_both_exact_terminal_results_and_review(tmp_path):
@@ -30,3 +32,21 @@ def test_demo_does_not_replace_existing_output(tmp_path):
     with pytest.raises(FileExistsError, match="Output already exists"):
         create_reference_demo(output)
     assert sentinel.read_text(encoding="utf-8") == "keep"
+
+
+def test_demo_replay_verifies_artifacts_without_writing(tmp_path):
+    output = tmp_path / "reference-demo"
+    negative_path, eligible_path, review_path = create_reference_demo(output)
+    before = {p.name: p.read_bytes() for p in (negative_path, eligible_path, review_path)}
+    fingerprints = verify_reference_demo(output)
+    assert fingerprints == tuple(json.loads(p.read_text(encoding="utf-8"))["terminal_fingerprint"]
+                                 for p in (negative_path, eligible_path))
+    assert before == {p.name: p.read_bytes() for p in (negative_path, eligible_path, review_path)}
+
+
+def test_demo_replay_detects_html_drift(tmp_path):
+    output = tmp_path / "reference-demo"
+    _, _, review_path = create_reference_demo(output)
+    review_path.write_text("stale review", encoding="utf-8")
+    with pytest.raises(ValueError, match="Review HTML differs"):
+        verify_reference_demo(output)
