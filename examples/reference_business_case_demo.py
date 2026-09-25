@@ -19,13 +19,16 @@ _TCO_NAMES = ("reference-negative-tco.json", "reference-tco.json")
 _SUPPLIER_NAMES = ("reference-negative-supplier-risk.json", "reference-supplier-risk.json")
 _C0_NAMES = ("reference-negative-c0.json", "reference-c0.json")
 _TWIN_NAMES = ("reference-negative-decision-twin.json", "reference-decision-twin.json")
+_SCENARIO_NAMES = ("reference-negative-scenario-coordination.json",
+                   "reference-scenario-coordination.json")
 
 
 def create_reference_demo(output_dir: Path, *, with_price: bool = False,
                           with_tco: bool = False,
                           with_supplier_risk: bool = False,
                           with_c0: bool = False,
-                          with_decision_twin: bool = False) -> tuple[Path, ...]:
+                          with_decision_twin: bool = False,
+                          with_scenario_coordination: bool = False) -> tuple[Path, ...]:
     """Reuse closed runners and publish one complete local demonstration directory."""
     output_dir = Path(output_dir)
     if output_dir.exists():
@@ -39,11 +42,13 @@ def create_reference_demo(output_dir: Path, *, with_price: bool = False,
         variant="negative", with_price=with_price, with_tco=with_tco,
         with_supplier_risk=with_supplier_risk, with_c0=with_c0,
         with_decision_twin=with_decision_twin,
+        with_scenario_coordination=with_scenario_coordination,
     )
     eligible_run, eligible_captures = execute_reference_business_case_with_selected_observations(
         variant="qtg-eligible", with_price=with_price, with_tco=with_tco,
         with_supplier_risk=with_supplier_risk, with_c0=with_c0,
         with_decision_twin=with_decision_twin,
+        with_scenario_coordination=with_scenario_coordination,
     )
     negative, eligible = negative_run.to_payload(), eligible_run.to_payload()
     def pair(key):
@@ -55,11 +60,13 @@ def create_reference_demo(output_dir: Path, *, with_price: bool = False,
     supplier_observations = pair("supplier_risk") if with_supplier_risk else None
     c0_observations = pair("c0") if with_c0 else None
     twin_observations = pair("decision_twin") if with_decision_twin else None
+    scenario_observations = pair("scenario_coordination") if with_scenario_coordination else None
     html = render_review(negative, eligible, price_observations=observations,
                          tco_observations=tco_observations,
                          supplier_observations=supplier_observations,
                          c0_observations=c0_observations,
-                         twin_observations=twin_observations)
+                         twin_observations=twin_observations,
+                         scenario_observations=scenario_observations)
 
     stage = Path(tempfile.mkdtemp(prefix=".reference-demo-", dir=output_dir.parent))
     try:
@@ -99,6 +106,12 @@ def create_reference_demo(output_dir: Path, *, with_price: bool = False,
                     json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
                     encoding="utf-8",
                 )
+        if scenario_observations is not None:
+            for name, payload in zip(_SCENARIO_NAMES, scenario_observations):
+                (stage / name).write_text(
+                    json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
         stage.rename(output_dir)
     finally:
         if stage.exists():
@@ -108,6 +121,7 @@ def create_reference_demo(output_dir: Path, *, with_price: bool = False,
         + (_SUPPLIER_NAMES if with_supplier_risk else ())
         + (_C0_NAMES if with_c0 else ())
         + (_TWIN_NAMES if with_decision_twin else ())
+        + (_SCENARIO_NAMES if with_scenario_coordination else ())
     ))
 
 
@@ -144,12 +158,18 @@ def verify_reference_demo(directory: Path) -> tuple[str, str]:
         raise ValueError("Both DECISION_TWIN observations are required together")
     twin_observations = (tuple(json.loads((directory / name).read_text(encoding="utf-8"))
                                for name in _TWIN_NAMES) if all(twin_present) else None)
+    scenario_present = tuple((directory / name).exists() for name in _SCENARIO_NAMES)
+    if any(scenario_present) and not all(scenario_present):
+        raise ValueError("Both SCENARIO_COORDINATION observations are required together")
+    scenario_observations = (tuple(json.loads((directory / name).read_text(encoding="utf-8"))
+                                   for name in _SCENARIO_NAMES) if all(scenario_present) else None)
 
     expected_html = render_review(negative, eligible, price_observations=observations,
                                   tco_observations=tco_observations,
                                   supplier_observations=supplier_observations,
                                   c0_observations=c0_observations,
-                                  twin_observations=twin_observations)
+                                  twin_observations=twin_observations,
+                                  scenario_observations=scenario_observations)
     if stored_html != expected_html:
         raise ValueError("Review HTML differs from the two terminal artifacts")
     for variant, stored in (("negative", negative), ("qtg-eligible", eligible)):
@@ -159,6 +179,7 @@ def verify_reference_demo(directory: Path) -> tuple[str, str]:
             with_supplier_risk=supplier_observations is not None,
             with_c0=c0_observations is not None,
             with_decision_twin=twin_observations is not None,
+            with_scenario_coordination=scenario_observations is not None,
         )
         index = 0 if variant == "negative" else 1
         for label, saved_pair, key in (
@@ -166,6 +187,7 @@ def verify_reference_demo(directory: Path) -> tuple[str, str]:
             ("SUPPLIER_RISK_VALUE", supplier_observations, "supplier_risk"),
             ("C0", c0_observations, "c0"),
             ("DECISION_TWIN", twin_observations, "decision_twin"),
+            ("SCENARIO_COORDINATION", scenario_observations, "scenario_coordination"),
         ):
             if saved_pair is not None and saved_pair[index] != captures[key].to_payload():
                 raise ValueError(f"{variant}: {label} observation differs from fixture replay")
@@ -191,10 +213,13 @@ def main() -> None:
                         help="Export both same-run C0/CRC observations and show their authority limits")
     parser.add_argument("--with-decision-twin", action="store_true",
                         help="Export both structural Twin comparisons and show their limits")
+    parser.add_argument("--with-scenario-coordination", action="store_true",
+                        help="Export both synthetic O2 support packages and show their limits")
     args = parser.parse_args()
     if args.verify_dir is not None:
         if (args.with_price or args.with_tco or args.with_supplier_risk
-                or args.with_c0 or args.with_decision_twin):
+                or args.with_c0 or args.with_decision_twin
+                or args.with_scenario_coordination):
             parser.error("Observation flags apply only to --output-dir; verification detects sidecars")
         negative_fp, eligible_fp = verify_reference_demo(args.verify_dir)
         print("Revisión y repetición sintética coinciden; ruta operacional FORBIDDEN.")
@@ -205,7 +230,8 @@ def main() -> None:
                                   with_tco=args.with_tco,
                                   with_supplier_risk=args.with_supplier_risk,
                                   with_c0=args.with_c0,
-                                  with_decision_twin=args.with_decision_twin)
+                                  with_decision_twin=args.with_decision_twin,
+                                  with_scenario_coordination=args.with_scenario_coordination)
     print("Simulación sintética completada; ruta operacional FORBIDDEN.")
     for path in files:
         print(path)

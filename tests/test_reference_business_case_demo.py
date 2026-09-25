@@ -259,3 +259,47 @@ def test_demo_rejects_missing_or_tampered_twin_sidecar(tmp_path):
     negative.write_text(json.dumps(altered), encoding="utf-8")
     with pytest.raises(ValueError, match="Decision Twin observation fingerprint"):
         verify_reference_demo(output)
+
+
+@pytest.mark.parametrize("combined", [False, True])
+def test_demo_exports_and_replays_scenario_coordination(tmp_path, combined):
+    output = tmp_path / "reference-with-scenarios"
+    files = create_reference_demo(
+        output, with_scenario_coordination=True, with_price=combined,
+        with_tco=combined, with_supplier_risk=combined, with_c0=combined,
+        with_decision_twin=combined,
+    )
+    assert len(files) == (15 if combined else 5)
+    negative = json.loads(files[0].read_text(encoding="utf-8"))
+    scenario = json.loads((output / "reference-negative-scenario-coordination.json").read_text(
+        encoding="utf-8",
+    ))
+    assert scenario["terminal_fingerprint"] == negative["terminal_fingerprint"]
+    assert scenario["selected_scenario"] is None
+    assert len(scenario["scenario_ids"]) == 2
+    assert [item["values"]["viability_result"]["status"]
+            for item in scenario["support"]["scenarios"]] == ["VIABLE", "VIABLE"]
+    html = files[2].read_text(encoding="utf-8")
+    assert html.count("Observación Scenario Coordination sintética") == 2
+    assert "no demuestra una diferencia de viabilidad de negocio" in html
+    assert "no elige, prioriza ni autoriza" in html
+    assert html.count("Observación Decision Twin sintética") == (2 if combined else 0)
+    assert verify_reference_demo(output)[0] == negative["terminal_fingerprint"]
+
+
+def test_demo_rejects_missing_or_tampered_scenario_sidecar(tmp_path):
+    output = tmp_path / "reference-with-scenarios"
+    create_reference_demo(output, with_scenario_coordination=True)
+    negative = output / "reference-negative-scenario-coordination.json"
+    eligible = output / "reference-scenario-coordination.json"
+    eligible.unlink()
+    with pytest.raises(ValueError, match="Both SCENARIO_COORDINATION observations"):
+        verify_reference_demo(output)
+    eligible.write_bytes(negative.read_bytes())
+    with pytest.raises(ValueError, match="Scenario observation identity"):
+        verify_reference_demo(output)
+    changed = json.loads(negative.read_text(encoding="utf-8"))
+    changed["support"]["scenarios"][0]["status"] = "BLOCKED"
+    negative.write_text(json.dumps(changed), encoding="utf-8")
+    with pytest.raises(ValueError, match="Scenario observation fingerprint"):
+        verify_reference_demo(output)
