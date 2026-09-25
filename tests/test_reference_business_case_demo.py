@@ -303,3 +303,46 @@ def test_demo_rejects_missing_or_tampered_scenario_sidecar(tmp_path):
     negative.write_text(json.dumps(changed), encoding="utf-8")
     with pytest.raises(ValueError, match="Scenario observation fingerprint"):
         verify_reference_demo(output)
+
+
+@pytest.mark.parametrize("combined", [False, True])
+def test_demo_exports_and_replays_ni_with_authority_limits(tmp_path, combined):
+    output = tmp_path / "reference-with-ni"
+    files = create_reference_demo(
+        output, with_negotiation_intelligence=True, with_price=combined,
+        with_tco=combined, with_supplier_risk=combined, with_c0=combined,
+        with_decision_twin=combined, with_scenario_coordination=combined,
+    )
+    assert len(files) == (17 if combined else 5)
+    negative = json.loads(files[0].read_text(encoding="utf-8"))
+    ni = json.loads((output / "reference-negative-negotiation-intelligence.json").read_text(
+        encoding="utf-8",
+    ))
+    assert ni["terminal_fingerprint"] == negative["terminal_fingerprint"]
+    assert ni["authority_origin"] == "DECLARED_SYNTHETIC_TEST_EVIDENCE"
+    assert ni["c0_content_derivation_proven"] is False
+    assert ni["separate_c0_invocation_binding_proven"] is False
+    html = files[2].read_text(encoding="utf-8")
+    assert html.count("Observación Negotiation Intelligence sintética") == 2
+    assert "no acredita mandato empresarial" in html
+    assert "no demuestra que el contenido se haya derivado de C0" in html
+    assert html.count("Observación Scenario Coordination sintética") == (2 if combined else 0)
+    assert verify_reference_demo(output)[0] == negative["terminal_fingerprint"]
+
+
+def test_demo_rejects_missing_or_tampered_ni_sidecar(tmp_path):
+    output = tmp_path / "reference-with-ni"
+    create_reference_demo(output, with_negotiation_intelligence=True)
+    negative = output / "reference-negative-negotiation-intelligence.json"
+    eligible = output / "reference-negotiation-intelligence.json"
+    eligible.unlink()
+    with pytest.raises(ValueError, match="Both NEGOTIATION_INTELLIGENCE observations"):
+        verify_reference_demo(output)
+    eligible.write_bytes(negative.read_bytes())
+    with pytest.raises(ValueError, match="NI observation identity"):
+        verify_reference_demo(output)
+    changed = json.loads(negative.read_text(encoding="utf-8"))
+    changed["ni_result"]["negotiation_content"]["objective"] = "invented"
+    negative.write_text(json.dumps(changed), encoding="utf-8")
+    with pytest.raises(ValueError, match="NI observation fingerprint"):
+        verify_reference_demo(output)
