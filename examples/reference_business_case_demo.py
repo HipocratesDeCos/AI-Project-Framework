@@ -7,14 +7,18 @@ from pathlib import Path
 import shutil
 import tempfile
 
-from .reference_business_case_001 import execute_reference_business_case
+from .reference_business_case_001 import (
+    execute_reference_business_case,
+    execute_reference_business_case_with_price_observation,
+)
 from .reference_business_case_review import render_review
 
 
 _NAMES = ("reference-negative-result.json", "reference-result.json", "reference-review.html")
+_PRICE_NAMES = ("reference-negative-price.json", "reference-price.json")
 
 
-def create_reference_demo(output_dir: Path) -> tuple[Path, Path, Path]:
+def create_reference_demo(output_dir: Path, *, with_price: bool = False) -> tuple[Path, ...]:
     """Reuse closed runners and publish one complete local demonstration directory."""
     output_dir = Path(output_dir)
     if output_dir.exists():
@@ -22,9 +26,20 @@ def create_reference_demo(output_dir: Path) -> tuple[Path, Path, Path]:
     if not output_dir.parent.is_dir():
         raise ValueError(f"Output parent directory does not exist: {output_dir.parent}")
 
-    negative = execute_reference_business_case(variant="negative").to_payload()
-    eligible = execute_reference_business_case(variant="qtg-eligible").to_payload()
-    html = render_review(negative, eligible)
+    observations = None
+    if with_price:
+        negative_execution, negative_price = execute_reference_business_case_with_price_observation(
+            variant="negative",
+        )
+        eligible_execution, eligible_price = execute_reference_business_case_with_price_observation(
+            variant="qtg-eligible",
+        )
+        negative, eligible = negative_execution.to_payload(), eligible_execution.to_payload()
+        observations = (negative_price.to_payload(), eligible_price.to_payload())
+    else:
+        negative = execute_reference_business_case(variant="negative").to_payload()
+        eligible = execute_reference_business_case(variant="qtg-eligible").to_payload()
+    html = render_review(negative, eligible, price_observations=observations)
 
     stage = Path(tempfile.mkdtemp(prefix=".reference-demo-", dir=output_dir.parent))
     try:
@@ -34,11 +49,19 @@ def create_reference_demo(output_dir: Path) -> tuple[Path, Path, Path]:
                 encoding="utf-8",
             )
         (stage / _NAMES[2]).write_text(html, encoding="utf-8")
+        if observations is not None:
+            for name, payload in zip(_PRICE_NAMES, observations):
+                (stage / name).write_text(
+                    json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
         stage.rename(output_dir)
     finally:
         if stage.exists():
             shutil.rmtree(stage)
-    return tuple(output_dir / name for name in _NAMES)
+    return tuple(output_dir / name for name in (
+        _NAMES + _PRICE_NAMES if with_price else _NAMES
+    ))
 
 
 def verify_reference_demo(directory: Path) -> tuple[str, str]:
@@ -49,12 +72,26 @@ def verify_reference_demo(directory: Path) -> tuple[str, str]:
     negative = json.loads((directory / _NAMES[0]).read_text(encoding="utf-8"))
     eligible = json.loads((directory / _NAMES[1]).read_text(encoding="utf-8"))
     stored_html = (directory / _NAMES[2]).read_text(encoding="utf-8")
+    present = tuple((directory / name).exists() for name in _PRICE_NAMES)
+    if any(present) and not all(present):
+        raise ValueError("Both PRICE observations are required together")
+    observations = (tuple(json.loads((directory / name).read_text(encoding="utf-8"))
+                          for name in _PRICE_NAMES) if all(present) else None)
 
-    expected_html = render_review(negative, eligible)
+    expected_html = render_review(negative, eligible, price_observations=observations)
     if stored_html != expected_html:
         raise ValueError("Review HTML differs from the two terminal artifacts")
     for variant, stored in (("negative", negative), ("qtg-eligible", eligible)):
-        replayed = execute_reference_business_case(variant=variant).to_payload()
+        if observations is None:
+            replayed = execute_reference_business_case(variant=variant).to_payload()
+        else:
+            replayed, replayed_price = execute_reference_business_case_with_price_observation(
+                variant=variant,
+            )
+            replayed = replayed.to_payload()
+            saved_price = observations[0 if variant == "negative" else 1]
+            if saved_price != replayed_price.to_payload():
+                raise ValueError(f"{variant}: PRICE observation differs from fixture replay")
         if stored != replayed:
             raise ValueError(f"{variant}: terminal differs from the current fixture replay")
     return negative["terminal_fingerprint"], eligible["terminal_fingerprint"]
@@ -67,14 +104,18 @@ def main() -> None:
                         help="New directory for the two JSON files and read-only HTML")
     action.add_argument("--verify-dir", type=Path,
                         help="Read and replay an existing synthetic demo directory")
+    parser.add_argument("--with-price", action="store_true",
+                        help="Export both same-run PRICE observations and show them in HTML")
     args = parser.parse_args()
     if args.verify_dir is not None:
+        if args.with_price:
+            parser.error("--with-price applies only to --output-dir; verification detects sidecars")
         negative_fp, eligible_fp = verify_reference_demo(args.verify_dir)
         print("Revisión y repetición sintética coinciden; ruta operacional FORBIDDEN.")
         print(f"negative: {negative_fp}")
         print(f"qtg-eligible: {eligible_fp}")
         return
-    files = create_reference_demo(args.output_dir)
+    files = create_reference_demo(args.output_dir, with_price=args.with_price)
     print("Simulación sintética completada; ruta operacional FORBIDDEN.")
     for path in files:
         print(path)

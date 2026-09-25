@@ -6,12 +6,68 @@ from hashlib import sha256
 import json
 
 from .price_integration import ObservedPriceInvoker
+from .orchestration import CapabilityExecution
 from .reference_simulation_execution import ReferenceSimulationExecution
+from eios.pricing.models import PriceIntelligenceResult
 
 
 def _canonical(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True,
                       separators=(",", ":"), allow_nan=False).encode("utf-8")
+
+
+def validate_reference_price_observation_payload(
+    observation: dict, terminal: dict,
+) -> None:
+    """Check a detached JSON sidecar against one validated reference terminal."""
+    if not isinstance(observation, dict) or not isinstance(terminal, dict):
+        raise ValueError("PRICE observation and terminal must be objects")
+    digest = lambda value: sha256(_canonical(value)).hexdigest()
+    provenance = terminal.get("case_provenance")
+    if not isinstance(provenance, dict) or any(provenance.get(k) != v for k, v in {
+        "case_kind": "REFERENCE_OPERATIONAL_SIMULATION",
+        "material_nature": "SYNTHETIC",
+        "qtg_mode_policy": "SYNTHETIC_TEST_ONLY",
+        "operational_path": "FORBIDDEN",
+        "effect_scope": "NO_OPERATIONAL_EFFECT",
+        "decision_authority": False,
+    }.items()) or terminal.get("operational_path") != "FORBIDDEN" \
+            or terminal.get("operational_effect") is not False \
+            or terminal.get("decision_authority") is not False:
+        raise ValueError("PRICE observation requires synthetic reference terminal")
+    if observation.get("observation_fingerprint") != digest({
+        k: v for k, v in observation.items() if k != "observation_fingerprint"
+    }):
+        raise ValueError("PRICE observation fingerprint mismatch")
+    expected = {
+        "schema_version": "EIOS-REFERENCE-PRICE-OBSERVATION-01/v0.1",
+        "reference_case_id": terminal.get("reference_case_id"),
+        "terminal_fingerprint": terminal.get("terminal_fingerprint"),
+        "purchase_fingerprint": terminal.get("purchase_fingerprint"),
+        "context_fingerprint": terminal.get("context_fingerprint"),
+        "material_nature": "SYNTHETIC",
+        "qtg_mode_policy": "SYNTHETIC_TEST_ONLY",
+        "operational_path": "FORBIDDEN",
+        "effect_scope": "NO_OPERATIONAL_EFFECT",
+        "decision_authority": False,
+    }
+    if any(observation.get(k) != v for k, v in expected.items()):
+        raise ValueError("PRICE observation identity or synthetic scope mismatch")
+    result = PriceIntelligenceResult.model_validate(observation.get("price_result"))
+    capability = CapabilityExecution.model_validate(observation.get("price_execution"))
+    if capability.capability != "PRICE":
+        raise ValueError("PRICE observation contains another capability")
+    matches = [item for item in terminal["execution_outcome"]["capability_results"]
+               if item.get("capability") == "PRICE"]
+    if len(matches) != 1 or matches[0] != observation["price_execution"]:
+        raise ValueError("PRICE observation execution differs from terminal")
+    if (result.decision_id, result.scenario_id, result.data_snapshot_id) != (
+        terminal["context"]["decision_id"], terminal["context"]["scenario_id"],
+        terminal["context"]["data_snapshot_id"],
+    ) or tuple(result.trace_references) != tuple(capability.trace_references):
+        raise ValueError("PRICE observation result differs from terminal identity")
+    if observation.get("price_result_fingerprint") != digest(observation["price_result"]):
+        raise ValueError("PRICE result fingerprint mismatch")
 
 
 @dataclass(frozen=True, init=False)
@@ -91,4 +147,6 @@ def _close_reference_price_observation(
     return observation
 
 
-__all__ = ["ReferencePriceObservation"]
+__all__ = [
+    "ReferencePriceObservation", "validate_reference_price_observation_payload",
+]

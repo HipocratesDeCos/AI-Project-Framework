@@ -56,6 +56,22 @@ del HTML representado. Una diferencia indica alteración o cambio de versión o
 fixture; no demuestra por sí sola cuál fue la causa. La coincidencia es una
 prueba de repetición local, no autenticación de origen ni admisión operacional.
 
+### Exportación PRICE sintética
+
+```powershell
+python -m examples.reference_business_case_demo --output-dir reference-demo-price --with-price
+Invoke-Item .\reference-demo-price\reference-review.html
+python -m examples.reference_business_case_demo --verify-dir reference-demo-price
+```
+
+`--with-price` añade `reference-negative-price.json` y
+`reference-price.json`, capturados durante las mismas ejecuciones PRICE de
+cada terminal. La revisión muestra valor, moneda, estado, suficiencia,
+limitaciones y referencias seleccionadas de C1, junto con el aviso de que
+no constituye un techo ni una autorización. La verificación detecta ambos
+archivos y exige su integridad, vínculo con cada terminal y repetición con
+los fixtures actuales. El modo original de tres archivos sigue vigente.
+
 ## CI
 
 Ejecutar `python -m pytest -q tests/test_reference_business_case_demo.py`
