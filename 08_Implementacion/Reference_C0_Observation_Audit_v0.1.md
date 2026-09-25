@@ -80,3 +80,20 @@ comprar. Continúan `SYNTHETIC_TEST_ONLY`, `FORBIDDEN`,
 Esta unidad documental no modifica runtime, fixtures ni terminal. La
 implementación y presentación se tratarán en unidades posteriores, con
 pruebas propias y CI de sus PR.
+
+## Unidad posterior — captura materializada
+
+`ObservedRulesC0Invoker` reutiliza la sesión compartida de un solo uso.
+Congela bindings y `base_result`, ejecuta
+`run_provenanced_assessments_vertical` una vez y captura una copia defensiva
+de `RuleSetVerticalResult` y del `c0_capability` que se entrega a O1. El
+builder público conserva firma y comportamiento. Una validación fallida
+consume la sesión y no ofrece captura parcial.
+
+El sidecar C0/CRC lleva huellas de fuentes, resultado y terminal, QTG de la
+misma variante, `qtg_c0_derivation_proven=false` y
+`crc_base_origin=SUPPLIED_SYNTHETIC_BASE_RESULT`. Valida cada binding con el
+contrato público de procedencia, coteja Assessment/Trace, estado C0 y trazas
+con O1 e identidad CRC. En ambas variantes conserva `R-DAT-003=FALSE` y
+el consolidado sintético `COMPRAR`; el terminal no cambia. La exportación y
+el HTML permanecen fuera de esta unidad.
