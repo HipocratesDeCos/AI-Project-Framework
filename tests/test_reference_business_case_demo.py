@@ -135,3 +135,44 @@ def test_demo_rejects_missing_or_tampered_tco_sidecar(tmp_path):
     negative_tco.write_text(json.dumps(altered), encoding="utf-8")
     with pytest.raises(ValueError, match="TCO observation fingerprint"):
         verify_reference_demo(output)
+
+
+@pytest.mark.parametrize("with_price,with_tco", [(False, False), (True, True)])
+def test_demo_exports_and_replays_declared_supplier_assessment(tmp_path, with_price, with_tco):
+    output = tmp_path / "reference-with-supplier"
+    files = create_reference_demo(
+        output, with_price=with_price, with_tco=with_tco, with_supplier_risk=True,
+    )
+    assert len(files) == (9 if with_price else 5)
+    negative = json.loads(files[0].read_text(encoding="utf-8"))
+    supplier = json.loads((output / "reference-negative-supplier-risk.json").read_text(
+        encoding="utf-8",
+    ))
+    html = files[2].read_text(encoding="utf-8")
+    assert supplier["terminal_fingerprint"] == negative["terminal_fingerprint"]
+    assert supplier["assessment_origin"] == "DECLARED_SYNTHETIC_EXTERNAL_ASSESSMENT"
+    assert not any(supplier["source_inventory"].values())
+    assert html.count("Observación Supplier Risk/Value sintética") == 2
+    assert "RELIABILITY=FAVORABLE" in html
+    assert "no se deduce de hechos de desempeño" in html
+    assert html.count("Observación PRICE sintética") == (2 if with_price else 0)
+    assert html.count("Observación TCO sintética") == (2 if with_tco else 0)
+    assert verify_reference_demo(output)[0] == negative["terminal_fingerprint"]
+
+
+def test_demo_rejects_missing_or_altered_supplier_sidecar(tmp_path):
+    output = tmp_path / "reference-with-supplier"
+    create_reference_demo(output, with_supplier_risk=True)
+    negative = output / "reference-negative-supplier-risk.json"
+    eligible = output / "reference-supplier-risk.json"
+    eligible.unlink()
+    with pytest.raises(ValueError, match="Both SUPPLIER_RISK_VALUE observations"):
+        verify_reference_demo(output)
+    eligible.write_bytes(negative.read_bytes())
+    with pytest.raises(ValueError, match="Supplier observation identity"):
+        verify_reference_demo(output)
+    altered = json.loads(negative.read_text(encoding="utf-8"))
+    altered["supplier_result"]["risk_dimensions"][0]["state"] = "ADVERSE"
+    negative.write_text(json.dumps(altered), encoding="utf-8")
+    with pytest.raises(ValueError, match="Supplier observation fingerprint"):
+        verify_reference_demo(output)
