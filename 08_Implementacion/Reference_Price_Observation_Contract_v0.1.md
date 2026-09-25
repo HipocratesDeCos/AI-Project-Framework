@@ -1,7 +1,7 @@
 # EIOS — Reference Price Observation: contrato de diseño v0.1
 
 **Base:** `main @ 98d72147b8d8cc1b58963d4e78080140a89adbc3`.
-**Estado:** diseño auditado; implementación pendiente.
+**Estado:** diseñado y auditado; implementación en unidad posterior al diseño.
 
 ## DISEÑAR
 
@@ -76,3 +76,28 @@ La implementación se realizará en una unidad separada, después de comprobar
 que el diseño evita captura desacoplada y repetición del motor. Esta unidad
 solo añade el contrato de diseño; la CI del PR confirma que el repositorio
 permanece sin regresiones.
+
+## Implementación y auditoría de la unidad siguiente
+
+`eios/core/price_integration.py` comparte la validación de identidad y una
+única llamada a `run_price_intelligence` entre el builder antiguo y
+`build_reference_observed_price_invoker`. La sesión observada es de un solo
+uso, conserva copias defensivas y no publica captura tras un fallo. Su
+`reference_case_id` se compara con el terminal.
+
+`execute_reference_business_case_with_price_observation` ejecuta la fachada
+de referencia con esa sesión y cierra la observación inmediatamente después.
+El cierre verifica la procedencia sintética, la presencia única de PRICE, la
+igualdad exacta del `CapabilityExecution`, la identidad del resultado tipado
+y sus trazas. El artefacto separado incorpora huellas del terminal, compra,
+contexto y resultado PRICE. No se añade al terminal ni a O1.
+
+`tests/test_reference_price_observation.py` cubre las dos variantes, una sola
+producción PRICE, rechazo de identidad ajena y segundo uso, estado prematuro,
+vínculo de caso y los tres estados funcionales de precio. La repetición de
+ambas variantes con y sin observación mantiene exactamente las huellas
+terminales originales. Suite local: **2336 passed, 6 warnings**.
+
+La observación aún no se exporta por la CLI ni se representa en HTML. Eso
+requerirá una unidad de presentación que valide este artefacto y explicite
+que el precio de referencia sintético no es un techo ni una autorización.
