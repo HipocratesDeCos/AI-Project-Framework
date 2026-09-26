@@ -56,3 +56,22 @@ def test_second_runner_export_replays_and_rejects_tampering(tmp_path):
                       encoding="utf-8")
     with pytest.raises(ValueError, match="reference-c0.json"):
         verify_reference_business_case_002(directory)
+
+
+def test_second_runner_review_is_read_only_and_replay_verified(tmp_path):
+    directory = tmp_path / "reference-002-review"
+    paths = create_reference_business_case_002(directory, with_review=True)
+    assert len(paths) == 10
+    html = (directory / "reference-review.html").read_text(encoding="utf-8")
+    assert "PARTIALLY_COMPLETED" in html
+    assert "INFORMACIÓN INSUFICIENTE" in html
+    assert "NOT_DETERMINABLE" in html
+    assert "FORBIDDEN" in html
+    assert "no se ha demostrado el vínculo" in html
+    assert "<script" not in html.lower()
+    assert verify_reference_business_case_002(directory)
+    (directory / "reference-review.html").write_text(
+        html.replace("Sin decisión de compra.", "Compra autorizada."), encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="reference-review.html"):
+        verify_reference_business_case_002(directory)
