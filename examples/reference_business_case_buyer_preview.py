@@ -1,0 +1,125 @@
+"""Export a static, synthetic purchasing walkthrough from a verified demo."""
+from __future__ import annotations
+
+import argparse
+from html import escape
+import json
+from pathlib import Path
+
+from .reference_business_case_demo import verify_reference_demo
+
+
+_SIDECARS = (
+    ("price", "Precio observado", "price_result", "pr_value", "pr_limitations"),
+    ("tco", "Coste de adquisición modelado", "tco_result", "value", "limitations"),
+    ("supplier-risk", "Riesgo y valor del proveedor", "supplier_result", None, None),
+    ("c0", "Evaluación C0 y consolidación CRC", "crc_result", "consolidated_result", None),
+    ("decision-twin", "Comparación de alternativas", "comparison", None, None),
+    ("scenario-coordination", "Coordinación de escenarios", "support", None, None),
+    ("negotiation-intelligence", "Contenido de negociación", "ni_result", None, None),
+    ("negotiation-ladder", "Secuencia de negociación", "ladder_result", None, None),
+)
+
+
+def render_buyer_preview(directory: Path) -> str:
+    """Verify full fixture replay, then project existing facts without recalculation."""
+    directory = Path(directory)
+    verify_reference_demo(directory)
+
+    def safe(value: object) -> str:
+        return escape(str(value), quote=True)
+
+    sections = []
+    for variant, prefix, terminal_name in (
+        ("Caso con calidad insuficiente", "reference-negative-", "reference-negative-result.json"),
+        ("Caso con calidad apta para la prueba", "reference-", "reference-result.json"),
+    ):
+        terminal = json.loads((directory / terminal_name).read_text(encoding="utf-8"))
+        qtg = terminal["qtg_quality_result"]
+        checks = "".join(
+            f'<li><strong>{safe(c["control"])}</strong>: {safe(c["reason"])} '
+            f'({"satisfecho" if c["satisfied"] is True else "no satisfecho" if c["satisfied"] is False else "no evaluable"})</li>'
+            for c in qtg["checks"] if c["applicable"]
+        )
+        observations = []
+        for suffix, title, result_key, value_key, limits_key in _SIDECARS:
+            path = directory / f"{prefix}{suffix}.json"
+            if not path.exists():
+                continue
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            result = payload[result_key]
+            value = (f'<p>Valor declarado: <strong>{safe(result[value_key])}</strong></p>'
+                     if value_key and result.get(value_key) is not None else "")
+            if suffix in ("price", "tco") and value:
+                value = value.replace("</strong>", f' {safe(result["currency"])}</strong>')
+            limits = (f'<p>Limitaciones declaradas: {safe(", ".join(result[limits_key]) or "ninguna")}</p>'
+                      if limits_key else "")
+            if suffix == "supplier-risk":
+                value = f'<p>Proveedor ficticio: <code>{safe(result["current_supplier_id"])}</code>. '
+                value += 'Riesgo declarado; sin prueba factual de desempeño del proveedor.</p>'
+            elif suffix == "decision-twin":
+                value = f'<p>Representaciones comparadas: {safe(", ".join(result["alternatives"]))}. '
+                value += 'Sin puntuación, ranking ni selección.</p>'
+            elif suffix == "scenario-coordination":
+                value = f'<p>Escenarios descritos: {safe(len(result["scenarios"]))}. '
+                value += 'La coordinación no selecciona un escenario.</p>'
+            elif suffix == "negotiation-intelligence":
+                value = f'<p>Objetivo ficticio: {safe(result["negotiation_content"]["objective"] or "no informado")}. '
+                value += 'No demuestra mandato empresarial.</p>'
+            elif suffix == "negotiation-ladder":
+                value = f'<p>Pasos representados: {safe(len(result["steps"]))}. '
+                value += 'Su orden no instruye a ejecutarlos.</p>'
+            elif suffix == "c0":
+                limits = '<p>Consolidado sintético: no es una orden ni autorización de compra.</p>'
+            observations.append(
+                f'<article><h4>{safe(title)}</h4>{value}{limits}'
+                f'<p>Observación del fixture; <code>{safe(payload["observation_fingerprint"])}</code></p></article>'
+            )
+        sections.append(
+            f'<section><h2>{safe(variant)}</h2>'
+            f'<p>Expediente ficticio: <code>{safe(terminal["reference_case_id"])}</code></p>'
+            f'<p>Calidad QTG: <strong>{safe(qtg["status"])} / {safe(qtg["confidence"])}</strong>. '
+            f'Ejecución técnica: {safe(terminal["execution_outcome"]["status"])}.</p>'
+            f'<details><summary>Motivos de calidad de datos</summary><ul>{checks}</ul></details>'
+            '<h3>Análisis disponibles</h3>'
+            + ("".join(observations) or '<p>No se exportaron observaciones adicionales.</p>')
+            + f'<p>Huella terminal: <code>{safe(terminal["terminal_fingerprint"])}</code></p></section>'
+        )
+    return (
+        '<!doctype html><html lang="es"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        '<meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; style-src &#39;unsafe-inline&#39;">'
+        '<title>EIOS · Demostración sintética para compras</title><style>'
+        'body{font:16px/1.5 system-ui,sans-serif;max-width:68rem;margin:auto;padding:1rem;color:#14263b}'
+        '.notice{position:sticky;top:0;background:#fff2c2;border:2px solid #8b6400;padding:.7rem;z-index:1}'
+        'section{margin:2rem 0;padding:1rem;border:1px solid #9aa9b8;border-radius:.5rem}'
+        'article{padding:.5rem 1rem;margin:.7rem 0;background:#f0f5f8}'
+        'code{overflow-wrap:anywhere}details{margin:1rem 0}</style></head><body>'
+        '<p class="notice"><strong>DEMOSTRACIÓN SINTÉTICA — NO OPERACIONAL</strong><br>'
+        'SYNTHETIC · SYNTHETIC_TEST_ONLY · FORBIDDEN · NO_OPERATIONAL_EFFECT · '
+        'decision_authority=false</p><main><h1>Cómo leer el caso ficticio de compras</h1>'
+        '<p>Dos variantes de la misma simulación muestran cómo se inspecciona la calidad '
+        'de datos y qué análisis se han capturado. APTO solo califica la entrada de prueba; '
+        'COMPLETED solo describe la ejecución técnica. Ninguno autoriza una compra.</p>'
+        '<p>Los importes, el riesgo declarado, el consolidado CRC y el contenido de negociación '
+        'proceden del fixture. No se ha probado una derivación causal de QTG a C0 ni una '
+        'selección empresarial. AUTHORIZED en una captura negociadora no constituye mandato '
+        'para contactar a proveedores. Las huellas comprueban consistencia, no autenticidad externa.</p>'
+        + "".join(sections) + '</main></body></html>'
+    )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--demo-dir", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+    if args.output.exists():
+        parser.error("Output already exists")
+    html = render_buyer_preview(args.demo_dir)
+    args.output.write_text(html, encoding="utf-8")
+    print(f"Vista sintética de compras: {args.output}")
+
+
+if __name__ == "__main__":
+    main()
