@@ -15,6 +15,7 @@ from eios.core.orchestration import CapabilityExecution, O1ExecutionStatus
 from eios.core.projection_mock_dataset import load_projection_mock_dataset
 from eios.core.projection_quality_consumer import consume_projection_quality
 from eios.core.projection_quality_producer import produce_projection_quality
+from eios.core.price_integration import build_reference_observed_price_invoker
 from eios.core.projection_synthetic_adapter import (
     build_projection_only_synthetic_material_bundle,
 )
@@ -23,6 +24,8 @@ from eios.core.reference_simulation_execution import (
     run_reference_operational_simulation,
 )
 from eios.core.models import DecisionContext, PurchaseOperation
+from eios.pricing.models import PriceIntelligenceAssessmentContext, PriceIntelligenceInput
+from eios.pricing.sufficiency import SufficiencyObservation
 from test_projection_synthetic_foundation import _dataset
 
 
@@ -107,6 +110,44 @@ def test_reference_simulation_closes_qtg_and_mvp_without_operational_effect():
     assert payload["execution_outcome"]["status"] == "COMPLETED"
     assert payload["qtg_quality_result"]["status"] == "NO_APTO"
     assert payload["qtg_quality_result"]["confidence"] == "BAJA"
+
+
+def test_reference_simulation_preserves_unjustifiable_price_without_authority():
+    bundle = _bundle()
+    purchase, context = _runtime(bundle)
+    receipt, consumption = _qtg(bundle)
+    reference_case_id = "REF-PRICE-UNJUSTIFIABLE"
+    price_invoker = build_reference_observed_price_invoker(
+        payload=PriceIntelligenceInput(
+            decision_context=context, purchase_operation=purchase,
+            references=(), evidence_validations=(),
+            methodology_version="REF-PRICE-EMPTY-v1",
+        ),
+        assessment_context=PriceIntelligenceAssessmentContext(
+            sufficiency=SufficiencyObservation(),
+        ),
+        reference_case_id=reference_case_id,
+    )
+    execution = run_reference_operational_simulation(
+        provenance=classify_reference_operational_simulation(
+            bundle=bundle, reference_case_id=reference_case_id,
+        ),
+        bundle=bundle, receipt=receipt, consumption=consumption,
+        purchase=purchase, context=context,
+        policy_version="REF-PRICE-UNJUSTIFIABLE-v1",
+        price_invoker=price_invoker, rules_invoker=_completed_c0,
+    ).to_payload()
+
+    price, c0 = execution["execution_outcome"]["capability_results"]
+    assert price["status"] == "NOT_EVALUABLE"
+    assert price["result_available"] is False
+    assert price["unresolved_items"] == ["PRICE_NOT_JUSTIFIABLE"]
+    assert c0["status"] == "COMPLETED"
+    assert execution["execution_outcome"]["status"] == "PARTIALLY_COMPLETED"
+    assert execution["execution_outcome"]["unresolved_items"] == ["PRICE_NOT_JUSTIFIABLE"]
+    assert execution["operational_path"] == "FORBIDDEN"
+    assert execution["operational_effect"] is False
+    assert execution["decision_authority"] is False
 
 
 def test_reference_simulation_can_validate_positive_synthetic_qtg_without_promotion(tmp_path):
