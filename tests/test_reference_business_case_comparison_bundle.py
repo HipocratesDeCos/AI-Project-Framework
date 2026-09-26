@@ -40,3 +40,11 @@ def test_bundle_rejects_external_comparison_even_when_bytes_match(tmp_path):
     html.symlink_to(external)
     with pytest.raises(ValueError, match="symlinks"):
         verify_comparison_bundle(directory)
+
+
+def test_bundle_rejects_undeclared_file_inside_first_case(tmp_path):
+    directory = tmp_path / "comparison"
+    first, _, _ = create_comparison_bundle(directory)
+    (first / "undeclared.txt").write_text("extra", encoding="utf-8")
+    with pytest.raises(ValueError, match="Case 001 full package inventory"):
+        verify_comparison_bundle(directory)

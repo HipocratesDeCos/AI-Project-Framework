@@ -13,6 +13,16 @@ from .reference_business_case_002 import (
 from .reference_business_case_comparison import render_comparison
 
 
+_CASE_001_FILES = frozenset({
+    "reference-negative-result.json", "reference-result.json",
+    "reference-review.html", "reference-buyer-preview.html",
+    *(f"reference-{prefix}{name}.json"
+      for prefix in ("negative-", "")
+      for name in ("price", "tco", "supplier-risk", "c0", "decision-twin",
+                   "scenario-coordination", "negotiation-intelligence", "negotiation-ladder")),
+})
+
+
 def verify_comparison_bundle(directory: Path) -> None:
     directory = Path(directory)
     if directory.is_symlink() or not directory.is_dir() or {p.name for p in directory.iterdir()} != {
@@ -21,6 +31,9 @@ def verify_comparison_bundle(directory: Path) -> None:
         raise ValueError("Comparison bundle requires exactly both cases and comparison.html")
     if any(path.is_symlink() for path in directory.rglob("*")):
         raise ValueError("Comparison bundle must not contain symlinks")
+    first = directory / "case-001"
+    if not first.is_dir() or {path.relative_to(first).as_posix() for path in first.rglob("*")} != _CASE_001_FILES:
+        raise ValueError("Case 001 full package inventory differs")
     verify_reference_demo(directory / "case-001")
     verify_reference_business_case_002(directory / "case-002")
     if (directory / "comparison.html").read_text(encoding="utf-8") != render_comparison(
