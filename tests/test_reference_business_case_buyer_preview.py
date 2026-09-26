@@ -19,6 +19,11 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     assert html.count("Huella terminal:") == 2
     assert html.count("Calidad QTG:") == 2
     assert "NO_APTO / BAJA" in html and "APTO / ALTA" in html
+    assert html.count("Propuesta ficticia común") == 1
+    assert "ARTICLE-MOCK-001" in html and "SUPPLIER-MOCK-001" in html
+    assert "20.50 EUR" in html and "10 unidades" in html
+    assert "El precio unitario es un dato de entrada" in html
+    assert "no evaluable" in html and "no satisfecho" in html
     assert "DEMOSTRACIÓN SINTÉTICA — NO OPERACIONAL" in html
     assert "AUTHORIZED en una captura negociadora no constituye mandato" in html
     for label in ("Precio observado", "Coste de adquisición modelado", "Riesgo y valor",
@@ -72,3 +77,15 @@ def test_demo_option_without_observations_is_valid(tmp_path):
     files = create_reference_demo(directory, with_buyer_preview=True)
     assert len(files) == 4
     assert len(verify_reference_demo(directory)) == 2
+
+
+def test_integrated_preview_verification_detects_changed_proposal_markup(tmp_path):
+    from examples.reference_business_case_demo import verify_reference_demo
+
+    directory = tmp_path / "demo"
+    create_reference_demo(directory, with_buyer_preview=True)
+    preview = directory / "reference-buyer-preview.html"
+    preview.write_text(preview.read_text(encoding="utf-8").replace("20.50 EUR", "0.01 EUR"),
+                       encoding="utf-8")
+    with pytest.raises(ValueError, match="Buyer preview HTML differs"):
+        verify_reference_demo(directory)
