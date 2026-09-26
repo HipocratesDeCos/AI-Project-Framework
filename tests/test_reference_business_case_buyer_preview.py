@@ -39,6 +39,13 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     assert "QTG de esta variante: NO_APTO" in html
     assert "QTG de esta variante: APTO" in html
     assert html.count("No se ha demostrado una derivación causal de QTG hacia C0") == 2
+    assert html.count("Viabilidad declarada por Stage 2:") == 2
+    assert html.count("ALT-1: VIABLE, REF-BUSINESS-001-ALT-2: VIABLE") == 2
+    assert html.count("Diferencias en atributos incluidos: ninguna") == 2
+    assert html.count("VIABLE no acredita viabilidad económica empresarial") == 2
+    assert html.count("Escenarios descritos: 2") == 2
+    assert html.count("La diferencia estructural en viability_result") == 2
+    assert html.count("no selecciona ni prioriza un escenario") == 2
     for label in ("Precio observado", "Coste de adquisición modelado", "Riesgo y valor",
                   "Evaluación C0", "Comparación de alternativas", "Coordinación de escenarios",
                   "Contenido de negociación", "Secuencia de negociación"):

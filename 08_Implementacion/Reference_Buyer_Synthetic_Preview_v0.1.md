@@ -81,3 +81,21 @@ controles QTG conservan también el estado «no aplica» cuando corresponda.
 completa, el determinismo, ausencia de acciones, ausencia de capturas
 opcionales y rechazo de paquetes alterados. Ejecutar la suite antes de
 integración.
+
+## Contexto descriptivo Decision Twin y Scenario Coordination
+
+**DISEÑAR → AUDITAR:** las dos capturas ya verificadas contienen
+representaciones, estados de viabilidad y diferencias, mientras la vista
+mostraba solo nombres y cantidades. El contrato de Decision Twin prohíbe
+deducir ranking o selección; O2 tampoco selecciona escenarios.
+
+**DEPURAR → AUDITAR 2:** la vista proyecta los estados Stage 2 asociados a
+cada representación, las diferencias y atributos faltantes declarados, y el
+estado técnico y de viabilidad de cada escenario. La diferencia estructural
+de `viability_result` incluye los `scenario_id` distintos; se explica que
+no demuestra una diferencia empresarial. Los estados `VIABLE` no son una
+evaluación económica real. Las pruebas comprueban estos textos sobre el
+paquete completo y conservan la verificación exacta del HTML.
+
+**CERRAR → MATERIALIZAR → CI:** solo cambia la proyección de lectura de
+capturas ya validadas; no hay nueva ejecución, autoridad ni ruta operacional.

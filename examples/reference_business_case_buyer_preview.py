@@ -113,11 +113,34 @@ def _render_verified_buyer_preview(directory: Path) -> str:
                     'seleccionar proveedor.</p>'
                 )
             elif suffix == "decision-twin":
-                value = f'<p>Representaciones comparadas: {safe(", ".join(result["alternatives"]))}. '
-                value += 'Sin puntuación, ranking ni selección.</p>'
+                viability = next((item for item in result["observations"]
+                                  if item["attribute"] == "viability"), None)
+                states = (", ".join(f"{ref}: {state}" for ref, state in viability["values"])
+                          if viability is not None else "no informada")
+                value = (f'<p>Representaciones comparadas: {safe(", ".join(result["alternatives"]))}. '
+                         f'Viabilidad declarada por Stage 2: {safe(states)}.</p>'
+                         f'<p>Diferencias en atributos incluidos: '
+                         f'{safe(", ".join(result["differences"]) or "ninguna")}. '
+                         f'Atributos faltantes: '
+                         f'{safe(", ".join(result["missing_attributes"]) or "ninguno declarado")}.</p>')
+                limits = ('<p>Las condiciones, consecuencias y riesgos no aportados por el '
+                          'fixture no prueban equivalencia comercial. Las etiquetas son '
+                          'representaciones transitorias; sin puntuación, ranking ni selección. '
+                          'VIABLE no acredita viabilidad económica empresarial.</p>')
             elif suffix == "scenario-coordination":
-                value = f'<p>Escenarios descritos: {safe(len(result["scenarios"]))}. '
-                value += 'La coordinación no selecciona un escenario.</p>'
+                scenario_rows = "".join(
+                    f'<li><code>{safe(item["scenario_id"])}</code>: '
+                    f'ejecución {safe(item["status"])}; '
+                    f'viabilidad declarada '
+                    f'{safe(item["values"].get("viability_result", {}).get("status", "no informada"))}</li>'
+                    for item in result["scenarios"]
+                )
+                value = (f'<p>Escenarios descritos: {safe(len(result["scenarios"]))}.</p>'
+                         f'<ul>{scenario_rows}</ul>')
+                limits = ('<p>La diferencia estructural en viability_result incluye el '
+                          'identificador propio de cada escenario; por sí sola no demuestra '
+                          'una diferencia de viabilidad de negocio. La coordinación no '
+                          'selecciona ni prioriza un escenario.</p>')
             elif suffix == "negotiation-intelligence":
                 value = f'<p>Objetivo ficticio: {safe(result["negotiation_content"]["objective"] or "no informado")}. '
                 value += 'No demuestra mandato empresarial.</p>'
