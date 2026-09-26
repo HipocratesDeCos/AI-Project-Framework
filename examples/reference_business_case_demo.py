@@ -25,6 +25,7 @@ _NI_NAMES = ("reference-negative-negotiation-intelligence.json",
              "reference-negotiation-intelligence.json")
 _LADDER_NAMES = ("reference-negative-negotiation-ladder.json",
                  "reference-negotiation-ladder.json")
+_BUYER_PREVIEW_NAME = "reference-buyer-preview.html"
 
 
 def create_reference_demo(output_dir: Path, *, with_price: bool = False,
@@ -34,7 +35,8 @@ def create_reference_demo(output_dir: Path, *, with_price: bool = False,
                           with_decision_twin: bool = False,
                           with_scenario_coordination: bool = False,
                           with_negotiation_intelligence: bool = False,
-                          with_negotiation_ladder: bool = False) -> tuple[Path, ...]:
+                          with_negotiation_ladder: bool = False,
+                          with_buyer_preview: bool = False) -> tuple[Path, ...]:
     """Reuse closed runners and publish one complete local demonstration directory."""
     output_dir = Path(output_dir)
     if output_dir.exists():
@@ -138,6 +140,11 @@ def create_reference_demo(output_dir: Path, *, with_price: bool = False,
                     json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
                     encoding="utf-8",
                 )
+        if with_buyer_preview:
+            from .reference_business_case_buyer_preview import render_buyer_preview
+            (stage / _BUYER_PREVIEW_NAME).write_text(
+                render_buyer_preview(stage), encoding="utf-8",
+            )
         stage.rename(output_dir)
     finally:
         if stage.exists():
@@ -150,6 +157,7 @@ def create_reference_demo(output_dir: Path, *, with_price: bool = False,
         + (_SCENARIO_NAMES if with_scenario_coordination else ())
         + (_NI_NAMES if with_negotiation_intelligence else ())
         + (_LADDER_NAMES if with_negotiation_ladder else ())
+        + ((_BUYER_PREVIEW_NAME,) if with_buyer_preview else ())
     ))
 
 
@@ -237,6 +245,11 @@ def verify_reference_demo(directory: Path) -> tuple[str, str]:
                 raise ValueError(f"{variant}: {label} observation differs from fixture replay")
         if stored != replayed.to_payload():
             raise ValueError(f"{variant}: terminal differs from the current fixture replay")
+    buyer_preview = directory / _BUYER_PREVIEW_NAME
+    if buyer_preview.exists():
+        from .reference_business_case_buyer_preview import _render_verified_buyer_preview
+        if buyer_preview.read_text(encoding="utf-8") != _render_verified_buyer_preview(directory):
+            raise ValueError("Buyer preview HTML differs from the verified artifacts")
     return negative["terminal_fingerprint"], eligible["terminal_fingerprint"]
 
 
@@ -263,12 +276,14 @@ def main() -> None:
                         help="Export both synthetic C0-bound NI observations and show their limits")
     parser.add_argument("--with-negotiation-ladder", action="store_true",
                         help="Export both synthetic C0-bound Ladder structures as JSON")
+    parser.add_argument("--with-buyer-preview", action="store_true",
+                        help="Export a verified static synthetic purchasing walkthrough")
     args = parser.parse_args()
     if args.verify_dir is not None:
         if (args.with_price or args.with_tco or args.with_supplier_risk
                 or args.with_c0 or args.with_decision_twin
                 or args.with_scenario_coordination or args.with_negotiation_intelligence
-                or args.with_negotiation_ladder):
+                or args.with_negotiation_ladder or args.with_buyer_preview):
             parser.error("Observation flags apply only to --output-dir; verification detects sidecars")
         negative_fp, eligible_fp = verify_reference_demo(args.verify_dir)
         print("Revisión y repetición sintética coinciden; ruta operacional FORBIDDEN.")
@@ -282,7 +297,8 @@ def main() -> None:
                                   with_decision_twin=args.with_decision_twin,
                                   with_scenario_coordination=args.with_scenario_coordination,
                                   with_negotiation_intelligence=args.with_negotiation_intelligence,
-                                  with_negotiation_ladder=args.with_negotiation_ladder)
+                                  with_negotiation_ladder=args.with_negotiation_ladder,
+                                  with_buyer_preview=args.with_buyer_preview)
     print("Simulación sintética completada; ruta operacional FORBIDDEN.")
     for path in files:
         print(path)
