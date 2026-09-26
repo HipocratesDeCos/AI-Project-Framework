@@ -142,11 +142,30 @@ def _render_verified_buyer_preview(directory: Path) -> str:
                           'una diferencia de viabilidad de negocio. La coordinación no '
                           'selecciona ni prioriza un escenario.</p>')
             elif suffix == "negotiation-intelligence":
-                value = f'<p>Objetivo ficticio: {safe(result["negotiation_content"]["objective"] or "no informado")}. '
-                value += 'No demuestra mandato empresarial.</p>'
+                content = result["negotiation_content"]
+                value = (
+                    f'<p>Objetivo ficticio: {safe(content["objective"] or "no informado")}. '
+                    f'Solicitud inicial declarada: '
+                    f'{safe(content["opening_request"] or "no informada")}. '
+                    f'Alternativa de espera: {safe(content["fallback"] or "no informada")}.</p>'
+                    f'<p>Justificaciones declaradas: {safe(len(result["justification"]))}. '
+                    f'Referencias de traza: {safe(len(result["traceability_references"]))}.</p>'
+                )
+                limits = ('<p>AUTHORIZED pertenece al fixture sintético; no acredita '
+                          'mandato empresarial ni autoriza contacto. La traza C0 vinculada '
+                          'no demuestra que el texto se haya derivado causalmente de C0.</p>')
             elif suffix == "negotiation-ladder":
-                value = f'<p>Pasos representados: {safe(len(result["steps"]))}. '
-                value += 'Su orden no instruye a ejecutarlos.</p>'
+                steps = "".join(
+                    f'<li>Posición {safe(step["position"])}: '
+                    f'{safe(step["step_type"])}</li>' for step in result["steps"]
+                )
+                value = (f'<p>Pasos representados: {safe(len(result["steps"]))}; '
+                         f'transiciones: {safe(len(result["transitions"]))}; '
+                         f'rutas: {safe(len(result["routes"]))}.</p><ol>{steps}</ol>')
+                limits = ('<p>La posición describe una representación, no una instrucción '
+                          'para ejecutar o contactar al proveedor. Ladder reconstruye '
+                          'contenido NI desde fuentes sintéticas: esto no prueba que el '
+                          'invocador NI separado haya producido el mismo objeto.</p>')
             elif suffix == "c0":
                 value = (
                     f'<p>Base sintética suministrada: {safe(payload["base_result"])}. '
