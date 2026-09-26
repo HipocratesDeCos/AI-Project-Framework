@@ -43,6 +43,17 @@ rechaza cualquier cambio en el HTML. El comando independiente anterior sirve
 para paquetes ya generados sin la vista; en ese caso el mismo verificador la
 reconoce a partir de entonces.
 
+## Interpretación económica para compras
+
+La tarjeta PRICE muestra el valor, la moneda, el número de referencias
+seleccionadas y el método declarados por el productor. Explica que esa
+referencia de transacciones ficticias no constituye precio objetivo, techo
+autorizado ni oferta. La tarjeta TCO muestra el valor y los componentes
+incluidos. Aunque el productor declare listas vacías de limitaciones o
+componentes pendientes, la vista explica que el fixture no ha aportado otros
+costes atribuibles: lo no informado no equivale a cero ni a un coste total
+empresarial. Se presentan hechos ya capturados, sin recalcular importes.
+
 ## Contexto de propuesta
 
 La vista presenta una sola ficha de propuesta cuando ambas variantes del

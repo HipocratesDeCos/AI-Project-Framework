@@ -26,10 +26,15 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     assert "no evaluable" in html and "no satisfecho" in html
     assert "DEMOSTRACIÓN SINTÉTICA — NO OPERACIONAL" in html
     assert "AUTHORIZED en una captura negociadora no constituye mandato" in html
+    assert html.count("Precio de referencia observado: <strong>20.25 EUR</strong>") == 2
+    assert html.count("no es un precio objetivo, un techo autorizado") == 2
+    assert html.count("Coste de adquisición modelado: <strong>205.00 EUR</strong>") == 2
+    assert html.count("Lo no informado no equivale a coste cero") == 2
+    assert html.count("Componentes incluidos: ACQUISITION") == 2
     for label in ("Precio observado", "Coste de adquisición modelado", "Riesgo y valor",
                   "Evaluación C0", "Comparación de alternativas", "Coordinación de escenarios",
                   "Contenido de negociación", "Secuencia de negociación"):
-        assert html.count(label) == 2
+        assert html.count(f"<h4>{label}") == 2
     for forbidden in ("<script", "<form", "<a ", "<iframe", "<button"):
         assert forbidden not in html
 

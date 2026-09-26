@@ -72,10 +72,29 @@ def _render_verified_buyer_preview(directory: Path) -> str:
             result = payload[result_key]
             value = (f'<p>Valor declarado: <strong>{safe(result[value_key])}</strong></p>'
                      if value_key and result.get(value_key) is not None else "")
-            if suffix in ("price", "tco") and value:
-                value = value.replace("</strong>", f' {safe(result["currency"])}</strong>')
-            limits = (f'<p>Limitaciones declaradas: {safe(", ".join(result[limits_key]) or "ninguna")}</p>'
-                      if limits_key else "")
+            limits = ""
+            if suffix == "price":
+                amount = (f'{safe(result["pr_value"])} {safe(result["currency"])}'
+                          if result["pr_value"] is not None else "sin valor justificable")
+                value = (f'<p>Precio de referencia observado: <strong>{amount}</strong>. '
+                         f'Referencias seleccionadas: {safe(len(result["reference_set"]))}; '
+                         f'método: {safe(result["aggregation_method"])}.</p>')
+                limits = ('<p>Es una referencia de transacciones ficticias comparables; '
+                          'no es un precio objetivo, un techo autorizado ni una oferta del proveedor.</p>'
+                          f'<p>Limitaciones declaradas por PRICE: '
+                          f'{safe(", ".join(result["pr_limitations"]) or "ninguna")}</p>')
+            elif suffix == "tco":
+                amount = (f'{safe(result["value"])} {safe(result["currency"])}'
+                          if result["value"] is not None else "sin importe disponible")
+                value = (f'<p>Coste de adquisición modelado: <strong>{amount}</strong>. '
+                         f'Componentes incluidos: {safe(", ".join(result["contributing_components"]) or "ninguno")}.</p>')
+                limits = ('<p>El fixture no aporta importes atribuibles de transporte, seguros, '
+                          'aranceles, financiación, almacenaje, obsolescencia ni devoluciones. '
+                          'Lo no informado no equivale a coste cero ni a coste total empresarial.</p>'
+                          f'<p>Limitaciones declaradas por TCO: '
+                          f'{safe(", ".join(result["limitations"]) or "ninguna")}. '
+                          f'Componentes pendientes declarados: '
+                          f'{safe(", ".join(result["unresolved_components"]) or "ninguno")}.</p>')
             if suffix == "supplier-risk":
                 value = f'<p>Proveedor ficticio: <code>{safe(result["current_supplier_id"])}</code>. '
                 value += 'Riesgo declarado; sin prueba factual de desempeño del proveedor.</p>'
