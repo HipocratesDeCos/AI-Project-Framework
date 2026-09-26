@@ -30,3 +30,13 @@ def test_bundle_rejects_changed_source_and_extra_file(tmp_path):
     (case_002 / "reference-review.html").write_text("alterado", encoding="utf-8")
     with pytest.raises(ValueError, match="reference-review.html"):
         verify_comparison_bundle(directory)
+
+
+def test_bundle_rejects_external_comparison_even_when_bytes_match(tmp_path):
+    directory = tmp_path / "comparison"
+    _, _, html = create_comparison_bundle(directory)
+    external = tmp_path / "external.html"
+    html.rename(external)
+    html.symlink_to(external)
+    with pytest.raises(ValueError, match="symlinks"):
+        verify_comparison_bundle(directory)

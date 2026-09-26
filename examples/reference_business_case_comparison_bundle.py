@@ -15,10 +15,12 @@ from .reference_business_case_comparison import render_comparison
 
 def verify_comparison_bundle(directory: Path) -> None:
     directory = Path(directory)
-    if not directory.is_dir() or {p.name for p in directory.iterdir()} != {
+    if directory.is_symlink() or not directory.is_dir() or {p.name for p in directory.iterdir()} != {
         "case-001", "case-002", "comparison.html"
     }:
         raise ValueError("Comparison bundle requires exactly both cases and comparison.html")
+    if any(path.is_symlink() for path in directory.rglob("*")):
+        raise ValueError("Comparison bundle must not contain symlinks")
     verify_reference_demo(directory / "case-001")
     verify_reference_business_case_002(directory / "case-002")
     if (directory / "comparison.html").read_text(encoding="utf-8") != render_comparison(
