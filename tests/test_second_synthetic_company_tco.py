@@ -1,32 +1,11 @@
 """TCO material for company 002, without claiming a second E2E execution."""
-from decimal import Decimal
-from pathlib import Path
 
 import pytest
-
+from decimal import Decimal
 from eios.core.case_provenance import classify_reference_operational_simulation
-from eios.core.models import DecisionContext, PurchaseOperation
-from eios.core.projection_mock_dataset import load_projection_mock_dataset
-from eios.core.projection_synthetic_adapter import build_projection_only_synthetic_material_bundle
 from eios.core.tco_integration import build_reference_observed_tco_invoker
 from eios.tco.models import TCOInput
-
-
-FIXTURE = Path(__file__).parent / "fixtures" / "reference_business_case_002_semantic"
-
-
-def _material():
-    bundle = build_projection_only_synthetic_material_bundle(
-        load_projection_mock_dataset(FIXTURE)
-    )
-    dip = bundle.envelope.to_payload()["preparation"]["payload"]["capture"][
-        "finance_package"
-    ]["decision_input_package"]
-    return (
-        bundle,
-        PurchaseOperation.model_validate(dip["purchase"]),
-        DecisionContext.model_validate(dip["context"]),
-    )
+from examples.reference_business_case_002_material import bundle_runtime as _material
 
 
 def test_second_company_tco_uses_exact_synthetic_purchase_once():
