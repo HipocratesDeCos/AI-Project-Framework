@@ -48,3 +48,27 @@ def test_preview_fails_on_changed_terminal_and_handles_missing_optional_observat
     terminal.write_text(json.dumps(payload), encoding="utf-8")
     with pytest.raises(ValueError):
         render_buyer_preview(directory)
+
+
+def test_demo_option_exports_and_replays_buyer_preview(tmp_path):
+    from examples.reference_business_case_demo import verify_reference_demo
+
+    directory = tmp_path / "demo"
+    files = create_reference_demo(directory, with_price=True, with_buyer_preview=True)
+    preview = directory / "reference-buyer-preview.html"
+    assert files[-1] == preview
+    assert preview.read_text(encoding="utf-8") == render_buyer_preview(directory)
+    assert len(verify_reference_demo(directory)) == 2
+
+    preview.write_text("<html>stale</html>", encoding="utf-8")
+    with pytest.raises(ValueError, match="Buyer preview HTML differs"):
+        verify_reference_demo(directory)
+
+
+def test_demo_option_without_observations_is_valid(tmp_path):
+    from examples.reference_business_case_demo import verify_reference_demo
+
+    directory = tmp_path / "demo"
+    files = create_reference_demo(directory, with_buyer_preview=True)
+    assert len(files) == 4
+    assert len(verify_reference_demo(directory)) == 2
