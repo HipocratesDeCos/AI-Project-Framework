@@ -167,20 +167,24 @@ def _json(value: dict) -> str:
     return json.dumps(value, ensure_ascii=False, indent=2) + "\n"
 
 
-def _files(terminal: dict, sidecars: dict[str, dict]) -> dict[str, str]:
-    return {"reference-result.json": _json(terminal), **{
+def _files(terminal: dict, sidecars: dict[str, dict], *, with_review: bool = False) -> dict[str, str]:
+    files = {"reference-result.json": _json(terminal), **{
         f"reference-{name}.json": _json(payload)
         for name, payload in sidecars.items()
     }}
+    if with_review:
+        from .reference_business_case_002_review import render_case_002_review
+        files["reference-review.html"] = render_case_002_review(terminal, sidecars)
+    return files
 
 
-def create_reference_business_case_002(output_dir: Path) -> tuple[Path, ...]:
+def create_reference_business_case_002(output_dir: Path, *, with_review: bool = False) -> tuple[Path, ...]:
     output_dir = Path(output_dir)
     if output_dir.exists():
         raise FileExistsError(f"Output already exists: {output_dir}")
     if not output_dir.parent.is_dir():
         raise ValueError(f"Output parent directory does not exist: {output_dir.parent}")
-    files = _files(*execute_reference_business_case_002())
+    files = _files(*execute_reference_business_case_002(), with_review=with_review)
     stage = Path(tempfile.mkdtemp(prefix=".reference-002-", dir=output_dir.parent))
     try:
         for name, content in files.items():
@@ -196,7 +200,8 @@ def verify_reference_business_case_002(directory: Path) -> str:
     directory = Path(directory)
     if not directory.is_dir():
         raise ValueError(f"Package directory does not exist: {directory}")
-    expected = _files(*execute_reference_business_case_002())
+    with_review = (directory / "reference-review.html").exists()
+    expected = _files(*execute_reference_business_case_002(), with_review=with_review)
     actual = {path.name for path in directory.iterdir()}
     if actual != set(expected):
         raise ValueError("Package file inventory differs from exact case 002 replay")
@@ -211,12 +216,16 @@ def main() -> None:
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument("--output-dir", type=Path)
     action.add_argument("--verify-dir", type=Path)
+    parser.add_argument("--with-review", action="store_true",
+                        help="Include a static read-only HTML review")
     args = parser.parse_args()
     if args.verify_dir is not None:
+        if args.with_review:
+            parser.error("--with-review applies only to --output-dir")
         print("Paquete 002 verificado por repetición exacta: "
               + verify_reference_business_case_002(args.verify_dir))
         return
-    paths = create_reference_business_case_002(args.output_dir)
+    paths = create_reference_business_case_002(args.output_dir, with_review=args.with_review)
     terminal = json.loads(paths[0].read_text(encoding="utf-8"))
     print("Simulación 002: estado " + terminal["execution_outcome"]["status"]
           + "; ruta operacional FORBIDDEN; autoridad decisional false.")
