@@ -370,7 +370,9 @@ def test_demo_exports_and_replays_ladder_json(tmp_path, combined):
     assert ladder["operational_path"] == "FORBIDDEN"
     assert ladder["decision_authority"] is False
     html = files[2].read_text(encoding="utf-8")
-    assert "Observación Negotiation Ladder sintética" not in html
+    assert html.count("Observación Negotiation Ladder sintética") == 2
+    assert "la posición de un paso no es una instrucción" in html
+    assert "no prueba que el invocador NI separado" in html
     assert html.count("Observación Negotiation Intelligence sintética") == (2 if combined else 0)
     assert verify_reference_demo(output)[0] == negative["terminal_fingerprint"]
 
