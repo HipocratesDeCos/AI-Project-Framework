@@ -116,3 +116,20 @@ verifican contenido y límites en ambas variantes del paquete completo.
 
 **CERRAR → MATERIALIZAR → CI:** se conserva la vista estática y sin acciones.
 La unidad no cambia los sidecars, la ejecución ni la ruta `FORBIDDEN`.
+
+## Lectura inicial y trazas desplegables
+
+**DISEÑAR → AUDITAR:** el paquete completo ofrece dieciséis huellas de
+observación y dos terminales; todas son necesarias para la trazabilidad,
+pero su aparición continua dificulta leer primero el contraste QTG. El
+material validado contiene ambos estados y permite un resumen sin cálculo.
+
+**DEPURAR → AUDITAR 2:** se antepone una tarjeta por variante con QTG y
+ejecución técnica, seguida de la propuesta común y el detalle existente.
+Las huellas se conservan en elementos HTML `details` de lectura, cerrados por
+defecto; no se eliminan del archivo ni se convierten en enlaces o acciones.
+El aviso sintético permanece visible. Las pruebas comprueban el orden, ambas
+tarjetas y la presencia de todas las huellas en el paquete completo.
+
+**CERRAR → MATERIALIZAR → CI:** el HTML sigue siendo determinista y se
+recompone en `--verify-dir`. No cambia el fixture ni se crea autoridad nueva.
