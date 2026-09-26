@@ -96,8 +96,22 @@ def _render_verified_buyer_preview(directory: Path) -> str:
                           f'Componentes pendientes declarados: '
                           f'{safe(", ".join(result["unresolved_components"]) or "ninguno")}.</p>')
             if suffix == "supplier-risk":
-                value = f'<p>Proveedor ficticio: <code>{safe(result["current_supplier_id"])}</code>. '
-                value += 'Riesgo declarado; sin prueba factual de desempeño del proveedor.</p>'
+                dimensions = ", ".join(
+                    f'{item["dimension"]}: {item["state"]}'
+                    for item in result["risk_dimensions"]
+                ) or "ninguna"
+                sources = payload["source_inventory"]
+                factual_count = sum(sources[key] for key in (
+                    "observations", "historical_facts", "external_metrics", "signals",
+                ))
+                value = (
+                    f'<p>Proveedor ficticio: <code>{safe(result["current_supplier_id"])}</code>. '
+                    f'Dimensiones de riesgo declaradas: {safe(dimensions)}.</p>'
+                    f'<p>Fuentes factuales incluidas en este fixture: {safe(factual_count)}. '
+                    f'Comparación de valor disponible: {"sí" if payload["value_comparison_available"] else "no"}. '
+                    'La valoración externa declarada no prueba desempeño real ni permite '
+                    'seleccionar proveedor.</p>'
+                )
             elif suffix == "decision-twin":
                 value = f'<p>Representaciones comparadas: {safe(", ".join(result["alternatives"]))}. '
                 value += 'Sin puntuación, ranking ni selección.</p>'
@@ -111,7 +125,16 @@ def _render_verified_buyer_preview(directory: Path) -> str:
                 value = f'<p>Pasos representados: {safe(len(result["steps"]))}. '
                 value += 'Su orden no instruye a ejecutarlos.</p>'
             elif suffix == "c0":
-                limits = '<p>Consolidado sintético: no es una orden ni autorización de compra.</p>'
+                value = (
+                    f'<p>Base sintética suministrada: {safe(payload["base_result"])}. '
+                    f'Consolidado CRC del fixture: <strong>{safe(result["consolidated_result"])}</strong>.</p>'
+                )
+                limits = (
+                    f'<p>QTG de esta variante: {safe(payload["qtg_status"])}. '
+                    'No se ha demostrado una derivación causal de QTG hacia C0. '
+                    'La base fue suministrada al fixture; el consolidado no es '
+                    'una orden ni autorización de compra.</p>'
+                )
             observations.append(
                 f'<article><h4>{safe(title)}</h4>{value}{limits}'
                 f'<p>Observación del fixture; <code>{safe(payload["observation_fingerprint"])}</code></p></article>'

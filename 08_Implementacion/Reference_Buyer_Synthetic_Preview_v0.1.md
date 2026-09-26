@@ -54,6 +54,18 @@ componentes pendientes, la vista explica que el fixture no ha aportado otros
 costes atribuibles: lo no informado no equivale a cero ni a un coste total
 empresarial. Se presentan hechos ya capturados, sin recalcular importes.
 
+## Interpretación de proveedor y C0/CRC
+
+La tarjeta de proveedor expone dimensiones de riesgo declaradas por la
+evaluación externa sintética, el recuento de fuentes factuales incluidas y si
+existe comparación de valor. `RELIABILITY: FAVORABLE` es una declaración del
+fixture: el recuento factual cero no permite deducir fiabilidad real ni elegir
+proveedor. La tarjeta C0/CRC distingue la base sintética suministrada y el
+consolidado obtenido, y mantiene al lado el QTG de cada variante. Una base o
+un consolidado `COMPRAR` no es una orden de compra. No está demostrada una
+derivación causal QTG → C0; las variantes `NO_APTO` y `APTO` no se tratan como
+autorización operacional.
+
 ## Contexto de propuesta
 
 La vista presenta una sola ficha de propuesta cuando ambas variantes del
