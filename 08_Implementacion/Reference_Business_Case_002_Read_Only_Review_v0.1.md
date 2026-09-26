@@ -15,9 +15,16 @@ recursos externos. Mantiene juntos el término técnico y su explicación:
 | Etiqueta | Explicación visible |
 |---|---|
 | `APTO / ALTA` | Calidad de la proyección sintética; no autoriza una compra. |
-| `PARTIALLY_COMPLETED` | Terminó la secuencia con fiabilidad del proveedor sin determinar. |
+| Completada parcialmente | Terminó la secuencia con fiabilidad del proveedor sin determinar. |
 | `INFORMACIÓN INSUFICIENTE` | Falta vincular formalmente un requisito C0; no se oculta tras el estado de la capacidad. |
+| No determinable | No hay historial, métricas ni señales factuales para valorar la fiabilidad del proveedor. |
 | `FORBIDDEN` | Sin ruta ni efecto operacional, ni autoridad decisional. |
+
+Las dos etiquetas traducidas corresponden respectivamente a los valores
+`PARTIALLY_COMPLETED` y `NOT_DETERMINABLE` de los JSON. La traducción afecta
+solo a las tarjetas de lectura; los valores contractuales siguen disponibles
+para verificar y procesar el paquete. Los códigos de procedencia del pie se
+conservan literalmente.
 
 ## DEPURAR → AUDITAR 2
 
