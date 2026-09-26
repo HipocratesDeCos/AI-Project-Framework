@@ -63,9 +63,9 @@ def test_second_runner_review_is_read_only_and_replay_verified(tmp_path):
     paths = create_reference_business_case_002(directory, with_review=True)
     assert len(paths) == 10
     html = (directory / "reference-review.html").read_text(encoding="utf-8")
-    assert "PARTIALLY_COMPLETED" in html
+    assert "Completada parcialmente" in html
     assert "INFORMACIÓN INSUFICIENTE" in html
-    assert "NOT_DETERMINABLE" in html
+    assert "No determinable" in html
     assert "FORBIDDEN" in html
     assert "no se ha demostrado el vínculo" in html
     assert "<script" not in html.lower()
