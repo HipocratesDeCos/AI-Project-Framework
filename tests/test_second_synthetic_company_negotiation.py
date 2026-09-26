@@ -1,42 +1,12 @@
 """Synthetic information request for company 002, bound to its unresolved C0 trace."""
-import pytest
 
+import pytest
 from eios.core.case_provenance import classify_reference_operational_simulation
-from eios.core.models import Evidence
-from eios.core.negotiation_intelligence import NegotiationContent
 from eios.rules.negotiation_provenance import (
-    NegotiationContentEvidence,
     build_reference_observed_c0_bound_ni_invoker,
     build_reference_observed_c0_bound_ladder_invoker,
 )
-from eios.rules.provenance import AssessmentTraceBinding
-
-from test_second_synthetic_company_c0 import _sources as c0_sources
-
-
-def _material():
-    bundle, purchase, context, observation, assessment, trace = c0_sources()
-    assert observation.undetermined_requirement_ids == ("REQ-PROJECTION-QUALITY",)
-    authority = "authority:synthetic:ref-business-002:negotiation:information-request"
-    evidence = Evidence(
-        evidence_id="E-REF-002-NI-AUTH",
-        source_type="synthetic-negotiation-authority",
-        source_ref="reference:business:002:negotiation:information-request",
-        captured_at=purchase.operation_date, state="DEMONSTRATED",
-        demonstration_ref=authority,
-    )
-    content = NegotiationContentEvidence(
-        decision_id=context.decision_id, scenario_id=context.scenario_id,
-        authority_ref=authority, authority_state="AUTHORIZED",
-        negotiation_content=NegotiationContent(
-            objective="Request missing supporting information in this synthetic case",
-            opening_request="Ask for documented supplier reliability information",
-            fallback="Pause the simulated discussion pending human review",
-        ),
-        evidence_refs=(evidence.evidence_id,), trace_refs=(trace.trace_id,),
-    )
-    bindings = (AssessmentTraceBinding(assessment=assessment, trace=trace),)
-    return bundle, purchase, context, content, (evidence,), bindings
+from examples.reference_business_case_002_material import negotiation_material as _material
 
 
 def test_second_company_ni_and_ladder_request_information_only():
