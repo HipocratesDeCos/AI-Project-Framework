@@ -25,6 +25,11 @@ def render_buyer_preview(directory: Path) -> str:
     """Verify full fixture replay, then project existing facts without recalculation."""
     directory = Path(directory)
     verify_reference_demo(directory)
+    return _render_verified_buyer_preview(directory)
+
+
+def _render_verified_buyer_preview(directory: Path) -> str:
+    """Project a bundle that the caller has already replay-verified."""
 
     def safe(value: object) -> str:
         return escape(str(value), quote=True)
