@@ -11,7 +11,6 @@ from .reference_business_case_001 import (
     execute_reference_business_case_with_selected_observations,
 )
 from .reference_business_case_review import render_review
-from eios.core.reference_ladder_observation import validate_reference_ladder_observation_payload
 
 
 _NAMES = ("reference-negative-result.json", "reference-result.json", "reference-review.html")
@@ -80,7 +79,8 @@ def create_reference_demo(output_dir: Path, *, with_price: bool = False,
                          c0_observations=c0_observations,
                          twin_observations=twin_observations,
                          scenario_observations=scenario_observations,
-                         ni_observations=ni_observations)
+                         ni_observations=ni_observations,
+                         ladder_observations=ladder_observations)
 
     stage = Path(tempfile.mkdtemp(prefix=".reference-demo-", dir=output_dir.parent))
     try:
@@ -208,12 +208,10 @@ def verify_reference_demo(directory: Path) -> tuple[str, str]:
                                   c0_observations=c0_observations,
                                   twin_observations=twin_observations,
                                   scenario_observations=scenario_observations,
-                                  ni_observations=ni_observations)
+                                  ni_observations=ni_observations,
+                                  ladder_observations=ladder_observations)
     if stored_html != expected_html:
         raise ValueError("Review HTML differs from the two terminal artifacts")
-    if ladder_observations is not None:
-        for observation, terminal in zip(ladder_observations, (negative, eligible)):
-            validate_reference_ladder_observation_payload(observation, terminal)
     for variant, stored in (("negative", negative), ("qtg-eligible", eligible)):
         replayed, captures = execute_reference_business_case_with_selected_observations(
             variant=variant, with_price=observations is not None,

@@ -25,6 +25,7 @@ from eios.core.reference_scenario_coordination_observation import (
     validate_reference_scenario_coordination_observation_payload,
 )
 from eios.core.reference_ni_observation import validate_reference_ni_observation_payload
+from eios.core.reference_ladder_observation import validate_reference_ladder_observation_payload
 
 
 def _digest(value: object) -> str:
@@ -114,6 +115,7 @@ def render_review(
     twin_observations: tuple[dict, dict] | None = None,
     scenario_observations: tuple[dict, dict] | None = None,
     ni_observations: tuple[dict, dict] | None = None,
+    ladder_observations: tuple[dict, dict] | None = None,
 ) -> str:
     """Validate terminal artifacts and produce an inert HTML comparison."""
     negative = _checked(negative, "negative")
@@ -155,6 +157,11 @@ def render_review(
             raise ValueError("Negotiation Intelligence observations require both variants")
         for observation, terminal in zip(ni_observations, (negative, eligible)):
             validate_reference_ni_observation_payload(observation, terminal)
+    if ladder_observations is not None:
+        if not isinstance(ladder_observations, tuple) or len(ladder_observations) != 2:
+            raise ValueError("Negotiation Ladder observations require both variants")
+        for observation, terminal in zip(ladder_observations, (negative, eligible)):
+            validate_reference_ladder_observation_payload(observation, terminal)
 
     def val(item: object) -> str:
         return escape(str(item), quote=True)
@@ -367,6 +374,33 @@ def render_review(
                 'Sin efecto operacional ni autoridad decisional. Ruta FORBIDDEN.</p>'
                 f'<p>Huella de la observación: <code>{val(observation["observation_fingerprint"])}</code></p>'
             )
+        ladder_html = ""
+        if ladder_observations is not None:
+            observation = ladder_observations[index]
+            ladder = observation["ladder_result"]
+            step_rows = "".join(
+                f'<tr><th scope="row">{val(step["position"])}</th>'
+                f'<td>{val(step["step_type"])}</td>'
+                f'<td><code>{val(step["source_content_reference"])}</code></td></tr>'
+                for step in ladder["steps"]
+            )
+            ladder_html = (
+                '<h3>Observación Negotiation Ladder sintética</h3>'
+                '<p>Estructura de contenido negociador ficticio ya declarado; '
+                'la posición de un paso no es una instrucción para ejecutarlo.</p>'
+                '<table><caption>Pasos representados</caption><thead><tr>'
+                '<th scope="col">Posición</th><th scope="col">Tipo</th>'
+                '<th scope="col">Referencia de contenido</th>'
+                '</tr></thead><tbody>' + step_rows + '</tbody></table>'
+                f'<p>Transiciones estructurales: {val(len(ladder["transitions"]))}. '
+                f'Rutas representadas: {val(len(ladder["routes"]))}.</p>'
+                '<p>Ladder reconstruye NI desde fuentes sintéticas C0-bound. '
+                'Esto no prueba que el invocador NI separado produjera el '
+                'mismo objeto ni que C0 generase el texto negociador. '
+                'AUTHORIZED en el fixture no es un mandato empresarial. '
+                'Sin autoridad decisional ni efecto operacional. Ruta FORBIDDEN.</p>'
+                f'<p>Huella de la observación: <code>{val(observation["observation_fingerprint"])}</code></p>'
+            )
         sections.append(f'<section><h2>{val(name)}: {val(payload["reference_case_id"])}</h2>'
                         f'<p>Secuencia: {val(" → ".join(payload["capability_sequence"]))}</p>'
                         '<div class="table-scroll"><table><caption>Controles QTG declarados</caption>'
@@ -374,7 +408,7 @@ def render_review(
                         '<th scope="col">Crítico</th><th scope="col">Material</th>'
                         '<th scope="col">Motivo</th><th scope="col">Evidencias</th>'
                         '</tr></thead><tbody>' + "".join(check_rows) + '</tbody></table></div>'
-                        + price_html + tco_html + supplier_html + c0_html + twin_html + scenario_html + ni_html +
+                        + price_html + tco_html + supplier_html + c0_html + twin_html + scenario_html + ni_html + ladder_html +
                         '<table><caption>Capacidades y referencias de traza</caption>'
                         '<thead><tr><th scope="col">Capacidad</th><th scope="col">Estado</th>'
                         '<th scope="col">Trazas</th></tr></thead><tbody>' + "".join(rows) + '</tbody></table>'
@@ -421,6 +455,8 @@ def main() -> None:
     parser.add_argument("--qtg-eligible-scenario-coordination", type=Path)
     parser.add_argument("--negative-negotiation-intelligence", type=Path)
     parser.add_argument("--qtg-eligible-negotiation-intelligence", type=Path)
+    parser.add_argument("--negative-negotiation-ladder", type=Path)
+    parser.add_argument("--qtg-eligible-negotiation-ladder", type=Path)
     args = parser.parse_args()
     negative = json.loads(args.negative.read_text(encoding="utf-8"))
     eligible = json.loads(args.qtg_eligible.read_text(encoding="utf-8"))
@@ -480,13 +516,22 @@ def main() -> None:
             json.loads(args.negative_negotiation_intelligence.read_text(encoding="utf-8")),
             json.loads(args.qtg_eligible_negotiation_intelligence.read_text(encoding="utf-8")),
         )
+    if (args.negative_negotiation_ladder is None) != (args.qtg_eligible_negotiation_ladder is None):
+        parser.error("Both Negotiation Ladder observation files must be supplied together")
+    ladder_observations = None
+    if args.negative_negotiation_ladder is not None:
+        ladder_observations = (
+            json.loads(args.negative_negotiation_ladder.read_text(encoding="utf-8")),
+            json.loads(args.qtg_eligible_negotiation_ladder.read_text(encoding="utf-8")),
+        )
     html = render_review(negative, eligible, price_observations=observations,
                          tco_observations=tco_observations,
                          supplier_observations=supplier_observations,
                          c0_observations=c0_observations,
                          twin_observations=twin_observations,
                          scenario_observations=scenario_observations,
-                         ni_observations=ni_observations)
+                         ni_observations=ni_observations,
+                         ladder_observations=ladder_observations)
     args.output.write_text(html, encoding="utf-8")
     print(f"Vista de revisión creada: {args.output}")
 
