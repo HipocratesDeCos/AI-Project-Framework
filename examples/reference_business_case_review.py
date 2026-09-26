@@ -163,6 +163,27 @@ def render_review(
         for observation, terminal in zip(ladder_observations, (negative, eligible)):
             validate_reference_ladder_observation_payload(observation, terminal)
 
+    for index in range(2):
+        c0 = c0_observations[index] if c0_observations is not None else None
+        ni = ni_observations[index] if ni_observations is not None else None
+        ladder = ladder_observations[index] if ladder_observations is not None else None
+        twin = twin_observations[index] if twin_observations is not None else None
+        scenario = scenario_observations[index] if scenario_observations is not None else None
+        if c0 is not None:
+            for downstream in (ni, ladder):
+                if downstream is not None and c0["source"]["bindings"] != downstream["source"]["bindings"]:
+                    raise ValueError("C0 and negotiation observations have different bindings")
+        if ni is not None and ladder is not None:
+            if ni["source"] != ladder["source"] or \
+                    ni["ni_result"]["negotiation_result_id"] != \
+                    ladder["ladder_result"]["context_references"]["negotiation_result_id"]:
+                raise ValueError("NI and Ladder observations have different sources or identity")
+        if twin is not None and scenario is not None:
+            inputs = [item["scenario_input"] for item in twin["source"]["alternatives"]]
+            if twin["source"]["preparation"] != scenario["source"]["preparation"] or \
+                    inputs != scenario["source"]["inputs"]:
+                raise ValueError("Twin and Scenario Coordination observations have different sources")
+
     def val(item: object) -> str:
         return escape(str(item), quote=True)
 
