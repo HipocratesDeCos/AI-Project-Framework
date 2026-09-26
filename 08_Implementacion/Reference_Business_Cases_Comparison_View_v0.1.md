@@ -26,6 +26,24 @@ impide la comparación.
 
 ## CERRAR → MATERIALIZAR → CI
 
+**Ruta directa recomendada.** Tras actualizar `main`, un único comando
+construye las dos simulaciones desde sus fuentes actuales, incluye las ocho
+observaciones del caso 001 y la revisión del 002, valida ambos paquetes y
+deja la comparación en una carpeta nueva:
+
+```powershell
+git pull --ff-only origin main
+python -m examples.reference_business_case_comparison_bundle --output-dir reference-comparison-bundle
+python -m examples.reference_business_case_comparison_bundle --verify-dir reference-comparison-bundle
+Invoke-Item .\reference-comparison-bundle\comparison.html
+```
+
+Si la carpeta ya existe, usar otro nombre. La verificación vuelve a ejecutar
+ambos casos y comprueba el HTML exacto. Los expedientes completos quedan en
+`case-001` y `case-002` dentro de esa carpeta.
+
+**Ruta manual para paquetes existentes.**
+
 Desde la raíz del repositorio, primero actualizar `main` y crear carpetas
 **nuevas** con el código actual. Un paquete 001 anterior puede incluir una
 vista de comprador que ya no coincida con su repetición exacta; en tal caso
