@@ -26,15 +26,25 @@ impide la comparación.
 
 ## CERRAR → MATERIALIZAR → CI
 
-Desde la raíz del repositorio, con paquetes ya generados en carpetas distintas:
+Desde la raíz del repositorio, primero actualizar `main` y crear carpetas
+**nuevas** con el código actual. Un paquete 001 anterior puede incluir una
+vista de comprador que ya no coincida con su repetición exacta; en tal caso
+`verify_reference_demo` lo rechaza y la comparación no se genera.
 
 ```powershell
-python -m examples.reference_business_case_comparison --case-001-dir reference-demo-full --case-002-dir reference-demo-002-es --output reference-comparison.html
-python -m examples.reference_business_case_comparison --case-001-dir reference-demo-full --case-002-dir reference-demo-002-es --verify reference-comparison.html
-Invoke-Item .\reference-comparison.html
+git pull --ff-only origin main
+python -m examples.reference_business_case_demo --output-dir reference-compare-001 --with-supplier-risk --with-buyer-preview
+python -m examples.reference_business_case_002 --output-dir reference-compare-002 --with-review
+python -m examples.reference_business_case_demo --verify-dir reference-compare-001
+python -m examples.reference_business_case_002 --verify-dir reference-compare-002
+python -m examples.reference_business_case_comparison --case-001-dir reference-compare-001 --case-002-dir reference-compare-002 --output reference-compare-new.html
+python -m examples.reference_business_case_comparison --case-001-dir reference-compare-001 --case-002-dir reference-compare-002 --verify reference-compare-new.html
+Invoke-Item .\reference-compare-new.html
 ```
 
 El paquete 001 debe incluir `--with-supplier-risk`; el 002 puede incluir su
-revisión HTML, pero no es imprescindible. El archivo de salida debe ser nuevo.
+revisión HTML, pero no es imprescindible. Cada carpeta y el archivo de salida
+deben tener nombres todavía inexistentes. Ejecutar `--verify` antes de
+`--output` no crea el HTML.
 La comparación es una lectura local; no modifica los paquetes de origen ni
 abre la ruta operacional.
