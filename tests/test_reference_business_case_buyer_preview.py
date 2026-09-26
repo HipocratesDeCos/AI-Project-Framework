@@ -17,6 +17,12 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     html = render_buyer_preview(directory)
     assert html == render_buyer_preview(directory)
     assert html.count("Huella terminal:") == 2
+    assert html.index("Resumen de las dos variantes") < html.index("Propuesta ficticia común")
+    assert html.count('class="overview-card"') == 2
+    assert html.count("Evidencia insuficiente") == 1
+    assert html.count("Entrada apta para la prueba") == 1
+    assert html.count("Trazabilidad terminal</summary>") == 2
+    assert html.count("Traza de la observación</summary>") == 16
     assert html.count("Calidad QTG:") == 2
     assert "NO_APTO / BAJA" in html and "APTO / ALTA" in html
     assert html.count("Propuesta ficticia común") == 1
