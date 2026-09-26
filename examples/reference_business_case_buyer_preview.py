@@ -43,10 +43,13 @@ def _render_verified_buyer_preview(directory: Path) -> str:
         f'<div class="overview-card"><dt>{safe(label)}</dt>'
         f'<dd><strong>{safe(terminal["qtg_quality_result"]["status"])} / '
         f'{safe(terminal["qtg_quality_result"]["confidence"])}</strong></dd>'
+        f'<dd>{safe(reason)}</dd>'
         f'<dd>Ejecución técnica: {safe(terminal["execution_outcome"]["status"])}</dd></div>'
-        for label, terminal in (
-            ("Evidencia insuficiente", negative),
-            ("Entrada apta para la prueba", eligible),
+        for label, terminal, reason in (
+            ("Evidencia insuficiente", negative,
+             "La proyección declara un conflicto o limitación; varios controles del flujo no son evaluables."),
+            ("Entrada apta para la prueba", eligible,
+             "Los controles del flujo son evaluables y están satisfechos; no hay conflicto de proyección pendiente."),
         )
     )
     overview = (
