@@ -1,4 +1,5 @@
 """Two company 002 children each carry their own C0 purchase and trace."""
+from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 
@@ -71,8 +72,22 @@ def _child_binding(purchase, context):
         purchase=purchase, context=context, rule=rule,
         observation=observation, sufficiency_evidence=evidence,
     )
-    trace = build_trace(context, purchase, rule, tuple(assessment.evidence_ids), assessment)
+    trace = build_trace(
+        context, purchase, rule, tuple(assessment.evidence_ids), assessment,
+    ).model_copy(update={
+        "created_at": datetime.combine(
+            purchase.operation_date, datetime.min.time(), tzinfo=timezone.utc,
+        ),
+    })
     return AssessmentTraceBinding(assessment=assessment, trace=trace)
+
+
+def test_second_company_child_trace_payloads_are_reproducible():
+    first = _material()[4]
+    second = _material()[4]
+    assert tuple(item.model_dump(mode="json") for item in first) == tuple(
+        item.model_dump(mode="json") for item in second
+    )
 
 
 def _material():
