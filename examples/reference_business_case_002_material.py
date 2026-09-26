@@ -64,14 +64,7 @@ def bundle_runtime():
 
 
 def price_sources():
-    bundle = build_projection_only_synthetic_material_bundle(
-        load_projection_mock_dataset(FIXTURE)
-    )
-    dip = bundle.envelope.to_payload()["preparation"]["payload"]["capture"][
-        "finance_package"
-    ]["decision_input_package"]
-    purchase = PurchaseOperation.model_validate(dip["purchase"])
-    context = DecisionContext.model_validate(dip["context"])
+    bundle, purchase, context = bundle_runtime()
     reference_ids = ("REF-PRICE-TX-002-A", "REF-PRICE-TX-002-B")
     evidence_ids = ("E-REF-PRICE-002-A", "E-REF-PRICE-002-B")
     references = tuple(
@@ -130,14 +123,7 @@ def price_sources():
 
 
 def supplier_sources():
-    bundle = build_projection_only_synthetic_material_bundle(
-        load_projection_mock_dataset(FIXTURE)
-    )
-    dip = bundle.envelope.to_payload()["preparation"]["payload"]["capture"][
-        "finance_package"
-    ]["decision_input_package"]
-    purchase = PurchaseOperation.model_validate(dip["purchase"])
-    context = DecisionContext.model_validate(dip["context"])
+    bundle, purchase, context = bundle_runtime()
     supplier = evaluate_supplier_evidence(SupplierEvidenceInput(
         context=context, purchase_operation=purchase,
         company_scope="COMPANY-MOCK-002", evaluation_date=purchase.operation_date,
@@ -169,14 +155,7 @@ def supplier_sources():
 
 
 def c0_sources():
-    bundle = build_projection_only_synthetic_material_bundle(
-        load_projection_mock_dataset(FIXTURE)
-    )
-    dip = bundle.envelope.to_payload()["preparation"]["payload"]["capture"][
-        "finance_package"
-    ]["decision_input_package"]
-    purchase = PurchaseOperation.model_validate(dip["purchase"])
-    context = DecisionContext.model_validate(dip["context"])
+    bundle, purchase, context = bundle_runtime()
     authority = "AUTH-REF-BUSINESS-002-DATA"
     methodology = "METHOD-REF-BUSINESS-002-DATA"
     requirement_set = DecisionEvidenceRequirementSet(
@@ -276,14 +255,7 @@ def _child_binding(purchase, context):
 
 
 def scenario_material():
-    bundle = build_projection_only_synthetic_material_bundle(
-        load_projection_mock_dataset(FIXTURE)
-    )
-    dip = bundle.envelope.to_payload()["preparation"]["payload"]["capture"][
-        "finance_package"
-    ]["decision_input_package"]
-    purchase = PurchaseOperation.model_validate(dip["purchase"])
-    context = DecisionContext.model_validate(dip["context"])
+    bundle, purchase, context = bundle_runtime()
     preparation = prepare_o4_o2_o3_orchestration(
         context=context,
         variables=(GenerationVariable(
