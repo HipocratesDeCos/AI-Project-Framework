@@ -31,6 +31,14 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     assert html.count("Coste de adquisición modelado: <strong>205.00 EUR</strong>") == 2
     assert html.count("Lo no informado no equivale a coste cero") == 2
     assert html.count("Componentes incluidos: ACQUISITION") == 2
+    assert html.count("Dimensiones de riesgo declaradas: RELIABILITY: FAVORABLE") == 2
+    assert html.count("Fuentes factuales incluidas en este fixture: 0") == 2
+    assert html.count("Comparación de valor disponible: no") == 2
+    assert html.count("Base sintética suministrada: COMPRAR") == 2
+    assert html.count("Consolidado CRC del fixture: <strong>COMPRAR</strong>") == 2
+    assert "QTG de esta variante: NO_APTO" in html
+    assert "QTG de esta variante: APTO" in html
+    assert html.count("No se ha demostrado una derivación causal de QTG hacia C0") == 2
     for label in ("Precio observado", "Coste de adquisición modelado", "Riesgo y valor",
                   "Evaluación C0", "Comparación de alternativas", "Coordinación de escenarios",
                   "Contenido de negociación", "Secuencia de negociación"):
