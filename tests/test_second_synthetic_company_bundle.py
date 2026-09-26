@@ -12,6 +12,7 @@ from eios.core.projection_synthetic_adapter import build_projection_only_synthet
 
 
 FIXTURE = Path(__file__).parent / "fixtures" / "reference_business_case_002_semantic"
+FIRST_FIXTURE = Path(__file__).parent / "fixtures" / "reference_business_case_001_qtg_eligible"
 
 
 def test_second_company_builds_distinct_synthetic_bundle():
@@ -24,6 +25,9 @@ def test_second_company_builds_distinct_synthetic_bundle():
         "finance_package"]["decision_input_package"]["purchase"]
 
     assert dataset.to_payload()["dataset_id"] == "EIOS-REFERENCE-BUSINESS-002-SEMANTIC"
+    finance = json.loads(dataset.component_bytes("finance_input"))
+    assert finance["company_id"] == finance["snapshot"]["company_scope"] == "COMPANY-MOCK-002"
+    assert dataset.fingerprint != load_projection_mock_dataset(FIRST_FIXTURE).fingerprint
     assert (purchase["article_id"], purchase["supplier_id"], purchase["quantity"],
             purchase["unit_price"]) == (
                 "ARTICLE-MOCK-002", "SUPPLIER-MOCK-002", "15", "21.00",
