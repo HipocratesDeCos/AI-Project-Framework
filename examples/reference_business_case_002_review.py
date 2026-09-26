@@ -44,7 +44,7 @@ def render_case_002_review(terminal: dict, sidecars: dict[str, dict]) -> str:
     cards = "".join((
         card("Calidad de la entrada", f'{qtg["status"]} / {qtg["confidence"]}',
              "La proyección ficticia supera sus controles de calidad. No autoriza una compra."),
-        card("Estado de la ejecución", outcome["status"],
+        card("Estado de la ejecución", "Completada parcialmente",
              "Las capacidades se ejecutaron, pero la fiabilidad del proveedor sigue sin determinarse.",
              "attention"),
         card("Resultado C0", c0["consolidated_result"],
@@ -57,7 +57,7 @@ def render_case_002_review(terminal: dict, sidecars: dict[str, dict]) -> str:
              "Mediana de dos precios ficticios declarados; no es un techo ni una oferta."),
         card("Coste modelado", f'{tco["value"]} {tco["currency"]}',
              "Incluye la adquisición. No se aportaron costes adicionales; no equivale al coste total empresarial."),
-        card("Fiabilidad del proveedor", risk["state"],
+        card("Fiabilidad del proveedor", "No determinable",
              "No hay historial, métricas ni señales factuales en este expediente. No se compara su valor.",
              "attention"),
         card("Escenarios", f'{len(scenarios)} alternativas',
