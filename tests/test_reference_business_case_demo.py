@@ -346,3 +346,48 @@ def test_demo_rejects_missing_or_tampered_ni_sidecar(tmp_path):
     negative.write_text(json.dumps(changed), encoding="utf-8")
     with pytest.raises(ValueError, match="NI observation fingerprint"):
         verify_reference_demo(output)
+
+
+@pytest.mark.parametrize("combined", [False, True])
+def test_demo_exports_and_replays_ladder_json(tmp_path, combined):
+    output = tmp_path / "reference-with-ladder"
+    files = create_reference_demo(
+        output, with_negotiation_ladder=True, with_price=combined,
+        with_tco=combined, with_supplier_risk=combined, with_c0=combined,
+        with_decision_twin=combined, with_scenario_coordination=combined,
+        with_negotiation_intelligence=combined,
+    )
+    assert len(files) == (19 if combined else 5)
+    negative = json.loads(files[0].read_text(encoding="utf-8"))
+    ladder = json.loads((output / "reference-negative-negotiation-ladder.json").read_text(
+        encoding="utf-8",
+    ))
+    assert ladder["terminal_fingerprint"] == negative["terminal_fingerprint"]
+    assert [step["step_type"] for step in ladder["ladder_result"]["steps"]] == [
+        "OBJECTIVE", "OPENING_REQUEST", "FALLBACK",
+    ]
+    assert ladder["separate_ni_invocation_binding_proven"] is False
+    assert ladder["operational_path"] == "FORBIDDEN"
+    assert ladder["decision_authority"] is False
+    html = files[2].read_text(encoding="utf-8")
+    assert "Observación Negotiation Ladder sintética" not in html
+    assert html.count("Observación Negotiation Intelligence sintética") == (2 if combined else 0)
+    assert verify_reference_demo(output)[0] == negative["terminal_fingerprint"]
+
+
+def test_demo_rejects_missing_or_tampered_ladder_json(tmp_path):
+    output = tmp_path / "reference-with-ladder"
+    create_reference_demo(output, with_negotiation_ladder=True)
+    negative = output / "reference-negative-negotiation-ladder.json"
+    eligible = output / "reference-negotiation-ladder.json"
+    eligible.unlink()
+    with pytest.raises(ValueError, match="Both NEGOTIATION_LADDER observations"):
+        verify_reference_demo(output)
+    eligible.write_bytes(negative.read_bytes())
+    with pytest.raises(ValueError, match="Ladder observation identity"):
+        verify_reference_demo(output)
+    changed = json.loads(negative.read_text(encoding="utf-8"))
+    changed["ladder_result"]["steps"][0]["step_type"] = "MOVE"
+    negative.write_text(json.dumps(changed), encoding="utf-8")
+    with pytest.raises(ValueError, match="Ladder observation fingerprint"):
+        verify_reference_demo(output)
