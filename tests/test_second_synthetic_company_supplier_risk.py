@@ -1,59 +1,9 @@
 """Company 002 has explicitly undetermined supplier reliability, not a favorable rating."""
-from pathlib import Path
 
 import pytest
-
 from eios.core.case_provenance import classify_reference_operational_simulation
-from eios.core.models import DecisionContext, Evidence, PurchaseOperation
-from eios.core.projection_mock_dataset import load_projection_mock_dataset
-from eios.core.projection_synthetic_adapter import build_projection_only_synthetic_material_bundle
-from eios.supplier import (
-    SupplierEvidenceInput, SupplierRiskDimensionAssessment,
-    evaluate_supplier_evidence,
-)
 from eios.supplier.risk_value import build_reference_observed_supplier_risk_value_invoker
-
-
-FIXTURE = Path(__file__).parent / "fixtures" / "reference_business_case_002_semantic"
-
-
-def _sources():
-    bundle = build_projection_only_synthetic_material_bundle(
-        load_projection_mock_dataset(FIXTURE)
-    )
-    dip = bundle.envelope.to_payload()["preparation"]["payload"]["capture"][
-        "finance_package"
-    ]["decision_input_package"]
-    purchase = PurchaseOperation.model_validate(dip["purchase"])
-    context = DecisionContext.model_validate(dip["context"])
-    supplier = evaluate_supplier_evidence(SupplierEvidenceInput(
-        context=context, purchase_operation=purchase,
-        company_scope="COMPANY-MOCK-002", evaluation_date=purchase.operation_date,
-    ))
-    authority = "authority:synthetic:ref-business-002:supplier:risk"
-    risk = SupplierRiskDimensionAssessment(
-        supplier_id=purchase.supplier_id, dimension="RELIABILITY",
-        state="NOT_DETERMINABLE", authority_ref=authority,
-        methodology_ref="method:synthetic:ref-business-002:supplier:risk:v1",
-        assessment_ref="assessment:synthetic:ref-business-002:supplier:risk:unknown",
-        evidence_refs=("E-REF-002-SRV-UNKNOWN",),
-        trace_refs=("trace:synthetic:ref-business-002:supplier:risk:unknown",),
-    )
-    evidences = (
-        Evidence(
-            evidence_id="E-REF-002-SRV-AUTH", source_type="supplier-risk",
-            source_ref="reference:business:002:supplier:risk:authority",
-            captured_at=purchase.operation_date, state="DEMONSTRATED",
-            demonstration_ref=authority,
-        ),
-        Evidence(
-            evidence_id="E-REF-002-SRV-UNKNOWN", source_type="supplier-risk",
-            source_ref="reference:business:002:supplier:risk:unknown",
-            captured_at=purchase.operation_date, state="DEMONSTRATED",
-            demonstration_ref=risk.assessment_ref,
-        ),
-    )
-    return bundle, purchase, context, supplier, risk, evidences
+from examples.reference_business_case_002_material import supplier_sources as _sources
 
 
 def test_second_company_supplier_risk_is_explicitly_undetermined():

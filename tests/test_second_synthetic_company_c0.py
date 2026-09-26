@@ -1,85 +1,10 @@
 """C0 material for company 002 keeps unevidenced QTG-to-C0 coverage unresolved."""
-from datetime import datetime, timezone
-from pathlib import Path
 
 import pytest
-
-from eios.core.c0_reproducibility import build_trace
 from eios.core.case_provenance import classify_reference_operational_simulation
-from eios.core.models import DecisionContext, Evidence, PurchaseOperation
-from eios.core.projection_mock_dataset import load_projection_mock_dataset
-from eios.core.projection_synthetic_adapter import build_projection_only_synthetic_material_bundle
-from eios.data_sufficiency import (
-    DECISION_EVIDENCE_SUFFICIENCY_EVIDENCE_SOURCE_TYPE,
-    DecisionEvidenceRequirementSet, DecisionEvidenceSufficiencyProducer,
-    RequirementEvidenceBinding, decision_evidence_purchase_ref,
-    decision_evidence_sufficiency_ref,
-)
 from eios.rules import AssessmentTraceBinding
-from eios.rules.catalog import authorized_rule
-from eios.rules.data_quality import evaluate_r_dat_003
 from eios.rules.provenance import build_reference_observed_rules_engine_c0_invoker
-
-
-FIXTURE = Path(__file__).parent / "fixtures" / "reference_business_case_002_semantic"
-
-
-def _sources():
-    bundle = build_projection_only_synthetic_material_bundle(
-        load_projection_mock_dataset(FIXTURE)
-    )
-    dip = bundle.envelope.to_payload()["preparation"]["payload"]["capture"][
-        "finance_package"
-    ]["decision_input_package"]
-    purchase = PurchaseOperation.model_validate(dip["purchase"])
-    context = DecisionContext.model_validate(dip["context"])
-    authority = "AUTH-REF-BUSINESS-002-DATA"
-    methodology = "METHOD-REF-BUSINESS-002-DATA"
-    requirement_set = DecisionEvidenceRequirementSet(
-        decision_id=context.decision_id, scenario_id=context.scenario_id,
-        data_snapshot_id=context.data_snapshot_id,
-        company_scope="COMPANY-MOCK-002",
-        purchase_operation_ref=decision_evidence_purchase_ref(purchase),
-        effective_date=purchase.operation_date,
-        requirement_set_id="REQSET-REF-BUSINESS-002",
-        requirement_set_version="1.0",
-        requirement_ids=("REQ-PROJECTION-QUALITY",),
-        authority_ref=authority, methodology_ref=methodology,
-        trace_refs=("trace:reference:business:002:requirements",),
-    )
-    binding = RequirementEvidenceBinding(
-        requirement_id="REQ-PROJECTION-QUALITY", classification="UNDETERMINED",
-        authority_ref=authority,
-        trace_refs=("trace:reference:business:002:requirement:qtg:undetermined",),
-    )
-    observation = DecisionEvidenceSufficiencyProducer(
-        authority_ref=authority, methodology_ref=methodology,
-    ).produce(
-        purchase=purchase, context=context, company_scope="COMPANY-MOCK-002",
-        state="AVAILABLE", requirement_set=requirement_set, bindings=(binding,),
-        source_ref="reference:business:002:data-sufficiency",
-        trace_refs=("trace:reference:business:002:data-sufficiency",),
-    )
-    sufficiency_evidence = Evidence(
-        evidence_id="E-REF-002-DAT003",
-        source_type=DECISION_EVIDENCE_SUFFICIENCY_EVIDENCE_SOURCE_TYPE,
-        source_ref="reference:business:002:data-sufficiency:evidence",
-        captured_at=purchase.operation_date, state="DEMONSTRATED",
-        demonstration_ref=decision_evidence_sufficiency_ref(observation),
-    )
-    rule = authorized_rule("R-DAT-003", context.rules_version)
-    assessment = evaluate_r_dat_003(
-        purchase=purchase, context=context, rule=rule,
-        observation=observation, sufficiency_evidence=sufficiency_evidence,
-    )
-    trace = build_trace(
-        context, purchase, rule, tuple(assessment.evidence_ids), assessment,
-    ).model_copy(update={
-        "created_at": datetime.combine(
-            purchase.operation_date, datetime.min.time(), tzinfo=timezone.utc,
-        ),
-    })
-    return bundle, purchase, context, observation, assessment, trace
+from examples.reference_business_case_002_material import c0_sources as _sources
 
 
 def test_second_company_root_trace_payload_is_reproducible():
