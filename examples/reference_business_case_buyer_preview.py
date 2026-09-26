@@ -39,6 +39,22 @@ def _render_verified_buyer_preview(directory: Path) -> str:
     if negative["purchase"] != eligible["purchase"]:
         raise ValueError("Reference variants have different purchase proposals")
     purchase = negative["purchase"]
+    overview_cards = "".join(
+        f'<div class="overview-card"><dt>{safe(label)}</dt>'
+        f'<dd><strong>{safe(terminal["qtg_quality_result"]["status"])} / '
+        f'{safe(terminal["qtg_quality_result"]["confidence"])}</strong></dd>'
+        f'<dd>Ejecución técnica: {safe(terminal["execution_outcome"]["status"])}</dd></div>'
+        for label, terminal in (
+            ("Evidencia insuficiente", negative),
+            ("Entrada apta para la prueba", eligible),
+        )
+    )
+    overview = (
+        '<section class="overview"><h2>Resumen de las dos variantes</h2>'
+        '<p>La propuesta es la misma; cambia la calidad de la evidencia QTG. '
+        'La ejecución técnica completada no aprueba una compra.</p>'
+        f'<dl class="overview-grid">{overview_cards}</dl></section>'
+    )
     proposal = (
         '<section><h2>Propuesta ficticia común</h2>'
         '<p>Los datos siguientes son iguales en ambas variantes. La prueba cambia la '
@@ -179,7 +195,9 @@ def _render_verified_buyer_preview(directory: Path) -> str:
                 )
             observations.append(
                 f'<article><h4>{safe(title)}</h4>{value}{limits}'
-                f'<p>Observación del fixture; <code>{safe(payload["observation_fingerprint"])}</code></p></article>'
+                '<details class="trace"><summary>Traza de la observación</summary>'
+                f'<p>Huella del fixture: <code>{safe(payload["observation_fingerprint"])}</code></p>'
+                '</details></article>'
             )
         sections.append(
             f'<section><h2>{safe(variant)}</h2>'
@@ -189,7 +207,9 @@ def _render_verified_buyer_preview(directory: Path) -> str:
             f'<details><summary>Motivos de calidad de datos</summary><ul>{checks}</ul></details>'
             '<h3>Análisis disponibles</h3>'
             + ("".join(observations) or '<p>No se exportaron observaciones adicionales.</p>')
-            + f'<p>Huella terminal: <code>{safe(terminal["terminal_fingerprint"])}</code></p></section>'
+            + '<details class="trace"><summary>Trazabilidad terminal</summary>'
+            + f'<p>Huella terminal: <code>{safe(terminal["terminal_fingerprint"])}</code></p>'
+            + '</details></section>'
         )
     return (
         '<!doctype html><html lang="es"><head><meta charset="utf-8">'
@@ -202,6 +222,11 @@ def _render_verified_buyer_preview(directory: Path) -> str:
         'article{padding:.5rem 1rem;margin:.7rem 0;background:#f0f5f8}'
         '.proposal{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.7rem}'
         '.proposal div{padding:.6rem;background:#f0f5f8}.proposal dt{font-weight:700}.proposal dd{margin:0}'
+        '.overview{background:#eaf2f8;border-color:#6d8ca7}'
+        '.overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}'
+        '.overview-card{padding:1rem;background:white;border-left:4px solid #496d8d}'
+        '.overview-card dt{font-weight:700}.overview-card dd{margin:.4rem 0 0}'
+        '.trace{font-size:.9rem;color:#36495d}'
         'code{overflow-wrap:anywhere}details{margin:1rem 0}</style></head><body>'
         '<p class="notice"><strong>DEMOSTRACIÓN SINTÉTICA — NO OPERACIONAL</strong><br>'
         'SYNTHETIC · SYNTHETIC_TEST_ONLY · FORBIDDEN · NO_OPERATIONAL_EFFECT · '
@@ -213,7 +238,7 @@ def _render_verified_buyer_preview(directory: Path) -> str:
         'proceden del fixture. No se ha probado una derivación causal de QTG a C0 ni una '
         'selección empresarial. AUTHORIZED en una captura negociadora no constituye mandato '
         'para contactar a proveedores. Las huellas comprueban consistencia, no autenticidad externa.</p>'
-        + proposal + "".join(sections) + '</main></body></html>'
+        + overview + proposal + "".join(sections) + '</main></body></html>'
     )
 
 
