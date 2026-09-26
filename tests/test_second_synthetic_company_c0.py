@@ -1,4 +1,5 @@
 """C0 material for company 002 keeps unevidenced QTG-to-C0 coverage unresolved."""
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -71,8 +72,20 @@ def _sources():
         purchase=purchase, context=context, rule=rule,
         observation=observation, sufficiency_evidence=sufficiency_evidence,
     )
-    trace = build_trace(context, purchase, rule, tuple(assessment.evidence_ids), assessment)
+    trace = build_trace(
+        context, purchase, rule, tuple(assessment.evidence_ids), assessment,
+    ).model_copy(update={
+        "created_at": datetime.combine(
+            purchase.operation_date, datetime.min.time(), tzinfo=timezone.utc,
+        ),
+    })
     return bundle, purchase, context, observation, assessment, trace
+
+
+def test_second_company_root_trace_payload_is_reproducible():
+    first = _sources()[-1]
+    second = _sources()[-1]
+    assert first.model_dump(mode="json") == second.model_dump(mode="json")
 
 
 def test_second_company_c0_preserves_undetermined_requirement():
