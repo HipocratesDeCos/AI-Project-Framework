@@ -46,6 +46,16 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     assert html.count("Escenarios descritos: 2") == 2
     assert html.count("La diferencia estructural en viability_result") == 2
     assert html.count("no selecciona ni prioriza un escenario") == 2
+    assert html.count("Solicitud inicial declarada: Request a revised written quotation") == 2
+    assert html.count("Alternativa de espera: Retain the simulated offer") == 2
+    assert html.count("Justificaciones declaradas: 0") == 2
+    assert html.count("AUTHORIZED pertenece al fixture sintético") == 2
+    assert html.count("no demuestra que el texto se haya derivado causalmente de C0") == 2
+    assert html.count("Pasos representados: 3; transiciones: 2; rutas: 1") == 2
+    assert html.count("Posición 1: OBJECTIVE") == 2
+    assert html.count("Posición 2: OPENING_REQUEST") == 2
+    assert html.count("Posición 3: FALLBACK") == 2
+    assert html.count("no prueba que el invocador NI separado haya producido el mismo objeto") == 2
     for label in ("Precio observado", "Coste de adquisición modelado", "Riesgo y valor",
                   "Evaluación C0", "Comparación de alternativas", "Coordinación de escenarios",
                   "Contenido de negociación", "Secuencia de negociación"):

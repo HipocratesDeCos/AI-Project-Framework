@@ -99,3 +99,20 @@ paquete completo y conservan la verificación exacta del HTML.
 
 **CERRAR → MATERIALIZAR → CI:** solo cambia la proyección de lectura de
 capturas ya validadas; no hay nueva ejecución, autoridad ni ruta operacional.
+
+## Contexto descriptivo Negotiation Intelligence y Ladder
+
+**DISEÑAR → AUDITAR:** las capturas NI contienen objetivo, solicitud inicial,
+alternativa de espera, justificaciones y trazas. Ladder contiene pasos,
+transiciones y rutas. La vista de compras mostraba solo el objetivo NI y el
+número de pasos Ladder, pese a disponer de esos datos verificados.
+
+**DEPURAR → AUDITAR 2:** se proyectan esos contenidos declarados y los tipos
+de paso en su orden original, con escape HTML. El texto de negociación sigue
+siendo ficticio. `AUTHORIZED` no implica mandato empresarial; la vinculación
+a C0 no demuestra derivación causal del texto. La reconstrucción interna NI
+de Ladder no prueba identidad con una invocación NI separada. Las pruebas
+verifican contenido y límites en ambas variantes del paquete completo.
+
+**CERRAR → MATERIALIZAR → CI:** se conserva la vista estática y sin acciones.
+La unidad no cambia los sidecars, la ejecución ni la ruta `FORBIDDEN`.
