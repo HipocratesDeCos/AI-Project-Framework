@@ -43,6 +43,15 @@ rechaza cualquier cambio en el HTML. El comando independiente anterior sirve
 para paquetes ya generados sin la vista; en ese caso el mismo verificador la
 reconoce a partir de entonces.
 
+## Contexto de propuesta
+
+La vista presenta una sola ficha de propuesta cuando ambas variantes del
+fixture contienen exactamente la misma compra: artículo, proveedor, cantidad,
+precio unitario de entrada y fecha ficticia. Rechaza una divergencia en vez de
+atribuir silenciosamente una propuesta a ambas variantes. El precio propuesto
+no se transforma en precio objetivo, importe total ni recomendación. Los
+controles QTG conservan también el estado «no aplica» cuando corresponda.
+
 ## CI
 
 `tests/test_reference_business_case_buyer_preview.py` verifica la vista

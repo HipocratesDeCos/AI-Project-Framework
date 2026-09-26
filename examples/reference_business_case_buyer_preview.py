@@ -34,17 +34,34 @@ def _render_verified_buyer_preview(directory: Path) -> str:
     def safe(value: object) -> str:
         return escape(str(value), quote=True)
 
+    negative = json.loads((directory / "reference-negative-result.json").read_text(encoding="utf-8"))
+    eligible = json.loads((directory / "reference-result.json").read_text(encoding="utf-8"))
+    if negative["purchase"] != eligible["purchase"]:
+        raise ValueError("Reference variants have different purchase proposals")
+    purchase = negative["purchase"]
+    proposal = (
+        '<section><h2>Propuesta ficticia común</h2>'
+        '<p>Los datos siguientes son iguales en ambas variantes. La prueba cambia la '
+        'calidad de la evidencia, no la propuesta de compra.</p>'
+        '<dl class="proposal">'
+        f'<div><dt>Artículo</dt><dd><code>{safe(purchase["article_id"])}</code></dd></div>'
+        f'<div><dt>Proveedor</dt><dd><code>{safe(purchase["supplier_id"])}</code></dd></div>'
+        f'<div><dt>Cantidad</dt><dd>{safe(purchase["quantity"])} unidades</dd></div>'
+        f'<div><dt>Precio unitario propuesto</dt><dd>{safe(purchase["unit_price"])} {safe(purchase["currency"])}</dd></div>'
+        f'<div><dt>Fecha de la operación ficticia</dt><dd>{safe(purchase["operation_date"])}</dd></div>'
+        '</dl><p>El precio unitario es un dato de entrada; no se presenta como '
+        'precio recomendado ni como coste total.</p></section>'
+    )
     sections = []
-    for variant, prefix, terminal_name in (
-        ("Caso con calidad insuficiente", "reference-negative-", "reference-negative-result.json"),
-        ("Caso con calidad apta para la prueba", "reference-", "reference-result.json"),
+    for variant, prefix, terminal in (
+        ("Caso con calidad insuficiente", "reference-negative-", negative),
+        ("Caso con calidad apta para la prueba", "reference-", eligible),
     ):
-        terminal = json.loads((directory / terminal_name).read_text(encoding="utf-8"))
         qtg = terminal["qtg_quality_result"]
         checks = "".join(
             f'<li><strong>{safe(c["control"])}</strong>: {safe(c["reason"])} '
-            f'({"satisfecho" if c["satisfied"] is True else "no satisfecho" if c["satisfied"] is False else "no evaluable"})</li>'
-            for c in qtg["checks"] if c["applicable"]
+            f'({"no aplica" if not c["applicable"] else "satisfecho" if c["satisfied"] is True else "no satisfecho" if c["satisfied"] is False else "no evaluable"})</li>'
+            for c in qtg["checks"]
         )
         observations = []
         for suffix, title, result_key, value_key, limits_key in _SIDECARS:
@@ -99,6 +116,8 @@ def _render_verified_buyer_preview(directory: Path) -> str:
         '.notice{position:sticky;top:0;background:#fff2c2;border:2px solid #8b6400;padding:.7rem;z-index:1}'
         'section{margin:2rem 0;padding:1rem;border:1px solid #9aa9b8;border-radius:.5rem}'
         'article{padding:.5rem 1rem;margin:.7rem 0;background:#f0f5f8}'
+        '.proposal{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.7rem}'
+        '.proposal div{padding:.6rem;background:#f0f5f8}.proposal dt{font-weight:700}.proposal dd{margin:0}'
         'code{overflow-wrap:anywhere}details{margin:1rem 0}</style></head><body>'
         '<p class="notice"><strong>DEMOSTRACIÓN SINTÉTICA — NO OPERACIONAL</strong><br>'
         'SYNTHETIC · SYNTHETIC_TEST_ONLY · FORBIDDEN · NO_OPERATIONAL_EFFECT · '
@@ -110,7 +129,7 @@ def _render_verified_buyer_preview(directory: Path) -> str:
         'proceden del fixture. No se ha probado una derivación causal de QTG a C0 ni una '
         'selección empresarial. AUTHORIZED en una captura negociadora no constituye mandato '
         'para contactar a proveedores. Las huellas comprueban consistencia, no autenticidad externa.</p>'
-        + "".join(sections) + '</main></body></html>'
+        + proposal + "".join(sections) + '</main></body></html>'
     )
 
 
