@@ -32,6 +32,17 @@ el consolidado CRC se explican con sus límites de procedencia. La ruta sigue
 `FORBIDDEN`, el efecto `NO_OPERATIONAL_EFFECT` y la autoridad decisional
 `false`.
 
+## Paquete integrado
+
+También puede añadirse `--with-buyer-preview` a la generación del paquete
+`examples.reference_business_case_demo --output-dir ...` junto a cualquier
+combinación de las ocho opciones de observación. El archivo resultante se
+incluye en el directorio publicado de forma atómica. Una ejecución posterior
+de `--verify-dir` reconstruye la vista desde los artefactos verificados y
+rechaza cualquier cambio en el HTML. El comando independiente anterior sirve
+para paquetes ya generados sin la vista; en ese caso el mismo verificador la
+reconoce a partir de entonces.
+
 ## CI
 
 `tests/test_reference_business_case_buyer_preview.py` verifica la vista
