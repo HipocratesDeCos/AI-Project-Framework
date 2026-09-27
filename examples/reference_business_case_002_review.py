@@ -36,13 +36,16 @@ def render_case_002_review(terminal: dict, sidecars: dict[str, dict]) -> str:
             supplier["risk_dimensions"][0]["state"] != "NOT_DETERMINABLE" or \
             sidecars["decision-twin"]["selected_alternative"] is not None:
         raise ValueError("Case 002 review cannot hide unresolved material")
+    if (qtg["status"], qtg["confidence"]) != ("APTO", "ALTA") or \
+            ni["opening_request"] != "Ask for documented supplier reliability information":
+        raise ValueError("Case 002 review requires its fixed quality and negotiation content")
 
     def card(title: str, value: object, explanation: str, tone: str = "") -> str:
         return (f'<article class="card {tone}"><h3>{safe(title)}</h3>'
                 f'<p class="value">{safe(value)}</p><p>{safe(explanation)}</p></article>')
 
     cards = "".join((
-        card("Calidad de la entrada", f'{qtg["status"]} / {qtg["confidence"]}',
+        card("Calidad de la entrada", "Apta para esta prueba · Confianza alta",
              "La proyección ficticia supera sus controles de calidad. No autoriza una compra."),
         card("Estado de la ejecución", "Completada parcialmente",
              "Las capacidades se ejecutaron, pero la fiabilidad del proveedor sigue sin determinarse.",
@@ -101,8 +104,9 @@ code{{font-size:.85em}}footer{{margin-top:2.5rem;font-size:.82rem;color:#526a77;
 <section aria-labelledby="results"><h2 id="results">Qué aportó cada análisis</h2><p>Los importes y las etiquetas describen el material suministrado a esta prueba.</p>
 <div class="grid">{results}</div></section>
 <aside class="note"><h2>Qué queda pendiente</h2><p>La calidad QTG es apta para la simulación, pero el requisito C0 sigue indeterminado; no se ha demostrado el vínculo entre ambos. Tampoco hay hechos suficientes para valorar la fiabilidad del proveedor.</p>
-<p>El contenido NI propone pedir información: {safe(ni['opening_request'])}. Su autoridad declarada solo existe dentro del ensayo y no permite contactar a un proveedor.</p></aside>
-<footer>Expediente {safe(terminal['reference_case_id'])} · Fingerprint del terminal: <code>{safe(terminal['terminal_fingerprint'])}</code><br>
+<p>El contenido de negociación propone solicitar información documentada sobre la fiabilidad del proveedor. Su autoridad declarada solo existe dentro del ensayo y no permite contactar a un proveedor.</p></aside>
+<footer>Expediente {safe(terminal['reference_case_id'])} · Huella del resultado: <code>{safe(terminal['terminal_fingerprint'])}</code><br>
+La huella permite comprobar que el paquete coincide con esta prueba; no acredita la autenticidad de los documentos.<br>
 SYNTHETIC · SYNTHETIC_TEST_ONLY · FORBIDDEN · NO_OPERATIONAL_EFFECT · decision_authority=false<br>
 Vista local de solo lectura, vinculada al paquete JSON verificado.</footer>
 </main></body></html>
