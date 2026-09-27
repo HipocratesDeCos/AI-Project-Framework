@@ -11,7 +11,10 @@ def test_bundle_creates_two_full_cases_and_rejects_changed_comparison(tmp_path):
     case_001, case_002, html = create_comparison_bundle(directory)
     assert (case_001 / "reference-buyer-preview.html").is_file()
     assert (case_002 / "reference-review.html").is_file()
-    assert "Completada parcialmente" in html.read_text(encoding="utf-8")
+    content = html.read_text(encoding="utf-8")
+    assert "Completada parcialmente" in content
+    assert 'href="case-001/reference-buyer-preview.html"' in content
+    assert 'href="case-002/reference-review.html"' in content
     verify_comparison_bundle(directory)
     with pytest.raises(FileExistsError):
         create_comparison_bundle(directory)

@@ -37,7 +37,7 @@ def verify_comparison_bundle(directory: Path) -> None:
     verify_reference_demo(directory / "case-001")
     verify_reference_business_case_002(directory / "case-002")
     if (directory / "comparison.html").read_text(encoding="utf-8") != render_comparison(
-        directory / "case-001", directory / "case-002"
+        directory / "case-001", directory / "case-002", detail_links=True
     ):
         raise ValueError("Comparison HTML differs from verified case replay")
 
@@ -58,7 +58,8 @@ def create_comparison_bundle(directory: Path) -> tuple[Path, Path, Path]:
         )
         create_reference_business_case_002(stage / "case-002", with_review=True)
         (stage / "comparison.html").write_text(
-            render_comparison(stage / "case-001", stage / "case-002"), encoding="utf-8"
+            render_comparison(stage / "case-001", stage / "case-002", detail_links=True),
+            encoding="utf-8",
         )
         verify_comparison_bundle(stage)
         stage.rename(directory)

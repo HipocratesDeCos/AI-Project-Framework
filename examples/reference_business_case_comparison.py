@@ -10,9 +10,12 @@ from .reference_business_case_demo import verify_reference_demo
 from .reference_business_case_002 import verify_reference_business_case_002
 
 
-def render_comparison(case_001_dir: Path, case_002_dir: Path) -> str:
+def render_comparison(case_001_dir: Path, case_002_dir: Path, *, detail_links: bool = False) -> str:
     """Replay both packages and render only fixed, descriptive facts."""
     case_001_dir, case_002_dir = Path(case_001_dir), Path(case_002_dir)
+    if detail_links and (case_001_dir.name != "case-001" or case_002_dir.name != "case-002"
+                         or case_001_dir.parent != case_002_dir.parent):
+        raise ValueError("Detail links require both cases inside one comparison bundle")
     verify_reference_demo(case_001_dir)
     verify_reference_business_case_002(case_002_dir)
     supplier_001 = case_001_dir / "reference-supplier-risk.json"
@@ -46,6 +49,12 @@ def render_comparison(case_001_dir: Path, case_002_dir: Path) -> str:
 <div><dt>Compra ficticia</dt><dd>{safe(purchase['quantity'])} unidades × {safe(purchase['unit_price'])} {safe(purchase['currency'])}</dd></div></dl>
 <p class="ref">Expediente {safe(data['reference_case_id'])}<br>Huella del resultado: <code>{safe(data['terminal_fingerprint'])}</code></p></article>'''
 
+    links = ('''<nav class="details" aria-label="Revisiones detalladas">
+<h2>Explorar cada expediente</h2><p>Las revisiones detalladas explican el origen y los límites de cada resultado.</p>
+<a href="case-001/reference-buyer-preview.html">Leer el caso 001</a>
+<a href="case-002/reference-review.html">Leer el caso 002</a></nav>'''
+             if detail_links else "")
+
     return f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Comparación de simulaciones · EIOS</title>
@@ -61,6 +70,9 @@ header .eyebrow{{color:#a7dee0}}.notice{{background:#fff4df;border-left:5px soli
 .case p{{max-width:64ch}}dl{{margin:1.3rem 0}}dl div{{padding:.7rem 0;border-top:1px solid #e4ecef}}
 dt{{font-size:.85rem;color:#466271}}dd{{margin:.2rem 0 0;font-weight:750;font-size:1.1rem}}
 .ref{{font-size:.8rem;color:#496372;overflow-wrap:anywhere}}.explain{{background:#e5f2f0;border-radius:15px;padding:1.2rem 1.5rem;margin-top:1.25rem}}
+.details{{background:white;border-radius:15px;padding:1.2rem 1.5rem;margin-top:1.25rem}}
+.details a{{display:inline-block;margin:.35rem .6rem .35rem 0;padding:.65rem 1rem;border-radius:9px;background:#176a73;color:white;font-weight:700;text-decoration:none}}
+.details a:focus-visible{{outline:3px solid #d99a28;outline-offset:3px}}.details a:hover{{background:#124e55}}
 footer{{font-size:.85rem;color:#486473;margin-top:2rem}}
 </style></head><body><main><header><div class="eyebrow">EIOS · comparación de pruebas</div>
 <h1>Dos empresas ficticias, dos resultados distintos</h1>
@@ -69,7 +81,7 @@ footer{{font-size:.85rem;color:#486473;margin-top:2rem}}
 <section class="grid" aria-label="Resultados de los dos casos">
 {case('Caso 001 · variante apta', first, 'Favorable en la prueba', 'Todas las capacidades terminaron; el juicio sobre el proveedor pertenece únicamente al material ficticio 001.')}
 {case('Caso 002', second, 'No determinable', 'Las capacidades se ejecutaron, pero faltan hechos para valorar la fiabilidad del proveedor.')}
-</section><section class="explain"><h2>Cómo leer la diferencia</h2>
+</section>{links}<section class="explain"><h2>Cómo leer la diferencia</h2>
 <p>«Completada» describe la ejecución técnica del caso 001; no equivale a aprobar una compra. «Completada parcialmente» señala que el caso 002 conserva una cuestión sin resolver. La calidad de entrada APTO / ALTA tampoco resuelve por sí sola la fiabilidad del proveedor.</p>
 <p>Las cantidades y precios pertenecen a empresas ficticias diferentes. Su presencia permite reconocer los expedientes, no ordenar proveedores ni establecer cuál conviene comprar.</p></section>
 <footer>Vista local de solo lectura · Material sintético · Sin efecto operacional · Sin autoridad decisional</footer>
