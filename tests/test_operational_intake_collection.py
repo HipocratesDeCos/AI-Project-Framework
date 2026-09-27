@@ -39,3 +39,13 @@ def test_collection_rejects_unknown_keys_or_non_array_values(tmp_path, bad):
     path.write_text(json.dumps(bad), encoding="utf-8")
     with pytest.raises(ValueError):
         inspect_collection_sheet(path)
+
+
+def test_collection_rejects_duplicate_json_key_without_losing_first_reference(tmp_path):
+    path = tmp_path / "references.json"
+    path.write_text(
+        '{"order_document": ["document:order"], "order_document": []}',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="Duplicate JSON intake key: order_document"):
+        inspect_collection_sheet(path)
