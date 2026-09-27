@@ -45,11 +45,12 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     assert "DEMOSTRACIÓN SINTÉTICA — NO OPERACIONAL" in html
     assert "AUTHORIZED en una captura negociadora no constituye mandato" in html
     assert html.count("Precio de referencia observado: <strong>20.25 EUR</strong>") == 2
+    assert html.count("método: mediana sin ponderar") == 2
     assert html.count("no es un precio objetivo, un techo autorizado") == 2
     assert html.count("Coste de adquisición modelado: <strong>205.00 EUR</strong>") == 2
     assert html.count("Lo no informado no equivale a coste cero") == 2
-    assert html.count("Componentes incluidos: ACQUISITION") == 2
-    assert html.count("Dimensiones de riesgo declaradas: RELIABILITY: FAVORABLE") == 2
+    assert html.count("Componentes incluidos: adquisición") == 2
+    assert html.count("Dimensiones de riesgo declaradas: Fiabilidad: favorable") == 2
     assert html.count("Fuentes factuales incluidas en este fixture: 0") == 2
     assert html.count("Comparación de valor disponible: no") == 2
     assert html.count("Base sintética suministrada: COMPRAR") == 2
@@ -57,22 +58,24 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     assert "QTG de esta variante: NO_APTO" in html
     assert "QTG de esta variante: APTO" in html
     assert html.count("No se ha demostrado una derivación causal de QTG hacia C0") == 2
-    assert html.count("Viabilidad declarada por Stage 2:") == 2
-    assert html.count("ALT-1: VIABLE, REF-BUSINESS-001-ALT-2: VIABLE") == 2
+    assert html.count("Viabilidad declarada por la evaluación preliminar (Stage 2):") == 2
+    assert html.count("ALT-1: viable en la prueba, REF-BUSINESS-001-ALT-2: viable en la prueba") == 2
     assert html.count("Diferencias en atributos incluidos: ninguna") == 2
-    assert html.count("VIABLE no acredita viabilidad económica empresarial") == 2
+    assert html.count("«Viable en la prueba» no acredita viabilidad económica empresarial") == 2
     assert html.count("Escenarios descritos: 2") == 2
-    assert html.count("La diferencia estructural en viability_result") == 2
+    assert html.count("La diferencia estructural en el resultado de viabilidad") == 2
     assert html.count("no selecciona ni prioriza un escenario") == 2
-    assert html.count("Solicitud inicial declarada: Request a revised written quotation") == 2
-    assert html.count("Alternativa de espera: Retain the simulated offer") == 2
+    assert html.count("Objetivo ficticio: Explorar una mejora condicionada de la oferta ficticia") == 2
+    assert html.count("Solicitud inicial declarada: Solicitar un presupuesto revisado por escrito") == 2
+    assert html.count("Alternativa de espera: Conservar la oferta simulada hasta que una persona la revise") == 2
     assert html.count("Justificaciones declaradas: 0") == 2
-    assert html.count("AUTHORIZED pertenece al fixture sintético") == 2
+    assert html.count("La etiqueta «AUTHORIZED» pertenece al material sintético") == 2
     assert html.count("no demuestra que el texto se haya derivado causalmente de C0") == 2
     assert html.count("Pasos representados: 3; transiciones: 2; rutas: 1") == 2
-    assert html.count("Posición 1: OBJECTIVE") == 2
-    assert html.count("Posición 2: OPENING_REQUEST") == 2
-    assert html.count("Posición 3: FALLBACK") == 2
+    assert html.count("Posición 1: Objetivo") == 2
+    assert html.count("Posición 2: Solicitud inicial") == 2
+    assert html.count("Posición 3: Alternativa de espera") == 2
+    assert "MEDIAN_UNWEIGHTED" not in html
     assert html.count("no prueba que el invocador NI separado haya producido el mismo objeto") == 2
     for label in ("Precio observado", "Coste de adquisición modelado", "Riesgo y valor",
                   "Evaluación C0", "Comparación de alternativas", "Coordinación de escenarios",
