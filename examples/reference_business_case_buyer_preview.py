@@ -57,6 +57,26 @@ _QUALITY_CHECK_TEXT = {
         ("Conflictos y límites", "No queda declarado un conflicto de proyección pendiente en este material de prueba."),
 }
 
+_NEGOTIATION_TEXT = {
+    "Explore a conditional improvement in the synthetic offer":
+        "Explorar una mejora condicionada de la oferta ficticia",
+    "Request a revised written quotation":
+        "Solicitar un presupuesto revisado por escrito",
+    "Retain the simulated offer pending human review":
+        "Conservar la oferta simulada hasta que una persona la revise",
+}
+_LADDER_STEPS = {
+    "OBJECTIVE": "Objetivo",
+    "OPENING_REQUEST": "Solicitud inicial",
+    "FALLBACK": "Alternativa de espera",
+}
+_TCO_COMPONENTS = {"ACQUISITION": "adquisición"}
+_RISK_DIMENSIONS = {"RELIABILITY": "Fiabilidad"}
+_RISK_STATES = {"FAVORABLE": "favorable"}
+_VIABILITY_STATES = {"VIABLE": "viable en la prueba"}
+_SCENARIO_STATES = {"COMPLETED": "completada"}
+_PRICE_METHODS = {"MEDIAN_UNWEIGHTED": "mediana sin ponderar"}
+
 
 def _quality_check_line(check: dict) -> str:
     """Explain a fixed reference check without changing the QTG result."""
@@ -151,7 +171,7 @@ def _render_verified_buyer_preview(directory: Path) -> str:
                           if result["pr_value"] is not None else "sin valor justificable")
                 value = (f'<p>Precio de referencia observado: <strong>{amount}</strong>. '
                          f'Referencias seleccionadas: {safe(len(result["reference_set"]))}; '
-                         f'método: {safe(result["aggregation_method"])}.</p>')
+                         f'método: {safe(_PRICE_METHODS[result["aggregation_method"]])}.</p>')
                 limits = ('<p>Es una referencia de transacciones ficticias comparables; '
                           'no es un precio objetivo, un techo autorizado ni una oferta del proveedor.</p>'
                           f'<p>Limitaciones declaradas por PRICE: '
@@ -160,7 +180,7 @@ def _render_verified_buyer_preview(directory: Path) -> str:
                 amount = (f'{safe(result["value"])} {safe(result["currency"])}'
                           if result["value"] is not None else "sin importe disponible")
                 value = (f'<p>Coste de adquisición modelado: <strong>{amount}</strong>. '
-                         f'Componentes incluidos: {safe(", ".join(result["contributing_components"]) or "ninguno")}.</p>')
+                         f'Componentes incluidos: {safe(", ".join(_TCO_COMPONENTS[item] for item in result["contributing_components"]) or "ninguno")}.</p>')
                 limits = ('<p>El fixture no aporta importes atribuibles de transporte, seguros, '
                           'aranceles, financiación, almacenaje, obsolescencia ni devoluciones. '
                           'Lo no informado no equivale a coste cero ni a coste total empresarial.</p>'
@@ -170,7 +190,8 @@ def _render_verified_buyer_preview(directory: Path) -> str:
                           f'{safe(", ".join(result["unresolved_components"]) or "ninguno")}.</p>')
             if suffix == "supplier-risk":
                 dimensions = ", ".join(
-                    f'{item["dimension"]}: {item["state"]}'
+                    f'{_RISK_DIMENSIONS[item["dimension"]]}: '
+                    f'{_RISK_STATES[item["state"]]}'
                     for item in result["risk_dimensions"]
                 ) or "ninguna"
                 sources = payload["source_inventory"]
@@ -188,10 +209,11 @@ def _render_verified_buyer_preview(directory: Path) -> str:
             elif suffix == "decision-twin":
                 viability = next((item for item in result["observations"]
                                   if item["attribute"] == "viability"), None)
-                states = (", ".join(f"{ref}: {state}" for ref, state in viability["values"])
+                states = (", ".join(f'{ref}: {_VIABILITY_STATES[state]}'
+                                    for ref, state in viability["values"])
                           if viability is not None else "no informada")
                 value = (f'<p>Representaciones comparadas: {safe(", ".join(result["alternatives"]))}. '
-                         f'Viabilidad declarada por Stage 2: {safe(states)}.</p>'
+                         f'Viabilidad declarada por la evaluación preliminar (Stage 2): {safe(states)}.</p>'
                          f'<p>Diferencias en atributos incluidos: '
                          f'{safe(", ".join(result["differences"]) or "ninguna")}. '
                          f'Atributos faltantes: '
@@ -199,38 +221,38 @@ def _render_verified_buyer_preview(directory: Path) -> str:
                 limits = ('<p>Las condiciones, consecuencias y riesgos no aportados por el '
                           'fixture no prueban equivalencia comercial. Las etiquetas son '
                           'representaciones transitorias; sin puntuación, ranking ni selección. '
-                          'VIABLE no acredita viabilidad económica empresarial.</p>')
+                          '«Viable en la prueba» no acredita viabilidad económica empresarial.</p>')
             elif suffix == "scenario-coordination":
                 scenario_rows = "".join(
                     f'<li><code>{safe(item["scenario_id"])}</code>: '
-                    f'ejecución {safe(item["status"])}; '
+                    f'ejecución {safe(_SCENARIO_STATES[item["status"]])}; '
                     f'viabilidad declarada '
-                    f'{safe(item["values"].get("viability_result", {}).get("status", "no informada"))}</li>'
+                    f'{safe(_VIABILITY_STATES[item["values"]["viability_result"]["status"]])}</li>'
                     for item in result["scenarios"]
                 )
                 value = (f'<p>Escenarios descritos: {safe(len(result["scenarios"]))}.</p>'
                          f'<ul>{scenario_rows}</ul>')
-                limits = ('<p>La diferencia estructural en viability_result incluye el '
+                limits = ('<p>La diferencia estructural en el resultado de viabilidad incluye el '
                           'identificador propio de cada escenario; por sí sola no demuestra '
                           'una diferencia de viabilidad de negocio. La coordinación no '
                           'selecciona ni prioriza un escenario.</p>')
             elif suffix == "negotiation-intelligence":
                 content = result["negotiation_content"]
                 value = (
-                    f'<p>Objetivo ficticio: {safe(content["objective"] or "no informado")}. '
+                    f'<p>Objetivo ficticio: {safe(_NEGOTIATION_TEXT[content["objective"]])}. '
                     f'Solicitud inicial declarada: '
-                    f'{safe(content["opening_request"] or "no informada")}. '
-                    f'Alternativa de espera: {safe(content["fallback"] or "no informada")}.</p>'
+                    f'{safe(_NEGOTIATION_TEXT[content["opening_request"]])}. '
+                    f'Alternativa de espera: {safe(_NEGOTIATION_TEXT[content["fallback"]])}.</p>'
                     f'<p>Justificaciones declaradas: {safe(len(result["justification"]))}. '
                     f'Referencias de traza: {safe(len(result["traceability_references"]))}.</p>'
                 )
-                limits = ('<p>AUTHORIZED pertenece al fixture sintético; no acredita '
+                limits = ('<p>La etiqueta «AUTHORIZED» pertenece al material sintético; no acredita '
                           'mandato empresarial ni autoriza contacto. La traza C0 vinculada '
                           'no demuestra que el texto se haya derivado causalmente de C0.</p>')
             elif suffix == "negotiation-ladder":
                 steps = "".join(
                     f'<li>Posición {safe(step["position"])}: '
-                    f'{safe(step["step_type"])}</li>' for step in result["steps"]
+                    f'{safe(_LADDER_STEPS[step["step_type"]])}</li>' for step in result["steps"]
                 )
                 value = (f'<p>Pasos representados: {safe(len(result["steps"]))}; '
                          f'transiciones: {safe(len(result["transitions"]))}; '
@@ -291,7 +313,7 @@ def _render_verified_buyer_preview(directory: Path) -> str:
         'decision_authority=false</p><main><h1>Cómo leer el caso ficticio de compras</h1>'
         '<p>Dos variantes de la misma simulación muestran cómo se inspecciona la calidad '
         'de datos y qué análisis se han capturado. APTO solo califica la entrada de prueba; '
-        'COMPLETED solo describe la ejecución técnica. Ninguno autoriza una compra.</p>'
+        '«Completada» solo describe la ejecución técnica. Ninguno autoriza una compra.</p>'
         '<p>Los importes, el riesgo declarado, el consolidado CRC y el contenido de negociación '
         'proceden del fixture. No se ha probado una derivación causal de QTG a C0 ni una '
         'selección empresarial. AUTHORIZED en una captura negociadora no constituye mandato '
