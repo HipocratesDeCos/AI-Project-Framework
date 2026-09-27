@@ -64,6 +64,11 @@ def test_second_runner_review_is_read_only_and_replay_verified(tmp_path):
     assert len(paths) == 10
     html = (directory / "reference-review.html").read_text(encoding="utf-8")
     assert "Completada parcialmente" in html
+    assert "Apta para esta prueba · Confianza alta" in html
+    assert "solicitar información documentada sobre la fiabilidad del proveedor" in html
+    assert "Ask for documented supplier reliability information" not in html
+    assert "Huella del resultado:" in html
+    assert "no acredita la autenticidad de los documentos" in html
     assert "INFORMACIÓN INSUFICIENTE" in html
     assert "No determinable" in html
     assert "FORBIDDEN" in html
