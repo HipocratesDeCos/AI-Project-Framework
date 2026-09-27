@@ -107,7 +107,8 @@ code{{font-size:.85em}}footer{{margin-top:2.5rem;font-size:.82rem;color:#526a77;
 <p>El contenido de negociación propone solicitar información documentada sobre la fiabilidad del proveedor. Su autoridad declarada solo existe dentro del ensayo y no permite contactar a un proveedor.</p></aside>
 <footer>Expediente {safe(terminal['reference_case_id'])} · Huella del resultado: <code>{safe(terminal['terminal_fingerprint'])}</code><br>
 La huella permite comprobar que el paquete coincide con esta prueba; no acredita la autenticidad de los documentos.<br>
-SYNTHETIC · SYNTHETIC_TEST_ONLY · FORBIDDEN · NO_OPERATIONAL_EFFECT · decision_authority=false<br>
+Datos ficticios · Solo para pruebas · Ruta operacional prohibida · Sin efecto operacional · Sin autoridad para decidir<br>
+<details><summary>Ver códigos técnicos de esta restricción</summary><code>SYNTHETIC · SYNTHETIC_TEST_ONLY · FORBIDDEN · NO_OPERATIONAL_EFFECT · decision_authority=false</code></details>
 Vista local de solo lectura, vinculada al paquete JSON verificado.</footer>
 </main></body></html>
 """

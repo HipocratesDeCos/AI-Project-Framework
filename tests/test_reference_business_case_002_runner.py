@@ -72,6 +72,10 @@ def test_second_runner_review_is_read_only_and_replay_verified(tmp_path):
     assert "no acredita la autenticidad de los documentos" in html
     assert "INFORMACIÓN INSUFICIENTE" in html
     assert "No determinable" in html
+    assert "Datos ficticios · Solo para pruebas · Ruta operacional prohibida" in html
+    assert "Sin efecto operacional · Sin autoridad para decidir" in html
+    assert "Ver códigos técnicos de esta restricción" in html
+    assert "SYNTHETIC · SYNTHETIC_TEST_ONLY · FORBIDDEN · NO_OPERATIONAL_EFFECT · decision_authority=false" in html
     assert "FORBIDDEN" in html
     assert "no se ha demostrado el vínculo" in html
     assert "<script" not in html.lower()
