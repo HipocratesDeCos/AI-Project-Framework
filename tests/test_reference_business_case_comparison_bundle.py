@@ -13,6 +13,9 @@ def test_bundle_creates_two_full_cases_and_rejects_changed_comparison(tmp_path):
     assert (case_002 / "reference-review.html").is_file()
     content = html.read_text(encoding="utf-8")
     assert "Completada parcialmente" in content
+    assert content.count("Apta para esta prueba · Confianza alta") == 2
+    assert "APTO / ALTA" not in content
+    assert "no demuestra por sí sola que el proveedor sea fiable" in content
     assert 'href="case-001/reference-buyer-preview.html"' in content
     assert 'href="case-002/reference-review.html"' in content
     verify_comparison_bundle(directory)
