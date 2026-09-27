@@ -37,7 +37,7 @@ def render_comparison(case_001_dir: Path, case_002_dir: Path, *, detail_links: b
     def safe(value: object) -> str:
         return escape(str(value), quote=True)
 
-    def case(label: str, data: dict, reliability: str, summary: str) -> str:
+    def case(label: str, data: dict, reliability: str, summary: str, conclusion: str) -> str:
         purchase = data["purchase"]
         quality = (data["qtg_quality_result"]["status"], data["qtg_quality_result"]["confidence"])
         if quality != ("APTO", "ALTA"):
@@ -46,7 +46,7 @@ def render_comparison(case_001_dir: Path, case_002_dir: Path, *, detail_links: b
             data["execution_outcome"]["status"]
         ]
         return f'''<article class="case"><div class="eyebrow">{safe(label)}</div>
-<h2>{safe(status)}</h2><p>{safe(summary)}</p>
+<h2>{safe(status)}</h2><p class="verdict"><strong>CONCLUSIÓN SOBRE EL PROVEEDOR</strong> <span>{safe(conclusion)}</span></p><p>{safe(summary)}</p>
 <dl><div><dt>Calidad de la entrada</dt><dd>Apta para esta prueba · Confianza alta</dd></div>
 <div><dt>Fiabilidad del proveedor</dt><dd>{safe(reliability)}</dd></div>
 <div><dt>Compra ficticia</dt><dd>{safe(purchase['quantity'])} unidades × {safe(purchase['unit_price'])} {safe(purchase['currency'])}</dd></div></dl>
@@ -71,6 +71,8 @@ header .eyebrow{{color:#a7dee0}}.notice{{background:#fff4df;border-left:5px soli
 .grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:1rem}}
 .case{{background:white;border:1px solid #d6e4e9;border-radius:18px;padding:1.5rem;box-shadow:0 5px 18px #12364d0c}}
 .case p{{max-width:64ch}}dl{{margin:1.3rem 0}}dl div{{padding:.7rem 0;border-top:1px solid #e4ecef}}
+.verdict{{background:#fff2da;border-left:5px solid #bb7d13;border-radius:9px;padding:.8rem 1rem;color:#563900}}
+.verdict strong,.verdict span{{display:block}}.verdict strong{{font-size:.75rem;letter-spacing:.04em}}.verdict span{{font-weight:650;margin-top:.2rem}}
 dt{{font-size:.85rem;color:#466271}}dd{{margin:.2rem 0 0;font-weight:750;font-size:1.1rem}}
 .ref{{font-size:.8rem;color:#496372;overflow-wrap:anywhere}}.explain{{background:#e5f2f0;border-radius:15px;padding:1.2rem 1.5rem;margin-top:1.25rem}}
 .details{{background:white;border-radius:15px;padding:1.2rem 1.5rem;margin-top:1.25rem}}
@@ -82,8 +84,8 @@ footer{{font-size:.85rem;color:#486473;margin-top:2rem}}
 <p>Esta vista reúne hechos de paquetes sintéticos verificados por repetición exacta. Compara la variante apta del caso 001 con el caso 002; el caso negativo 001 no interviene en estas columnas.</p></header>
 <div class="notice"><strong>Ninguna compra está autorizada.</strong> Ambas simulaciones tienen la ruta operacional prohibida, carecen de efecto operacional y no conceden autoridad decisional.</div>
 <section class="grid" aria-label="Resultados de los dos casos">
-{case('Caso 001 · variante apta', first, 'Favorable en la prueba', 'Todas las capacidades terminaron; el juicio sobre el proveedor pertenece únicamente al material ficticio 001.')}
-{case('Caso 002', second, 'No determinable', 'Las capacidades se ejecutaron, pero faltan hechos para valorar la fiabilidad del proveedor.')}
+{case('Caso 001 · variante apta', first, 'Favorable en la prueba', 'Todas las capacidades terminaron; el juicio sobre el proveedor pertenece únicamente al material ficticio 001.', 'Favorable solo según el caso ficticio. No hay hechos de desempeño que acrediten fiabilidad real ni se autoriza una compra.')}
+{case('Caso 002', second, 'No determinable', 'Las capacidades se ejecutaron, pero faltan hechos para valorar la fiabilidad del proveedor.', 'Faltan historial y otros hechos del proveedor; su fiabilidad no puede determinarse en esta prueba.')}
 </section>{links}<section class="explain"><h2>Cómo leer la diferencia</h2>
 <p>«Completada» describe la ejecución técnica del caso 001; no equivale a aprobar una compra. «Completada parcialmente» señala que el caso 002 conserva una cuestión sin resolver. Una entrada apta para la prueba y de confianza alta permite continuar el análisis, pero no demuestra por sí sola que el proveedor sea fiable.</p>
 <p>Las cantidades y precios pertenecen a empresas ficticias diferentes. Su presencia permite reconocer los expedientes, no ordenar proveedores ni establecer cuál conviene comprar.</p></section>
