@@ -48,6 +48,15 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     assert "flow attribute not evaluable" not in html
     assert "FLOW_AMOUNT_SUPPORT:" not in html
     assert "DEMOSTRACIÓN SINTÉTICA — NO OPERACIONAL" in html
+    assert html.count('class="conclusion ') == 18
+    assert "Entrada apta para esta prueba; no autoriza comprar." in html
+    assert "Faltan datos evaluables; la entrada no es apta para esta prueba." in html
+    assert html.count("Favorable solo en el caso ficticio; no hay hechos que acrediten fiabilidad real.") == 2
+    assert html.index("Favorable solo en el caso ficticio") < html.index("Fuentes de hechos incluidas")
+    assert "El resultado C0 es sintético; no autoriza una compra." in html
+    assert ".conclusion.caution{background:#fff2da" in html
+    assert ".conclusion.negative{background:#fdebea" in html
+    assert ".conclusion.positive{background:#e5f3e9" in html
     assert "Datos ficticios · Solo para pruebas · Ruta operacional prohibida" in html
     assert "Sin efecto operacional · Sin autoridad para decidir" in html
     assert "Ver códigos técnicos de esta restricción" in html
@@ -108,6 +117,7 @@ def test_preview_fails_on_changed_terminal_and_handles_missing_optional_observat
     create_reference_demo(directory)
     html = render_buyer_preview(directory)
     assert html.count("No se exportaron observaciones adicionales") == 2
+    assert html.count('class="conclusion ') == 2
     terminal = directory / "reference-result.json"
     payload = json.loads(terminal.read_text(encoding="utf-8"))
     payload["operational_path"] = "ALLOWED"

@@ -77,6 +77,17 @@ _VIABILITY_STATES = {"VIABLE": "viable en la prueba"}
 _SCENARIO_STATES = {"COMPLETED": "completada"}
 _PRICE_METHODS = {"MEDIAN_UNWEIGHTED": "mediana sin ponderar"}
 
+_CONCLUSIONS = {
+    "price": ("neutral", "Hay un precio de referencia ficticio; no es un precio recomendado."),
+    "tco": ("caution", "Se calculó la adquisición; faltan costes para conocer el total empresarial."),
+    "supplier-risk": ("caution", "Favorable solo en el caso ficticio; no hay hechos que acrediten fiabilidad real."),
+    "c0": ("caution", "El resultado C0 es sintético; no autoriza una compra."),
+    "decision-twin": ("neutral", "Se compararon alternativas, pero ninguna fue recomendada."),
+    "scenario-coordination": ("neutral", "Se describieron escenarios; ninguno fue seleccionado."),
+    "negotiation-intelligence": ("caution", "El texto es de prueba; no autoriza contactar al proveedor."),
+    "negotiation-ladder": ("neutral", "Se describieron pasos de negociación, sin ordenar ninguna acción."),
+}
+
 
 def _quality_check_line(check: dict) -> str:
     """Explain a fixed reference check without changing the QTG result."""
@@ -112,6 +123,10 @@ def _render_verified_buyer_preview(directory: Path) -> str:
 
     def execution_line(terminal: dict) -> str:
         return safe(execution_labels[terminal["execution_outcome"]["status"]])
+
+    def conclusion(tone: str, message: str) -> str:
+        return (f'<p class="conclusion {tone}"><strong>CONCLUSIÓN DE ESTA PRUEBA</strong> '
+                f'<span>{safe(message)}</span></p>')
 
     negative = json.loads((directory / "reference-negative-result.json").read_text(encoding="utf-8"))
     eligible = json.loads((directory / "reference-result.json").read_text(encoding="utf-8"))
@@ -273,7 +288,8 @@ def _render_verified_buyer_preview(directory: Path) -> str:
                     'una orden ni autorización de compra.</p>'
                 )
             observations.append(
-                f'<article><h4>{safe(title)}</h4>{value}{limits}'
+                f'<article><h4>{safe(title)}</h4>'
+                f'{conclusion(*_CONCLUSIONS[suffix])}{value}{limits}'
                 '<details class="trace"><summary>Traza de la observación</summary>'
                 f'<p>Huella de la observación: <code>{safe(payload["observation_fingerprint"])}</code></p>'
                 '</details></article>'
@@ -283,7 +299,11 @@ def _render_verified_buyer_preview(directory: Path) -> str:
             f'<p>Expediente ficticio: <code>{safe(terminal["reference_case_id"])}</code></p>'
             f'<p>Calidad QTG: <strong>{quality_line(terminal)}</strong>. '
             f'Ejecución técnica: {execution_line(terminal)}.</p>'
-            f'<details><summary>Motivos de calidad de datos</summary><ul>{checks}</ul></details>'
+            + conclusion("negative" if qtg["status"] == "NO_APTO" else "positive",
+                         "Faltan datos evaluables; la entrada no es apta para esta prueba."
+                         if qtg["status"] == "NO_APTO" else
+                         "Entrada apta para esta prueba; no autoriza comprar.")
+            + f'<details><summary>Motivos de calidad de datos</summary><ul>{checks}</ul></details>'
             '<h3>Análisis disponibles</h3>'
             + ("".join(observations) or '<p>No se exportaron observaciones adicionales.</p>')
             + '<details class="trace"><summary>Trazabilidad terminal</summary>'
@@ -310,6 +330,12 @@ def _render_verified_buyer_preview(directory: Path) -> str:
         '.reading-grid div{background:white;padding:.8rem;border-left:4px solid #496d8d}'
         '.reading-grid dt{font-weight:700}.reading-grid dd{margin:.3rem 0 0}'
         '.quality-check{margin:.75rem 0}.quality-check span{display:block}'
+        '.conclusion{padding:.75rem 1rem;border-left:5px solid #52758e;border-radius:.5rem;background:#eaf2f8;color:#193c54}'
+        '.conclusion strong,.conclusion span{display:block}.conclusion strong{font-size:.75rem;letter-spacing:.04em}'
+        '.conclusion span{font-weight:650;margin-top:.2rem}'
+        '.conclusion.caution{background:#fff2da;border-color:#bb7d13;color:#563900}'
+        '.conclusion.negative{background:#fdebea;border-color:#b34343;color:#6b2222}'
+        '.conclusion.positive{background:#e5f3e9;border-color:#27734c;color:#16492f}'
         '.trace{font-size:.9rem;color:#36495d}'
         'code{overflow-wrap:anywhere}details{margin:1rem 0}</style></head><body>'
         '<div class="notice"><strong>DEMOSTRACIÓN SINTÉTICA — NO OPERACIONAL</strong><br>'
