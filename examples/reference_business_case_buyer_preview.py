@@ -34,6 +34,18 @@ def _render_verified_buyer_preview(directory: Path) -> str:
     def safe(value: object) -> str:
         return escape(str(value), quote=True)
 
+    quality_labels = {"NO_APTO": "No apta para esta prueba", "APTO": "Apta para esta prueba"}
+    confidence_labels = {"BAJA": "baja", "ALTA": "alta"}
+    execution_labels = {"COMPLETED": "Completada", "PARTIALLY_COMPLETED": "Completada parcialmente"}
+
+    def quality_line(terminal: dict) -> str:
+        quality = terminal["qtg_quality_result"]
+        return (f'{safe(quality_labels[quality["status"]])} · '
+                f'Confianza {safe(confidence_labels[quality["confidence"]])}')
+
+    def execution_line(terminal: dict) -> str:
+        return safe(execution_labels[terminal["execution_outcome"]["status"]])
+
     negative = json.loads((directory / "reference-negative-result.json").read_text(encoding="utf-8"))
     eligible = json.loads((directory / "reference-result.json").read_text(encoding="utf-8"))
     if negative["purchase"] != eligible["purchase"]:
@@ -41,10 +53,9 @@ def _render_verified_buyer_preview(directory: Path) -> str:
     purchase = negative["purchase"]
     overview_cards = "".join(
         f'<div class="overview-card"><dt>{safe(label)}</dt>'
-        f'<dd><strong>{safe(terminal["qtg_quality_result"]["status"])} / '
-        f'{safe(terminal["qtg_quality_result"]["confidence"])}</strong></dd>'
+        f'<dd><strong>{quality_line(terminal)}</strong></dd>'
         f'<dd>{safe(reason)}</dd>'
-        f'<dd>Ejecución técnica: {safe(terminal["execution_outcome"]["status"])}</dd></div>'
+        f'<dd>Ejecución técnica: {execution_line(terminal)}</dd></div>'
         for label, terminal, reason in (
             ("Evidencia insuficiente", negative,
              "La proyección declara un conflicto o limitación; varios controles del flujo no son evaluables."),
@@ -205,8 +216,8 @@ def _render_verified_buyer_preview(directory: Path) -> str:
         sections.append(
             f'<section><h2>{safe(variant)}</h2>'
             f'<p>Expediente ficticio: <code>{safe(terminal["reference_case_id"])}</code></p>'
-            f'<p>Calidad QTG: <strong>{safe(qtg["status"])} / {safe(qtg["confidence"])}</strong>. '
-            f'Ejecución técnica: {safe(terminal["execution_outcome"]["status"])}.</p>'
+            f'<p>Calidad QTG: <strong>{quality_line(terminal)}</strong>. '
+            f'Ejecución técnica: {execution_line(terminal)}.</p>'
             f'<details><summary>Motivos de calidad de datos</summary><ul>{checks}</ul></details>'
             '<h3>Análisis disponibles</h3>'
             + ("".join(observations) or '<p>No se exportaron observaciones adicionales.</p>')

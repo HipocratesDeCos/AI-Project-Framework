@@ -24,7 +24,10 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     assert html.count("Trazabilidad terminal</summary>") == 2
     assert html.count("Traza de la observación</summary>") == 16
     assert html.count("Calidad QTG:") == 2
-    assert "NO_APTO / BAJA" in html and "APTO / ALTA" in html
+    assert "No apta para esta prueba · Confianza baja" in html
+    assert "Apta para esta prueba · Confianza alta" in html
+    assert html.count("Ejecución técnica: Completada") == 4
+    assert "Ejecución técnica: COMPLETED" not in html
     assert html.count("Propuesta ficticia común") == 1
     assert "ARTICLE-MOCK-001" in html and "SUPPLIER-MOCK-001" in html
     assert "20.50 EUR" in html and "10 unidades" in html
