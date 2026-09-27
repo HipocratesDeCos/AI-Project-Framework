@@ -200,6 +200,8 @@ def verify_reference_business_case_002(directory: Path) -> str:
     directory = Path(directory)
     if not directory.is_dir():
         raise ValueError(f"Package directory does not exist: {directory}")
+    if directory.is_symlink() or any(path.is_symlink() for path in directory.iterdir()):
+        raise ValueError("Package must not contain symlinks")
     with_review = (directory / "reference-review.html").exists()
     expected = _files(*execute_reference_business_case_002(), with_review=with_review)
     actual = {path.name for path in directory.iterdir()}

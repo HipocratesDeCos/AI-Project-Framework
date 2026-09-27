@@ -166,6 +166,8 @@ def verify_reference_demo(directory: Path) -> tuple[str, str]:
     directory = Path(directory)
     if not directory.is_dir():
         raise ValueError(f"Demo directory does not exist: {directory}")
+    if directory.is_symlink() or any(path.is_symlink() for path in directory.iterdir()):
+        raise ValueError("Demo package must not contain symlinks")
     negative = json.loads((directory / _NAMES[0]).read_text(encoding="utf-8"))
     eligible = json.loads((directory / _NAMES[1]).read_text(encoding="utf-8"))
     stored_html = (directory / _NAMES[2]).read_text(encoding="utf-8")
@@ -250,6 +252,19 @@ def verify_reference_demo(directory: Path) -> tuple[str, str]:
         from .reference_business_case_buyer_preview import _render_verified_buyer_preview
         if buyer_preview.read_text(encoding="utf-8") != _render_verified_buyer_preview(directory):
             raise ValueError("Buyer preview HTML differs from the verified artifacts")
+    expected_names = set(_NAMES)
+    for names, saved in (
+        (_PRICE_NAMES, observations), (_TCO_NAMES, tco_observations),
+        (_SUPPLIER_NAMES, supplier_observations), (_C0_NAMES, c0_observations),
+        (_TWIN_NAMES, twin_observations), (_SCENARIO_NAMES, scenario_observations),
+        (_NI_NAMES, ni_observations), (_LADDER_NAMES, ladder_observations),
+    ):
+        if saved is not None:
+            expected_names.update(names)
+    if buyer_preview.exists():
+        expected_names.add(_BUYER_PREVIEW_NAME)
+    if {path.name for path in directory.iterdir()} != expected_names:
+        raise ValueError("Demo package file inventory differs from verified replay")
     return negative["terminal_fingerprint"], eligible["terminal_fingerprint"]
 
 
