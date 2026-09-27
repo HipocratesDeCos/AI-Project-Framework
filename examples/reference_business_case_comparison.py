@@ -39,12 +39,15 @@ def render_comparison(case_001_dir: Path, case_002_dir: Path, *, detail_links: b
 
     def case(label: str, data: dict, reliability: str, summary: str) -> str:
         purchase = data["purchase"]
+        quality = (data["qtg_quality_result"]["status"], data["qtg_quality_result"]["confidence"])
+        if quality != ("APTO", "ALTA"):
+            raise ValueError("Comparison requires eligible, high-confidence QTG results")
         status = {"COMPLETED": "Completada", "PARTIALLY_COMPLETED": "Completada parcialmente"}[
             data["execution_outcome"]["status"]
         ]
         return f'''<article class="case"><div class="eyebrow">{safe(label)}</div>
 <h2>{safe(status)}</h2><p>{safe(summary)}</p>
-<dl><div><dt>Calidad de la entrada</dt><dd>{safe(data['qtg_quality_result']['status'])} / {safe(data['qtg_quality_result']['confidence'])}</dd></div>
+<dl><div><dt>Calidad de la entrada</dt><dd>Apta para esta prueba · Confianza alta</dd></div>
 <div><dt>Fiabilidad del proveedor</dt><dd>{safe(reliability)}</dd></div>
 <div><dt>Compra ficticia</dt><dd>{safe(purchase['quantity'])} unidades × {safe(purchase['unit_price'])} {safe(purchase['currency'])}</dd></div></dl>
 <p class="ref">Expediente {safe(data['reference_case_id'])}<br>Huella del resultado: <code>{safe(data['terminal_fingerprint'])}</code></p></article>'''
@@ -82,7 +85,7 @@ footer{{font-size:.85rem;color:#486473;margin-top:2rem}}
 {case('Caso 001 · variante apta', first, 'Favorable en la prueba', 'Todas las capacidades terminaron; el juicio sobre el proveedor pertenece únicamente al material ficticio 001.')}
 {case('Caso 002', second, 'No determinable', 'Las capacidades se ejecutaron, pero faltan hechos para valorar la fiabilidad del proveedor.')}
 </section>{links}<section class="explain"><h2>Cómo leer la diferencia</h2>
-<p>«Completada» describe la ejecución técnica del caso 001; no equivale a aprobar una compra. «Completada parcialmente» señala que el caso 002 conserva una cuestión sin resolver. La calidad de entrada APTO / ALTA tampoco resuelve por sí sola la fiabilidad del proveedor.</p>
+<p>«Completada» describe la ejecución técnica del caso 001; no equivale a aprobar una compra. «Completada parcialmente» señala que el caso 002 conserva una cuestión sin resolver. Una entrada apta para la prueba y de confianza alta permite continuar el análisis, pero no demuestra por sí sola que el proveedor sea fiable.</p>
 <p>Las cantidades y precios pertenecen a empresas ficticias diferentes. Su presencia permite reconocer los expedientes, no ordenar proveedores ni establecer cuál conviene comprar.</p></section>
 <footer>Vista local de solo lectura · Material sintético · Sin efecto operacional · Sin autoridad decisional</footer>
 </main></body></html>'''
