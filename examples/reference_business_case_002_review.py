@@ -42,11 +42,13 @@ def render_case_002_review(terminal: dict, sidecars: dict[str, dict]) -> str:
 
     def card(title: str, value: object, explanation: str, tone: str = "") -> str:
         return (f'<article class="card {tone}"><h3>{safe(title)}</h3>'
+                f'<p class="verdict-label">CONCLUSIÓN DE ESTA PRUEBA</p>'
                 f'<p class="value">{safe(value)}</p><p>{safe(explanation)}</p></article>')
 
     cards = "".join((
         card("Calidad de la entrada", "Apta para esta prueba · Confianza alta",
-             "La proyección ficticia supera sus controles de calidad. No autoriza una compra."),
+             "La proyección ficticia supera sus controles de calidad. No autoriza una compra.",
+             "positive"),
         card("Estado de la ejecución", "Completada parcialmente",
              "Las capacidades se ejecutaron, pero la fiabilidad del proveedor sigue sin determinarse.",
              "attention"),
@@ -83,7 +85,10 @@ p{{max-width:72ch}}.eyebrow{{font-weight:750;letter-spacing:.1em;text-transform:
 .grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin-top:1rem}}
 .card{{background:#fff;border:1px solid #dbe6ec;border-radius:16px;padding:1.2rem;box-shadow:0 4px 16px #17354a0d}}
 .card.attention{{border-top:4px solid #e3a22f}}.card h3{{font-size:.85rem;color:#3b6170;margin:0 0 .7rem}}
-.card .value{{font-size:1.3rem;font-weight:750;color:#153b52;overflow-wrap:anywhere;margin:0 0 .4rem}}
+.card .verdict-label{{font-size:.72rem;font-weight:750;letter-spacing:.04em;color:#36566b;margin:0 0 .25rem}}
+.card .value{{font-size:1.3rem;font-weight:750;color:#153b52;background:#eaf2f7;border-left:5px solid #52758e;border-radius:8px;padding:.6rem .8rem;overflow-wrap:anywhere;margin:0 0 .6rem}}
+.card.attention .value{{background:#fff2da;border-color:#bb7d13;color:#563900}}
+.card.positive .value{{background:#e5f3e9;border-color:#27734c;color:#16492f}}
 .card p:last-child{{font-size:.91rem;color:#475d6a;margin:0}}
 dl{{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem}}
 dl div{{background:#eaf2f5;border-radius:12px;padding:.85rem}}dt{{font-size:.77rem;color:#43616f}}dd{{margin:.2rem 0 0;font-weight:700;overflow-wrap:anywhere}}
