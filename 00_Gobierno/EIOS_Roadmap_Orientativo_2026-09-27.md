@@ -45,32 +45,35 @@ EIOS es un sistema de apoyo a decisiones de compra y negociación adaptable a em
 | **H7 · MVP utilizable en una empresa — alcance por decidir** | Definir con lo aprendido la interfaz de trabajo, entrada documental, configuración autorizada, roles, errores, trazas, operación y soporte; reconciliar pruebas oficiales con evidencia ejecutada. | Usuarios aceptan un flujo repetible en el alcance acordado, con controles de empresa/rol y mantenimiento comprobados. | H2 y aprendizaje de H4–H6; el HTML actual no adquiere este estado automáticamente. |
 | **H8 · Portabilidad y extensión — posterior** | Probar otra operación/empresa, fuentes y conectores, aislamiento de datos/autoridad/configuración y eventuales nuevos dominios. | El flujo se repite sin contaminación entre empresas y con cambios gobernados. | H7 y decisión de alcance específica; ventas continúa en espera. |
 
-El orden indica dependencias, **no fechas prometidas**. H2 y la preparación técnica de H3 pueden avanzar en paralelo. H4–H6 dependen de material y actos empresariales externos; no existe hoy una fecha fiable para el primer piloto real ni para un lanzamiento comercial.
+**Objetivo de calendario adoptado:** realizar el primer piloto real y un **lanzamiento comercial inicial de alcance controlado antes del 31/10/2026**. Es un objetivo exigente, no una certificación anticipada: H4–H6 requieren una empresa, un expediente admisible y actos humanos efectivos. El lanzamiento inicial significa presentar y ofrecer un servicio/piloto asistido con alcance, límites y soporte explícitos; no equivale a declarar terminado H7 para uso autónomo general ni a abrir H8. H2 y la preparación técnica de H3 avanzan en paralelo.
 
 ## 4. Trabajo próximo, ordenado por valor y dependencia
 
 | Prioridad | Unidad concreta | Evidencia esperada | Participación necesaria |
 |---|---|---|---|
+| **P0 · Empresa piloto y operación** | Identificar una empresa dispuesta a colaborar, una compra concreta, fecha de corte, persona responsable y canal autorizado de entrega. No incorporar documentos sensibles al repositorio público. | Participante y operación acordados; se puede iniciar la recogida real. | Promotor del proyecto y empresa; es la dependencia decisiva del objetivo de octubre. |
 | **P1 · Lectura guiada** | Abrir primero `comparison.html`, luego las revisiones 001/002. Registrar dónde se confunden «apta», «completada», «favorable» y «no determinable». Comprobar pantalla normal y estrecha. | Observaciones con página, sección, frase y lectura errónea; corrección focalizada y nueva verificación del paquete. | Uno o varios lectores con perfil CEO/Compras; el equipo ejecuta la corrección. |
 | **P1 · Coherencia de resultados visibles** | Contrastar conclusiones y límites de los HTML con los JSON validados: QTG, precio, TCO, proveedor, C0, escenarios y negociación. | Matriz de afirmación visible → campo/observación → límite. No alterar resultados para acomodar la presentación. | Equipo técnico; no precisa una empresa real. |
-| **P2 · Entrada de primera empresa** | Ensayar la hoja vacía y concretar qué referencias, versiones y responsables se solicitarían para una compra cuando exista colaborador. | Guía de recogida revisable y separación explícita entre referencia, contenido, admisión y autoridad. | Equipo técnico ahora; empresa y revisores solo al iniciar H3/H4. |
+| **P1 · Entrada de primera empresa** | Ensayar la hoja vacía y concretar qué referencias, versiones y responsables se solicitarían para esa compra. | Guía de recogida revisable y separación explícita entre referencia, contenido, admisión y autoridad. | Equipo técnico ahora; empresa y revisores al iniciar H3/H4. |
 | **P2 · Plan de Pruebas MVP** | Comparar los casos oficiales marcados `PENDIENTE` con pruebas ejecutables reales, sin equiparar cobertura parcial a aprobación. | Matriz caso → evidencia → estado justificado; pendientes preservados donde no exista demostración. | Equipo técnico y fuente documental competente. |
 
 No se propone fabricar una fixture `PRESENTED_OPERATIONAL`, abrir una nueva capa funcional por numeración o convertir la demo HTML en producto por cambio de etiqueta.
 
-## 5. Estimación condicionada y decisiones
+## 5. Plan de octubre de 2026 y decisiones de paso
 
-**Supuesto para dimensionar trabajo interno:** una persona técnica disponible unas 20–30 horas por semana y revisiones sin demoras extraordinarias. Las franjas expresan orden de magnitud para planificar, no compromiso de entrega; excluyen esperas de empresa, documentos y revisores. Revisar después de H2 y al conocer el primer colaborador.
+**Supuesto de ejecución:** una persona técnica disponible unas 20–30 horas semanales, decisiones rápidas, una empresa colaboradora accesible al comienzo de octubre y capacidad de revisar documentos de forma segura fuera del repositorio público. El trabajo técnico y la captación empresarial ocurren en paralelo. Estas fechas son **objetivos con gates**, revisables cada semana; no convierten material ausente en admisible.
 
-| Tramo | Franja preliminar | Principal incertidumbre |
+| Semana objetivo | Entrega y responsable principal | Decisión al cierre |
 |---|---|---|
-| H2: lectura observada y correcciones localizadas | **1–3 semanas de trabajo** si se dispone de lectores. | Cantidad de problemas que detecten y acceso a personas objetivo. |
-| Preparación técnica H3 y reconciliación de pruebas | **2–5 semanas de trabajo**, parte en paralelo con H2. | Número de casos oficiales que necesitan contraste documental. |
-| H4: recoger y admitir expediente | **Sin plazo fiable** antes de elegir empresa/operación. | Disponibilidad, completitud, versiones y revisión de documentos. |
-| H5–H6: ejecución supervisada y decisión humana | Planificar por iteraciones tras H4; **no hay estimación cerrada** hoy. | Rechazos de admisión, contradicciones y actos competentes. |
-| H7–H8: producto y segunda empresa | Estimar después del piloto y de fijar alcance comercial. | Interfaz, roles, infraestructura, conectores y soporte realmente necesarios. |
+| **28/09–04/10** | Promotor: identificar empresa, operación, responsable y canal autorizado. Equipo: lectura guiada H2, preparar hoja de intake, instrucciones de entrega y alcance de oferta asistida. | **04/10:** confirmar participante y compra. Si no existen, el piloto real de octubre entra en riesgo alto; mantener la demostración y buscar otra empresa, sin cambiar etiquetas. |
+| **05/10–11/10** | Empresa: entregar versiones y soportes disponibles; revisor competente: identificar actos de revisión requeridos. Equipo: inventariar referencias, faltantes, discrepancias y corte documental. | **11/10:** determinar si hay expediente que pueda pasar a preflight o lista concreta de material faltante con responsables. |
+| **12/10–18/10** | Equipo y revisores: ejecutar preflight de admisión sin operación, resolver discrepancias con fuentes auténticas, preparar ejecución supervisada y comprobar trazas. | **18/10:** admisión según contrato o bloqueo motivado. No ejecutar QTG operacional con material sintético o insuficiente. |
+| **19/10–25/10** | Si H4 pasó: QTG operacional → binding QTG↔O1 → O1; auditoría del terminal; decisión humana posterior y Shadow Mode cuando proceda. | **25/10:** piloto real documentado y límites conocidos, o incidente/bloqueo registrado. Un resultado negativo también informa el producto, pero no cuenta como E2E positivo. |
+| **26/10–31/10** | Preparar la oferta comercial inicial controlada: público objetivo, alcance exacto, forma de prestación asistida, demostración separada del piloto, condiciones de uso, soporte y hechos que sí pueden mostrarse. | **31/10:** lanzamiento solo si la descripción comercial es fiel a la evidencia y el servicio ofrecido puede prestarse con seguridad. H7 autónomo queda pendiente si aún no se validó. |
 
-**Decisiones de paso:** (1) tras H2, si la demo explica correctamente valor y límites; (2) en H4, admitir o bloquear con razones; (3) tras H5–H6, qué flujo mínimo repetible merece convertirse en producto. Un porcentaje global de «producto terminado» antes de esos hitos mezclaría pruebas sintéticas, validación real y comercialización.
+**Camino crítico:** empresa y operación → material auténtico → admisión → ejecución supervisada → revisión humana → oferta verificable. Si el expediente no supera la admisión, se puede presentar la demostración sintética y captar interés comercial, pero **no anunciar un piloto operacional realizado**. Si H5 no se completa, la oferta debe describir su alcance real sin atribuirle ese resultado.
+
+**Esfuerzo orientativo interno:** H2 y preparación H3 pueden consumir unas 1–3 y 2–5 semanas de trabajo, parcialmente solapadas. La disponibilidad documental y humana de H4–H6 domina el calendario; el seguimiento semanal determina si el objetivo de octubre sigue siendo alcanzable. El producto autónomo H7 y la expansión H8 se planifican después de los hallazgos del piloto.
 
 ## 6. Riesgos que pueden alterar la ruta
 
