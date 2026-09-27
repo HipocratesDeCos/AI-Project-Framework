@@ -56,7 +56,11 @@ def main() -> None:
         print(f"Plantilla vacía creada: {args.output}")
         return
     manifest = inspect_collection_sheet(args.check)
-    print(f"Inventario de referencias: {manifest.readiness}")
+    reading = {
+        "REQUIRED_SET_INCOMPLETE": "Faltan referencias obligatorias",
+        "REQUIRED_SET_COMPLETE": "Referencias obligatorias registradas",
+    }[manifest.readiness]
+    print(f"Inventario de referencias: {reading} ({manifest.readiness})")
     if manifest.missing_required_items:
         print("Faltan bloques obligatorios: " + ", ".join(manifest.missing_required_items))
     if manifest.pending_conditional_items:

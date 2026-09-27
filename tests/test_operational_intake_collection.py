@@ -1,11 +1,12 @@
 """Collection sheet CLI logic stays separate from admission and QTG."""
 import json
+import sys
 
 import pytest
 
 from eios.core.operational_intake import CANONICAL_INTAKE_ITEMS
 from examples.operational_intake_collection import (
-    empty_collection_sheet, inspect_collection_sheet, write_empty_collection_sheet,
+    empty_collection_sheet, inspect_collection_sheet, main, write_empty_collection_sheet,
 )
 
 
@@ -49,3 +50,22 @@ def test_collection_rejects_duplicate_json_key_without_losing_first_reference(tm
     )
     with pytest.raises(ValueError, match="Duplicate JSON intake key: order_document"):
         inspect_collection_sheet(path)
+
+
+def test_check_command_explains_readiness_without_implying_admission(tmp_path, monkeypatch, capsys):
+    path = tmp_path / "references.json"
+    sheet = empty_collection_sheet()
+    for readiness, expected in (
+        ("REQUIRED_SET_INCOMPLETE", "Faltan referencias obligatorias"),
+        ("REQUIRED_SET_COMPLETE", "Referencias obligatorias registradas"),
+    ):
+        if readiness == "REQUIRED_SET_COMPLETE":
+            for item_id, requirement in CANONICAL_INTAKE_ITEMS:
+                if requirement == "REQUIRED":
+                    sheet[item_id] = [f"document:{item_id}"]
+        path.write_text(json.dumps(sheet), encoding="utf-8")
+        monkeypatch.setattr(sys, "argv", ["operational_intake_collection", "--check", str(path)])
+        main()
+        output = capsys.readouterr().out
+        assert f"{expected} ({readiness})" in output
+        assert "Una referencia no acredita contenido, admisión, revisión ni autoridad de compra." in output
