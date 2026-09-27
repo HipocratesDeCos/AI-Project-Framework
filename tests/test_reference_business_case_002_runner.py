@@ -1,11 +1,12 @@
 """Case 002 exports one same-run, replayable synthetic terminal and observations."""
 import json
+import sys
 
 import pytest
 
 from examples.reference_business_case_002 import (
     OBSERVATIONS, create_reference_business_case_002,
-    execute_reference_business_case_002, verify_reference_business_case_002,
+    execute_reference_business_case_002, main, verify_reference_business_case_002,
 )
 
 
@@ -56,6 +57,16 @@ def test_second_runner_export_replays_and_rejects_tampering(tmp_path):
                       encoding="utf-8")
     with pytest.raises(ValueError, match="reference-c0.json"):
         verify_reference_business_case_002(directory)
+
+
+def test_second_runner_cli_explains_partial_status_and_forbidden_path(tmp_path, monkeypatch, capsys):
+    directory = tmp_path / "reference-002-cli"
+    monkeypatch.setattr(sys, "argv", ["reference_business_case_002", "--output-dir", str(directory)])
+    main()
+    output = capsys.readouterr().out
+    assert "ejecución completada parcialmente (PARTIALLY_COMPLETED)" in output
+    assert "ruta operacional prohibida (FORBIDDEN); sin autoridad decisional" in output
+    assert verify_reference_business_case_002(directory)
 
 
 def test_second_runner_review_is_read_only_and_replay_verified(tmp_path):

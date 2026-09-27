@@ -229,8 +229,9 @@ def main() -> None:
         return
     paths = create_reference_business_case_002(args.output_dir, with_review=args.with_review)
     terminal = json.loads(paths[0].read_text(encoding="utf-8"))
-    print("Simulación 002: estado " + terminal["execution_outcome"]["status"]
-          + "; ruta operacional FORBIDDEN; autoridad decisional false.")
+    print("Simulación 002: ejecución completada parcialmente ("
+          + terminal["execution_outcome"]["status"] + "); ruta operacional prohibida ("
+          + terminal["operational_path"] + "); sin autoridad decisional.")
     for path in paths:
         print(path)
 
