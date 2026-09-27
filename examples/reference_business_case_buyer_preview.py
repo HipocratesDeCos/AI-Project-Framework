@@ -319,7 +319,7 @@ def _render_verified_buyer_preview(directory: Path) -> str:
         'body{font:16px/1.5 system-ui,sans-serif;max-width:68rem;margin:auto;padding:1rem;color:#14263b}'
         '.notice{position:sticky;top:0;background:#fff2c2;border:2px solid #8b6400;padding:.7rem;z-index:1}'
         'section{margin:2rem 0;padding:1rem;border:1px solid #9aa9b8;border-radius:.5rem}'
-        'article{padding:1.25rem;margin:1.3rem 0;background:#f0f0f0;border-radius:1.2rem}'
+        'article{padding:1.25rem;margin:1.3rem 0;background:#f0f5f8;border-radius:1.2rem}'
         'article h4{margin:.1rem 0 .8rem;color:#102b51;font-size:1.08rem}'
         '.analysis-detail{background:#eaf7ff;border-radius:.7rem;padding:1rem 1.2rem;color:#142e4b}'
         '.analysis-detail p:first-child{margin-top:0}.analysis-detail p:last-child{margin-bottom:0}'
