@@ -24,9 +24,20 @@ def write_empty_collection_sheet(path: Path) -> None:
         target.write("\n")
 
 
+def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"Duplicate JSON intake key: {key}")
+        result[key] = value
+    return result
+
+
 def inspect_collection_sheet(path: Path) -> OperationalExpedientIntakeManifest:
     """Check references only, using the existing non-authoritative manifest."""
-    supplied = json.loads(Path(path).read_text(encoding="utf-8"))
+    supplied = json.loads(
+        Path(path).read_text(encoding="utf-8"), object_pairs_hook=_unique_json_object,
+    )
     if type(supplied) is not dict or any(type(refs) is not list for refs in supplied.values()):
         raise ValueError("Expected a JSON object mapping intake keys to reference arrays")
     return build_operational_expedient_intake_manifest(
