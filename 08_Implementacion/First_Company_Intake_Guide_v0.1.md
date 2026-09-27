@@ -35,7 +35,23 @@ El manifiesto canónico está en `eios/core/operational_intake.py` (`CANONICAL_I
 | `STRUCTURALLY_ADMISSIBLE` | El preflight acepta la estructura según su contrato; no autentica por sí solo las fuentes. |
 | QTG `APTO` | Resultado funcional de calidad para el consumo autorizado; no es una decisión de compra. |
 
-## 4. Límite actual
+## 4. Preparar la hoja de referencias
+
+Desde la raíz del repositorio, el comando siguiente crea un JSON nuevo con las 24 claves canónicas y listas vacías. No inventa documentos ni admite un expediente:
+
+```powershell
+python -m examples.operational_intake_collection --output referencias-empresa.json
+```
+
+Tras incorporar únicamente las referencias que realmente se hayan recibido, se puede comprobar qué bloques faltan:
+
+```powershell
+python -m examples.operational_intake_collection --check referencias-empresa.json
+```
+
+Cada valor es una lista de referencias de texto, por ejemplo `"order_document": ["ruta-o-identificador-del-pedido"]`. El comando de creación no sobrescribe un archivo existente. La comprobación no lee el contenido de los documentos y su resultado no sustituye la admisión ni una revisión humana.
+
+## 5. Límite actual
 
 Esta guía permite preparar una colaboración futura; **no hay un primer expediente empresarial real aportado** ni un E2E operacional positivo ejecutado. Los paquetes de referencia siguen siendo `SYNTHETIC`, con política `SYNTHETIC_TEST_ONLY`, ruta `FORBIDDEN`, efecto `NO_OPERATIONAL_EFFECT` y autoridad decisional `false`.
 
