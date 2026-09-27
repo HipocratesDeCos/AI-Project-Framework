@@ -64,7 +64,8 @@ def _quality_check_line(check: dict) -> str:
     state = ("no aplica" if not check["applicable"] else
              "satisfecho" if check["satisfied"] is True else
              "no satisfecho" if check["satisfied"] is False else "no evaluable")
-    return f'<li><strong>{escape(label)}</strong>: {escape(reason)} ({state})</li>'
+    return (f'<li class="quality-check"><strong>{escape(label.upper())}:</strong>'
+            f'<span>{escape(reason)} ({state})</span></li>')
 
 
 def render_buyer_preview(directory: Path) -> str:
@@ -282,6 +283,7 @@ def _render_verified_buyer_preview(directory: Path) -> str:
         '.overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}'
         '.overview-card{padding:1rem;background:white;border-left:4px solid #496d8d}'
         '.overview-card dt{font-weight:700}.overview-card dd{margin:.4rem 0 0}'
+        '.quality-check{margin:.75rem 0}.quality-check span{display:block}'
         '.trace{font-size:.9rem;color:#36495d}'
         'code{overflow-wrap:anywhere}details{margin:1rem 0}</style></head><body>'
         '<p class="notice"><strong>DEMOSTRACIÓN SINTÉTICA — NO OPERACIONAL</strong><br>'
