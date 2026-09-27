@@ -20,6 +20,52 @@ _SIDECARS = (
     ("negotiation-ladder", "Secuencia de negociación", "ladder_result", None, None),
 )
 
+_QUALITY_CHECK_TEXT = {
+    ("PROJECTION_INITIAL_TREASURY", "initial treasury chain satisfied"):
+        ("Tesorería inicial", "El saldo inicial tiene soporte y revisión vinculados a esta proyección de prueba."),
+    ("FLOW_INVENTORY_COMPLETENESS", "flow inventory complete"):
+        ("Inventario de flujos", "El inventario contiene los flujos requeridos para esta proyección de prueba."),
+    ("FLOW_HORIZON_CLASSIFICATION", "flow horizon classification not evaluable"):
+        ("Horizonte del pago", "La evidencia no permite situar este pago dentro o fuera del periodo proyectado."),
+    ("FLOW_HORIZON_CLASSIFICATION", "flow horizon classified"):
+        ("Horizonte del pago", "El pago está clasificado dentro o fuera del periodo proyectado."),
+    ("FLOW_AMOUNT_SUPPORT", "flow attribute not evaluable"):
+        ("Importe del pago", "La evidencia no permite comprobar el importe de este pago."),
+    ("FLOW_AMOUNT_SUPPORT", "flow attribute supported"):
+        ("Importe del pago", "El importe de este pago está respaldado en el material de prueba."),
+    ("FLOW_CURRENCY_SUPPORT", "flow attribute not evaluable"):
+        ("Moneda del pago", "La evidencia no permite comprobar la moneda de este pago."),
+    ("FLOW_CURRENCY_SUPPORT", "flow attribute supported"):
+        ("Moneda del pago", "La moneda de este pago está respaldada en el material de prueba."),
+    ("FLOW_DUE_DATE_SUPPORT", "flow attribute not evaluable"):
+        ("Vencimiento del pago", "La evidencia no permite comprobar la fecha de vencimiento de este pago."),
+    ("FLOW_DUE_DATE_SUPPORT", "flow attribute supported"):
+        ("Vencimiento del pago", "El vencimiento de este pago está respaldado en el material de prueba."),
+    ("FLOW_ECONOMIC_MEMBERSHIP", "flow attribute not evaluable"):
+        ("Pertenencia a la compra", "La evidencia no permite confirmar que este pago pertenezca a la compra analizada."),
+    ("FLOW_ECONOMIC_MEMBERSHIP", "flow attribute supported"):
+        ("Pertenencia a la compra", "La relación de este pago con la compra está respaldada en el material de prueba."),
+    ("FLOW_ECONOMIC_UNIQUENESS", "economic uniqueness not evaluable"):
+        ("Pago sin duplicidad", "La evidencia no permite comprobar si este pago representa una obligación económica única."),
+    ("FLOW_ECONOMIC_UNIQUENESS", "economic uniqueness supported"):
+        ("Pago sin duplicidad", "El material de prueba respalda que este pago representa una obligación económica única."),
+    ("PURCHASE_INSTALLMENT_COHERENCE", "required installment coherent"):
+        ("Cuota de la compra", "La cuota requerida es coherente con los datos de compra aportados para esta prueba."),
+    ("PROJECTION_CONFLICTS_AND_LIMITATIONS", "projection conflict or limitation reported"):
+        ("Conflictos y límites", "La proyección declara un conflicto o una limitación que sigue sin resolverse."),
+    ("PROJECTION_CONFLICTS_AND_LIMITATIONS", "no unresolved projection conflict"):
+        ("Conflictos y límites", "No queda declarado un conflicto de proyección pendiente en este material de prueba."),
+}
+
+
+def _quality_check_line(check: dict) -> str:
+    """Explain a fixed reference check without changing the QTG result."""
+    label, reason = _QUALITY_CHECK_TEXT[(check["control"].split(":", 1)[0], check["reason"])]
+    state = ("no aplica" if not check["applicable"] else
+             "satisfecho" if check["satisfied"] is True else
+             "no satisfecho" if check["satisfied"] is False else "no evaluable")
+    return f'<li><strong>{escape(label)}</strong>: {escape(reason)} ({state})</li>'
+
 
 def render_buyer_preview(directory: Path) -> str:
     """Verify full fixture replay, then project existing facts without recalculation."""
@@ -88,11 +134,7 @@ def _render_verified_buyer_preview(directory: Path) -> str:
         ("Caso con calidad apta para la prueba", "reference-", eligible),
     ):
         qtg = terminal["qtg_quality_result"]
-        checks = "".join(
-            f'<li><strong>{safe(c["control"])}</strong>: {safe(c["reason"])} '
-            f'({"no aplica" if not c["applicable"] else "satisfecho" if c["satisfied"] is True else "no satisfecho" if c["satisfied"] is False else "no evaluable"})</li>'
-            for c in qtg["checks"]
-        )
+        checks = "".join(_quality_check_line(c) for c in qtg["checks"])
         observations = []
         for suffix, title, result_key, value_key, limits_key in _SIDECARS:
             path = directory / f"{prefix}{suffix}.json"
