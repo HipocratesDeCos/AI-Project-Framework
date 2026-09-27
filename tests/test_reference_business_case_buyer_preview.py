@@ -29,6 +29,11 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     assert html.count("Ejecución técnica: Completada") == 4
     assert "Ejecución técnica: COMPLETED" not in html
     assert html.count("Propuesta ficticia común") == 1
+    assert html.index("Claves para leer los análisis") < html.index("Resumen de las dos variantes")
+    assert html.count('class="reading-key"') == 1
+    assert "QTG · calidad de entrada" in html
+    assert "C0 y CRC · reglas y consolidación" in html
+    assert "Datos ficticios para observar el sistema, sin validez empresarial real." in html
     assert "ARTICLE-MOCK-001" in html and "SUPPLIER-MOCK-001" in html
     assert "20.50 EUR" in html and "10 unidades" in html
     assert "El precio unitario es un dato de entrada" in html
@@ -51,10 +56,11 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     assert html.count("Lo no informado no equivale a coste cero") == 2
     assert html.count("Componentes incluidos: adquisición") == 2
     assert html.count("Dimensiones de riesgo declaradas: Fiabilidad: favorable") == 2
-    assert html.count("Fuentes factuales incluidas en este fixture: 0") == 2
+    assert html.count("Fuentes de hechos incluidas en este caso de prueba: 0") == 2
     assert html.count("Comparación de valor disponible: no") == 2
     assert html.count("Base sintética suministrada: COMPRAR") == 2
-    assert html.count("Consolidado CRC del fixture: <strong>COMPRAR</strong>") == 2
+    assert html.count("Consolidado CRC del caso de prueba: <strong>COMPRAR</strong>") == 2
+    assert "fixture" not in html
     assert "QTG de esta variante: NO_APTO" in html
     assert "QTG de esta variante: APTO" in html
     assert html.count("No se ha demostrado una derivación causal de QTG hacia C0") == 2
