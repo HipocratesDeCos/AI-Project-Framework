@@ -33,6 +33,14 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     assert "20.50 EUR" in html and "10 unidades" in html
     assert "El precio unitario es un dato de entrada" in html
     assert "no evaluable" in html and "no satisfecho" in html
+    assert html.count("<strong>Tesorería inicial</strong>: El saldo inicial tiene soporte y revisión") == 2
+    assert "<strong>Importe del pago</strong>: La evidencia no permite comprobar el importe" in html
+    assert "<strong>Importe del pago</strong>: El importe de este pago está respaldado" in html
+    assert "<strong>Pago sin duplicidad</strong>: La evidencia no permite comprobar si este pago" in html
+    assert "<strong>Conflictos y límites</strong>: La proyección declara un conflicto" in html
+    assert "<strong>Conflictos y límites</strong>: No queda declarado un conflicto" in html
+    assert "flow attribute not evaluable" not in html
+    assert "FLOW_AMOUNT_SUPPORT:" not in html
     assert "DEMOSTRACIÓN SINTÉTICA — NO OPERACIONAL" in html
     assert "AUTHORIZED en una captura negociadora no constituye mandato" in html
     assert html.count("Precio de referencia observado: <strong>20.25 EUR</strong>") == 2
