@@ -46,7 +46,7 @@ def render_comparison(case_001_dir: Path, case_002_dir: Path, *, detail_links: b
             data["execution_outcome"]["status"]
         ]
         return f'''<article class="case"><div class="eyebrow">{safe(label)}</div>
-<h2>{safe(status)}</h2><p class="verdict"><strong>CONCLUSIÓN SOBRE EL PROVEEDOR</strong> <span>{safe(conclusion)}</span></p><p>{safe(summary)}</p>
+<h2>Ejecución técnica: {safe(status)}</h2><p class="verdict"><strong>CONCLUSIÓN SOBRE EL PROVEEDOR</strong> <span>{safe(conclusion)}</span></p><p>{safe(summary)}</p>
 <dl><div><dt>Calidad de la entrada</dt><dd>Apta para esta prueba · Confianza alta</dd></div>
 <div><dt>Fiabilidad del proveedor</dt><dd>{safe(reliability)}</dd></div>
 <div><dt>Compra ficticia</dt><dd>{safe(purchase['quantity'])} unidades × {safe(purchase['unit_price'])} {safe(purchase['currency'])}</dd></div></dl>
