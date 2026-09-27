@@ -91,7 +91,7 @@ dl div{{background:#eaf2f5;border-radius:12px;padding:.85rem}}dt{{font-size:.77r
 code{{font-size:.85em}}footer{{margin-top:2.5rem;font-size:.82rem;color:#526a77;overflow-wrap:anywhere}}
 </style></head><body><main>
 <header class="hero"><span class="eyebrow">EIOS · Empresa ficticia 002</span><h1>Revisión de simulación de referencia</h1>
-<p>Una lectura guiada de la compra simulada y de sus ocho capacidades. Todos los datos son sintéticos.</p></header>
+<p>Una lectura guiada de la compra simulada y de sus nueve capacidades. Todos los datos son sintéticos.</p></header>
 <div class="banner"><strong>Sin decisión de compra.</strong> La ruta operacional está prohibida y el resultado técnico es parcial. Se necesita evidencia adicional y revisión humana.</div>
 <section aria-labelledby="summary"><h2 id="summary">Lo esencial</h2><div class="grid">{cards}</div></section>
 <section aria-labelledby="proposal"><h2 id="proposal">Propuesta ficticia</h2>

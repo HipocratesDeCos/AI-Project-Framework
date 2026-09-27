@@ -65,6 +65,7 @@ def test_second_runner_review_is_read_only_and_replay_verified(tmp_path):
     html = (directory / "reference-review.html").read_text(encoding="utf-8")
     assert "Completada parcialmente" in html
     assert "Apta para esta prueba · Confianza alta" in html
+    assert "sus nueve capacidades" in html
     assert "solicitar información documentada sobre la fiabilidad del proveedor" in html
     assert "Ask for documented supplier reliability information" not in html
     assert "Huella del resultado:" in html
