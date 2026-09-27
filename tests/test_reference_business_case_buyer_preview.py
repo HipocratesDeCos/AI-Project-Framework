@@ -49,12 +49,16 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     assert "FLOW_AMOUNT_SUPPORT:" not in html
     assert "DEMOSTRACIÓN SINTÉTICA — NO OPERACIONAL" in html
     assert html.count('class="conclusion ') == 18
+    assert html.count('class="analysis-detail"') == 16
+    assert html.index("Hay un precio de referencia ficticio") < html.index('class="analysis-detail"')
     assert "Entrada apta para esta prueba; no autoriza comprar." in html
     assert "Faltan datos evaluables; la entrada no es apta para esta prueba." in html
     assert html.count("Favorable solo en el caso ficticio; no hay hechos que acrediten fiabilidad real.") == 2
     assert html.index("Favorable solo en el caso ficticio") < html.index("Fuentes de hechos incluidas")
     assert "El resultado C0 es sintético; no autoriza una compra." in html
-    assert ".conclusion.caution{background:#fff2da" in html
+    assert ".conclusion.caution{background:#ffedc9" in html
+    assert ".conclusion{padding:1rem 1.25rem;border-left:5px solid #173f79;border-radius:2rem" in html
+    assert ".analysis-detail{background:#eaf7ff" in html
     assert ".conclusion.negative{background:#fdebea" in html
     assert ".conclusion.positive{background:#e5f3e9" in html
     assert "Datos ficticios · Solo para pruebas · Ruta operacional prohibida" in html
