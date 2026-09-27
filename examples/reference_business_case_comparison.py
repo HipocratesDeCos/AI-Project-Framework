@@ -56,7 +56,7 @@ header{{background:#12364d;color:white;border-radius:22px;padding:2rem}}header p
 h1{{font-size:clamp(2rem,4vw,3rem);line-height:1.15;margin:.4rem 0}}h2{{margin:.35rem 0;font-size:1.5rem}}
 .eyebrow{{font-size:.8rem;font-weight:750;letter-spacing:.07em;text-transform:uppercase;color:#18717a}}
 header .eyebrow{{color:#a7dee0}}.notice{{background:#fff4df;border-left:5px solid #d99a28;border-radius:10px;padding:1rem 1.25rem;margin:1.25rem 0}}
-.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:1rem}}
+.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:1rem}}
 .case{{background:white;border:1px solid #d6e4e9;border-radius:18px;padding:1.5rem;box-shadow:0 5px 18px #12364d0c}}
 .case p{{max-width:64ch}}dl{{margin:1.3rem 0}}dl div{{padding:.7rem 0;border-top:1px solid #e4ecef}}
 dt{{font-size:.85rem;color:#466271}}dd{{margin:.2rem 0 0;font-weight:750;font-size:1.1rem}}
