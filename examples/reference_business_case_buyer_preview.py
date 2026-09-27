@@ -181,7 +181,7 @@ def _render_verified_buyer_preview(directory: Path) -> str:
                           if result["value"] is not None else "sin importe disponible")
                 value = (f'<p>Coste de adquisición modelado: <strong>{amount}</strong>. '
                          f'Componentes incluidos: {safe(", ".join(_TCO_COMPONENTS[item] for item in result["contributing_components"]) or "ninguno")}.</p>')
-                limits = ('<p>El fixture no aporta importes atribuibles de transporte, seguros, '
+                limits = ('<p>El caso de prueba no aporta importes atribuibles de transporte, seguros, '
                           'aranceles, financiación, almacenaje, obsolescencia ni devoluciones. '
                           'Lo no informado no equivale a coste cero ni a coste total empresarial.</p>'
                           f'<p>Limitaciones declaradas por TCO: '
@@ -201,7 +201,7 @@ def _render_verified_buyer_preview(directory: Path) -> str:
                 value = (
                     f'<p>Proveedor ficticio: <code>{safe(result["current_supplier_id"])}</code>. '
                     f'Dimensiones de riesgo declaradas: {safe(dimensions)}.</p>'
-                    f'<p>Fuentes factuales incluidas en este fixture: {safe(factual_count)}. '
+                    f'<p>Fuentes de hechos incluidas en este caso de prueba: {safe(factual_count)}. '
                     f'Comparación de valor disponible: {"sí" if payload["value_comparison_available"] else "no"}. '
                     'La valoración externa declarada no prueba desempeño real ni permite '
                     'seleccionar proveedor.</p>'
@@ -219,7 +219,7 @@ def _render_verified_buyer_preview(directory: Path) -> str:
                          f'Atributos faltantes: '
                          f'{safe(", ".join(result["missing_attributes"]) or "ninguno declarado")}.</p>')
                 limits = ('<p>Las condiciones, consecuencias y riesgos no aportados por el '
-                          'fixture no prueban equivalencia comercial. Las etiquetas son '
+                          'caso de prueba no prueban equivalencia comercial. Las etiquetas son '
                           'representaciones transitorias; sin puntuación, ranking ni selección. '
                           '«Viable en la prueba» no acredita viabilidad económica empresarial.</p>')
             elif suffix == "scenario-coordination":
@@ -264,18 +264,18 @@ def _render_verified_buyer_preview(directory: Path) -> str:
             elif suffix == "c0":
                 value = (
                     f'<p>Base sintética suministrada: {safe(payload["base_result"])}. '
-                    f'Consolidado CRC del fixture: <strong>{safe(result["consolidated_result"])}</strong>.</p>'
+                    f'Consolidado CRC del caso de prueba: <strong>{safe(result["consolidated_result"])}</strong>.</p>'
                 )
                 limits = (
                     f'<p>QTG de esta variante: {safe(payload["qtg_status"])}. '
                     'No se ha demostrado una derivación causal de QTG hacia C0. '
-                    'La base fue suministrada al fixture; el consolidado no es '
+                    'La base fue suministrada al caso de prueba; el consolidado no es '
                     'una orden ni autorización de compra.</p>'
                 )
             observations.append(
                 f'<article><h4>{safe(title)}</h4>{value}{limits}'
                 '<details class="trace"><summary>Traza de la observación</summary>'
-                f'<p>Huella del fixture: <code>{safe(payload["observation_fingerprint"])}</code></p>'
+                f'<p>Huella de la observación: <code>{safe(payload["observation_fingerprint"])}</code></p>'
                 '</details></article>'
             )
         sections.append(
@@ -305,6 +305,10 @@ def _render_verified_buyer_preview(directory: Path) -> str:
         '.overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}'
         '.overview-card{padding:1rem;background:white;border-left:4px solid #496d8d}'
         '.overview-card dt{font-weight:700}.overview-card dd{margin:.4rem 0 0}'
+        '.reading-key{background:#f0f5f8;border-radius:.5rem;padding:1rem}'
+        '.reading-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:1rem}'
+        '.reading-grid div{background:white;padding:.8rem;border-left:4px solid #496d8d}'
+        '.reading-grid dt{font-weight:700}.reading-grid dd{margin:.3rem 0 0}'
         '.quality-check{margin:.75rem 0}.quality-check span{display:block}'
         '.trace{font-size:.9rem;color:#36495d}'
         'code{overflow-wrap:anywhere}details{margin:1rem 0}</style></head><body>'
@@ -315,9 +319,17 @@ def _render_verified_buyer_preview(directory: Path) -> str:
         'de datos y qué análisis se han capturado. APTO solo califica la entrada de prueba; '
         '«Completada» solo describe la ejecución técnica. Ninguno autoriza una compra.</p>'
         '<p>Los importes, el riesgo declarado, el consolidado CRC y el contenido de negociación '
-        'proceden del fixture. No se ha probado una derivación causal de QTG a C0 ni una '
+        'proceden del caso de prueba. No se ha probado una derivación causal de QTG a C0 ni una '
         'selección empresarial. AUTHORIZED en una captura negociadora no constituye mandato '
         'para contactar a proveedores. Las huellas comprueban consistencia, no autenticidad externa.</p>'
+        '<aside class="reading-key" aria-label="Claves de lectura"><h2>Claves para leer los análisis</h2>'
+        '<dl class="reading-grid"><div><dt>QTG · calidad de entrada</dt>'
+        '<dd>Comprueba si los datos de prueba se pueden evaluar; no aprueba una compra.</dd></div>'
+        '<div><dt>C0 y CRC · reglas y consolidación</dt>'
+        '<dd>C0 evalúa reglas y CRC reúne sus resultados; la decisión corresponde a una persona.</dd></div>'
+        '<div><dt>Caso de prueba</dt>'
+        '<dd>Datos ficticios para observar el sistema, sin validez empresarial real.</dd></div>'
+        '</dl></aside>'
         + overview + proposal + "".join(sections) + '</main></body></html>'
     )
 
