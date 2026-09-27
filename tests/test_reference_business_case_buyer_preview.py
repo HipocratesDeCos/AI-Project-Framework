@@ -48,6 +48,10 @@ def test_full_preview_shows_both_variants_without_operational_actions(tmp_path):
     assert "flow attribute not evaluable" not in html
     assert "FLOW_AMOUNT_SUPPORT:" not in html
     assert "DEMOSTRACIÓN SINTÉTICA — NO OPERACIONAL" in html
+    assert "Datos ficticios · Solo para pruebas · Ruta operacional prohibida" in html
+    assert "Sin efecto operacional · Sin autoridad para decidir" in html
+    assert "Ver códigos técnicos de esta restricción" in html
+    assert "SYNTHETIC · SYNTHETIC_TEST_ONLY · FORBIDDEN · NO_OPERATIONAL_EFFECT · decision_authority=false" in html
     assert "AUTHORIZED en una captura negociadora no constituye mandato" in html
     assert html.count("Precio de referencia observado: <strong>20.25 EUR</strong>") == 2
     assert html.count("método: mediana sin ponderar") == 2
