@@ -13,6 +13,7 @@ from uuid import uuid4
 
 from eios.company_data import CompanyDataStore
 from eios.purchase_history import purchase_history
+from eios.company_inventory import read_inventory
 
 
 class PurchaseDesk:
@@ -36,7 +37,7 @@ class PurchaseDesk:
         return dict(info=info, suppliers=[r['data'] for r in self.store.records(dataset, 'supplier')],
                     articles=[r['data'] for r in self.store.records(dataset, 'article')],
                     pending=[r['data'] for r in self.store.records(dataset, 'missing_or_conflicting')],
-                    purchases=proposals,
+                    purchases=proposals, inventory=read_inventory(self.db, dataset),
                     history={a['data']['article_id']: purchase_history(self.store, dataset, a['data'], info['as_of_date'])
                              for a in self.store.records(dataset, 'article')})
 
@@ -97,7 +98,7 @@ button{background:#175b93;color:white;cursor:pointer}table{width:100%;border-col
 <p>Compras facturadas hasta la fecha de corte. No acreditan existencias actuales.</p>
 <div class="scroll"><table><thead><tr><th>Fecha / factura</th><th>Cantidad</th><th>Precio unitario documentado</th><th>Precio neto efectivo</th><th>Fuente</th></tr></thead><tbody id="history"></tbody></table></div>
 <p id="comparison" role="status"></p>
-<p>STOCK: SIN DATOS DE INVENTARIO · DEMANDA: SIN DATOS CONFIRMADOS</p>
+<p id="stock">STOCK: SIN DATOS DE INVENTARIO</p><p>Demanda y stock de seguridad: pendientes de definir.</p>
 </div>
 <label>Cantidad<br><input name="quantity" type="number" min="0.000001" step="any" required></label>
 <label>Precio neto por unidad (€), sin IVA y tras descuentos<br><input name="unit_price" type="number" min="0.000001" step="any" required></label>
@@ -116,6 +117,9 @@ function money(v){if(v===null||v===undefined)return 'Sin datos';let n=Number(v);
 function unit(){
  let a=state.articles.find(a=>a.article_id===$('article').value);
  $('unit').textContent=a?'Unidad: '+a.unit_as_documented:'';
+ let stock=a?state.inventory[a.article_id]:null;
+ $('stock').textContent=stock?'INVENTARIO SINTÉTICO A '+stock.as_of_date+' · Físico: '+stock.physical+' · Reservado: '+stock.reserved+' · Disponible: '+stock.available+' '+stock.unit+'. Supuestos del caso ficticio; sin conciliación con el balance.':'STOCK: SIN DATOS DE INVENTARIO';
+
  $('history').replaceChildren();
  let rows=a?(state.history[a.article_id]||[]):[];
  rows.forEach(r=>{let tr=document.createElement('tr');
