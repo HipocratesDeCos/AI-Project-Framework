@@ -30,7 +30,11 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install project and test dependencies
-        run: python -m pip install --upgrade pip && python -m pip install ".[test]"
+        run: |
+          python -m pip install --upgrade pip
+          # Match local installations containing a company data directory.
+          python -c "from pathlib import Path; p = Path('Data'); p.mkdir(exist_ok=True); (p / 'packaging_probe.txt').write_text('company data, not a Python package')"
+          python -m pip install -e ".[test]"
       - name: Run Python tests
         run: python -m pytest -q
       - name: Validate SQL Server C0, Decision Versioning, and Parameter Configuration schemas
