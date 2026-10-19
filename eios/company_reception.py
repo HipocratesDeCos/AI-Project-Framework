@@ -106,6 +106,23 @@ class CompanyReception:
         self.checked=None
         return dict(status='UNCHANGED' if duplicate else 'RECEIVED',batch_id=batch,company_id=report['company_id'],admission_status='PENDING',operational_path='FORBIDDEN',decision_authority=False)
 
+    def original(self, company_id, batch_id):
+        """Recover exact received bytes, scoped to a company and verified hash."""
+        if not isinstance(company_id, str) or not isinstance(batch_id, str) or not re.fullmatch(r'[0-9a-f]{64}', batch_id):
+            raise ValueError('Identificación de archivo no válida.')
+        with sqlite3.connect(self.db) as c:
+            if not c.execute("SELECT 1 FROM sqlite_master WHERE name='received_company_batch' AND type='table'").fetchone():
+                raise ValueError('Archivo no disponible para esta empresa.')
+            row = c.execute('SELECT metadata_json,content FROM received_company_batch WHERE company_id=? AND batch_id=?', (company_id, batch_id)).fetchone()
+        if not row:
+            raise ValueError('Archivo no disponible para esta empresa.')
+        metadata, content = json.loads(row[0]), bytes(row[1])
+        if metadata['company_id'] != company_id or sha256(content).hexdigest() != metadata['source_sha256']:
+            raise ValueError('La integridad del archivo no coincide. Descarga cancelada.')
+        filename = PurePosixPath(metadata['filename'].replace('\\', '/')).name
+        filename = ''.join(ch for ch in filename if ord(ch) >= 32 and ord(ch) != 127)[:200] or 'documento'
+        return dict(filename=filename, content=content, source_sha256=metadata['source_sha256'])
+
     def batches(self):
         with sqlite3.connect(self.db) as c:
             if not c.execute("SELECT 1 FROM sqlite_master WHERE name='received_company_batch' AND type='table'").fetchone(): return []
