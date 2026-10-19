@@ -16,6 +16,7 @@ from eios.purchase_history import purchase_history
 from eios.company_inventory import read_inventory
 from eios.company_planning import planning_context
 from eios.company_review import review_proposal
+from eios.company_upload import PreparedCompanyImport, MAX_UPLOAD_BYTES
 
 
 class PurchaseDesk:
@@ -122,7 +123,7 @@ PAGE = '''<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name=
 <div data-view="proveedores" hidden><section class="card"><h2>Cartera de Proveedores</h2><div class="scroll"><table><thead><tr><th>Código</th><th>Razón social</th><th>Artículos</th></tr></thead><tbody id="suppliers-table"></tbody></table></div></section></div>
 <div data-view="clientes" hidden><section class="card"><h2>Cartera de Clientes</h2><div class="scroll"><table><thead><tr><th>Código</th><th>Razón social</th></tr></thead><tbody id="customers-table"></tbody></table></div></section></div>
 <div data-view="stock" hidden><section class="card"><h2>Stock</h2><p>Inventario sintético del caso ficticio. Las existencias no se deducen de las facturas de compra.</p><div class="scroll"><table><thead><tr><th>SKU / artículo</th><th>Físico</th><th>Reservado</th><th>Disponible</th><th>Unidad</th><th>Fecha</th></tr></thead><tbody id="stock-table"></tbody></table></div></section></div>
-<div data-view="archivos" hidden><section class="card"><h2>Carga de archivos</h2><p>La carga desde esta pantalla todavía no está habilitada. La empresa visible procede del paquete documental importado en la base de datos.</p><p id="document-summary"></p></section></div><p id="notice" role="status"></p></main>
+<div data-view="archivos" hidden><section class="card"><h2>Carga de archivos</h2><p>Importación asistida de un paquete documental preparado para EIOS. Esta versión admite únicamente empresas ficticias y datos sintéticos.</p><p>No admite PDF o Excel sueltos ni documentos reales. Selecciona el ZIP documental que contiene <code>company_manifest.json</code>; no el ZIP de instalación con la base de datos.</p><p id="document-summary"></p><label>Paquete documental ZIP (máximo 25 MiB)<input id="upload-file" type="file" accept=".zip,application/zip"></label><button type="button" class="primary" id="upload-preview">Comprobar paquete</button><p id="upload-notice" role="status"></p><div id="upload-details" hidden><h3>Vista previa de la empresa</h3><p id="upload-company"></p><p id="upload-counts"></p><details><summary>Desglose de registros</summary><pre id="upload-records"></pre></details><p>La validación técnica no confirma la veracidad de los documentos ni autoriza compras. Las versiones existentes y las propuestas guardadas se conservan.</p><button type="button" class="primary" id="upload-commit">Importar paquete validado</button></div></section></div><p id="notice" role="status"></p></main>
 <script>
 let state; let reviewRequest=0; const $=id=>document.getElementById(id); const token=TOKEN;
 function option(select,value,label){let o=document.createElement('option');o.value=value;o.textContent=label;select.append(o)}
@@ -175,7 +176,12 @@ async function reviewSaved(proposalId,button){const request=++reviewRequest;butt
 $('form').elements.unit_price.addEventListener('input',compare);
 $('supplier').onchange=articles;$('article').onchange=unit;$('dataset').onchange=()=>refresh().catch(e=>$('notice').textContent=e.message);
 $('form').onsubmit=async e=>{e.preventDefault();$('save').disabled=true;try{let d=Object.fromEntries(new FormData(e.target));d.dataset_id=$('dataset').value;await api('/api/purchases',{method:'POST',headers:{'Content-Type':'application/json','X-EIOS-Token':token},body:JSON.stringify(d)});e.target.reset();await refresh();$('notice').textContent='PROPUESTA GUARDADA · Pendiente de evaluación.'}catch(e){$('notice').textContent=e.message}finally{$('save').disabled=false}};
-api('/api/datasets').then(ds=>{ds.forEach(d=>option($('dataset'),d.dataset_id,d.company_id+' · '+d.as_of_date+' · '+d.dataset_id.slice(0,8)));return refresh()}).catch(e=>$('notice').textContent=e.message);
+async function datasets(selected){let ds=await api('/api/datasets');$('dataset').replaceChildren();ds.forEach(d=>option($('dataset'),d.dataset_id,d.company_id+' · '+d.as_of_date+' · '+d.dataset_id.slice(0,8)));if(selected)$('dataset').value=selected;return refresh()}
+let uploadTicket=null,uploadSequence=0;
+$('upload-file').onchange=()=>{uploadSequence++;uploadTicket=null;$('upload-details').hidden=true;$('upload-notice').textContent='';};
+$('upload-preview').onclick=async()=>{const sequence=++uploadSequence;uploadTicket=null;$('upload-details').hidden=true;const file=$('upload-file').files[0];if(!file){$('upload-notice').textContent='Selecciona el ZIP documental.';return}if(file.size>25*1024*1024){$('upload-notice').textContent='El archivo supera 25 MiB.';return}$('upload-preview').disabled=true;$('upload-notice').textContent='Comprobando estructura, referencias e integridad de archivos…';try{const r=await api('/api/import/preview',{method:'POST',headers:{'Content-Type':'application/zip','X-EIOS-Token':token},body:file});if(sequence!==uploadSequence)return;uploadTicket=r.ticket;$('upload-company').textContent=(r.company.legal_name||r.company.company_id)+' · '+r.company.company_id+' · Corte: '+r.as_of_date;$('upload-counts').textContent=r.documents+' documentos · '+r.records+' registros · Material sintético.';$('upload-records').textContent=JSON.stringify(r.record_counts,null,2);$('upload-notice').textContent=r.message;$('upload-details').hidden=false}catch(e){if(sequence===uploadSequence)$('upload-notice').textContent=e.message}finally{$('upload-preview').disabled=false}};
+$('upload-commit').onclick=async()=>{if(!uploadTicket)return;const ticket=uploadTicket;$('upload-commit').disabled=true;$('upload-file').disabled=true;$('upload-preview').disabled=true;try{const r=await api('/api/import/commit',{method:'POST',headers:{'Content-Type':'application/json','X-EIOS-Token':token},body:JSON.stringify({ticket})});uploadTicket=null;$('upload-details').hidden=true;$('upload-notice').textContent=r.status==='UNCHANGED'?'El paquete ya estaba cargado. No se ha duplicado.':'Paquete importado. Empresa seleccionada; propuestas anteriores conservadas.';await datasets(r.dataset_id)}catch(e){uploadTicket=null;$('upload-details').hidden=true;$('upload-notice').textContent=e.message}finally{$('upload-commit').disabled=false;$('upload-file').disabled=false;$('upload-preview').disabled=false}};
+datasets().catch(e=>$('notice').textContent=e.message);
 </script></body></html>'''
 
 
@@ -186,6 +192,7 @@ def main():
     args = parser.parse_args()
     desk = PurchaseDesk(args.db)
     token = secrets.token_urlsafe(32)
+    importer = PreparedCompanyImport(desk.store)
 
     class Handler(BaseHTTPRequestHandler):
         def send(self, status, data, html=False):
@@ -217,15 +224,22 @@ def main():
                 self.send(400, dict(error='Versión documental no válida'))
 
         def do_POST(self):
+            if self.headers.get('Host') not in {f'127.0.0.1:{args.port}', f'localhost:{args.port}'}:
+                return self.send(403, dict(error='Host no permitido'))
             if self.headers.get('X-EIOS-Token') != token:
                 return self.send(403, dict(error='Sesión no válida. Recarga la pantalla.'))
-            if self.path not in {'/api/purchases', '/api/purchases/review'}:
+            if self.path not in {'/api/purchases', '/api/purchases/review', '/api/import/preview', '/api/import/commit'}:
                 return self.send(404, dict(error='No encontrado'))
             try:
                 size = int(self.headers.get('Content-Length', '0'))
-                if not 0 < size <= 16384:
+                limit = MAX_UPLOAD_BYTES if self.path == '/api/import/preview' else 16384
+                if not 0 < size <= limit:
                     raise ValueError('Solicitud demasiado grande o vacía.')
+                if self.path == '/api/import/preview':
+                    return self.send(200, importer.preview(self.rfile.read(size)))
                 data = json.loads(self.rfile.read(size))
+                if self.path == '/api/import/commit':
+                    return self.send(200, importer.commit(data['ticket']))
                 if self.path == '/api/purchases/review':
                     return self.send(200, desk.review(str(data['dataset_id']), str(data['proposal_id'])))
                 self.send(201, desk.save(data))
