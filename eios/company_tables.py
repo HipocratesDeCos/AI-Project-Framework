@@ -10,18 +10,29 @@ MAX_ROWS = 5000
 MAX_COLUMNS = 80
 MAX_BYTES = 10 * 1024 * 1024
 
+# Declared company parameters; reception never activates purchasing rules.
+STOCK_PARAMETERS = [
+    ('minimum_stock','Stock mínimo',False),
+    ('safety_stock','Stock de seguridad',False),
+    ('reorder_point','Punto de pedido',False),
+    ('lead_time_days','Plazo de entrega (días enteros)',False),
+]
+STOCK_PARAMETER_KEYS = {field for field,_,_ in STOCK_PARAMETERS}
+
 # Fields, display labels, and required fields for assisted reception, not core input.
 FIELDS = {
     'supplier': [('supplier_id','Código de proveedor',True),('legal_name','Razón social',True),('tax_id','NIF / identificación fiscal',False),('locality','Localidad',False)],
     'customer': [('customer_id','Código de cliente',True),('legal_name','Razón social',True),('tax_id','NIF / identificación fiscal',False),('locality','Localidad',False)],
     'article': [('article_id','SKU / código de artículo',True),('description','Descripción',True),('unit','Unidad',True),('supplier_id','Código de proveedor',False),('family','Familia',False)],
-    'inventory': [('article_id','SKU / código de artículo',True),('unit','Unidad',True),('physical','Existencias físicas',True),('reserved','Cantidad reservada',False),('observation_date','Fecha del inventario (si figura)',False)],
+    'inventory': [('article_id','SKU / código de artículo',True),('unit','Unidad',True),('physical','Existencias físicas',True),('reserved','Cantidad reservada',False),('observation_date','Fecha del inventario (si figura)',False)]+STOCK_PARAMETERS,
+    'stock_policy': [('article_id','SKU / código de artículo',True),('unit','Unidad',True),('observation_date','Fecha de referencia (si figura)',False)]+STOCK_PARAMETERS,
     'purchase_line': [('invoice_number','Número de factura',True),('issue_date','Fecha de factura',True),('supplier_id','Código de proveedor',True),('article_id','SKU / código de artículo',True),('quantity','Cantidad',True),('unit','Unidad',True),('net_amount','Importe neto de la línea',True),('currency','Moneda',True)],
+    'sales_line': [('invoice_number','Número de factura',True),('issue_date','Fecha de factura',True),('customer_id','Código de cliente',True),('article_id','SKU / código de artículo',True),('quantity','Cantidad',True),('unit','Unidad',True),('net_amount','Importe neto de la línea',True),('currency','Moneda',True)],
     'cash_flow': [('flow_id','Referencia del cobro o pago',True),('direction','COBRO o PAGO',True),('amount','Importe',True),('currency','Moneda',True),('due_date','Vencimiento',True),('counterparty','Cliente / proveedor / concepto',False)],
     'balance': [('account_code','Código de cuenta',True),('description','Descripción',False),('balance','Saldo con signo',True),('currency','Moneda',True),('observation_date','Fecha del saldo (si figura)',False)],
     'document': [],
 }
-NUMBERS = {'physical','reserved','quantity','net_amount','amount','balance'}
+NUMBERS = {'physical','reserved','quantity','net_amount','amount','balance'} | STOCK_PARAMETER_KEYS
 IDENTIFIERS = {'supplier_id','customer_id','article_id','invoice_number','flow_id','account_code','tax_id'}
 
 
@@ -153,6 +164,8 @@ def normalize(table, kind, mapping, cutoff, convention):
         output={};problems=[]
         for field,label,required in fields:
             column=mapping.get(field)
+            if column is None and field in STOCK_PARAMETER_KEYS:
+                continue  # Preserve older inventory payloads; absent parameters are not defaults.
             value=row['values'][column] if column is not None else None
             if value is None or (isinstance(value,str) and not value.strip()):
                 if required: problems.append(label+': dato vacío')
@@ -167,24 +180,34 @@ def normalize(table, kind, mapping, cutoff, convention):
                 output[field]=value
             except (ValueError,InvalidOperation) as error: problems.append(label+': '+str(error))
         if not problems:
-            key_fields={'supplier':['supplier_id'],'customer':['customer_id'],'article':['article_id'],'inventory':['article_id','unit'],'cash_flow':['flow_id'],'balance':['account_code','currency']}.get(kind)
+            key_fields={'supplier':['supplier_id'],'customer':['customer_id'],'article':['article_id'],'inventory':['article_id','unit'],'stock_policy':['article_id','unit'],'cash_flow':['flow_id'],'balance':['account_code','currency']}.get(kind)
             if key_fields:
                 key=tuple(output.get(k) for k in key_fields)
                 if key in seen: problems.append('Identificador duplicado dentro del archivo.')
                 seen.add(key)
-            if kind=='purchase_line':
+            if kind in ('purchase_line','sales_line'):
                 fingerprint=tuple(sorted(output.items()))
-                if fingerprint in seen: warnings.append('Fila '+str(row['row'])+': mismo contenido que otra línea de compra; verifica si es un duplicado. Se conservarán ambas filas.')
+                if fingerprint in seen: warnings.append('Fila '+str(row['row'])+': mismo contenido que otra línea de factura; verifica si es un duplicado. Se conservarán ambas filas.')
                 seen.add(fingerprint)
                 if output['issue_date']>cutoff: problems.append('La factura es posterior a la fecha de corte.')
-                if Decimal(output['quantity'])<=0 or Decimal(output['net_amount'])<0: problems.append('Este tipo de carga admite compras con cantidad positiva e importe neto no negativo; separa los abonos.')
+                if Decimal(output['quantity'])<=0 or Decimal(output['net_amount'])<0: problems.append('Las líneas de compra o venta deben tener cantidad positiva e importe neto no negativo; separa los abonos.')
             if kind=='cash_flow':
                 output['direction']=output['direction'].upper()
                 if output['direction'] not in ('COBRO','PAGO'): problems.append('El movimiento debe indicar COBRO o PAGO.')
                 if Decimal(output['amount'])<0: problems.append('Usa un importe positivo e indica COBRO o PAGO.')
             if 'currency' in output and not re.fullmatch('[A-Z]{3}',output['currency'] or ''): problems.append('Moneda: usa un código de tres letras mayúsculas, por ejemplo EUR.')
-            if kind in ('inventory','balance') and output.get('observation_date') and output['observation_date']!=cutoff:
-                problems.append('La fecha del inventario o saldo no coincide con la fecha de corte indicada.')
+            if kind in ('inventory','stock_policy','balance') and output.get('observation_date') and output['observation_date']!=cutoff:
+                problems.append('La fecha de referencia de la fila no coincide con la fecha de corte indicada.')
+            if kind in ('inventory','stock_policy'):
+                output['as_of_date']=cutoff
+                supplied=[key for key in STOCK_PARAMETER_KEYS if output.get(key) is not None]
+                if kind=='stock_policy' and not supplied:
+                    problems.append('Aporta al menos un parámetro: mínimo, seguridad, punto de pedido o plazo de entrega.')
+                for key in supplied:
+                    if Decimal(output[key])<0: problems.append('No se admite un valor negativo en '+next(label for field,label,_ in STOCK_PARAMETERS if field==key)+'.')
+                days=output.get('lead_time_days')
+                if days is not None and Decimal(days)!=Decimal(days).to_integral_value():
+                    problems.append('El plazo de entrega debe indicar días enteros.')
             if kind=='inventory':
                 output['as_of_date']=cutoff
                 output['available']=str(Decimal(output['physical'])-Decimal(output['reserved'])) if output['reserved'] is not None else None

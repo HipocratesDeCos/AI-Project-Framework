@@ -17,15 +17,19 @@ La pantalla **Carga de archivos** permite recibir documentación de una empresa 
 | Proveedores | Código, razón social |
 | Clientes | Código, razón social |
 | Artículos | SKU, descripción, unidad |
-| Inventario | SKU, unidad, existencias físicas |
+| Inventario | SKU, unidad, existencias físicas; mínimos, seguridad, punto de pedido y plazo de entrega opcionales |
+| Parámetros de stock y entrega | SKU, unidad y al menos uno de esos parámetros |
 | Líneas de facturas de compra sin abonos | Factura, fecha, proveedor, SKU, cantidad, unidad, importe neto de línea y moneda |
+| Líneas de facturas de venta sin abonos | Factura, fecha, cliente, SKU, cantidad, unidad, importe neto de línea y moneda |
 | Previsión de cobros y pagos | Referencia, COBRO/PAGO, importe, moneda y vencimiento |
 | Saldos contables | Código de cuenta, saldo con signo y moneda |
 | PDF de soporte | Archivo y contexto de empresa; no se extraen cifras |
 
 Los códigos numéricos de Excel se rechazan para evitar perder ceros iniciales; deben aportarse como texto. Las fórmulas y errores de Excel en columnas mapeadas requieren revisión y valores fijos. No se utilizan resultados de cálculo en caché. Las fechas de texto admitidas son AAAA-MM-DD o DD/MM/AAAA; las fechas nativas de Excel se conservan como fechas ISO. El formato numérico declarado controla los separadores de texto sin adivinarlos.
 
-No se considera cero una reserva desconocida. El disponible sólo se calcula cuando se aportan físico y reservado. Las fechas de inventario/saldo, si se mapean, deben coincidir con el corte declarado. Las facturas posteriores al corte se rechazan; los vencimientos futuros de cobros/pagos son válidos. Los saldos negativos se conservan. No se consolidan líneas de compra ni se deduplican entre archivos distintos; las relaciones y posibles solapamientos entre archivos quedan para la admisión.
+No se considera cero una reserva desconocida. El disponible sólo se calcula cuando se aportan físico y reservado. Las fechas de inventario/saldo, si se mapean, deben coincidir con el corte declarado. Las facturas posteriores al corte se rechazan; los vencimientos futuros de cobros/pagos son válidos. Los saldos negativos se conservan. Las ventas se reciben como líneas de factura, sin inferir demanda automáticamente. Los parámetros de stock/entrega deben ser no negativos y el plazo se declara en días enteros. Un cero aportado se conserva; un parámetro sin asignar no genera un valor por defecto. Pueden recibirse junto al inventario o en una tabla separada. No activan alarmas ni reglas antes de la admisión.
+
+No se consolidan líneas de compra o venta ni se deduplican entre archivos distintos; las relaciones y posibles solapamientos entre archivos quedan para la admisión.
 
 ## Frontera de recepción
 
