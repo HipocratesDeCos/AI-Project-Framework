@@ -5,6 +5,7 @@ description = "EIOS procurement decision-support MVP"
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.0,<3.0",
+    "openpyxl>=3.1,<4.0",
 ]
 
 [project.optional-dependencies]

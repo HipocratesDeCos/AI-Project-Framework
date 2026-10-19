@@ -8,6 +8,8 @@ The local company screen now offers an assisted import under **Carga de archivos
 
 For the fictional A Monkey company, select `A_Monkey_Datos_Documentados.zip`. The outer `EIOS_A_Monkey_Carga_Documental_Local.zip` is an installation bundle and is not accepted as a documentary dataset. Extract the inner ZIP first.
 
+A separate ordinary-file reception workflow is described in Company_File_Reception_v0.1.md. It never calls this synthetic-only importer for real data.
+
 The existing input contract remains synthetic-only with `operational_path=FORBIDDEN`. This feature does not parse arbitrary PDF/Excel, perform OCR, prove source truth, create financial evidence, or implement real-company operational admission. Inventory/planning assumptions are separate and are not automatically generated for imported datasets. Missing stock stays missing.
 
 Transport limits: 25 MiB uploaded, 100 MiB total uncompressed, 512 ZIP members; only unencrypted STORED/DEFLATE members. Files are never extracted by user-controlled paths. The exact bytes are retained in a single server-memory preview slot, bound to a random ticket expiring after ten minutes. A new preview invalidates the old ticket; success consumes it. The import revalidates the same bytes before the existing transactional persistence boundary.
