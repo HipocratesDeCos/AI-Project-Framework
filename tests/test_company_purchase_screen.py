@@ -40,3 +40,14 @@ class PurchaseScreenTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.desk.save(self.data)
         self.assertEqual(len(self.desk.state('one')['purchases']), 1)
+
+    def test_customer_portfolio_is_scoped_to_documentary_version(self):
+        with sqlite3.connect(self.path) as c:
+            for dataset in ('one', 'two'):
+                c.execute('INSERT INTO documentary_company_record VALUES(?,?,?,?)',
+                          (dataset, 'customer', 'C', json.dumps(dict(data=dict(
+                              customer_id='C', legal_name='Customer ' + dataset)))))
+        self.assertEqual(self.desk.state('one')['customers'],
+                         [dict(customer_id='C', legal_name='Customer one')])
+        self.assertEqual(self.desk.state('two')['customers'],
+                         [dict(customer_id='C', legal_name='Customer two')])
