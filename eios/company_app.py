@@ -12,6 +12,7 @@ import sqlite3
 from uuid import uuid4
 
 from eios.company_data import CompanyDataStore
+from eios.purchase_history import purchase_history
 
 
 class PurchaseDesk:
@@ -35,7 +36,9 @@ class PurchaseDesk:
         return dict(info=info, suppliers=[r['data'] for r in self.store.records(dataset, 'supplier')],
                     articles=[r['data'] for r in self.store.records(dataset, 'article')],
                     pending=[r['data'] for r in self.store.records(dataset, 'missing_or_conflicting')],
-                    purchases=proposals)
+                    purchases=proposals,
+                    history={a['data']['article_id']: purchase_history(self.store, dataset, a['data'], info['as_of_date'])
+                             for a in self.store.records(dataset, 'article')})
 
     def save(self, data):
         dataset = str(data['dataset_id'])
@@ -89,8 +92,15 @@ button{background:#175b93;color:white;cursor:pointer}table{width:100%;border-col
 <form id="form"><label>Referencia<br><input name="reference" required maxlength="100"></label>
 <label>Proveedor<br><select name="supplier_id" id="supplier" required></select></label>
 <label>Artículo<br><select name="article_id" id="article" required></select></label><small id="unit"></small>
+<div style="background:#edf5fc;padding:16px;border-radius:8px;margin:12px 0">
+<strong>HISTORIAL DOCUMENTADO DEL ARTÍCULO</strong>
+<p>Compras facturadas hasta la fecha de corte. No acreditan existencias actuales.</p>
+<div class="scroll"><table><thead><tr><th>Fecha / factura</th><th>Cantidad</th><th>Precio unitario documentado</th><th>Precio neto efectivo</th><th>Fuente</th></tr></thead><tbody id="history"></tbody></table></div>
+<p id="comparison" role="status"></p>
+<p>STOCK: SIN DATOS DE INVENTARIO · DEMANDA: SIN DATOS CONFIRMADOS</p>
+</div>
 <label>Cantidad<br><input name="quantity" type="number" min="0.000001" step="any" required></label>
-<label>Precio por unidad (€)<br><input name="unit_price" type="number" min="0.000001" step="any" required></label>
+<label>Precio neto por unidad (€), sin IVA y tras descuentos<br><input name="unit_price" type="number" min="0.000001" step="any" required></label>
 <label>IVA (%)<br><input name="vat_percent" type="number" min="0" max="100" step="any" required></label>
 <label>Fecha del pedido<br><input name="order_date" type="date" required></label>
 <label>Vencimiento<br><input name="due_date" type="date" required></label>
@@ -102,8 +112,33 @@ let state; const $=id=>document.getElementById(id); const token=TOKEN;
 function option(select,value,label){let o=document.createElement('option');o.value=value;o.textContent=label;select.append(o)}
 async function api(path,opts){let r=await fetch(path,opts);let d=await r.json();if(!r.ok)throw Error(d.error);return d}
 function articles(){ $('article').replaceChildren();state.articles.filter(a=>a.supplier_id===$('supplier').value).forEach(a=>option($('article'),a.article_id,a.description));unit() }
-function unit(){let a=state.articles.find(a=>a.article_id===$('article').value);$('unit').textContent=a?'Unidad: '+a.unit_as_documented+' · Stock y demanda: sin datos confirmados.':''}
+function money(v){if(v===null||v===undefined)return 'Sin datos';let n=Number(v);return Number.isFinite(n)?n.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:4}):'Sin datos'}
+function unit(){
+ let a=state.articles.find(a=>a.article_id===$('article').value);
+ $('unit').textContent=a?'Unidad: '+a.unit_as_documented:'';
+ $('history').replaceChildren();
+ let rows=a?(state.history[a.article_id]||[]):[];
+ rows.forEach(r=>{let tr=document.createElement('tr');
+ [r.issue_date+' · '+r.invoice_number,(r.quantity??'Sin datos')+' '+(r.unit||''),money(r.unit_price)+' '+(r.currency||''),money(r.effective_net_unit_price)+' '+(r.currency||'')+' sin IVA',r.source_refs.map(s=>s.document_ref+(s.page?' · pág. '+s.page:'')).join('; ')].forEach(v=>{let td=document.createElement('td');td.textContent=v;tr.append(td)});$('history').append(tr)});
+ if(!rows.length){let tr=document.createElement('tr');let td=document.createElement('td');td.colSpan=5;td.textContent='Sin compras facturadas vinculadas a este artículo hasta la fecha de corte.';tr.append(td);$('history').append(tr)}
+ compare();
+}
+function compare(){
+ let a=state.articles.find(a=>a.article_id===$('article').value);
+ let rows=a?(state.history[a.article_id]||[]):[];
+ let target=$('comparison');target.textContent='Introduce un precio neto por unidad, sin IVA y después de descuentos, para compararlo.';
+ if(!rows.length){target.textContent='No hay una compra histórica documentada con la que comparar.';return}
+ let latest=rows.filter(r=>r.issue_date===rows[0].issue_date);
+ if(latest.length!==1){target.textContent='Hay varias líneas en la fecha más reciente. Consulta el historial; no se selecciona una automáticamente.';return}
+ let r=latest[0],old=Number(r.effective_net_unit_price);
+ if(!r.comparable||!Number.isFinite(old)||old<=0){target.textContent='Precios no comparables: revisa moneda, unidad e importe neto.';return}
+ let raw=$('form').elements.unit_price.value,price=Number(raw);
+ if(!raw||!Number.isFinite(price)||price<=0)return;
+ let delta=price-old,pct=delta/old*100;
+ target.textContent='Respecto a la última compra documentada ('+r.issue_date+', '+r.invoice_number+'): '+(delta>=0?'+':'')+money(delta)+' €/unidad · '+(pct>=0?'+':'')+money(pct)+' %. Comparación orientativa de precios netos; no es una recomendación de compra.';
+}
 async function refresh(){state=await api('/api/state?dataset='+encodeURIComponent($('dataset').value));$('company').textContent=state.info.company.legal_name||JSON.stringify(state.info.company);$('summary').textContent='Corte: '+state.info.as_of_date+' · Documentos: '+state.info.documents+' · Artículos: '+state.articles.length;$('pending').textContent=state.pending.map(x=>JSON.stringify(x,null,2)).join('\\n');$('supplier').replaceChildren();state.suppliers.forEach(s=>option($('supplier'),s.supplier_id,s.legal_name));articles();$('rows').replaceChildren();state.purchases.forEach(p=>{let tr=document.createElement('tr');[p.reference,p.article_id,p.total,p.due_date,'PENDIENTE DE EVALUACIÓN'].forEach(v=>{let td=document.createElement('td');td.textContent=v;tr.append(td)});$('rows').append(tr)})}
+$('form').elements.unit_price.addEventListener('input',compare);
 $('supplier').onchange=articles;$('article').onchange=unit;$('dataset').onchange=()=>refresh().catch(e=>$('notice').textContent=e.message);
 $('form').onsubmit=async e=>{e.preventDefault();$('save').disabled=true;try{let d=Object.fromEntries(new FormData(e.target));d.dataset_id=$('dataset').value;await api('/api/purchases',{method:'POST',headers:{'Content-Type':'application/json','X-EIOS-Token':token},body:JSON.stringify(d)});e.target.reset();await refresh();$('notice').textContent='PROPUESTA GUARDADA · Pendiente de evaluación.'}catch(e){$('notice').textContent=e.message}finally{$('save').disabled=false}};
 api('/api/datasets').then(ds=>{ds.forEach(d=>option($('dataset'),d.dataset_id,d.company_id+' · '+d.as_of_date+' · '+d.dataset_id.slice(0,8)));return refresh()}).catch(e=>$('notice').textContent=e.message);
