@@ -15,3 +15,11 @@ Validación adicional: cálculo del 10 %, unidades indivisibles/fraccionables, h
 Cada fila de Stock incluye Preparar propuesta. Selecciona proveedor y SKU en el formulario principal, muestra su mínimo efectivo (manual/automático), estado, diferencia y fecha del inventario. La cantidad, precio y condiciones se introducen expresamente: no se propone comprar la diferencia hasta mínimo. Si hay campos de un borrador cumplimentados, se solicita confirmación en pantalla antes de limpiarlos. Cancelar conserva el borrador. No guarda una propuesta ni ejecuta una compra al navegar. Sin proveedor compatible el botón queda deshabilitado. Guardar mínimos actualiza también el contexto del artículo seleccionado.
 
 Verificación DOM/HTTP: navegación a otro artículo desde Stock, cancelación y aceptación de sustitución de borrador, campos de cantidad/precio vacíos, mínimo visible y recorrido de guardado de mínimos sobre copia desechable de la base.
+
+## Referencia conservada en la propuesta
+
+Las nuevas propuestas conservan `stock_context_at_save`: mínimo efectivo, origen, revisión y procedencia automática, inventario de referencia (o null), corte documental y fecha UTC de guardado. No se modifica después al cambiar los mínimos. La revisión muestra este bloque separado de las consultas de contexto existentes. Las propuestas antiguas sin bloque se identifican expresamente; no se reconstruye su pasado con la configuración actual.
+
+El formulario envía la revisión del mínimo que mostraba. Si no coincide al guardar, se rechaza la propuesta y se indica recargar. Las llamadas anteriores sin este campo siguen admitidas y capturan el contexto de la lectura del servidor. La referencia no evalúa necesidad, tesorería ni conveniencia de compra y conserva `decision_authority=false`.
+
+Pruebas adicionales: mínimo conservado tras cambio y reapertura, revisión del bloque congelado, falta de datos sin inventar existencias y rechazo de revisión obsoleta sin guardar. Recorrido DOM/HTTP: guardar propuesta, cambiar mínimo a 999 y verificar que la revisión conserva el bloque original mientras la ficha muestra el valor nuevo.
