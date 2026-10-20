@@ -15,3 +15,11 @@ El resumen muestra cuántos archivos están marcados y las condiciones para actu
 Los controles se actualizan al cambiar casillas, empresa, nombre o versión, al renderizar archivos/versiones y al terminar cada acción. Durante una solicitud, su botón sigue ocupado aunque cambie la selección. Las validaciones del servidor permanecen intactas; activar una acción no equivale a admisión o evaluación completa.
 
 Comprobación DOM/HTTP: sin selección; archivo seleccionado sin/con nombre; mezcla de dos empresas y bloqueo; limpieza de selección; apertura/preparación desde versión guardada. Regresión de versiones, exportación, consulta financiera, registros y comparación sobre bases desechables.
+
+## Selección conjunta del expediente
+
+Seleccionar todos los archivos del expediente se activa únicamente al elegir una empresa/fecha de corte en el selector de contexto. Marca los lotes recibidos de ese contexto, sin mezclar naturaleza ni otras empresas. Si ya están todos marcados se desactiva; se pueden desmarcar filas individualmente. Limpiar selección desmarca las casillas sin borrar archivos o versiones.
+
+Ambas acciones aplican la misma invalidación que un cambio manual: limpian versión abierta, comparación, preparación de entrada y consultas vinculadas a la selección, y solicitan repetir la comprobación del expediente. El contador y las acciones disponibles se sincronizan. No ejecutan llamadas de escritura ni modifican la empresa activa.
+
+Verificación DOM/HTTP en dos empresas: selección conjunta desactivada en Todos los expedientes, selección de cinco archivos de un contexto, desmarcado y reselección, limpieza conservando las filas y retorno a los seis archivos recibidos de ambas empresas. Regresión de versiones, exportación, consulta financiera y comparación.
