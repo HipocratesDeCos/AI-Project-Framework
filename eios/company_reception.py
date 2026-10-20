@@ -7,9 +7,10 @@ from pathlib import PurePosixPath
 import re
 import secrets
 import sqlite3
+import unicodedata
 from time import monotonic
 
-from eios.company_tables import read_table, normalize, source_date, FIELDS
+from eios.company_tables import read_table, normalize, source_date, FIELDS, NUMBERS
 
 TTL = 600
 
@@ -122,6 +123,41 @@ class CompanyReception:
         filename = PurePosixPath(metadata['filename'].replace('\\', '/')).name
         filename = ''.join(ch for ch in filename if ord(ch) >= 32 and ord(ch) != 127)[:200] or 'documento'
         return dict(filename=filename, content=content, source_sha256=metadata['source_sha256'])
+
+    def record_page(self, company_id, batch_id, offset=0, limit=50, query=''):
+        """Browse normalized source rows without changing their order or values."""
+        if not isinstance(company_id,str) or not isinstance(batch_id,str) or not re.fullmatch(r'[0-9a-f]{64}',batch_id):
+            raise ValueError('Identificación de archivo no válida.')
+        if type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 100:
+            raise ValueError('La página debe tener un desplazamiento no negativo y entre 1 y 100 filas.')
+        if not isinstance(query,str) or len(query)>200:
+            raise ValueError('La búsqueda debe tener hasta 200 caracteres.')
+        with sqlite3.connect(self.db) as c:
+            if not c.execute("SELECT 1 FROM sqlite_master WHERE name='received_company_batch' AND type='table'").fetchone():
+                raise ValueError('Archivo no disponible para esta empresa.')
+            row=c.execute('SELECT metadata_json,records_json FROM received_company_batch WHERE company_id=? AND batch_id=?',(company_id,batch_id)).fetchone()
+        if not row:
+            raise ValueError('Archivo no disponible para esta empresa.')
+        meta,records=json.loads(row[0]),json.loads(row[1])
+        if meta['company_id']!=company_id:
+            raise ValueError('Archivo no disponible para esta empresa.')
+        def folded(value):
+            return ''.join(ch for ch in unicodedata.normalize('NFKD',str(value).casefold()) if not unicodedata.combining(ch))
+        needle=folded(query.strip())
+        def searchable(record):
+            values=[str(record['source_row'])]
+            for field,value in record['data'].items():
+                if value is not None:
+                    values.append(str(value))
+                    if field in NUMBERS and isinstance(value,str):
+                        values.append(value.replace('.',','))
+            return folded(' '.join(values))
+        matched=[record for record in records if not needle or needle in searchable(record)]
+        offset=min(offset,max(0,((len(matched)-1)//limit)*limit))
+        return dict(company_id=company_id,batch_id=batch_id,filename=meta['filename'],sheet=meta['sheet'],kind=meta['kind'],as_of_date=meta['as_of_date'],
+            source_sha256=meta['source_sha256'],total_records=len(records),matched_records=len(matched),offset=offset,limit=limit,
+            records=matched[offset:offset+limit],fields=[dict(key=key,label=label) for key,label,_ in FIELDS[meta['kind']]],
+            admission_status='PENDING',operational_path='FORBIDDEN',decision_authority=False)
 
     def batches(self):
         with sqlite3.connect(self.db) as c:
