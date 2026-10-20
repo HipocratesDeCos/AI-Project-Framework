@@ -6,7 +6,7 @@ from decimal import Decimal
 from hashlib import sha256
 
 
-def check_dossier(db, batch_ids):
+def selected_batches(db, batch_ids):
     if (not isinstance(batch_ids, list) or not 1 <= len(batch_ids) <= 100
             or any(not isinstance(x, str) or len(x) != 64 for x in batch_ids)
             or len(set(batch_ids)) != len(batch_ids)):
@@ -21,7 +21,13 @@ def check_dossier(db, batch_ids):
     contexts = {(m['company_id'], m['legal_name'], m['material_nature'], m['as_of_date']) for _, m, _ in batches}
     if len(contexts) != 1:
         raise ValueError('Selecciona archivos de una sola empresa, naturaleza de datos y fecha de corte.')
-    company, name, nature, cutoff = contexts.pop()
+    return batches
+
+
+def check_dossier(db, batch_ids):
+    batches = selected_batches(db, batch_ids)
+    meta = batches[0][1]
+    company, name, nature, cutoff = (meta[key] for key in ('company_id', 'legal_name', 'material_nature', 'as_of_date'))
     entries = []
     issues = []
     def issue(code, message, source, field='', related=None):
