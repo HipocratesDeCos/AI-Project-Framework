@@ -1,7 +1,6 @@
 """Company/article/unit minimums: manual settings and dated descriptive alerts."""
 from datetime import datetime, timezone
-from decimal import Decimal, InvalidOperation
-import json
+from decimal import Decimal, InvalidOperation, ROUND_CEILING, localcontext
 import sqlite3
 
 
@@ -31,7 +30,25 @@ def alert(inventory, minimum, unit):
     return dict(status=status,label=label,shortage=format(max(Decimal(0),target-available),'f'))
 
 
-def read_minimums(db, company, articles, inventory):
+def automatic_minimum(history, unit):
+    if not history: return None
+    latest_date=max(row['issue_date'] for row in history)
+    latest=[row for row in history if row['issue_date']==latest_date]
+    if len(latest)!=1: return None
+    row=latest[0];quantity=decimal(row.get('quantity'))
+    if row.get('unit')!=unit or quantity is None or quantity<=0 or quantity>Decimal('1000000000'): return None
+    with localcontext() as context:
+        context.prec=60
+        value=quantity*Decimal('0.10')
+        indivisible=unit.strip().lower().rstrip('.') in {'ud','uds','unidad','unidades','unit','units','pcs'}
+        if indivisible: value=value.to_integral_value(rounding=ROUND_CEILING)
+    return dict(value=format(value.normalize(),'f'),quantity=str(quantity),unit=unit,
+                invoice_number=row.get('invoice_number'),issue_date=row['issue_date'],
+                source_refs=row.get('source_refs',[]),percentage='10',
+                rounding='CEILING_WHOLE_UNIT' if indivisible else 'EXACT')
+
+
+def read_minimums(db, company, articles, inventory, history=None):
     with sqlite3.connect(db) as c:
         schema(c)
         saved={(a,u):(v,r,t) for a,u,v,r,t in c.execute('SELECT article_id,unit,value,revision,updated_at FROM company_stock_minimum WHERE company_id=?',(company,))}
@@ -39,7 +56,9 @@ def read_minimums(db, company, articles, inventory):
     for a in articles:
         key=a['article_id'];unit=a.get('unit_as_documented','')
         value,revision,updated=saved.get((key,unit),(None,0,None))
-        result[key]=dict(value=value,revision=revision,updated_at=updated,unit=unit,**alert(inventory.get(key),value,unit))
+        automatic=automatic_minimum((history or {}).get(key,[]),unit) if value is None else None
+        effective=value if value is not None else automatic['value'] if automatic else None
+        result[key]=dict(value=effective,manual_value=value,source='MANUAL' if value is not None else 'AUTOMATIC' if automatic else 'UNCONFIGURED',automatic=automatic,revision=revision,updated_at=updated,unit=unit,**alert(inventory.get(key),effective,unit))
     return result
 
 
