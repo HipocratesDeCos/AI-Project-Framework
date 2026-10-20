@@ -8,7 +8,7 @@ La consulta muestra cincuenta filas por página, botones **Anterior/Siguiente**,
 
 - Es una coincidencia de texto parcial sobre valores y número de fila, no sobre nombres de columnas.
 - No distingue mayúsculas ni acentos.
-- Admite tanto el punto como la coma decimal en de los valores numéricos guardados.
+- Admite tanto el punto como la coma decimal en los valores numéricos guardados.
 - No calcula equivalencias económicas, reformatea códigos, modifica importes ni consulta otros archivos.
 
 Editar la búsqueda limpia el resultado anterior y exige pulsar Buscar/Enter. Hasta la respuesta nueva se desactivan los botones de paginación. Abrir otro archivo o cambiar el contexto invalida respuestas pendientes y evita mostrar datos del archivo anterior.
