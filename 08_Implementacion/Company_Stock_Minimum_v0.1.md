@@ -9,3 +9,9 @@ POST `/api/stock/minimums` exige token local y dataset existente. Se validan SKU
 Pruebas: límites, ausencia frente a cero, estados y diferencia, persistencia, separación entre empresas y unidades, reutilización en versiones de la misma empresa, cambios concurrentes, historial y ausencia de cambios. Recorrido DOM/HTTP sobre copia desechable de la base: edición, guardado, consulta persistida, filtro, borrado y protección del endpoint. No ejecuta compras ni evaluación de reglas.
 
 Validación adicional: cálculo del 10 %, unidades indivisibles/fraccionables, historial ambiguo o incompatible, selección por fecha, prioridad manual de cero y restablecimiento automático.
+
+## Consulta del mínimo al preparar una propuesta
+
+Cada fila de Stock incluye Preparar propuesta. Selecciona proveedor y SKU en el formulario principal, muestra su mínimo efectivo (manual/automático), estado, diferencia y fecha del inventario. La cantidad, precio y condiciones se introducen expresamente: no se propone comprar la diferencia hasta mínimo. Si hay campos de un borrador cumplimentados, se solicita confirmación en pantalla antes de limpiarlos. Cancelar conserva el borrador. No guarda una propuesta ni ejecuta una compra al navegar. Sin proveedor compatible el botón queda deshabilitado. Guardar mínimos actualiza también el contexto del artículo seleccionado.
+
+Verificación DOM/HTTP: navegación a otro artículo desde Stock, cancelación y aceptación de sustitución de borrador, campos de cantidad/precio vacíos, mínimo visible y recorrido de guardado de mínimos sobre copia desechable de la base.
