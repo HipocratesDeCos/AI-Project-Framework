@@ -52,7 +52,9 @@ def review_proposal(proposal, info, history, inventory, planning):
                   reason='Puedes consultar precio y existencias de referencia. Falta la evaluación financiera y la conexión con el decisor.',
                   finance=dict(status='NOT_EVALUATED', message='No se ha calculado el efecto de esta propuesta sobre la tesorería y sus vencimientos.'),
                   pending=['Evaluación financiera de la operación y mandato de tesorería.',
-                           'Portes, otros gastos y condiciones completas de pago.',
+                           ('Portes pendientes de confirmar, otros gastos y condiciones completas de pago.'
+                            if proposal.get('operation_total') is None else
+                            'Otros gastos y condiciones completas de pago; portes declarados conservados en la propuesta.'),
                            'Pedidos pendientes de recibir y vigencia del inventario.',
                            'Evaluación de reglas y conclusión del decisor.'],
                   material_nature='SYNTHETIC', decision_authority=False, operational_path='FORBIDDEN')
