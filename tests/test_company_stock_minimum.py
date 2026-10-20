@@ -60,3 +60,41 @@ class StockMinimumTest(unittest.TestCase):
         self.save('4');self.save('4',1)
         self.assertEqual(self.row()['revision'],1)
         with sqlite3.connect(self.path) as c:self.assertEqual(c.execute('SELECT count(*) FROM company_stock_minimum_history').fetchone()[0],1)
+
+class AutomaticMinimumTest(unittest.TestCase):
+    def history(self,quantity='40',unit='uds.'):
+        return [dict(issue_date='2026-09-30',quantity=quantity,unit=unit,invoice_number='INV-1',source_refs=[dict(document_ref='DOC-1')])]
+    def test_exact_ten_percent(self):
+        from eios.company_stock_minimum import automatic_minimum
+        self.assertEqual(automatic_minimum(self.history(),'uds.')['value'],'4')
+        self.assertEqual(automatic_minimum(self.history('4','palets'),'palets')['value'],'0.4')
+    def test_indivisible_rounds_up(self):
+        from eios.company_stock_minimum import automatic_minimum
+        result=automatic_minimum(self.history('15'),'uds.')
+        self.assertEqual(result['value'],'2')
+        self.assertEqual(result['rounding'],'CEILING_WHOLE_UNIT')
+    def test_absent_invalid_ambiguous_and_wrong_unit(self):
+        from eios.company_stock_minimum import automatic_minimum
+        for rows in ([],self.history('0'),self.history('-1'),self.history('NaN'),self.history(unit='kg'),self.history()*2):
+            self.assertIsNone(automatic_minimum(rows,'uds.'))
+    def test_latest_not_largest_and_no_older_fallback(self):
+        from eios.company_stock_minimum import automatic_minimum
+        rows=self.history('15')+[dict(issue_date='2026-08-01',quantity='100',unit='uds.')]
+        self.assertEqual(automatic_minimum(rows,'uds.')['value'],'2')
+        rows[0]['quantity']=None
+        self.assertIsNone(automatic_minimum(rows,'uds.'))
+
+class AutomaticMinimumPersistenceTest(unittest.TestCase):
+    setUp=fixture.PurchaseScreenTest.setUp
+    tearDown=fixture.PurchaseScreenTest.tearDown
+    def test_manual_zero_precedence_and_reset_to_automatic(self):
+        from eios.company_stock_minimum import read_minimums
+        articles=[dict(article_id='A',unit_as_documented='palets')]
+        history={'A':[dict(issue_date='2026-09-30',quantity='4',unit='palets')]}
+        def read():return read_minimums(self.path,'one',articles,{},history)['A']
+        self.assertEqual((read()['value'],read()['source']),('0.4','AUTOMATIC'))
+        def save(value,revision):save_minimums(self.path,self.desk.store,dict(dataset_id='one',changes=[dict(article_id='A',unit='palets',value=value,revision=revision)]))
+        save('0',0)
+        self.assertEqual((read()['value'],read()['source']),('0','MANUAL'))
+        save('',1)
+        self.assertEqual((read()['value'],read()['source']),('0.4','AUTOMATIC'))
