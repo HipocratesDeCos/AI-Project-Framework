@@ -37,6 +37,7 @@ Los cobros/pagos se consultan separados por moneda, sentido y vencimiento. Los s
 - Consulta de precio/cantidad, existencias, parámetros, historial de ventas y datos financieros.
 - Búsqueda de una factura conservando su fila de origen.
 - Guardado y reapertura de la selección corregida; guardado repetido idempotente.
+- Preparación de una operación con PurchaseOperation: referencias de precio/stock vinculadas a la versión, contrato validado y DIP/contexto pendientes, sin ejecución ni propuestas nuevas.
 - Comparación de versiones: un lote incorporado, uno retirado y nueve compartidos.
 - ZIP final con diez originales, índice, manifiesto y comprobación guardada. Los bytes y hashes de cada original coinciden con los recibidos; el inventario antiguo no aparece en ese ZIP.
 - La base conserva once lotes y dos versiones. El número de datasets activos y propuestas de compra permanece en cero.
