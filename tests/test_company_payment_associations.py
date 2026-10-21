@@ -41,7 +41,7 @@ class PaymentAssociationsTest(unittest.TestCase):
         self.assertFalse(result['included_in_projection'])
         self.assertEqual(self.desk.printable_report(*args),old)
         current=self.desk.review('one',self.saved['proposal_id'])
-        self.assertEqual(current['version'],'COMPANY-CONTEXT-REVIEW-05')
+        self.assertEqual(current['version'],'COMPANY-CONTEXT-REVIEW-06')
         self.assertEqual(current['payment_associations'],result)
         html=self.desk.printable_report('one',self.saved['proposal_id'],current['review_id'])
         self.assertIn('ASOCIACIONES DECLARADAS',html)
@@ -111,3 +111,55 @@ class PaymentAssociationsTest(unittest.TestCase):
         draft=self.desk.commercial_draft(*args)
         self.assertNotIn('DOC-PAY',draft['body'])
         self.assertNotIn('Responsable local',draft['body'])
+
+    def test_coverage_counts_amounts_before_binding_after_binding_and_clear(self):
+        coverage=self.report['payment_associations']['declared_calendar_coverage']
+        self.assertEqual(coverage['status'],'PENDING_DECLARATIONS')
+        self.assertEqual((coverage['associated_count'],coverage['pending_count']),(0,1))
+        self.assertEqual(coverage['pending_total'],'242.00')
+        saved=self.desk.declare_payment_association(self.payload)
+        coverage=saved['declared_calendar_coverage']
+        self.assertEqual(coverage['status'],'ALL_INSTALLMENTS_DECLARED_NOT_REVIEWED')
+        self.assertEqual(coverage['associated_total'],'242.00')
+        self.assertEqual(coverage['pending_total'],'0.00')
+        self.assertEqual(coverage['required_installment_coverage_status'],'NOT_EXECUTED')
+        self.assertFalse(coverage['evidence_complete'])
+        cleared=self.desk.declare_payment_association(dict(self.payload,revision=1,action='CLEAR'))
+        coverage=cleared['declared_calendar_coverage']
+        self.assertEqual(coverage['rows'][0]['state'],'LEFT_PENDING')
+        self.assertEqual(coverage['pending_total'],'242.00')
+
+    def test_same_version_cross_proposal_reuse_is_blocked_and_clear_releases(self):
+        self.desk.declare_payment_association(self.payload)
+        other=self.desk.save(dict(self.data,reference='SECOND',shipping_mode='NONE',
+            payment_installments=[dict(component='MERCHANDISE',amount='242',due_date='2026-11-01')]))
+        report=self.desk.review('one',other['proposal_id'])
+        payload=dict(self.payload,proposal_id=other['proposal_id'],review_id=report['review_id'])
+        with self.assertRaisesRegex(ValueError,'otra propuesta'):
+            self.desk.declare_payment_association(payload)
+        self.desk.declare_payment_association(dict(self.payload,revision=1,action='CLEAR'))
+        result=self.desk.declare_payment_association(payload)
+        self.assertEqual(result['declared_calendar_coverage']['associated_count'],1)
+
+    def test_coverage_print_is_frozen_and_no_declaration_remains_pending(self):
+        args=('one',self.saved['proposal_id'],self.report['review_id'])
+        old=self.desk.printable_report(*args)
+        self.assertIn('COBERTURA DE LAS DECLARACIONES DE PAGO',old)
+        self.assertIn('242,00 EUR',old)
+        self.desk.declare_payment_association(self.payload)
+        self.assertEqual(self.desk.printable_report(*args),old)
+        report=self.desk.review('one',self.saved['proposal_id'])
+        html=self.desk.printable_report('one',self.saved['proposal_id'],report['review_id'])
+        self.assertIn('Todas las cuotas declaradas',html)
+        self.assertIn('revisión documental pendiente',html)
+
+    def test_pending_other_proposal_and_other_dataset_do_not_reserve_payment(self):
+        from eios.company_payment_associations import _other_bindings
+        self.desk.declare_payment_association(dict(self.payload,action='CLEAR'))
+        other=self.desk.save(dict(self.data,reference='OTHER',shipping_mode='NONE',
+            payment_installments=[dict(component='MERCHANDISE',amount='242',due_date='2026-11-01')]))
+        report=self.desk.review('one',other['proposal_id'])
+        with sqlite3.connect(self.path) as c:
+            fp=report['proposal']['documentary_context_at_save']['fingerprint']
+            self.assertEqual(_other_bindings(c,report,fp),[])
+            self.assertEqual(_other_bindings(c,dict(report,dataset_id='two'),fp),[])

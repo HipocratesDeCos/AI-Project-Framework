@@ -98,7 +98,7 @@ class PaymentMatchingPersistenceTest(unittest.TestCase):
         saved=self.desk.save(dict(self.data,shipping_mode='NONE',payment_installments=[
             dict(component='MERCHANDISE',amount='242',due_date='2026-11-01')]))
         report=self.desk.review('one',saved['proposal_id'])
-        self.assertEqual(report['version'],'COMPANY-CONTEXT-REVIEW-05')
+        self.assertEqual(report['version'],'COMPANY-CONTEXT-REVIEW-06')
         matching=report['payment_matching']
         self.assertEqual(matching['rows'][0]['candidates'][0]['flow_id'],'P-1')
         args=('one',saved['proposal_id'],report['review_id'])
