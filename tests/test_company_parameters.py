@@ -8,7 +8,7 @@ class CompanyParametersTest(unittest.TestCase):
     setUp=fixture.PurchaseScreenTest.setUp
     tearDown=fixture.PurchaseScreenTest.tearDown
 
-    def data(self, **patch):
+    def parameter_request(self, **patch):
         value=dict(dataset_id='one',revision=0,actor='Andrés',reason='Política de prueba',
                    profile={},values={'P-FIN-001':'90','P-FIN-002':'5000'},references={},critical_acknowledged=True)
         value.update(patch)
@@ -17,7 +17,7 @@ class CompanyParametersTest(unittest.TestCase):
     def test_save_reopen_isolation_and_no_silent_defaults(self):
         initial=read_parameters(self.path,self.desk.store,'one')
         self.assertEqual(initial['current']['values'],{})
-        saved=save_parameters(self.path,self.desk.store,self.data())
+        saved=save_parameters(self.path,self.desk.store,self.parameter_request())
         self.assertEqual(saved['current']['values']['P-FIN-002'],'5000')
         self.assertEqual(saved['current']['revision'],1)
         self.assertEqual(read_parameters(self.path,self.desk.store,'two')['current']['values'],{})
@@ -27,13 +27,13 @@ class CompanyParametersTest(unittest.TestCase):
         self.assertTrue(all(item['sector_range'] is None for item in initial['catalogue']))
 
     def test_changes_keep_history_and_stale_requests_fail(self):
-        save_parameters(self.path,self.desk.store,self.data())
-        changed=save_parameters(self.path,self.desk.store,self.data(revision=1,values={'P-FIN-001':'120','P-FIN-002':'6000'}))
+        save_parameters(self.path,self.desk.store,self.parameter_request())
+        changed=save_parameters(self.path,self.desk.store,self.parameter_request(revision=1,values={'P-FIN-001':'120','P-FIN-002':'6000'}))
         self.assertEqual(len(changed['history']),2)
         self.assertEqual(changed['current']['previous_values']['P-FIN-002'],'5000')
         self.assertEqual(changed['history'][1]['values']['P-FIN-002'],'5000')
         with self.assertRaises(ValueError):
-            save_parameters(self.path,self.desk.store,self.data())
+            save_parameters(self.path,self.desk.store,self.parameter_request())
 
     def test_financial_acknowledgement_and_guardrails(self):
         for patch in [dict(critical_acknowledged=False),
@@ -44,16 +44,16 @@ class CompanyParametersTest(unittest.TestCase):
                       dict(values={'UNKNOWN':'1'}),dict(actor=''),dict(reason=''),
                       dict(values={'P-STK-003':'90','P-STK-004':'30'})]:
             with self.assertRaises(ValueError):
-                save_parameters(self.path,self.desk.store,self.data(**patch))
+                save_parameters(self.path,self.desk.store,self.parameter_request(**patch))
         self.assertEqual(read_parameters(self.path,self.desk.store,'one')['history'],[])
 
     def test_sector_reference_needs_explicit_source_and_profile(self):
         reference=dict(lower='30',upper='60',source='Estudio de prueba',period='2025',
                        definition='Ventana de planificación en días; referencia de prueba, no recomendación')
         with self.assertRaises(ValueError):
-            save_parameters(self.path,self.desk.store,self.data(references={'P-FIN-001':reference}))
+            save_parameters(self.path,self.desk.store,self.parameter_request(references={'P-FIN-001':reference}))
         profile=dict(activity='Comercio',iae='TEST-IAE',size='Tramo de prueba',country='España')
-        saved=save_parameters(self.path,self.desk.store,self.data(profile=profile,references={'P-FIN-001':reference}))
+        saved=save_parameters(self.path,self.desk.store,self.parameter_request(profile=profile,references={'P-FIN-001':reference}))
         band=saved['current']['references']['P-FIN-001']
         self.assertEqual(band['status'],'USER_DECLARED_NOT_VERIFIED')
         self.assertEqual(band['profile'],profile)
@@ -65,7 +65,7 @@ class CompanyParametersTest(unittest.TestCase):
                           dict(lower='30',upper='60',source='',period='2025',definition='Días'),
                           dict(lower='NaN',upper='60',source='Fuente',period='2025',definition='Días')]:
             with self.assertRaises(ValueError):
-                save_parameters(self.path,self.desk.store,self.data(profile=profile,references={'P-FIN-001':reference}))
+                save_parameters(self.path,self.desk.store,self.parameter_request(profile=profile,references={'P-FIN-001':reference}))
 
     def test_catalogue_explains_effects_and_does_not_activate_rules(self):
         self.assertGreaterEqual(len(BY_ID),40)
@@ -74,10 +74,10 @@ class CompanyParametersTest(unittest.TestCase):
         self.assertFalse(BY_ID['P-DAT-004']['editable'])
         self.assertFalse(BY_ID['P-STK-001']['editable'])
         self.assertEqual(BY_ID['P-FIN-001']['standard'],'30')
-        state=save_parameters(self.path,self.desk.store,self.data())
+        state=save_parameters(self.path,self.desk.store,self.parameter_request())
         with sqlite3.connect(self.path) as c:
             self.assertEqual(c.execute('SELECT count(*) FROM manual_purchase_proposal').fetchone()[0],0)
 
     def test_zero_negotiation_tolerance_is_allowed_without_relaxing_financial_horizon(self):
-        saved=save_parameters(self.path,self.desk.store,self.data(values={'P-PAG-003':'0'}))
+        saved=save_parameters(self.path,self.desk.store,self.parameter_request(values={'P-PAG-003':'0'}))
         self.assertEqual(saved['current']['values']['P-PAG-003'],'0')
