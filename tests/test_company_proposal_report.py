@@ -95,6 +95,10 @@ class PrintableProposalReportTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_http_export_requires_token_and_returns_scoped_html(self):
+        with sqlite3.connect(self.path) as c:
+            row=c.execute("SELECT manifest_json FROM documentary_company_snapshot WHERE dataset_id='one'").fetchone()
+            manifest=json.loads(row[0]);manifest['material_nature']='SYNTHETIC'
+            c.execute("UPDATE documentary_company_snapshot SET manifest_json=? WHERE dataset_id='one'",(json.dumps(manifest),))
         report = self.report()
         with socket.socket() as sock:
             sock.bind(('127.0.0.1', 0))
@@ -155,6 +159,20 @@ class PrintableProposalReportTest(unittest.TestCase):
                 self.assertEqual(settings['current']['revision'],1)
                 self.assertEqual(settings['current']['values']['P-FIN-002'],'5000')
                 self.assertEqual(settings['current']['status'],'PENDING_ENGINE_ACTIVATION')
+            activation_data=json.dumps(dict(dataset_id='one',revision=1,actor='Test user',
+                reason='Activate declared synthetic policy',acknowledge=True)).encode()
+            activation_request=Request(root+'/api/parameters/finance/activate',data=activation_data,
+                headers={'Content-Type':'application/json'},method='POST')
+            with self.assertRaises(HTTPError) as error:
+                urlopen(activation_request,timeout=5)
+            self.assertEqual(error.exception.code,403)
+            activation_request.add_header('X-EIOS-Token',token)
+            with urlopen(activation_request,timeout=5) as response:
+                active=json.loads(response.read())['finance_activation']
+                self.assertEqual(active['values']['P-FIN-001'],'90')
+                self.assertEqual(active['values']['P-FIN-002'],'5000')
+                self.assertEqual(len(active['configurations']),2)
+                self.assertFalse(active['decision_authority'])
             self.assertIn('data-nav="parametros"',page)
             self.assertIn('data-view="parametros"',page)
         finally:
