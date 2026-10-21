@@ -209,6 +209,11 @@ def _reviewer_designation(item):
              '<p>Identidad y autoridad sin verificar. Su inclusión en la preparación de calidad requiere selección expresa.</p>',
              '<p>' + _text(item.get('status')) + ' · ' + _text(item.get('link_ref')) + '</p>']
     lines.extend('<p>' + _text(d['field']) + ': ' + _text(d['text']) + '</p>' for d in item.get('declarations', []))
+    labels={'DECLARED_CONSISTENT':'Coherencia declarada','DECLARED_INCONSISTENT':'Discrepancia declarada','NOT_ESTABLISHED':'No establecido'}
+    conditions={'PERSON_CORRESPONDENCE':'Correspondencia de la persona','COMPANY_CORRESPONDENCE':'Correspondencia de la empresa','ROLE_AND_SCOPE':'Cargo y alcance','VALIDITY':'Vigencia','DOCUMENT_CONDITIONS':'Condiciones del documento','ISSUER_AUTHORITY_SUPPORT':'Facultades del emisor','KNOWN_CHANGES':'Cambios conocidos'}
+    for observation in item.get('observations', []):
+        lines.append('<p>' + _text(conditions[observation['condition']]) + ': ' + _text(labels[observation['outcome']]) + ' · ' + _text(observation['note']) + '</p>')
+    lines.append('<p>Las anotaciones no verifican identidad ni autoridad.</p>')
     return ''.join(lines)
 
 
