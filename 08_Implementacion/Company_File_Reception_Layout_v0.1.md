@@ -31,3 +31,11 @@ Al elegir empresa/fecha, el resumen presenta tres cifras (archivos, filas y avis
 La ausencia de un bloque no se presenta como incumplimiento ni se calcula porcentaje de preparación: la suficiencia depende de la operación. Recibido no equivale a admitido. Los parámetros de stock presentes en archivos pasan a un desplegable; sus recuentos no se convierten en políticas activas.
 
 Las tarjetas se muestran en tres columnas o una en pantallas pequeñas. Se conserva el filtrado por empresa y corte y el comportamiento de selección/versiones. Pruebas: 23 pruebas locales de resumen/recepción/versiones y recorrido DOM/HTTP de tres indicadores, diez bloques, ausencia de archivos y bloque inventario, seguido de selección conjunta y preparación desde versión guardada sobre base desechable.
+
+## Localizar los archivos de cada bloque
+
+Las tarjetas con archivos incorporan Ver archivos: aplica su categoría al listado y desplaza la vista hasta él. El listado admite búsqueda por nombre de archivo, empresa/código o contenido y un filtro por categoría; Limpiar filtros restablece todos los archivos del contexto elegido. Cambiar de empresa/corte o abrir una versión restablece los filtros.
+
+Filtrar oculta las mismas filas, sin alterar sus casillas. El recuento informa de visibles sobre total y de los seleccionados ocultos. Seleccionar todos y Limpiar selección actúan sobre todo el expediente, no solo sobre las filas visibles; esta regla se indica en pantalla. No se modifican los documentos ni la composición de versiones guardadas.
+
+Verificación DOM/HTTP: abrir Inventario desde una tarjeta, mostrar un archivo, seleccionar los cinco del expediente y avisar de cuatro seleccionados ocultos; búsqueda sin resultados que conserva las casillas; limpieza del filtro y recuperación de cinco filas. Regresión de versiones, exportación, registros, tesorería, comparación y preparación de entrada. Bases desechables.
