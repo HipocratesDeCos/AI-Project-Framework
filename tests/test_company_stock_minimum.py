@@ -50,7 +50,7 @@ class StockMinimumTest(unittest.TestCase):
         with sqlite3.connect(self.path) as c:
             raw=c.execute('SELECT manifest_json FROM documentary_company_snapshot WHERE dataset_id=?',('two',)).fetchone()[0]
             manifest=json.loads(raw);manifest['company']['company_id']='one'
-            c.execute('UPDATE documentary_company_snapshot SET manifest_json=? WHERE dataset_id=?',(json.dumps(manifest),'two'))
+            c.execute('UPDATE documentary_company_snapshot SET manifest_json=?,company_id=? WHERE dataset_id=?',(json.dumps(manifest),'one','two'))
         self.assertEqual(self.row('two')['value'],'4')
     def test_different_unit_does_not_reuse_setting(self):
         self.save('4')
