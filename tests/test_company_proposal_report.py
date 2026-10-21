@@ -129,6 +129,15 @@ class PrintableProposalReportTest(unittest.TestCase):
                 self.assertEqual(response.headers['Cache-Control'], 'no-store')
                 self.assertIn(report['review_id'], html)
                 self.assertIn('242,00 EUR', html)
+            association_request = Request(root+'/api/purchases/payments/associate',data=data,
+                headers={'Content-Type':'application/json'},method='POST')
+            with self.assertRaises(HTTPError) as error:
+                urlopen(association_request,timeout=5)
+            self.assertEqual(error.exception.code,403)
+            association_request.add_header('X-EIOS-Token',token)
+            with self.assertRaises(HTTPError) as error:
+                urlopen(association_request,timeout=5)
+            self.assertEqual(error.exception.code,400)  # no declared calendar in this review
             draft_request = Request(root+'/api/purchases/commercial-draft', data=data,
                                     headers={'Content-Type':'application/json'}, method='POST')
             with self.assertRaises(HTTPError) as error:

@@ -70,7 +70,7 @@ class FinancialContextTest(unittest.TestCase):
         self.financial_data()
         saved=self.desk.save(self.data)
         review=self.desk.review('one',saved['proposal_id'])
-        self.assertEqual(review['version'],'COMPANY-CONTEXT-REVIEW-04')
+        self.assertEqual(review['version'],'COMPANY-CONTEXT-REVIEW-05')
         self.assertEqual(review['financial_context']['financial_snapshot']['available_treasury'],'5000')
         html=self.desk.printable_report('one',saved['proposal_id'],review['review_id'])
         self.assertIn('5.000,00 EUR',html)
