@@ -58,6 +58,23 @@ def _payment_matching(matching):
     return html+'<ul>'+''.join('<li>'+_text(issue)+'</li>' for issue in matching['issues'])+'</ul>'
 
 
+
+def _payment_associations(associations):
+    if not associations or not associations.get('rows'):
+        return ''
+    html='<h3>ASOCIACIONES DECLARADAS · REVISIÓN DOCUMENTAL PENDIENTE</h3>'
+    for event in associations['rows']:
+        binding=event['binding']
+        html+=_rows([('Cuota',event['sequence']),('Acción','Asociación declarada' if binding else 'Dejada pendiente'),
+                     ('Pago',binding['flow_id'] if binding else None),('Responsable declarado',event['actor']),
+                     ('Motivo',event['reason']),('Declarado el',date_text(event['created_at'])),
+                     ('Revisión de declaraciones',event['revision'])])
+        if binding:
+            for locator in binding['locators']:
+                html+=_rows([('Documento',locator['document_ref']),('Página',locator['page']),('Sección',locator['section'])])
+    return html+'<p>Declaraciones locales: no autentican al responsable ni validan el soporte. No completan los controles documentales ni modifican los flujos o la proyección.</p>'
+
+
 def _financial_context(context, execution=None):
     if not context:
         return ''
@@ -177,7 +194,7 @@ def render_report(report):
     else:
         pieces.append('<p>Sin captura anterior; no se reconstruye con datos actuales.</p>')
     pieces.extend(['<p>Necesidad de reposición, rotación y cantidad recomendada: pendientes de evaluación. Las referencias de stock y planificación son sintéticas y fechadas.</p>',
-                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _payment_matching(report.get('payment_matching')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), '<p>' + _text(report['finance'].get('message')) + '</p>',
+                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), '<p>' + _text(report['finance'].get('message')) + '</p>',
                    '<p>Evaluación financiera: PENDIENTE. Reglas y conclusión del decisor: PENDIENTES. Decisión humana: no registrada en esta revisión.</p>',
                    '<h2>6. COMPROBACIONES PENDIENTES</h2><ul>',
                    *['<li>' + _text(item) + '</li>' for item in report.get('pending', [])], '</ul>',
