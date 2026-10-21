@@ -39,3 +39,11 @@ Las tarjetas con archivos incorporan Ver archivos: aplica su categoría al lista
 Filtrar oculta las mismas filas, sin alterar sus casillas. El recuento informa de visibles sobre total y de los seleccionados ocultos. Seleccionar todos y Limpiar selección actúan sobre todo el expediente, no solo sobre las filas visibles; esta regla se indica en pantalla. No se modifican los documentos ni la composición de versiones guardadas.
 
 Verificación DOM/HTTP: abrir Inventario desde una tarjeta, mostrar un archivo, seleccionar los cinco del expediente y avisar de cuatro seleccionados ocultos; búsqueda sin resultados que conserva las casillas; limpieza del filtro y recuperación de cinco filas. Regresión de versiones, exportación, registros, tesorería, comparación y preparación de entrada. Bases desechables.
+
+## Resultado de la comprobación del expediente
+
+El panel muestra registros revisados, incidencias/avisos totales y avisos incluidos en la respuesta. El detalle identifica qué revisar, campo, archivo/fila de origen y referencia relacionada. Se puede buscar por cualquier texto de esas columnas y restablecer la búsqueda sin volver a comprobar.
+
+La vista identifica una comprobación de selección actual frente a la conservada en una versión. Cambiar archivos o contexto oculta el resultado anterior y limpia la búsqueda. Cero conflictos de referencia no implica suficiencia ni admisión; el aviso permanece visible. No se reclasifican avisos como errores ni se altera la comprobación del servidor.
+
+Verificación: pruebas existentes de expediente/versiones/recepción; recorrido DOM/HTTP con resultado de selección, tres indicadores, incidencias reales del caso, búsqueda sin coincidencias, restauración y ocultación tras limpiar la selección. Regresión de apertura de versión conservada, ZIP y comparación sobre bases desechables.
