@@ -40,6 +40,24 @@ def _payment_plan(plan):
     return html+'</tbody></table><p>Cuotas cuadradas con los costes declarados. Soporte, otros gastos y duplicados con tesorería pendientes de revisión. No incorporadas a la proyección.</p>'
 
 
+
+def _payment_matching(matching):
+    if not matching or matching['status'] == 'NOT_DECLARED':
+        return ''
+    html = '<h3>CUOTAS Y TESORERÍA · COINCIDENCIAS POR REVISAR</h3><p>'+_text(matching['message'])+'</p>'
+    html += '<table><thead><tr><th>Cuota / concepto</th><th>Vencimiento</th><th>Importe</th><th>Pagos con los mismos datos</th><th>Coincidencia compartida</th></tr></thead><tbody>'
+    for row in matching['rows']:
+        values = [str(row['sequence'])+' · '+('Mercancía' if row['component']=='MERCHANDISE' else 'Portes'),
+                  date_text(row['due_date']), number_text(row['amount'],2)+' '+row['currency'],
+                  ' | '.join(c['flow_id']+' · '+{'DEMONSTRATED':'Evidencia declarada demostrada',
+                      'NOT_EVIDENCED':'Evidencia pendiente','CONFLICTING_DATA':'Datos contradictorios'}[c['evidence_state']]
+                      for c in row['candidates']) or 'Sin coincidencia exacta',
+                  ', '.join(row['shared_candidate_ids']) or 'Ninguna en las coincidencias listadas']
+        html += '<tr>'+''.join('<td>'+_text(value)+'</td>' for value in values)+'</tr>'
+    html += '</tbody></table><p>No se comprueba proveedor, factura ni correspondencia documental. Una coincidencia única requiere revisión; su ausencia no acredita un pago nuevo. No se confirma duplicación ni conciliación.</p>'
+    return html+'<ul>'+''.join('<li>'+_text(issue)+'</li>' for issue in matching['issues'])+'</ul>'
+
+
 def _financial_context(context, execution=None):
     if not context:
         return ''
@@ -159,7 +177,7 @@ def render_report(report):
     else:
         pieces.append('<p>Sin captura anterior; no se reconstruye con datos actuales.</p>')
     pieces.extend(['<p>Necesidad de reposición, rotación y cantidad recomendada: pendientes de evaluación. Las referencias de stock y planificación son sintéticas y fechadas.</p>',
-                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), '<p>' + _text(report['finance'].get('message')) + '</p>',
+                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _payment_matching(report.get('payment_matching')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), '<p>' + _text(report['finance'].get('message')) + '</p>',
                    '<p>Evaluación financiera: PENDIENTE. Reglas y conclusión del decisor: PENDIENTES. Decisión humana: no registrada en esta revisión.</p>',
                    '<h2>6. COMPROBACIONES PENDIENTES</h2><ul>',
                    *['<li>' + _text(item) + '</li>' for item in report.get('pending', [])], '</ul>',
