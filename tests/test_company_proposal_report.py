@@ -156,6 +156,15 @@ class PrintableProposalReportTest(unittest.TestCase):
             with self.assertRaises(HTTPError) as error:
                 urlopen(calendar_request,timeout=5)
             self.assertEqual(error.exception.code,400)
+            quality_request=Request(root+'/api/purchases/finance-quality/prepare',data=data,
+                headers={'Content-Type':'application/json'},method='POST')
+            with self.assertRaises(HTTPError) as error:
+                urlopen(quality_request,timeout=5)
+            self.assertEqual(error.exception.code,403)
+            quality_request.add_header('X-EIOS-Token',token)
+            with self.assertRaises(HTTPError) as error:
+                urlopen(quality_request,timeout=5)
+            self.assertEqual(error.exception.code,400)
             draft_request = Request(root+'/api/purchases/commercial-draft', data=data,
                                     headers={'Content-Type':'application/json'}, method='POST')
             with self.assertRaises(HTTPError) as error:

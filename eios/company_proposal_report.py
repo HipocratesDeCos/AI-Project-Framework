@@ -163,6 +163,20 @@ def _required_calendar(coverage):
     return html+'<p>Coincidencia estructural no valida el contenido ni la autoridad declarada, no eleva evidencia y no determina viabilidad. Los pagos de tesorería sin asociación pueden pertenecer a otras operaciones.</p>'
 
 
+
+def _quality_preparation(prepared):
+    if not prepared:
+        return ''
+    html='<h3>PREPARACIÓN DEL MATERIAL DE CALIDAD FINANCIERA</h3>'
+    if prepared['status']=='NOT_PREPARED':
+        return html+'<p>Material todavía no preparado; primero se requiere calendario y criterios explícitos.</p>'
+    html+=_rows([('Estado','Preparación de material anterior' if prepared['status']=='PREVIOUS_MATERIAL_PREPARATION' else 'Material aportado conservado · calidad sin evaluar'),
+        ('Responsable de la preparación',prepared['prepared_by']),('Huella de preparación',prepared['fingerprint'])])
+    for item in prepared['criteria']:
+        html+=_rows([('Criterio aportado',item['reference']),('Versión del criterio',item['version']),('Huella del criterio',item['sha256'])])
+    return html+'<p>No evalúa suficiencia, autoridad o viabilidad. Designación del revisor, soporte contextual de tesorería y evaluación de calidad siguen pendientes.</p>'
+
+
 def _financial_context(context, execution=None):
     if not context:
         return ''
@@ -285,7 +299,7 @@ def render_report(report):
     else:
         pieces.append('<p>Sin captura anterior; no se reconstruye con datos actuales.</p>')
     pieces.extend(['<p>Necesidad de reposición, rotación y cantidad recomendada: pendientes de evaluación. Las referencias de stock y planificación son sintéticas y fechadas.</p>',
-                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _declared_coverage(report.get('payment_associations')), _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), _documentary_capture(report.get('finance_execution')), _human_payment_review(report.get('payment_documentary_review')), _required_calendar(report.get('required_calendar_coverage')), '<p>' + _text(report['finance'].get('message')) + '</p>',
+                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _declared_coverage(report.get('payment_associations')), _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), _documentary_capture(report.get('finance_execution')), _human_payment_review(report.get('payment_documentary_review')), _required_calendar(report.get('required_calendar_coverage')), _quality_preparation(report.get('finance_quality_preparation')), '<p>' + _text(report['finance'].get('message')) + '</p>',
                    '<p>Evaluación financiera: PENDIENTE. Reglas y conclusión del decisor: PENDIENTES. Decisión humana: no registrada en esta revisión.</p>',
                    '<h2>6. COMPROBACIONES PENDIENTES</h2><ul>',
                    *['<li>' + _text(item) + '</li>' for item in report.get('pending', [])], '</ul>',
