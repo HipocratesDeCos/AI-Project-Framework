@@ -29,7 +29,7 @@ def _latest(c, report):
 def _summary(row, report):
     base = dict(decision_authority=False, operational_path='FORBIDDEN',
                 identity_status='NOT_AUTHENTICATED', authority_status='NOT_VERIFIED',
-                quality_integration_status='NOT_INTEGRATED')
+                quality_integration_status='AVAILABLE_FOR_EXPLICIT_INCLUSION')
     if row is None:
         return dict(base, status='NOT_RECORDED', revision=0, declarations=[])
     revision, fingerprint, payload = row
@@ -93,3 +93,29 @@ def save_reviewer_designation(db, report, data):
             (report['proposal_id'], report['dataset_id'], revision+1, result.fingerprint,
              json.dumps(payload,ensure_ascii=False,sort_keys=True,separators=(',',':'))))
         return _summary((revision+1,result.fingerprint,payload), report)
+
+
+def rebuild_reviewer_designation(c, report, review, capture):
+    """Reproduce the explicitly selected designation using conserved capture bytes."""
+    expected = report.get('reviewer_designation') or {}
+    c.execute(SCHEMA)
+    latest = _latest(c, report)
+    if (expected.get('status') != 'PRESENTED_DECLARATIONS_ONLY' or latest is None
+            or latest[1] != expected.get('fingerprint')):
+        raise ValueError('La designación ha cambiado o falta. Vuelve a revisar la propuesta.')
+    payload = latest[2]
+    if review is None or payload['review_fingerprint'] != review.fingerprint:
+        raise ValueError('La designación corresponde a otra revisión documental.')
+    try:
+        documents = tuple(DocumentaryMaterial(document_ref=d['document_ref'],
+            content=capture.document_bytes(d['document_ref'])) for d in payload['documents'])
+    except KeyError as exc:
+        raise ValueError('El soporte de designación no pertenece a esta captura.') from exc
+    result = build_documentary_reviewer_designation_link(review=review,
+        **{key: payload[key] for key in ('link_ref','designation_ref','designation_kind','reviewer_ref','company_scope')},
+        documents=documents,
+        declarations=tuple(DesignationDeclaration.model_validate_json(json.dumps(d)) for d in payload['declarations']),
+        observations=())
+    if result.fingerprint != latest[1] or result.to_payload() != payload:
+        raise ValueError('La designación conservada no puede reproducirse exactamente.')
+    return result
