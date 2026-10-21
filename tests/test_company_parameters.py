@@ -77,3 +77,7 @@ class CompanyParametersTest(unittest.TestCase):
         state=save_parameters(self.path,self.desk.store,self.data())
         with sqlite3.connect(self.path) as c:
             self.assertEqual(c.execute('SELECT count(*) FROM manual_purchase_proposal').fetchone()[0],0)
+
+    def test_zero_negotiation_tolerance_is_allowed_without_relaxing_financial_horizon(self):
+        saved=save_parameters(self.path,self.desk.store,self.data(values={'P-PAG-003':'0'}))
+        self.assertEqual(saved['current']['values']['P-PAG-003'],'0')

@@ -105,8 +105,8 @@ def _number(value, kind):
         raise ValueError('El valor debe ser numérico.') from None
     if not number.is_finite():
         raise ValueError('El número debe ser finito.')
-    if kind=='integer' and (number<1 or number!=number.to_integral_value()):
-        raise ValueError('Los periodos y recuentos requieren un entero positivo.')
+    if kind=='integer' and (number<0 or number!=number.to_integral_value()):
+        raise ValueError('Los periodos y recuentos requieren un entero no negativo.')
     return format(number,'f')
 
 
@@ -163,6 +163,8 @@ def save_parameters(db,store,data):
             normalized[key]=value
         else:
             normalized[key]=_number(value,definition['kind'])
+            if key in ('P-FIN-001','P-ROT-001') and Decimal(normalized[key])<=0:
+                raise ValueError('El horizonte financiero y la ventana de inactividad requieren días positivos.')
             if key=='P-FIN-002' and Decimal(normalized[key])<0:
                 raise ValueError('La tesorería mínima no puede ser negativa.')
     for low,high in [('P-STK-003','P-STK-004'),('P-MGE-001','P-MGE-002'),
