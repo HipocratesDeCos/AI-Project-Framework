@@ -8,7 +8,7 @@ from eios.company_required_calendar import text
 from eios.core.documentary_payment_capture import DocumentaryMaterial
 from eios.core.documentary_payment_review import build_documentary_payment_human_review
 from eios.core.documentary_reviewer_designation import (
-    DesignationDeclaration, build_documentary_reviewer_designation_link)
+    DesignationDeclaration, DesignationObservation, build_documentary_reviewer_designation_link)
 
 SCHEMA = """CREATE TABLE IF NOT EXISTS company_reviewer_designation (
 proposal_id TEXT NOT NULL,dataset_id TEXT NOT NULL,revision INTEGER NOT NULL,
@@ -38,7 +38,7 @@ def _summary(row, report):
                 revision=revision, fingerprint=fingerprint, review_fingerprint=payload['review_fingerprint'],
                 link_ref=payload['link_ref'], designation_ref=payload['designation_ref'],
                 designation_kind=payload['designation_kind'], reviewer_ref=payload['reviewer_ref'],
-                company_scope=payload['company_scope'], declarations=payload['declarations'],
+                company_scope=payload['company_scope'], declarations=payload['declarations'], observations=payload['observations'],
                 pending_controls=payload['pending_controls'])
 
 
@@ -115,7 +115,49 @@ def rebuild_reviewer_designation(c, report, review, capture):
         **{key: payload[key] for key in ('link_ref','designation_ref','designation_kind','reviewer_ref','company_scope')},
         documents=documents,
         declarations=tuple(DesignationDeclaration.model_validate_json(json.dumps(d)) for d in payload['declarations']),
-        observations=())
+        observations=tuple(DesignationObservation.model_validate_json(json.dumps(o)) for o in payload['observations']))
     if result.fingerprint != latest[1] or result.to_payload() != payload:
         raise ValueError('La designación conservada no puede reproducirse exactamente.')
     return result
+
+
+def save_designation_observation(db, report, data):
+    """Append an explicit finding to the exact designation, retaining its material."""
+    if data.get('acknowledge') is not True:
+        raise ValueError('Confirma que la comprobación declarada no acredita identidad ni autoridad.')
+    raw = data.get('observation')
+    if not isinstance(raw, dict) or not isinstance(raw.get('note'), str) or not raw['note'].strip() or len(raw['note']) > 2000:
+        raise ValueError('Aporta una comprobación explícita y una nota de hasta 2.000 caracteres.')
+    observation = DesignationObservation.model_validate_json(json.dumps(raw))
+    with sqlite3.connect(db) as c:
+        c.execute(SCHEMA)
+        c.execute('BEGIN IMMEDIATE')
+        latest = _latest(c, report)
+        if (latest is None or type(data.get('revision')) is not int
+                or latest[0] != data['revision']):
+            raise ValueError('La designación falta o ha cambiado. Vuelve a revisar la propuesta.')
+        human = latest_review(c, report)
+        if human is None or human[1] != (report.get('payment_documentary_review') or {}).get('fingerprint'):
+            raise ValueError('La revisión documental ha cambiado o falta.')
+        capture = _rebuild_capture(c, db, report)
+        source = human[2]
+        review = build_documentary_payment_human_review(capture=capture,
+            review_ref=source['review_ref'], reviewer_ref=source['reviewer_ref'],
+            reviewed_at=datetime.fromisoformat(source['reviewed_at']),
+            findings=tuple(_finding(f) for f in source['findings']), previous_review_ref=source['previous_review_ref'])
+        if review.fingerprint != human[1]:
+            raise ValueError('La revisión documental no se reproduce exactamente.')
+        designation = rebuild_reviewer_designation(c, report, review, capture)
+        payload = designation.to_payload()
+        observations = tuple(DesignationObservation.model_validate_json(json.dumps(o))
+            for o in payload['observations'] if o['condition'] != observation.condition) + (observation,)
+        result = build_documentary_reviewer_designation_link(review=review,
+            **{key: payload[key] for key in ('link_ref','designation_ref','designation_kind','reviewer_ref','company_scope')},
+            documents=tuple(DocumentaryMaterial(document_ref=d['document_ref'],
+                content=designation.document_bytes(d['document_ref'])) for d in payload['documents']),
+            declarations=tuple(DesignationDeclaration.model_validate_json(json.dumps(d)) for d in payload['declarations']),
+            observations=observations)
+        c.execute('INSERT INTO company_reviewer_designation VALUES(?,?,?,?,?)',
+            (report['proposal_id'], report['dataset_id'], latest[0]+1, result.fingerprint,
+             json.dumps(result.to_payload(),ensure_ascii=False,sort_keys=True,separators=(',',':'))))
+        return _summary((latest[0]+1,result.fingerprint,result.to_payload()), report)
