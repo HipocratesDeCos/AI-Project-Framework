@@ -27,7 +27,7 @@ def _detail(value):
 
 
 
-def _financial_context(context):
+def _financial_context(context, execution=None):
     if not context:
         return ''
     snapshot = context.get('financial_snapshot') or {}
@@ -47,8 +47,27 @@ def _financial_context(context):
                   number_text(f['amount'], 2) + ' ' + str(f['currency'] or ''), state]
         html += '<tr>' + ''.join('<td>' + _text(value) + '</td>' for value in values) + '</tr>'
     html += '</tbody></table><ul>'
-    html += ''.join('<li>' + _text(item) + '</li>' for item in context['issues'] + context['integration_pending'])
+    html += ''.join('<li>' + _text(item) + '</li>' for item in context['issues'] + [message for message in context['integration_pending'] if not (execution and len(execution.get('parameter_configurations',[]))==2 and message.startswith('Conectar horizonte'))])
     return html + '</ul>'
+
+
+
+def _finance_execution(execution):
+    if not execution:
+        return ''
+    html='<h3>PROYECCIÓN DOCUMENTAL · COMPRA SIN EVALUAR</h3><p>'+_text(execution['message'])+'</p>'
+    for config in execution.get('parameter_configurations',[]):
+        html+=_rows([('Horizonte activo' if config['parameter_id']=='P-FIN-001' else 'Tesorería mínima activa',
+                      number_text(config['value'])+' '+config['unit'])])
+    result=execution.get('finance_result')
+    if result:
+        p=result['projection']
+        html+=_rows([('Estado de proyección','Calculada' if p['status']=='DETERMINED' else 'No determinable'),
+                     ('Fin del horizonte',date_text(p['horizon_end'])),
+                     ('Mínimo saldo previsto en los flujos suministrados',number_text(p['financial_capacity_forecast'],2)+' '+result['currency'])])
+        html+='<p>Movimientos sin resolver: '+_text(', '.join(p['unresolved_flow_ids']) or 'Ninguno señalado por el motor')+'</p>'
+    html+='<ul>'+''.join('<li>'+_text(message)+'</li>' for message in execution['limitations'])+'</ul>'
+    return html
 
 
 def render_report(report):
@@ -126,7 +145,7 @@ def render_report(report):
     else:
         pieces.append('<p>Sin captura anterior; no se reconstruye con datos actuales.</p>')
     pieces.extend(['<p>Necesidad de reposición, rotación y cantidad recomendada: pendientes de evaluación. Las referencias de stock y planificación son sintéticas y fechadas.</p>',
-                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _financial_context(report.get('financial_context')), '<p>' + _text(report['finance'].get('message')) + '</p>',
+                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), '<p>' + _text(report['finance'].get('message')) + '</p>',
                    '<p>Evaluación financiera: PENDIENTE. Reglas y conclusión del decisor: PENDIENTES. Decisión humana: no registrada en esta revisión.</p>',
                    '<h2>6. COMPROBACIONES PENDIENTES</h2><ul>',
                    *['<li>' + _text(item) + '</li>' for item in report.get('pending', [])], '</ul>',

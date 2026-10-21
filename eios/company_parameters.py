@@ -118,10 +118,12 @@ def read_parameters(db,store,dataset):
         rows=c.execute('SELECT payload FROM company_parameter_request WHERE company_id=? ORDER BY revision DESC',(company,)).fetchall()
     current=json.loads(rows[0][0]) if rows else dict(company_id=company,revision=0,profile={},values={},references={})
     history=[json.loads(row[0]) for row in rows]
-    return dict(company_id=company,company_name=info['company'].get('legal_name',company),dataset_id=dataset,
+    from eios.company_finance_parameters import read_finance_activation
+    activation=read_finance_activation(db,company,info['as_of_date'])
+    return dict(finance_activation=activation,company_id=company,company_name=info['company'].get('legal_name',company),dataset_id=dataset,
                 as_of_date=info['as_of_date'],catalogue=CATALOGUE,current=current,history=history,
                 status='COMPANY_CONFIGURATION_REQUEST_ONLY',
-                message='Valores empresariales preparados. Su activación y aplicación al motor siguen pendientes; guardar aquí no ejecuta una evaluación.',
+                message='Configuración preparada. Horizonte y mínimo pueden activarse para este corte; el resto sigue pendiente de conexión. Guardar no evalúa compras.',
                 sources=[dict(label='Catálogo EIOS',url='https://github.com/HipocratesDeCos/AI-Project-Framework/blob/main/02_Parametros/Catalogo_Parametros_MVP_v0.3.md'),
                          dict(label='Ratios sectoriales · Banco de España',url='https://www.bde.es/wbe/es/areas-actuacion/central-balances/bases-de-datos-y-aplicaciones/bbdd-datos-publicas-informacion-sectores/'),
                          dict(label='Clasificaciones de actividad · INE',url='https://www.ine.es/Ayudacod/')])
