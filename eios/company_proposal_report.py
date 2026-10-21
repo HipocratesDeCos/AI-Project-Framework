@@ -1,6 +1,7 @@
 """Printable internal report from a persisted descriptive review only."""
 from html import escape
 import json
+from eios.company_presentation import number_text, date_text
 
 
 def _text(value):
@@ -8,6 +9,16 @@ def _text(value):
 
 
 def _rows(items):
+    numeric = {'Cantidad', 'Tipo de IVA declarado (%)', 'Línea antes de descuentos', 'Descuento de línea',
+               'Valor de descuento declarado', 'Neto', 'IVA', 'Total', 'Cantidad histórica',
+               'Precio neto histórico', 'Diferencia por unidad', 'Variación (%)', 'Físico',
+               'Reservado', 'Disponible', 'Cobertura (días)', 'Mínimo', 'Falta hasta mínimo',
+               'Disponible al guardar', 'Documentos identificados', 'Registros identificados'}
+    dates = {'Fecha de corte', 'Fecha del pedido', 'Propuesta guardada el', 'Revisión guardada el',
+             'Vencimiento mercancía', 'Vencimiento', 'Fecha', 'Fecha del inventario',
+             'Fecha del inventario guardado', 'Capturado el'}
+    items = [(key, date_text(value) if key in dates else number_text(value) if key in numeric else value)
+             for key, value in items]
     return '<dl>' + ''.join('<div><dt>' + _text(k) + '</dt><dd>' + _text(v) + '</dd></div>' for k, v in items) + '</dl>'
 
 
@@ -25,7 +36,7 @@ def render_report(report):
     currency = p.get('currency')
     def amount(key):
         value = p.get(key)
-        return 'Pendiente / sin datos' if value is None else str(value) + ' ' + str(currency)
+        return 'Pendiente / sin datos' if value is None else number_text(value, 2) + ' ' + str(currency)
     pieces = ['<!doctype html><html lang="es"><head><meta charset="utf-8">',
               '<meta name="viewport" content="width=device-width,initial-scale=1">',
               '<title>EIOS · Informe de propuesta · ' + _text(report['reference']) + '</title>',
@@ -38,7 +49,8 @@ def render_report(report):
                      ('Código de empresa', report['company_id']), ('Versión documental', report['dataset_id']),
                      ('Fecha de corte', report['documentary_cutoff']), ('Fecha del pedido', p.get('order_date')),
                      ('Propuesta guardada el', p.get('created_at')), ('Revisión guardada el', report.get('reviewed_at')),
-                     ('Código del proveedor', p.get('supplier_id')), ('Código del artículo', p.get('article_id'))]),
+                     ('Código del proveedor', p.get('supplier_id')), ('Razón social del proveedor', (p.get('supplier_commercial_at_save') or {}).get('legal_name')),
+                     ('Persona de contacto', (p.get('supplier_commercial_at_save') or {}).get('contact_name')), ('Lugar de entrega', p.get('delivery_location')), ('Código del artículo', p.get('article_id'))]),
               '<h2>2. IMPORTES Y CONDICIONES DECLARADAS</h2>',
               _rows([('Cantidad', p.get('quantity')), ('Unidad', p.get('unit')),
                      ('Precio neto unitario', amount('unit_price')), ('Mercancía neta', amount('net')),

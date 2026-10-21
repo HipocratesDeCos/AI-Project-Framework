@@ -19,9 +19,9 @@ class CommercialDraftTest(unittest.TestCase):
     def test_commercial_values_and_explicit_unknowns(self):
         report = self.saved_review()
         draft = self.draft(report)
-        self.assertIn('242.00 EUR', draft['body'])
+        self.assertIn('242,00 EUR', draft['body'])
         self.assertIn('2 palets', draft['body'])
-        self.assertIn('2026-11-01', draft['body'])
+        self.assertIn('01/11/2026', draft['body'])
         self.assertIn('Total declarado de la operación: Pendiente de confirmar', draft['body'])
         self.assertIn('no constituye una aceptación ni un pedido', draft['body'])
         self.assertIsNone(draft['recipient'])
@@ -36,9 +36,9 @@ class CommercialDraftTest(unittest.TestCase):
                                    shipping_mode='BUYER',shipping_net='5',shipping_vat_percent='21',
                                    shipping_billed_by='CARRIER',shipping_due_date='2026-11-03')
         body = self.draft(report)['body']
-        for text in ('Precio neto unitario: 90.00 EUR', 'Descuento aplicado a la línea: 20.00 EUR',
-                     'Total mercancía: 217.80 EUR', 'Total portes: 6.05 EUR',
-                     'Total declarado de la operación: 223.85 EUR', 'Emisor de portes: transportista', '2026-11-03'):
+        for text in ('Precio neto unitario: 90,00 EUR', 'Descuento aplicado a la línea: 20,00 EUR',
+                     'Total mercancía: 217,80 EUR', 'Total portes: 6,05 EUR',
+                     'Total declarado de la operación: 223,85 EUR', 'Emisor de portes: transportista', '03/11/2026'):
             self.assertIn(text, body)
 
     def test_internal_finance_stock_sources_and_history_not_disclosed(self):

@@ -1,5 +1,7 @@
 """Commercial draft only: no acceptance, recipient resolution or transmission."""
 
+from eios.company_presentation import number_text, date_text
+
 
 def commercial_draft(report):
     p = report['proposal']
@@ -10,38 +12,41 @@ def commercial_draft(report):
     currency = value(p.get('currency'))
     def money(key):
         item = p.get(key)
-        return value(item) if item is None else str(item) + ' ' + currency
+        return value(item) if item is None else number_text(item, 2) + ' ' + currency
+    supplier = p.get('supplier_commercial_at_save') or {}
+    greeting = supplier.get('contact_name') or supplier.get('legal_name') or 'proveedor'
     lines = [
         'BORRADOR DE PRUEBA · NO ENVIAR',
         '',
-        'Estimado proveedor:',
+        'Estimado ' + greeting + ':',
         '',
         'Solicitamos confirmar las siguientes condiciones comerciales antes de formalizar la compra.',
         '',
         'Referencia: ' + value(p.get('reference')),
         'Código de proveedor: ' + value(p.get('supplier_id')),
         'Código de artículo: ' + value(p.get('article_id')),
-        'Cantidad: ' + value(p.get('quantity')) + ' ' + value(p.get('unit')),
+        'Cantidad: ' + number_text(p.get('quantity')) + ' ' + value(p.get('unit')),
         'Precio neto unitario: ' + money('unit_price'),
         'Importe neto de mercancía: ' + money('net'),
-        'IVA de mercancía: ' + money('tax') + ' (tipo declarado: ' + value(p.get('vat_percent')) + ' %)',
+        'IVA de mercancía: ' + money('tax') + ' (tipo declarado: ' + number_text(p.get('vat_percent')) + ' %)',
         'Total mercancía: ' + money('total'),
-        'Descuento aplicado a la línea: ' + value(terms.get('discount_amount')) + ' ' + currency,
+        'Descuento aplicado a la línea: ' + number_text(terms.get('discount_amount'), 2) + ' ' + currency,
         'Portes: ' + {'BUYER':'a cargo de la empresa compradora', 'SUPPLIER':'a cargo del proveedor', 'INCLUDED':'incluidos en el precio', 'NONE':'sin portes', 'PENDING':'pendientes de confirmar'}.get(shipping.get('mode'), 'pendientes de confirmar'),
     ]
     if shipping.get('mode') == 'BUYER':
         lines.extend([
-            'Portes netos: ' + value(shipping.get('net')) + ' ' + currency,
-            'IVA de portes: ' + value(shipping.get('tax')) + ' ' + currency,
-            'Total portes: ' + value(shipping.get('total')) + ' ' + currency,
+            'Portes netos: ' + number_text(shipping.get('net'), 2) + ' ' + currency,
+            'IVA de portes: ' + number_text(shipping.get('tax'), 2) + ' ' + currency,
+            'Total portes: ' + number_text(shipping.get('total'), 2) + ' ' + currency,
             'Emisor de portes: ' + {'SUPPLIER':'proveedor','CARRIER':'transportista'}.get(shipping.get('billed_by'), 'pendiente'),
-            'Vencimiento de portes: ' + value(shipping.get('due_date')),
+            'Vencimiento de portes: ' + date_text(shipping.get('due_date')),
         ])
     lines.extend([
         'Total declarado de la operación: ' + money('operation_total'),
-        'Vencimiento de mercancía: ' + value(p.get('due_date')),
+        'Vencimiento de mercancía: ' + date_text(p.get('due_date')),
         '',
-        'Fecha y lugar de entrega: pendientes de confirmar.',
+        'Lugar de entrega: ' + value(p.get('delivery_location')),
+        'Fecha de entrega: pendiente de confirmar.',
         'Resto de condiciones de pago y posibles gastos adicionales: pendientes de confirmar.',
         '',
         'Esta comunicación solicita confirmar condiciones; no constituye una aceptación ni un pedido.',
