@@ -125,6 +125,19 @@ class PrintableProposalReportTest(unittest.TestCase):
                 self.assertEqual(response.headers['Cache-Control'], 'no-store')
                 self.assertIn(report['review_id'], html)
                 self.assertIn('242.00 EUR', html)
+            draft_request = Request(root+'/api/purchases/commercial-draft', data=data,
+                                    headers={'Content-Type':'application/json'}, method='POST')
+            with self.assertRaises(HTTPError) as error:
+                urlopen(draft_request, timeout=5)
+            self.assertEqual(error.exception.code, 403)
+            draft_request.add_header('X-EIOS-Token', token)
+            with urlopen(draft_request, timeout=5) as response:
+                draft = json.loads(response.read())
+                self.assertEqual(response.headers.get_content_type(), 'application/json')
+                self.assertFalse(draft['sent'])
+                self.assertEqual(draft['review_id'], report['review_id'])
+                self.assertIn('242.00 EUR', draft['body'])
+                self.assertEqual(draft['attachments'], [])
         finally:
             process.terminate()
             process.wait(timeout=10)
