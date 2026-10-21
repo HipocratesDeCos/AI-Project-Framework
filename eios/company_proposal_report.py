@@ -26,6 +26,31 @@ def _detail(value):
     return '<pre>' + _text(json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2)) + '</pre>'
 
 
+
+def _financial_context(context):
+    if not context:
+        return ''
+    snapshot = context.get('financial_snapshot') or {}
+    capital = context.get('working_capital_input') or {}
+    html = _rows([('Fecha de corte', context['as_of_date']),
+                  ('Tesorería declarada', number_text(snapshot.get('available_treasury'), 2) + ' ' + str(snapshot.get('currency') or '')),
+                  ('Activo corriente documentado', number_text(capital.get('current_assets'), 2) + ' ' + str(capital.get('currency') or '')),
+                  ('Pasivo corriente documentado', number_text(capital.get('current_liabilities'), 2) + ' ' + str(capital.get('currency') or '')),
+                  ('Movimientos vinculados', number_text(len(context['cash_flows']))),
+                  ('Pendientes de validar', number_text(context['evidence_pending_count']))])
+    html += '<p>Datos documentales vinculados; no acreditan conciliación, completitud ni viabilidad de la compra.</p>'
+    html += '<table><thead><tr><th>Referencia</th><th>Vencimiento</th><th>Tipo</th><th>Importe / moneda</th><th>Validación</th></tr></thead><tbody>'
+    for item in context['cash_flows']:
+        f = item['canonical']
+        state = {'DEMONSTRATED':'Evidencia declarada demostrada', 'NOT_EVIDENCED':'Pendiente de validar', 'CONFLICTING_DATA':'Datos contradictorios'}[f['evidence_state']]
+        values = [item['record_id'], date_text(f['due_date']), 'Cobro' if f['flow_type'] == 'COLLECTION' else 'Pago',
+                  number_text(f['amount'], 2) + ' ' + str(f['currency'] or ''), state]
+        html += '<tr>' + ''.join('<td>' + _text(value) + '</td>' for value in values) + '</tr>'
+    html += '</tbody></table><ul>'
+    html += ''.join('<li>' + _text(item) + '</li>' for item in context['issues'] + context['integration_pending'])
+    return html + '</ul>'
+
+
 def render_report(report):
     """Render captured values; never calculate indicators, hydrate data or decide."""
     p = report['proposal']
@@ -101,7 +126,7 @@ def render_report(report):
     else:
         pieces.append('<p>Sin captura anterior; no se reconstruye con datos actuales.</p>')
     pieces.extend(['<p>Necesidad de reposición, rotación y cantidad recomendada: pendientes de evaluación. Las referencias de stock y planificación son sintéticas y fechadas.</p>',
-                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', '<p>' + _text(report['finance'].get('message')) + '</p>',
+                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _financial_context(report.get('financial_context')), '<p>' + _text(report['finance'].get('message')) + '</p>',
                    '<p>Evaluación financiera: PENDIENTE. Reglas y conclusión del decisor: PENDIENTES. Decisión humana: no registrada en esta revisión.</p>',
                    '<h2>6. COMPROBACIONES PENDIENTES</h2><ul>',
                    *['<li>' + _text(item) + '</li>' for item in report.get('pending', [])], '</ul>',
