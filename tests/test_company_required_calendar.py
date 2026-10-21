@@ -44,7 +44,7 @@ class RequiredCompanyCalendarTest(unittest.TestCase):
         self.assertTrue(payload['required_calendar_matches'])
         self.assertEqual(payload['observations'][0]['observed_evidence_state'],'NOT_EVIDENCED')
         report=self.desk.review('one',self.named['proposal_id'])
-        self.assertEqual(report['version'],'COMPANY-CONTEXT-REVIEW-09')
+        self.assertEqual(report['version'],'COMPANY-CONTEXT-REVIEW-10')
         self.assertEqual(report['finance_execution']['viability_status'],'NOT_EVALUATED')
         self.assertEqual(len(report['finance_execution']['finance_input']['cash_flows']),2)
 
