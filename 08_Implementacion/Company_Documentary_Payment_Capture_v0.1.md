@@ -1,0 +1,11 @@
+# Company Documentary Payment Capture v0.1
+
+New reviews v07 build the existing DOC-PAY-CAP-01/v0.1 capture for listed local BIND declarations when an exact FinanceDecisionInputPackage can be built. They conserve the linked source bytes, canonical bindings, unchanged financial input and selected parameter provenance. Capture uses the same SQLite transaction as package resolution and compares documentary content against the saved proposal context. No supplier order/version/confirmation references are inferred: those optional fields remain null. operation_ref is explicitly the local proposal UUID.
+
+company_payment_documentary_capture stores immutable payloads keyed by their canonical fingerprint. Repeated material is not duplicated. The review keeps a summary and fingerprint; printing uses the saved summary without loading present-day documents. Withdrawal leaves the historical capture conserved and future reviews do not capture withdrawn bindings.
+
+This capture covers listed associations only. It does not prove document content or identity, required calendar coverage, completeness, absence of cross-version duplicates, or operational admission. All global and per-binding documentary review controls remain pending. No human findings, authority references, order confirmations, evidence upgrades or payment flows are fabricated. Existing flows are not appended a second time; the financial projection remains the one over supplied documentary cash flows. The new purchase effect and viability remain NOT_EVALUATED.
+
+Missing parameters, financial inputs or declarations leave capture NOT_CAPTURED. A document/material mismatch blocks capture with an explicit message. Finance Basic retains its existing input/evidence rules. The UI and printable report identify captured documents/bindings and the pending control count. Source bytes and internal capture data do not enter the commercial draft.
+
+Tests cover canonical payload and bytes, package fingerprint, unchanged evidence and flow count, optional reference absence, pending controls, missing/withdrawn bindings, idempotent persistence, changed-source rejection, frozen printing and commercial draft privacy. Full CI includes Python, JavaScript syntax and SQL Server contracts. Visual verification remains pending while the execution environment is offline.

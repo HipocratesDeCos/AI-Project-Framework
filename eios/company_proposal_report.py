@@ -98,6 +98,21 @@ def _declared_coverage(associations):
     return html+'<p>Cobertura de declaraciones locales de esta versión y contenido documental. No valida soportes, todos los gastos ni conciliación. No incorpora pagos a la proyección.</p>'
 
 
+
+def _documentary_capture(execution):
+    capture=(execution or {}).get('documentary_capture')
+    if not capture:
+        return ''
+    html='<h3>CAPTURA DOCUMENTAL DE PAGOS</h3><p>'+_text(capture['message'])+'</p>'
+    if capture['status']=='CAPTURED_LISTED_ASSOCIATIONS':
+        html+=_rows([('Documentos conservados',capture['document_count']),
+                     ('Asociaciones capturadas',capture['binding_count']),
+                     ('Controles documentales pendientes',capture['pending_review_control_count']),
+                     ('Huella de captura',capture['fingerprint'])])
+        html+='<p>Bytes de soporte y paquete financiero conservados. El contenido, el calendario requerido y la evaluación de compra siguen pendientes de revisión. No cambia la evidencia ni se añaden pagos.</p>'
+    return html
+
+
 def _financial_context(context, execution=None):
     if not context:
         return ''
@@ -217,7 +232,7 @@ def render_report(report):
     else:
         pieces.append('<p>Sin captura anterior; no se reconstruye con datos actuales.</p>')
     pieces.extend(['<p>Necesidad de reposición, rotación y cantidad recomendada: pendientes de evaluación. Las referencias de stock y planificación son sintéticas y fechadas.</p>',
-                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _declared_coverage(report.get('payment_associations')), _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), '<p>' + _text(report['finance'].get('message')) + '</p>',
+                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _declared_coverage(report.get('payment_associations')), _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), _documentary_capture(report.get('finance_execution')), '<p>' + _text(report['finance'].get('message')) + '</p>',
                    '<p>Evaluación financiera: PENDIENTE. Reglas y conclusión del decisor: PENDIENTES. Decisión humana: no registrada en esta revisión.</p>',
                    '<h2>6. COMPROBACIONES PENDIENTES</h2><ul>',
                    *['<li>' + _text(item) + '</li>' for item in report.get('pending', [])], '</ul>',

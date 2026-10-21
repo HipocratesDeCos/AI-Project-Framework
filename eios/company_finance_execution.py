@@ -14,10 +14,11 @@ from eios.parameters.center import ParameterConfigurationCenter
 from eios.company_finance_parameters import Catalogue,Authorization,Repository,SCHEMA,IDS
 
 
-def execute_documentary_finance(db,proposal,documentary):
+def execute_documentary_finance(db,proposal,documentary,associations=None):
     result=dict(schema='COMPANY-DOCUMENTARY-FINANCE-EXECUTION-01',
         scope='SUPPLIED_DOCUMENTARY_CASH_FLOWS_ONLY',status='NOT_EXECUTED',
         message='Activa el horizonte y la tesorería mínima para este corte desde Parámetros.',
+        documentary_capture=dict(status='NOT_CAPTURED',message='Faltan los requisitos de ejecución financiera o las asociaciones declaradas.'),
         limitations=[],finance_result=None,parameter_configurations=[],
         purchase_effect_status='NOT_EVALUATED',viability_status='NOT_EVALUATED',
         decision_authority=False,operational_path='FORBIDDEN')
@@ -65,6 +66,8 @@ def execute_documentary_finance(db,proposal,documentary):
             package=build_finance_decision_input_package(purchase=purchase,context=context,evidence=(),
                 finance_input=finance,company_id=snapshot.company_scope,effective_at=effective,
                 requested_parameter_ids=IDS,center=center)
+            from eios.company_payment_capture import capture_listed_payments
+            result['documentary_capture']=capture_listed_payments(c,package,proposal,associations)
         execution=run_provenanced_finance_basic(package.finance_input,package.horizon_resolution)
         output=execution.finance_result.model_dump(mode='json')
         result.update(status='EXECUTED',finance_result=output,
