@@ -107,12 +107,34 @@ def _documentary_capture(execution):
     if capture['status']=='CAPTURED_LISTED_ASSOCIATIONS':
         html+=_rows([('Documentos conservados',capture['document_count']),
                      ('Asociaciones capturadas',capture['binding_count']),
-                     ('Controles documentales pendientes',capture['pending_review_control_count']),
+                     ('Controles pendientes al capturar',capture['pending_review_control_count']),
                      ('Huella de captura',capture['fingerprint'])])
         for document in capture.get('documents',[]):
             html+=_rows([('Documento capturado',document['document_ref']),('Huella del soporte',document['sha256'])])
         html+='<p>Bytes de soporte y paquete financiero conservados. El contenido, el calendario requerido y la evaluación de compra siguen pendientes de revisión. No cambia la evidencia ni se añaden pagos.</p>'
     return html
+
+
+
+def _human_payment_review(review):
+    if not review or review['status']=='NO_FINDINGS':
+        return ''
+    html='<h3>REVISIÓN DOCUMENTAL REGISTRADA</h3>'
+    html+=_rows([('Confirmaciones declaradas',review['confirmed_count']),
+        ('No confirmadas',review['not_confirmed_count']),('Discrepancias',review['conflict_count']),
+        ('Controles sin revisar',review['pending_control_count']),
+        ('Último responsable declarado',review['reviewer_ref']),('Registro de revisión',review['review_ref'])])
+    labels={'OPERATION_CORRESPONDENCE':'Correspondencia con la operación','DOCUMENT_TERMS':'Condiciones documentadas',
+        'LISTED_DUPLICATION':'Duplicidades listadas','INSTALLMENT_ASSOCIATION':'Correspondencia de la cuota',
+        'AMOUNT':'Importe','CURRENCY':'Moneda','DUE_DATE':'Vencimiento','SUPPORT_CONSISTENCY':'Coherencia de soportes'}
+    outcomes={'CONFIRMED_BY_REVIEW':'Confirmado en la revisión','NOT_CONFIRMED':'No confirmado','CONFLICT_REPORTED':'Discrepancia'}
+    for finding in review['findings']:
+        html+=_rows([('Comprobación',labels[finding['condition']]),
+            ('Ámbito',finding['installment_ref'] or 'General'),('Resultado',outcomes[finding['outcome']]),
+            ('Nota',finding['note'])])
+        for locator in finding['locators']:
+            html+=_rows([('Documento',locator['document_ref']),('Página',locator['page']),('Sección',locator['section'])])
+    return html+'<p>Resultados declarados por un responsable local cuya identidad no se autentica. No certifican calendario completo, admisión o viabilidad y no elevan la evidencia financiera.</p>'
 
 
 def _financial_context(context, execution=None):
@@ -234,7 +256,7 @@ def render_report(report):
     else:
         pieces.append('<p>Sin captura anterior; no se reconstruye con datos actuales.</p>')
     pieces.extend(['<p>Necesidad de reposición, rotación y cantidad recomendada: pendientes de evaluación. Las referencias de stock y planificación son sintéticas y fechadas.</p>',
-                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _declared_coverage(report.get('payment_associations')), _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), _documentary_capture(report.get('finance_execution')), '<p>' + _text(report['finance'].get('message')) + '</p>',
+                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _declared_coverage(report.get('payment_associations')), _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), _documentary_capture(report.get('finance_execution')), _human_payment_review(report.get('payment_documentary_review')), '<p>' + _text(report['finance'].get('message')) + '</p>',
                    '<p>Evaluación financiera: PENDIENTE. Reglas y conclusión del decisor: PENDIENTES. Decisión humana: no registrada en esta revisión.</p>',
                    '<h2>6. COMPROBACIONES PENDIENTES</h2><ul>',
                    *['<li>' + _text(item) + '</li>' for item in report.get('pending', [])], '</ul>',
