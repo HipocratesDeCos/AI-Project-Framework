@@ -109,6 +109,8 @@ def _documentary_capture(execution):
                      ('Asociaciones capturadas',capture['binding_count']),
                      ('Controles documentales pendientes',capture['pending_review_control_count']),
                      ('Huella de captura',capture['fingerprint'])])
+        for document in capture.get('documents',[]):
+            html+=_rows([('Documento capturado',document['document_ref']),('Huella del soporte',document['sha256'])])
         html+='<p>Bytes de soporte y paquete financiero conservados. El contenido, el calendario requerido y la evaluación de compra siguen pendientes de revisión. No cambia la evidencia ni se añaden pagos.</p>'
     return html
 

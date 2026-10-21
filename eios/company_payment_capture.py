@@ -70,7 +70,8 @@ def capture_listed_payments(c, package, proposal, associations):
                          (capture.fingerprint,)).fetchone()[0]
         if stored!=payload:
             raise ValueError('La captura existente no coincide con el material construido.')
-        summary.update(status='CAPTURED_LISTED_ASSOCIATIONS',fingerprint=capture.fingerprint,
+        summary.update(documents=[dict(document_ref=d.document_ref,sha256=sha256(d.content).hexdigest(),byte_count=len(d.content)) for d in documents],
+            status='CAPTURED_LISTED_ASSOCIATIONS',fingerprint=capture.fingerprint,
             finance_package_fingerprint=package.fingerprint,document_count=len(documents),
             binding_count=len(bindings),
             pending_review_control_count=len(GLOBAL_CONDITIONS)+len(INSTALLMENT_CONDITIONS)*len(bindings),
