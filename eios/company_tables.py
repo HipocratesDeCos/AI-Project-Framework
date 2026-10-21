@@ -21,7 +21,7 @@ STOCK_PARAMETER_KEYS = {field for field,_,_ in STOCK_PARAMETERS}
 
 # Fields, display labels, and required fields for assisted reception, not core input.
 FIELDS = {
-    'supplier': [('supplier_id','Código de proveedor',True),('legal_name','Razón social',True),('tax_id','NIF / identificación fiscal',False),('locality','Localidad',False)],
+    'supplier': [('supplier_id','Código de proveedor',True),('legal_name','Razón social',True),('tax_id','NIF / identificación fiscal',False),('locality','Localidad',False),('contact_name','Persona de contacto',False),('delivery_location','Lugar de entrega',False)],
     'customer': [('customer_id','Código de cliente',True),('legal_name','Razón social',True),('tax_id','NIF / identificación fiscal',False),('locality','Localidad',False)],
     'article': [('article_id','SKU / código de artículo',True),('description','Descripción',True),('unit','Unidad',True),('supplier_id','Código de proveedor',False),('family','Familia',False)],
     'inventory': [('article_id','SKU / código de artículo',True),('unit','Unidad',True),('physical','Existencias físicas',True),('reserved','Cantidad reservada',False),('observation_date','Fecha del inventario (si figura)',False)]+STOCK_PARAMETERS,
