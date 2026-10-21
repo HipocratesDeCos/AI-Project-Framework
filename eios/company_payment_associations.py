@@ -1,5 +1,6 @@
 """Local declared bindings, pending documentary review and financial integration."""
 from datetime import datetime, timezone
+from decimal import Decimal
 from hashlib import sha256
 import json
 import sqlite3
@@ -28,6 +29,56 @@ def _scope(report):
     return matching,context
 
 
+
+def _other_bindings(c,report,documentary_fingerprint):
+    """Current declarations in the same exact dataset/content, not across versions."""
+    latest={}
+    for raw, in c.execute(
+        'SELECT payload FROM company_payment_association_event WHERE dataset_id=? AND documentary_fingerprint=? AND proposal_id<>? ORDER BY proposal_id,revision',
+        (report['dataset_id'],documentary_fingerprint,report['proposal_id'])):
+        event=json.loads(raw)
+        latest[(event['proposal_id'],event['sequence'])]=event
+    return [event for event in latest.values() if event['action']=='BIND']
+
+
+def _coverage(report,current,other):
+    plan=report['proposal'].get('payment_plan') or {}
+    matching=report.get('payment_matching') or {}
+    items=[]
+    associated=Decimal(0)
+    declared=Decimal(0)
+    for installment in plan.get('installments',[]):
+        sequence=installment['sequence']
+        amount=Decimal(installment['amount'])
+        declared+=amount
+        event=current.get(sequence)
+        binding=event.get('binding') if event else None
+        conflicts=[dict(proposal_id=e['proposal_id'],sequence=e['sequence'])
+                   for e in other if binding and e['binding']['flow_id']==binding['flow_id']]
+        state='DECLARED_ASSOCIATION' if binding else 'LEFT_PENDING' if event else 'NO_DECLARATION'
+        if conflicts:
+            state='CONFLICTING_DECLARATIONS'
+        if binding and not conflicts:
+            associated+=amount
+        items.append(dict(sequence=sequence,amount=installment['amount'],currency=plan.get('currency'),
+            state=state,flow_id=binding['flow_id'] if binding else None,
+            other_proposal_declarations=conflicts))
+    count=sum(item['state']=='DECLARED_ASSOCIATION' for item in items)
+    status=('NOT_DECLARED' if plan.get('status')!='DECLARED_UNVERIFIED' else
+            'CONFLICTING_DECLARATIONS' if any(item['state']=='CONFLICTING_DECLARATIONS' for item in items) else
+            'PARTIAL_INVENTORY' if matching.get('status')!='CANDIDATES_LISTED' else
+            'ALL_INSTALLMENTS_DECLARED_NOT_REVIEWED' if items and count==len(items) else
+            'PENDING_DECLARATIONS')
+    return dict(schema='COMPANY-DECLARED-CALENDAR-COVERAGE-01',status=status,rows=items,
+        installment_count=len(items),associated_count=count,pending_count=len(items)-count,
+        declared_total=format(declared,'.2f'),associated_total=format(associated,'.2f'),
+        pending_total=format(declared-associated,'.2f'),currency=plan.get('currency'),
+        scope='LOCAL_DECLARATIONS_IN_EXACT_DATASET_AND_DOCUMENTARY_CONTENT',
+        required_installment_coverage_status='NOT_EXECUTED',
+        documentary_review_status='NOT_PERFORMED',finance_integration_status='NOT_PERFORMED',
+        evidence_complete=False,decision_authority=False)
+
+
 def _read(c,report):
     matching=report.get('payment_matching') or {}
     context=report['proposal'].get('documentary_context_at_save') or {}
@@ -39,7 +90,9 @@ def _read(c,report):
         if (event['matching_fingerprint']==matching.get('fingerprint')
                 and event['documentary_fingerprint']==context.get('fingerprint')):
             current[event['sequence']]=event
-    return dict(schema='COMPANY-PAYMENT-DECLARED-ASSOCIATIONS-01',
+    other=_other_bindings(c,report,context.get('fingerprint',''))
+    return dict(schema='COMPANY-PAYMENT-DECLARED-ASSOCIATIONS-02',
+        declared_calendar_coverage=_coverage(report,current,other),
         revision=max((e['revision'] for e in events),default=0),
         rows=[current[key] for key in sorted(current)],
         status='DECLARED_ASSOCIATIONS_PENDING_REVIEW' if current else 'NO_DECLARATIONS',
@@ -51,6 +104,7 @@ def _read(c,report):
 def read_associations(db,report):
     with sqlite3.connect(db) as c:
         c.execute(SCHEMA)
+        c.execute('BEGIN')
         return _read(c,report)
 
 
@@ -103,6 +157,9 @@ def save_association(db,report,data):
         if binding and any(e['sequence']!=sequence and e['action']=='BIND' and
                            e['binding']['flow_id']==binding['flow_id'] for e in current['rows']):
             raise ValueError('Este pago ya está declarado en otra cuota. Revisa o retira esa asociación.')
+        if binding and any(e['binding']['flow_id']==binding['flow_id']
+                           for e in _other_bindings(c,report,context['fingerprint'])):
+            raise ValueError('Este pago ya tiene una asociación declarada en otra propuesta de esta misma versión documental.')
         event=dict(schema='COMPANY-PAYMENT-ASSOCIATION-EVENT-01',
             proposal_id=report['proposal_id'],dataset_id=report['dataset_id'],
             review_id=report['review_id'],matching_fingerprint=matching['fingerprint'],

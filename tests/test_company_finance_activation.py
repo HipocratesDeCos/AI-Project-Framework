@@ -99,7 +99,7 @@ class FinanceActivationTest(unittest.TestCase):
         proposal=self.desk.save(self.data)
         review=self.desk.review('one',proposal['proposal_id'])
         execution=review['finance_execution']
-        self.assertEqual(review['version'],'COMPANY-CONTEXT-REVIEW-05')
+        self.assertEqual(review['version'],'COMPANY-CONTEXT-REVIEW-06')
         self.assertEqual(execution['status'],'EXECUTED')
         self.assertEqual(execution['finance_result']['projection']['status'],'DETERMINED')
         self.assertEqual(len(execution['finance_input']['cash_flows']),2)
