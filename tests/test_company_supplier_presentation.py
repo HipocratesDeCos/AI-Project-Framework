@@ -74,7 +74,7 @@ class ProposalSupplierPresentationTest(unittest.TestCase):
 
     @unittest.skipUnless(shutil.which('node'), 'Node not installed')
     def test_ui_number_and_date_conversion(self):
-        names = ['stockDate','stockNumber','money','inputDateISO','canonicalDates']
+        names = ['stockDate','stockNumber','money','inputDateISO','canonicalDates','parameterNumber']
         functions = []
         for name in names:
             start = PAGE.index('function ' + name + '(')
@@ -83,6 +83,8 @@ class ProposalSupplierPresentationTest(unittest.TestCase):
         script = '\n'.join(functions) + '''
 const assert=require('node:assert/strict');
 assert.equal(money('1234.5'),'1.234,50');
+assert.equal(parameterNumber('1.234,50'),'1234.50');
+assert.throws(()=>parameterNumber('1,234.50'));
 assert.equal(stockNumber('1234'),'1.234');
 assert.equal(stockDate('2026-09-30'),'30/09/2026');
 assert.equal(inputDateISO('30/09/2026'),'2026-09-30');

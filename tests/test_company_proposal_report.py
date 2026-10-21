@@ -138,6 +138,25 @@ class PrintableProposalReportTest(unittest.TestCase):
                 self.assertEqual(draft['review_id'], report['review_id'])
                 self.assertIn('242,00 EUR', draft['body'])
                 self.assertEqual(draft['attachments'], [])
+            with urlopen(root+'/api/parameters?dataset=one',timeout=5) as response:
+                settings=json.loads(response.read())
+                self.assertEqual(settings['current']['revision'],0)
+                self.assertEqual(settings['current']['values'],{})
+            parameter_data=json.dumps(dict(dataset_id='one',revision=0,actor='Test user',reason='Policy test',
+                profile={},values={'P-FIN-001':'90','P-FIN-002':'5000'},references={},critical_acknowledged=True)).encode()
+            parameter_request=Request(root+'/api/parameters',data=parameter_data,
+                headers={'Content-Type':'application/json'},method='POST')
+            with self.assertRaises(HTTPError) as error:
+                urlopen(parameter_request,timeout=5)
+            self.assertEqual(error.exception.code,403)
+            parameter_request.add_header('X-EIOS-Token',token)
+            with urlopen(parameter_request,timeout=5) as response:
+                settings=json.loads(response.read())
+                self.assertEqual(settings['current']['revision'],1)
+                self.assertEqual(settings['current']['values']['P-FIN-002'],'5000')
+                self.assertEqual(settings['current']['status'],'PENDING_ENGINE_ACTIVATION')
+            self.assertIn('data-nav="parametros"',page)
+            self.assertIn('data-view="parametros"',page)
         finally:
             process.terminate()
             process.wait(timeout=10)
