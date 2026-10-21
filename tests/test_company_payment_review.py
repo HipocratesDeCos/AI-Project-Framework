@@ -93,7 +93,7 @@ class CompanyDocumentaryReviewTest(unittest.TestCase):
                 condition=condition,installment_ref=target))
         self.assertEqual(result['pending_control_count'],0)
         self.assertEqual(result['confirmed_count'],8)
-        self.assertEqual(result['required_calendar_status'],'NOT_SUPPLIED')
+        self.assertEqual(result['calendar_check_scope'],'SEPARATE_CALENDAR_COVERAGE')
         report=self.desk.review('one',self.saved['proposal_id'])
         self.assertEqual(report['finance_execution']['viability_status'],'NOT_EVALUATED')
         self.assertTrue(all(f['canonical']['evidence_state']=='NOT_EVIDENCED' for f in report['financial_context']['cash_flows']))

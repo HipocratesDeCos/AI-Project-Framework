@@ -61,7 +61,8 @@ def capture_listed_payments(c, package, proposal, associations):
                 raise ValueError('La huella del documento no coincide.')
             documents.append(DocumentaryMaterial(document_ref=reference,content=content))
         capture=build_documentary_payment_capture(package=package,documents=tuple(documents),
-            bindings=tuple(bindings),case_kind='SYNTHETIC',operation_ref=proposal['proposal_id'])
+            bindings=tuple(bindings),case_kind='SYNTHETIC',operation_ref=proposal['proposal_id'],
+            **(proposal.get('operation_document_references') or {}))
         payload=json.dumps(capture.to_payload(),ensure_ascii=False,sort_keys=True,separators=(',',':'))
         c.execute(SCHEMA)
         c.execute('INSERT OR IGNORE INTO company_payment_documentary_capture VALUES(?,?,?,?,?)',

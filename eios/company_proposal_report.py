@@ -137,6 +137,32 @@ def _human_payment_review(review):
     return html+'<p>Resultados declarados por un responsable local cuya identidad no se autentica. No certifican calendario completo, admisión o viabilidad y no elevan la evidencia financiera.</p>'
 
 
+
+def _required_calendar(coverage):
+    if not coverage:
+        return ''
+    html='<h3>CALENDARIO EXIGIBLE · COMPROBACIÓN ESTRUCTURAL</h3>'
+    if coverage['status']=='NOT_CHECKED':
+        return html+'<p>Calendario exigible todavía no declarado ni comprobado.</p>'
+    calendar=coverage['calendar']
+    html+=_rows([('Resultado','Coincidencia estructural' if coverage['status']=='STRUCTURAL_MATCH' else 'Diferencias estructurales'),
+        ('Declaración',calendar['declaration_ref']),('Responsable declarante',coverage['declared_by']),
+        ('Referencia de quien lo establece',calendar['authority_ref']),
+        ('Pedido',calendar['order_ref']),('Versión del pedido',calendar['order_version']),
+        ('Confirmación',calendar['confirmation_ref']),('Total exigible declarado',number_text(calendar['total_due'],2)+' '+calendar['currency'])])
+    labels={'MISSING_ASSOCIATION':'Falta asociación','MISSING_PAYMENT_FLOW':'Falta pago',
+        'AMOUNT_MISMATCH':'Importe distinto','CURRENCY_MISMATCH':'Moneda distinta',
+        'DUE_DATE_MISMATCH':'Fecha distinta','REQUIRED_SUPPORT_NOT_ASSOCIATED':'Soporte no asociado'}
+    for item in coverage['observations']:
+        if item['issues']:
+            html+='<p>'+_text(item['installment_ref'])+' · '+_text(', '.join(labels.get(code,code) for code in item['issues']))+'</p>'
+    if coverage['reference_mismatches']:
+        html+='<p>Referencias distintas: '+_text(', '.join(coverage['reference_mismatches']))+'</p>'
+    if coverage['unexpected_installment_refs']:
+        html+='<p>Asociaciones fuera del calendario: '+_text(', '.join(coverage['unexpected_installment_refs']))+'</p>'
+    return html+'<p>Coincidencia estructural no valida el contenido ni la autoridad declarada, no eleva evidencia y no determina viabilidad. Los pagos de tesorería sin asociación pueden pertenecer a otras operaciones.</p>'
+
+
 def _financial_context(context, execution=None):
     if not context:
         return ''
@@ -222,6 +248,9 @@ def render_report(report):
             ('Moneda', currency), ('Emisor', shipping.get('billed_by')), ('Vencimiento', shipping.get('due_date'))]))
     else:
         pieces.append('<p>Sin desglose comercial conservado en esta propuesta.</p>')
+    refs=p.get('operation_document_references') or {}
+    if any(refs.values()):
+        pieces.append(_rows([('Pedido documentado',refs.get('order_ref')),('Versión del pedido',refs.get('order_version')),('Confirmación documentada',refs.get('confirmation_ref'))]))
     pieces.append(_payment_plan(p.get('payment_plan')))
     pieces.extend(['<h2>3. COMPARACIÓN CON LA ÚLTIMA COMPRA</h2>', '<p>' + _text(price.get('message')) + '</p>'])
     if price.get('status') == 'COMPARABLE':
@@ -256,7 +285,7 @@ def render_report(report):
     else:
         pieces.append('<p>Sin captura anterior; no se reconstruye con datos actuales.</p>')
     pieces.extend(['<p>Necesidad de reposición, rotación y cantidad recomendada: pendientes de evaluación. Las referencias de stock y planificación son sintéticas y fechadas.</p>',
-                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _declared_coverage(report.get('payment_associations')), _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), _documentary_capture(report.get('finance_execution')), _human_payment_review(report.get('payment_documentary_review')), '<p>' + _text(report['finance'].get('message')) + '</p>',
+                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _declared_coverage(report.get('payment_associations')), _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), _documentary_capture(report.get('finance_execution')), _human_payment_review(report.get('payment_documentary_review')), _required_calendar(report.get('required_calendar_coverage')), '<p>' + _text(report['finance'].get('message')) + '</p>',
                    '<p>Evaluación financiera: PENDIENTE. Reglas y conclusión del decisor: PENDIENTES. Decisión humana: no registrada en esta revisión.</p>',
                    '<h2>6. COMPROBACIONES PENDIENTES</h2><ul>',
                    *['<li>' + _text(item) + '</li>' for item in report.get('pending', [])], '</ul>',
