@@ -5,6 +5,7 @@ import json
 import sqlite3
 
 from eios.company_payment_review import _rebuild_capture, _latest, _finding, _fingerprint
+from eios.company_reviewer_designation import rebuild_reviewer_designation
 from eios.company_required_calendar import _read as read_calendar, text
 from eios.core.documentary_payment_review import build_documentary_payment_human_review
 from eios.core.required_installment_coverage import RequiredInstallmentCalendar, check_required_installment_coverage
@@ -30,14 +31,18 @@ def _read(c, report):
     current_calendar = report.get('required_calendar_coverage') or {}
     current_review = report.get('payment_documentary_review') or {}
     current = (payload['coverage_fingerprint'] == current_calendar.get('fingerprint')
-               and payload['review_fingerprint'] == current_review.get('fingerprint'))
+               and payload['review_fingerprint'] == current_review.get('fingerprint')
+               and (payload['designation_fingerprint'] is None or
+                    (payload['designation_fingerprint'] == (report.get('reviewer_designation') or {}).get('fingerprint')
+                     and (report.get('reviewer_designation') or {}).get('status') == 'PRESENTED_DECLARATIONS_ONLY')))
     return dict(status='PREPARED_PRESENTED_MATERIAL_ONLY' if current else 'PREVIOUS_MATERIAL_PREPARATION',
                 revision=revision, fingerprint=fingerprint, prepared_by=actor, created_at=created,
                 criteria=[{key: item[key] for key in ('reference', 'version', 'sha256')}
                           for item in payload['presented_criteria']],
                 coverage_fingerprint=payload['coverage_fingerprint'],
                 review_fingerprint=payload['review_fingerprint'],
-                designation_status='NOT_SUPPLIED', treasury_support_scope='SEPARATE_TREASURY_SUPPORT',
+                designation_fingerprint=payload['designation_fingerprint'],
+                designation_status='BOUND_PRESENTED_NOT_VERIFIED' if payload['designation'] is not None else 'NOT_SUPPLIED', treasury_support_scope='SEPARATE_TREASURY_SUPPORT',
                 quality_evaluation_status='NOT_EXECUTED', viability_status='NOT_EVALUATED',
                 decision_authority=False, operational_path='FORBIDDEN')
 
@@ -76,12 +81,15 @@ def rebuild_quality_preparation(c, db, report):
             reviewed_at=datetime.fromisoformat(source['reviewed_at']),
             findings=tuple(_finding(item) for item in source['findings']),
             previous_review_ref=source['previous_review_ref'])
+    designation = None
     if payload['designation'] is not None:
-        raise ValueError('Esta ruta no importa designaciones de revisor.')
+        designation = rebuild_reviewer_designation(c, report, review, capture)
+        if designation.fingerprint != payload['designation_fingerprint']:
+            raise ValueError('La designación ha cambiado. Prepara de nuevo el material.')
     criteria = tuple(PresentedQualityCriteria(reference=item['reference'], version=item['version'],
         content=base64.b64decode(item['content_base64'], validate=True)) for item in payload['presented_criteria'])
     result = build_finance_quality_preparation(capture=capture, calendar=calendar,
-        coverage=coverage, criteria=criteria, review=review, designation=None)
+        coverage=coverage, criteria=criteria, review=review, designation=designation)
     if result.fingerprint != expected['fingerprint'] or result.to_payload() != payload:
         raise ValueError('La preparación conservada no se reproduce exactamente.')
     return result
@@ -93,6 +101,8 @@ def save_quality_preparation(db, report, data):
     expected_calendar = report.get('required_calendar_coverage') or {}
     if expected_calendar.get('status') not in ('STRUCTURAL_MATCH', 'STRUCTURAL_DIFFERENCES'):
         raise ValueError('Primero declara y comprueba el calendario exigible.')
+    if type(data.get('include_designation', False)) is not bool:
+        raise ValueError('Indica expresamente si quieres incluir la designación.')
     actor = text(data.get('actor'), 'responsable de la preparación')
     if data.get('acknowledge') is not True:
         raise ValueError('Confirma el origen y la versión de los criterios aportados.')
@@ -138,8 +148,9 @@ def save_quality_preparation(db, report, data):
                 previous_review_ref=source['previous_review_ref'])
             if review.fingerprint != latest[1]:
                 raise ValueError('La revisión documental no se reproduce exactamente.')
+        designation = rebuild_reviewer_designation(c, report, review, capture) if data.get('include_designation', False) else None
         prepared = build_finance_quality_preparation(capture=capture, calendar=calendar,
-            coverage=coverage, criteria=tuple(criteria), review=review, designation=None)
+            coverage=coverage, criteria=tuple(criteria), review=review, designation=designation)
         payload = prepared.to_payload()
         c.execute('INSERT INTO company_finance_quality_preparation VALUES(?,?,?,?,?,?,?,?)',
                   (capture.fingerprint, report['dataset_id'], report['proposal_id'], current['revision'] + 1,

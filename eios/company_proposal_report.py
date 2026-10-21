@@ -174,7 +174,8 @@ def _quality_preparation(prepared):
         ('Responsable de la preparación',prepared['prepared_by']),('Huella de preparación',prepared['fingerprint'])])
     for item in prepared['criteria']:
         html+=_rows([('Criterio aportado',item['reference']),('Versión del criterio',item['version']),('Huella del criterio',item['sha256'])])
-    return html+'<p>No evalúa suficiencia, autoridad o viabilidad. Designación del revisor, soporte contextual de tesorería y evaluación de calidad siguen pendientes.</p>'
+    html+=_rows([('Designación del revisor','Incluida como material presentado · sin verificar' if prepared.get('designation_status')=='BOUND_PRESENTED_NOT_VERIFIED' else 'No incluida')])
+    return html+'<p>No evalúa suficiencia, autoridad o viabilidad. La comprobación de autoridad y la evaluación de calidad siguen pendientes.</p>'
 
 
 
@@ -205,7 +206,7 @@ def _reviewer_designation(item):
     if not item or item.get('status') == 'NOT_RECORDED':
         return ''
     lines = ['<h3>DESIGNACIÓN PRESENTADA DEL REVISOR</h3>',
-             '<p>Identidad y autoridad sin verificar. No incorporada a la preparación de calidad.</p>',
+             '<p>Identidad y autoridad sin verificar. Su inclusión en la preparación de calidad requiere selección expresa.</p>',
              '<p>' + _text(item.get('status')) + ' · ' + _text(item.get('link_ref')) + '</p>']
     lines.extend('<p>' + _text(d['field']) + ': ' + _text(d['text']) + '</p>' for d in item.get('declarations', []))
     return ''.join(lines)
