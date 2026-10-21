@@ -40,7 +40,7 @@ class CompanyPaymentCaptureTest(unittest.TestCase):
         report=self.capture()
         execution=report['finance_execution']
         capture=execution['documentary_capture']
-        self.assertEqual(report['version'],'COMPANY-CONTEXT-REVIEW-12')
+        self.assertEqual(report['version'],'COMPANY-CONTEXT-REVIEW-13')
         self.assertEqual(capture['status'],'CAPTURED_LISTED_ASSOCIATIONS')
         self.assertEqual((capture['document_count'],capture['binding_count']),(1,1))
         self.assertEqual(capture['pending_review_control_count'],8)

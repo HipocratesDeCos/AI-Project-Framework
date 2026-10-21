@@ -201,6 +201,16 @@ def _treasury_support(support):
 
 
 
+def _reviewer_designation(item):
+    if not item or item.get('status') == 'NOT_RECORDED':
+        return ''
+    lines = ['<h3>DESIGNACIÓN PRESENTADA DEL REVISOR</h3>',
+             '<p>Identidad y autoridad sin verificar. No incorporada a la preparación de calidad.</p>',
+             '<p>' + _text(item.get('status')) + ' · ' + _text(item.get('link_ref')) + '</p>']
+    lines.extend('<p>' + _text(d['field']) + ': ' + _text(d['text']) + '</p>' for d in item.get('declarations', []))
+    return ''.join(lines)
+
+
 def _treasury_context(context):
     if not context or context['status']=='NOT_RECORDED':
         return ''
@@ -336,7 +346,7 @@ def render_report(report):
     else:
         pieces.append('<p>Sin captura anterior; no se reconstruye con datos actuales.</p>')
     pieces.extend(['<p>Necesidad de reposición, rotación y cantidad recomendada: pendientes de evaluación. Las referencias de stock y planificación son sintéticas y fechadas.</p>',
-                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _declared_coverage(report.get('payment_associations')), _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), _documentary_capture(report.get('finance_execution')), _human_payment_review(report.get('payment_documentary_review')), _required_calendar(report.get('required_calendar_coverage')), _quality_preparation(report.get('finance_quality_preparation')), _treasury_support(report.get('treasury_documentary_support')), _treasury_context(report.get('treasury_contextual_assessment')), '<p>' + _text(report['finance'].get('message')) + '</p>',
+                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _declared_coverage(report.get('payment_associations')), _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), _documentary_capture(report.get('finance_execution')), _human_payment_review(report.get('payment_documentary_review')), _reviewer_designation(report.get('reviewer_designation')), _required_calendar(report.get('required_calendar_coverage')), _quality_preparation(report.get('finance_quality_preparation')), _treasury_support(report.get('treasury_documentary_support')), _treasury_context(report.get('treasury_contextual_assessment')), '<p>' + _text(report['finance'].get('message')) + '</p>',
                    '<p>Evaluación financiera: PENDIENTE. Reglas y conclusión del decisor: PENDIENTES. Decisión humana: no registrada en esta revisión.</p>',
                    '<h2>6. COMPROBACIONES PENDIENTES</h2><ul>',
                    *['<li>' + _text(item) + '</li>' for item in report.get('pending', [])], '</ul>',
