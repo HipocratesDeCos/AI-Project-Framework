@@ -27,6 +27,19 @@ def _detail(value):
 
 
 
+
+def _payment_plan(plan):
+    if not plan or plan.get('status') == 'NOT_DECLARED':
+        return '<h3>CALENDARIO DE PAGOS SIN DECLARAR</h3><p>No se deducen cuotas del total.</p>'
+    html = '<h3>CALENDARIO DECLARADO · PENDIENTE DE REVISIÓN</h3>'
+    html += '<table><thead><tr><th>Cuota</th><th>Concepto</th><th>Vencimiento</th><th>Importe con IVA</th></tr></thead><tbody>'
+    for row in plan['installments']:
+        values = [row['sequence'], 'Mercancía' if row['component']=='MERCHANDISE' else 'Portes',
+                  date_text(row['due_date']), number_text(row['amount'],2)+' '+plan['currency']]
+        html += '<tr>'+''.join('<td>'+_text(value)+'</td>' for value in values)+'</tr>'
+    return html+'</tbody></table><p>Cuotas cuadradas con los costes declarados. Soporte, otros gastos y duplicados con tesorería pendientes de revisión. No incorporadas a la proyección.</p>'
+
+
 def _financial_context(context, execution=None):
     if not context:
         return ''
@@ -112,6 +125,7 @@ def render_report(report):
             ('Moneda', currency), ('Emisor', shipping.get('billed_by')), ('Vencimiento', shipping.get('due_date'))]))
     else:
         pieces.append('<p>Sin desglose comercial conservado en esta propuesta.</p>')
+    pieces.append(_payment_plan(p.get('payment_plan')))
     pieces.extend(['<h2>3. COMPARACIÓN CON LA ÚLTIMA COMPRA</h2>', '<p>' + _text(price.get('message')) + '</p>'])
     if price.get('status') == 'COMPARABLE':
         ref = price['reference']

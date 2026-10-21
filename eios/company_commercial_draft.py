@@ -41,6 +41,13 @@ def commercial_draft(report):
             'Emisor de portes: ' + {'SUPPLIER':'proveedor','CARRIER':'transportista'}.get(shipping.get('billed_by'), 'pendiente'),
             'Vencimiento de portes: ' + date_text(shipping.get('due_date')),
         ])
+    plan = p.get('payment_plan')
+    if plan and plan.get('status') == 'DECLARED_UNVERIFIED':
+        lines.append('Calendario de pagos propuesto, pendiente de confirmación:')
+        for row in plan['installments']:
+            lines.append(('Mercancía' if row['component']=='MERCHANDISE' else 'Portes') +
+                         ': ' + number_text(row['amount'],2) + ' ' + currency +
+                         ' · ' + date_text(row['due_date']))
     lines.extend([
         'Total declarado de la operación: ' + money('operation_total'),
         'Vencimiento de mercancía: ' + date_text(p.get('due_date')),
