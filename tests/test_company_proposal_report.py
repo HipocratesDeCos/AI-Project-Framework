@@ -147,6 +147,15 @@ class PrintableProposalReportTest(unittest.TestCase):
             with self.assertRaises(HTTPError) as error:
                 urlopen(human_request,timeout=5)
             self.assertEqual(error.exception.code,400)  # this review has no captured supports
+            calendar_request=Request(root+'/api/purchases/payments/calendar',data=data,
+                headers={'Content-Type':'application/json'},method='POST')
+            with self.assertRaises(HTTPError) as error:
+                urlopen(calendar_request,timeout=5)
+            self.assertEqual(error.exception.code,403)
+            calendar_request.add_header('X-EIOS-Token',token)
+            with self.assertRaises(HTTPError) as error:
+                urlopen(calendar_request,timeout=5)
+            self.assertEqual(error.exception.code,400)
             draft_request = Request(root+'/api/purchases/commercial-draft', data=data,
                                     headers={'Content-Type':'application/json'}, method='POST')
             with self.assertRaises(HTTPError) as error:

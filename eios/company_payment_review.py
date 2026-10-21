@@ -57,7 +57,7 @@ def _summary(row):
         not_confirmed_count=sum(f['outcome']=='NOT_CONFIRMED' for f in findings),
         conflict_count=sum(f['outcome']=='CONFLICT_REPORTED' for f in findings),
         scope='DECLARED_LISTED_INSTALLMENT_ASSOCIATIONS_ONLY',
-        required_calendar_status='NOT_SUPPLIED',evidence_upgrade_status='NOT_PERFORMED',
+        calendar_check_scope='SEPARATE_CALENDAR_COVERAGE',evidence_upgrade_status='NOT_PERFORMED',
         reviewer_identity_status='LOCAL_DECLARATION_NOT_AUTHENTICATED',
         decision_authority=False,operational_path='FORBIDDEN')
 
