@@ -194,7 +194,24 @@ def _treasury_support(support):
     html+=_rows([(labels[key],'Coincide' if value is True else 'No coincide' if value is False else 'Sin datos') for key,value in support['technical_comparisons'].items()])
     for doc in support['documents']:
         html+=_rows([('Documento de soporte',doc['document_ref']),('Huella del soporte',doc['sha256'])])
-    return html+'<p>Coincidencia técnica no valida disponibilidad, restricciones o suficiencia. Los seis controles contextuales siguen pendientes; no cambia el saldo financiero ni evalúa la compra.</p>'
+    labels={'SOURCE_CORRESPONDENCE':'Correspondencia con la empresa','ECONOMIC_CUTOFF':'Fecha de corte','AMOUNT_SUPPORT':'Soporte del importe','AVAILABILITY':'Disponibilidad','RESTRICTIONS':'Restricciones','SOURCE_SUFFICIENCY':'Suficiencia'}
+    for item in support.get('observations',[]):
+        html+=_rows([('Comprobación declarada',labels[item['condition']]),('Resultado observado',{'DECLARED_CONSISTENT':'Declarado coherente','DECLARED_INCONSISTENT':'Discrepancia declarada','NOT_ESTABLISHED':'No establecido'}[item['outcome']]),('Nota',item['note'])])
+    return html+'<p>Controles sin comprobar: '+_text(len(support['pending_controls']))+'. Coincidencia técnica y comprobaciones declaradas no validan por sí solas disponibilidad, restricciones o suficiencia; no cambia el saldo financiero ni evalúa la compra.</p>'
+
+
+
+def _treasury_context(context):
+    if not context or context['status']=='NOT_RECORDED':
+        return ''
+    html='<h3>VALORACIÓN CONTEXTUAL DECLARADA</h3>'
+    html+=_rows([('Estado','Valoración de otro soporte' if context['status']=='PREVIOUS_MATERIAL_ASSESSMENT' else 'Declaraciones conservadas'),('Referencia',context['assessment_ref']),('Responsable declarado',context['reviewer_ref']),('Condiciones sin valoración',len(context['pending_conditions']))])
+    labels={'SOURCE_CORRESPONDENCE':'Correspondencia con la empresa','ECONOMIC_CUTOFF':'Fecha de corte','AMOUNT_SUPPORT':'Soporte del importe','AVAILABILITY':'Disponibilidad','RESTRICTIONS':'Restricciones','SOURCE_SUFFICIENCY':'Suficiencia'}
+    for item in context['declarations']:
+        html+=_rows([('Condición',labels[item['condition']]),('Criterio y versión',item['criterion_reference']+' / '+item['criterion_version']),('Aplicabilidad',{'APPLIES':'Se aplica','DOES_NOT_APPLY':'No se aplica','NOT_DETERMINED':'No determinado'}[item['applicability']]),('Motivo de aplicabilidad',item['applicability_reason']),('Necesidad',{'NECESSARY_FOR_DETERMINED_PROJECTION':'Necesaria para proyección determinada','RELEVANT_NOT_NECESSARY':'Relevante, no necesaria','NOT_DETERMINED':'No determinado'}[item['necessity']]),('Motivo de necesidad',item['necessity_reason']),('Impacto',item['impact_reason']),('Suficiencia',{'DECLARED_SUFFICIENT':'Declarado suficiente','DECLARED_INSUFFICIENT':'Declarado insuficiente','NOT_ESTABLISHED':'No establecido'}[item['support_assessment']]),('Motivo de suficiencia',item['support_reason'])])
+        for locator in item['support_locators']:
+            html+=_rows([('Documento',locator['document_ref']),('Página',locator['page']),('Sección',locator['section'])])
+    return html+'<p>Declaraciones locales sin autenticación de autoridad. No generan controles de calidad, elevación de evidencia o viabilidad de compra.</p>'
 
 
 def _financial_context(context, execution=None):
@@ -319,7 +336,7 @@ def render_report(report):
     else:
         pieces.append('<p>Sin captura anterior; no se reconstruye con datos actuales.</p>')
     pieces.extend(['<p>Necesidad de reposición, rotación y cantidad recomendada: pendientes de evaluación. Las referencias de stock y planificación son sintéticas y fechadas.</p>',
-                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _declared_coverage(report.get('payment_associations')), _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), _documentary_capture(report.get('finance_execution')), _human_payment_review(report.get('payment_documentary_review')), _required_calendar(report.get('required_calendar_coverage')), _quality_preparation(report.get('finance_quality_preparation')), _treasury_support(report.get('treasury_documentary_support')), '<p>' + _text(report['finance'].get('message')) + '</p>',
+                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _declared_coverage(report.get('payment_associations')), _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), _documentary_capture(report.get('finance_execution')), _human_payment_review(report.get('payment_documentary_review')), _required_calendar(report.get('required_calendar_coverage')), _quality_preparation(report.get('finance_quality_preparation')), _treasury_support(report.get('treasury_documentary_support')), _treasury_context(report.get('treasury_contextual_assessment')), '<p>' + _text(report['finance'].get('message')) + '</p>',
                    '<p>Evaluación financiera: PENDIENTE. Reglas y conclusión del decisor: PENDIENTES. Decisión humana: no registrada en esta revisión.</p>',
                    '<h2>6. COMPROBACIONES PENDIENTES</h2><ul>',
                    *['<li>' + _text(item) + '</li>' for item in report.get('pending', [])], '</ul>',

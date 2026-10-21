@@ -174,6 +174,15 @@ class PrintableProposalReportTest(unittest.TestCase):
             with self.assertRaises(HTTPError) as error:
                 urlopen(treasury_request,timeout=5)
             self.assertEqual(error.exception.code,400)
+            for endpoint in ('/api/purchases/treasury/observation','/api/purchases/treasury/context'):
+                request=Request(root+endpoint,data=data,headers={'Content-Type':'application/json'},method='POST')
+                with self.assertRaises(HTTPError) as error:
+                    urlopen(request,timeout=5)
+                self.assertEqual(error.exception.code,403)
+                request.add_header('X-EIOS-Token',token)
+                with self.assertRaises(HTTPError) as error:
+                    urlopen(request,timeout=5)
+                self.assertEqual(error.exception.code,400)
             draft_request = Request(root+'/api/purchases/commercial-draft', data=data,
                                     headers={'Content-Type':'application/json'}, method='POST')
             with self.assertRaises(HTTPError) as error:
