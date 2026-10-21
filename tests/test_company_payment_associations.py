@@ -41,7 +41,7 @@ class PaymentAssociationsTest(unittest.TestCase):
         self.assertFalse(result['included_in_projection'])
         self.assertEqual(self.desk.printable_report(*args),old)
         current=self.desk.review('one',self.saved['proposal_id'])
-        self.assertEqual(current['version'],'COMPANY-CONTEXT-REVIEW-10')
+        self.assertEqual(current['version'],'COMPANY-CONTEXT-REVIEW-11')
         self.assertEqual(current['payment_associations'],result)
         html=self.desk.printable_report('one',self.saved['proposal_id'],current['review_id'])
         self.assertIn('ASOCIACIONES DECLARADAS',html)
