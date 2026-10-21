@@ -1,5 +1,6 @@
 """Prepare presented quality material with existing contracts, without judging it."""
 from datetime import datetime, timezone
+import base64
 import json
 import sqlite3
 
@@ -36,7 +37,7 @@ def _read(c, report):
                           for item in payload['presented_criteria']],
                 coverage_fingerprint=payload['coverage_fingerprint'],
                 review_fingerprint=payload['review_fingerprint'],
-                designation_status='NOT_SUPPLIED', treasury_support_status='NOT_PREPARED',
+                designation_status='NOT_SUPPLIED', treasury_support_scope='SEPARATE_TREASURY_SUPPORT',
                 quality_evaluation_status='NOT_EXECUTED', viability_status='NOT_EVALUATED',
                 decision_authority=False, operational_path='FORBIDDEN')
 
@@ -45,6 +46,45 @@ def read_quality_preparation(db, report):
     with sqlite3.connect(db) as c:
         c.execute(SCHEMA)
         return _read(c, report)
+
+
+def rebuild_quality_preparation(c, db, report):
+    """Reproduce the exact selected preparation through public core factories."""
+    expected = report.get('finance_quality_preparation') or {}
+    current = _read(c, report)
+    if (expected.get('status') != 'PREPARED_PRESENTED_MATERIAL_ONLY'
+            or current.get('fingerprint') != expected.get('fingerprint')):
+        raise ValueError('Prepara de nuevo el material de calidad de esta revisión.')
+    calendar_state = read_calendar(c, report)
+    latest = _latest(c, report)
+    if (calendar_state.get('fingerprint') != expected['coverage_fingerprint']
+            or (latest[1] if latest else None) != expected['review_fingerprint']):
+        raise ValueError('El calendario o la revisión documental han cambiado. Vuelve a revisar y preparar el material.')
+    raw = c.execute('SELECT payload FROM company_finance_quality_preparation WHERE fingerprint=? AND dataset_id=? AND proposal_id=? ORDER BY revision DESC LIMIT 1',
+                    (expected['fingerprint'], report['dataset_id'], report['proposal_id'])).fetchone()
+    payload = json.loads(raw[0])
+    capture = _rebuild_capture(c, db, report)
+    calendar = RequiredInstallmentCalendar.model_validate_json(json.dumps(payload['calendar']))
+    coverage = check_required_installment_coverage(capture=capture, calendar=calendar)
+    if coverage.fingerprint != payload['coverage_fingerprint']:
+        raise ValueError('La cobertura conservada no se reproduce exactamente.')
+    review = None
+    if payload['review'] is not None:
+        source = payload['review']
+        review = build_documentary_payment_human_review(capture=capture,
+            review_ref=source['review_ref'], reviewer_ref=source['reviewer_ref'],
+            reviewed_at=datetime.fromisoformat(source['reviewed_at']),
+            findings=tuple(_finding(item) for item in source['findings']),
+            previous_review_ref=source['previous_review_ref'])
+    if payload['designation'] is not None:
+        raise ValueError('Esta ruta no importa designaciones de revisor.')
+    criteria = tuple(PresentedQualityCriteria(reference=item['reference'], version=item['version'],
+        content=base64.b64decode(item['content_base64'], validate=True)) for item in payload['presented_criteria'])
+    result = build_finance_quality_preparation(capture=capture, calendar=calendar,
+        coverage=coverage, criteria=criteria, review=review, designation=None)
+    if result.fingerprint != expected['fingerprint'] or result.to_payload() != payload:
+        raise ValueError('La preparación conservada no se reproduce exactamente.')
+    return result
 
 
 def save_quality_preparation(db, report, data):

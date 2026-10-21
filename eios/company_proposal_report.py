@@ -177,6 +177,26 @@ def _quality_preparation(prepared):
     return html+'<p>No evalúa suficiencia, autoridad o viabilidad. Designación del revisor, soporte contextual de tesorería y evaluación de calidad siguen pendientes.</p>'
 
 
+
+def _treasury_support(support):
+    if not support:
+        return ''
+    html='<h3>SOPORTE DOCUMENTAL DEL SALDO DE TESORERÍA</h3>'
+    if support['status']=='NOT_RECORDED':
+        return html+'<p>Sin soporte vinculado a esta preparación.</p>'
+    declaration=support['declaration']
+    labels={'amount_matches':'Importe frente al paquete','currency_matches':'Moneda frente al paquete','economic_date_matches':'Fecha frente al paquete'}
+    html+=_rows([('Estado','Soporte de material anterior' if support['status']=='PREVIOUS_MATERIAL_SUPPORT' else 'Declaración conservada · validación pendiente'),
+        ('Registro',support['record_ref']),('Responsable declarado',support['reviewer_ref']),
+        ('Empresa en el soporte',declaration['documentary_company']),
+        ('Saldo transcrito',number_text(declaration['available_amount'],2)+' '+declaration['currency']),
+        ('Fecha económica del soporte',date_text(declaration['economic_date']))])
+    html+=_rows([(labels[key],'Coincide' if value is True else 'No coincide' if value is False else 'Sin datos') for key,value in support['technical_comparisons'].items()])
+    for doc in support['documents']:
+        html+=_rows([('Documento de soporte',doc['document_ref']),('Huella del soporte',doc['sha256'])])
+    return html+'<p>Coincidencia técnica no valida disponibilidad, restricciones o suficiencia. Los seis controles contextuales siguen pendientes; no cambia el saldo financiero ni evalúa la compra.</p>'
+
+
 def _financial_context(context, execution=None):
     if not context:
         return ''
@@ -299,7 +319,7 @@ def render_report(report):
     else:
         pieces.append('<p>Sin captura anterior; no se reconstruye con datos actuales.</p>')
     pieces.extend(['<p>Necesidad de reposición, rotación y cantidad recomendada: pendientes de evaluación. Las referencias de stock y planificación son sintéticas y fechadas.</p>',
-                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _declared_coverage(report.get('payment_associations')), _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), _documentary_capture(report.get('finance_execution')), _human_payment_review(report.get('payment_documentary_review')), _required_calendar(report.get('required_calendar_coverage')), _quality_preparation(report.get('finance_quality_preparation')), '<p>' + _text(report['finance'].get('message')) + '</p>',
+                   '<h2>5. TESORERÍA Y DECISIÓN</h2>', _declared_coverage(report.get('payment_associations')), _payment_matching(report.get('payment_matching')), _payment_associations(report.get('payment_associations')), _financial_context(report.get('financial_context'),report.get('finance_execution')), _finance_execution(report.get('finance_execution')), _documentary_capture(report.get('finance_execution')), _human_payment_review(report.get('payment_documentary_review')), _required_calendar(report.get('required_calendar_coverage')), _quality_preparation(report.get('finance_quality_preparation')), _treasury_support(report.get('treasury_documentary_support')), '<p>' + _text(report['finance'].get('message')) + '</p>',
                    '<p>Evaluación financiera: PENDIENTE. Reglas y conclusión del decisor: PENDIENTES. Decisión humana: no registrada en esta revisión.</p>',
                    '<h2>6. COMPROBACIONES PENDIENTES</h2><ul>',
                    *['<li>' + _text(item) + '</li>' for item in report.get('pending', [])], '</ul>',
