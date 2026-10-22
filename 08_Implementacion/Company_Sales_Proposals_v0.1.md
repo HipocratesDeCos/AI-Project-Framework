@@ -142,3 +142,11 @@ SKU;Unidad;PVP_sin_IVA;Moneda;Valida_desde;Valida_hasta
 ```
 
 Validación: seis pruebas específicas de precio exacto, margen, precedencia del historial, vigencia, conservación de propuestas, fuente modificada, unidades/monedas/empresas incompatibles, concurrencia y formato. Suite general inicial: 2773 correctas; comprobación focal posterior tras exigir la huella de la fila. Recorrido DOM/HTTP con servidor real: selección, procedencia, PVP, historial, traslado, caducidad sin sobrescribir el precio negociado y retirada. JavaScript comprobado. Inspección visual pendiente.
+
+## Plantilla de tarifa de la empresa activa
+
+El botón «Descargar plantilla de tarifa de esta empresa», en Ficha e historial, descarga un XLSX con SKU, descripción de consulta y unidad del catálogo activo. Los SKU se conservan como texto, incluidos ceros iniciales. PVP y fechas de vigencia permanecen vacíos y sus celdas se resaltan en amarillo. EUR figura como moneda propuesta, que debe confirmarse al cumplimentar la tarifa.
+
+La hoja Tarifa es la primera y contiene cabecera en fila 1. Una segunda hoja identifica empresa, naturaleza y corte y explica cómo completar, eliminar filas que no se vayan a usar y relacionar columnas al cargar el Excel. La descripción sirve únicamente para consulta; no se utiliza para vincular el artículo. La plantilla no modifica datos ni registra una tarifa, precios o aprobaciones. Rechaza catálogos vacíos, SKU repetidos o sin unidad. Si cambia la empresa mientras se genera, el navegador descarta la descarga antigua.
+
+Validación: tres pruebas de conservación de identificadores y ausencia de precios/fórmulas, recorrido Excel cumplimentado → lector real → normalización de tarifa, y rechazo de catálogos incompletos o ambiguos. Nueve pruebas focales correctas incluyendo las seis de tarifas. Recorrido DOM/HTTP: botón, XLSX descargado legible por recepción y descarte al cambiar empresa durante la respuesta. JavaScript comprobado sintácticamente.
