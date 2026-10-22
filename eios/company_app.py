@@ -165,17 +165,26 @@ class PurchaseDesk:
 
     def sales_offer(self, data, *, persist=True):
         from eios.company_sales_proposals import save_offer
-        return save_offer(self.db,self.state(str(data['dataset_id'])),data,persist=persist)
+        return save_offer(self.db,self.sales_state(str(data['dataset_id'])),data,persist=persist)
+
+    def sales_state(self, dataset):
+        from eios.company_parameters import read_parameters
+        state=self.state(dataset)
+        state['sales_parameters']=read_parameters(self.db,self.store,dataset)['current']
+        state['sales_financial_context']=financial_context(self.store,dataset,state['info'])
+        return state
 
     def sales_orientation(self, data):
         from eios.company_sales_proposals import orientation
-        state=self.state(str(data['dataset_id']))
+        state=self.sales_state(str(data['dataset_id']))
         if data.get('customer_id') not in {c['customer_id'] for c in state['customers']}:
             raise ValueError('Selecciona un cliente de esta versión.')
         article=next((a for a in state['articles'] if a['article_id']==data.get('article_id')),None)
         if article is None:
             raise ValueError('Selecciona un artículo de esta versión.')
-        return orientation(state,data['customer_id'],article)
+        from eios.company_sales_negotiation import price_reference
+        basis=orientation(state,data['customer_id'],article)
+        return dict(basis,article=article,price_reference=price_reference(basis,state['sales_parameters']))
 
     def state(self, dataset):
         info = self.store.describe(dataset)
