@@ -82,7 +82,8 @@ def save_tariff(db,data):
             actor=actor.strip(),reason=reason.strip(),created_at=datetime.now(timezone.utc).isoformat(),
             origin='EXPLICIT_RECEIVED_TARIFF_SELECTION',admission_status='PENDING',decision_authority=False,operational_path='FORBIDDEN')
         c.execute('INSERT INTO company_sales_tariff VALUES(?,?,?,?)',(dataset,sku,payload['revision'],json.dumps(payload,ensure_ascii=False,allow_nan=False)))
-    return payload
+        reply=dict(payload,context_fingerprint=capture_context(c,dataset)['fingerprint'])
+    return reply
 
 
 def apply_tariffs(db,store,dataset,articles):

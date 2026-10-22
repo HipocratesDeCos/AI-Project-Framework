@@ -158,3 +158,17 @@ Al leer Excel/CSV, la recepción propone el contenido Tarifa de venta y las seis
 El formulario muestra que el mapeo es una propuesta pendiente de revisión. No se deduce empresa, corte, moneda, vigencia ni formato numérico a partir de este reconocimiento. Comprobar y guardar siguen siendo acciones expresas. Una edición manual del mapeo invalida el ticket anterior y obliga a comprobar de nuevo. Para los demás contenidos, los encabezados genéricos repetidos dejan de resolverse arbitrariamente por la primera coincidencia.
 
 Validación: 23 pruebas focales correctas, incluidas tres nuevas de reordenación/ambigüedad, plantilla XLSX → recepción → validación, y archivos no compatibles. Recorrido DOM/HTTP con servidor real: lectura, contenido y seis asignaciones propuestos, comprobación, invalidación tras editar una columna y mapeo vacío con SKU duplicado. JavaScript comprobado sintácticamente. La integración anterior #510 y su CI posterior se comprobaron como satisfactorias antes de este cambio.
+
+## Carga expresa por lote de una tarifa ficticia
+
+`python -m eios.company_sales_tariff_load --db RUTA_DB --file RUTA_XLSX --actor "Responsable de prueba"` recibe una tarifa sintética cumplimentada con la hoja Tarifa y los encabezados de EIOS. Cuando hay varias versiones documentales exige `--dataset`. Valida todas las filas antes de recibir el archivo: SKU único por fila, unidad exacta de catálogo, EUR, precio no negativo y fechas válidas. Solo permite la empresa sintética. No interpreta descripciones como SKU.
+
+El archivo se conserva mediante recepción y sus filas se seleccionan con el vinculador de tarifa existente. Las tarifas ya seleccionadas y los PVP explícitos del catálogo se conservan; repetir la carga no añade selecciones para esos artículos. El resultado indica `selected_count`, `preserved_count` y los SKU correspondientes. No registra ventas ni reservas ni activa parámetros de margen. El margen usado para crear una tarifa no se convierte en límite empresarial aprobado.
+
+Cada selección es una revisión independiente append-only. La respuesta del vinculador incluye la huella tras su propia escritura; la carga utiliza esa huella exacta en la siguiente revisión para rechazar cambios concurrentes. La recepción y las selecciones no constituyen una única transacción: ante una interrupción se conserva el archivo y las revisiones ya registradas, se informa del número completado y puede repetirse la carga conservándolas.
+
+### A Monkey: tarifa ficticia al 30 %
+
+Se preparó una tarifa de 18 artículos a partir de sus últimas compras comparables, con margen sobre venta del 30 %: coste / 0,70 y redondeo al céntimo superior. Las fuentes del coste se conservan en la hoja de cálculo de soporte. La vigencia 22/10/2026–31/12/2026 es una hipótesis explícita para la prueba. La hoja Tarifa contiene valores fijos importables; la hoja Calculo conserva el cálculo y las referencias. No se presenta como tarifa original ni como precios de mercado.
+
+Validación: cuatro pruebas nuevas de carga, repetición, conservación, incompatibilidades, versiones/actor explícitos y bloqueo de material real; diez pruebas focales correctas. Suite general inicial: 2783 correctas. Recorrido con una copia de la base de A Monkey: 18 filas seleccionadas, 18 PVP/defaults recuperados y márgenes exactos >=30 %; segunda carga conserva los 18 sin nuevas selecciones. El archivo se calculó, verificó y revisó visualmente. La base original no se modificó durante estas pruebas. Las 24 líneas históricas sin SKU/unidad siguen pendientes de correspondencia expresa.
