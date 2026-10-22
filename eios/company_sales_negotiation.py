@@ -136,7 +136,7 @@ def analyze_offer(payload, state, data):
         if target is not None:
             scenario('1. Mantener el objetivo de origen',total_cost,Decimal(payload['freight_net']),bool(label),
                 payload['offer_date'] if pressure or block_credit else payload['due_date'],
-                'Proponer cobro anticipado antes de entregar.' if pressure or block_credit else payload['payment_terms'],target)
+                'Proponer cobro anticipado antes de entregar.' if pressure or block_credit else payload['payment_terms'] or 'Proponer cobro al vencimiento indicado.',target)
         else:
             scenarios.append(dict(title='1. Precio de origen pendiente',message='Configura el margen objetivo en Parámetros; no se adopta uno por defecto.'))
         scenario('2. Reducir concesiones y cobrar en la entrega',merchandise_cost+(logistics or 0),logistics or Decimal(0),False,
