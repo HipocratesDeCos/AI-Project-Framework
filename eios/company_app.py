@@ -215,7 +215,9 @@ class PurchaseDesk:
         from eios.company_sales_tariffs import apply_tariffs
         articles=apply_tariffs(self.db,self.store,dataset,[r['data'] for r in self.store.records(dataset,'article')])
         sales=apply_links(self.db,self.store,dataset,documented_sales(self.store,dataset,info['as_of_date']))
-        return dict(sales_proposals=offers(self.db,dataset),info=info, documentary_context=documentary_context, purchase_documents=documented_purchases(self.store,dataset,info['as_of_date']), sales=sales, customers=[r['data'] for r in self.store.records(dataset, 'customer')], suppliers=[r['data'] for r in self.store.records(dataset, 'supplier')],
+        from eios.company_sales_catalogue import expanded_catalogue
+        sales_catalogue=expanded_catalogue(dataset,articles,sales)
+        return dict(sales_catalogue=sales_catalogue,sales_proposals=offers(self.db,dataset),info=info, documentary_context=documentary_context, purchase_documents=documented_purchases(self.store,dataset,info['as_of_date']), sales=sales, customers=[r['data'] for r in self.store.records(dataset, 'customer')], suppliers=[r['data'] for r in self.store.records(dataset, 'supplier')],
                     articles=articles,
                     pending=[r['data'] for r in self.store.records(dataset, 'missing_or_conflicting')],
                     purchases=proposals, inventory=read_inventory(self.db, dataset),
