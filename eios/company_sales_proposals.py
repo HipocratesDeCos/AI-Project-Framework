@@ -73,6 +73,9 @@ def _save_offer(db, state, data, persist):
         raise ValueError('La versión documental ha cambiado. Recarga la pantalla.')
     if state['documentary_context']['material_nature'] != 'SYNTHETIC':
         raise ValueError('Esta primera versión requiere una empresa sintética de pruebas.')
+    expected = data.get('commercial_parameter_revision')
+    if expected is not None and (type(expected) is not int or expected != state.get('sales_parameters',{}).get('revision',0)):
+        raise ValueError('Los parámetros comerciales han cambiado. Recarga la pantalla.')
     customer = next((c for c in state['customers'] if c['customer_id'] == data.get('customer_id')), None)
     if customer is None:
         raise ValueError('Selecciona un cliente de esta empresa y versión.')
@@ -136,6 +139,8 @@ def _save_offer(db, state, data, persist):
         freight_tax=str(freight_tax), net_amount=str(net), vat_amount=str(tax), total=str(net+tax),
         documentary_context=deepcopy(state['documentary_context']),
         status='SAVED_SYNTHETIC_OFFER', decision_authority=False, operational_path='FORBIDDEN')
+    from eios.company_sales_negotiation import analyze_offer
+    payload['negotiation']=analyze_offer(payload,state,data)
     if data['dataset_id'] != state['documentary_context']['dataset_id']:
         raise ValueError('La empresa y versión no coinciden.')
     if not persist:
@@ -146,6 +151,9 @@ def _save_offer(db, state, data, persist):
         c.execute('BEGIN IMMEDIATE')
         if capture_context(c,data['dataset_id'])['fingerprint'] != data['context_fingerprint']:
             raise ValueError('La documentación ha cambiado. Recarga la pantalla.')
+        row=c.execute('SELECT revision FROM company_parameter_request WHERE company_id=? ORDER BY revision DESC LIMIT 1',(state['info']['company']['company_id'],)).fetchone()
+        if (row[0] if row else 0) != state.get('sales_parameters',{}).get('revision',0):
+            raise ValueError('Los parámetros comerciales han cambiado. Recarga la pantalla.')
         try:
             c.execute('INSERT INTO manual_sales_proposal VALUES(?,?,?,?,?)',
                 (payload['proposal_id'],data['dataset_id'],reference,payload['created_at'],json.dumps(payload,ensure_ascii=False,allow_nan=False)))

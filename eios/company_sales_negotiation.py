@@ -1,0 +1,140 @@
+"""Conditional commercial scenarios, without activating Rules or financial authority."""
+from datetime import date
+from decimal import Decimal, ROUND_CEILING, ROUND_FLOOR
+from eios.company_commercial_terms import number
+
+
+def margin_policy(parameters):
+    values = parameters.get('values', {})
+    def read(key):
+        raw = values.get(key)
+        if raw is None:
+            return None
+        value = Decimal(str(raw))
+        return value if value.is_finite() and 0 <= value < 100 else None
+    minimum, target = read('P-MGE-001'), read('P-MGE-002')
+    if minimum is not None and target is not None and target < minimum:
+        target = None
+    return dict(revision=parameters.get('revision', 0), minimum=minimum, target=target)
+
+
+def price_reference(basis, parameters):
+    policy = margin_policy(parameters)
+    cost = basis['reference_unit_cost']
+    target = policy['target']
+    recommended = (Decimal(cost)/(1-target/100)).quantize(Decimal('.01'), rounding=ROUND_CEILING) if cost is not None and target is not None else None
+    discount = None
+    if recommended is not None and recommended>0 and policy['minimum'] is not None:
+        floor = Decimal(cost)/(1-policy['minimum']/100)
+        discount = max(Decimal(0),(1-floor/recommended)*100).quantize(Decimal('.01'),rounding=ROUND_FLOOR)
+    return dict(recommended_unit_price=str(recommended) if recommended is not None else None,
+                maximum_reference_discount_percent=str(discount) if discount is not None else None,
+                target_margin_percent=str(target) if target is not None else None,
+                minimum_margin_percent=str(policy['minimum']) if policy['minimum'] is not None else None,
+                parameter_revision=policy['revision'],
+                basis='HISTORICAL_PURCHASE_AND_EXPLICIT_PREPARED_MARGIN',
+                authority_status='COMMERCIAL_SIMULATION_ONLY')
+
+
+def analyze_offer(payload, state, data):
+    parameters = state.get('sales_parameters', {})
+    policy = margin_policy(parameters)
+    logistics = None if data.get('seller_freight_cost') in (None, '') else number(data,'seller_freight_cost')
+    label = data.get('gift_description','')
+    if not isinstance(label,str) or len(label)>300:
+        raise ValueError('Describe el merchandising en un máximo de 300 caracteres.')
+    label = label.strip()
+    gift = number(data,'gift_cost') if data.get('gift_cost') not in (None,'') else Decimal(0)
+    if label and data.get('gift_cost') in (None,''):
+        raise ValueError('Indica el coste explícito del merchandising.')
+    if not label and gift != 0:
+        raise ValueError('Describe el merchandising antes de indicar su coste.')
+    merchandise_cost = Decimal(0)
+    complete = True
+    references = []
+    for line in payload['lines']:
+        basis = line['orientation']
+        anchor = price_reference(basis, parameters)
+        references.append(dict(article_id=line['article_id'], **anchor))
+        unit = basis['reference_unit_cost']
+        if unit is None:
+            complete = False
+        else:
+            merchandise_cost += Decimal(unit)*Decimal(line['quantity'])
+    revenue = Decimal(payload['net_amount'])
+    total_cost = merchandise_cost + (logistics or 0) + gift
+    known = complete and logistics is not None
+    actual_margin = ((revenue-total_cost)/revenue*100).quantize(Decimal('.01')) if known and revenue>0 else None
+    minimum = policy['minimum']
+    budget = max(Decimal(0), revenue*(1-minimum/100)-merchandise_cost-(logistics or 0)) if known and minimum is not None else None
+    finance = state.get('sales_financial_context') or {}
+    snapshot, capital = finance.get('financial_snapshot') or {}, finance.get('working_capital_input') or {}
+    identity = (snapshot.get('company_scope') == finance.get('company_id')
+                and snapshot.get('as_of_date') == finance.get('as_of_date') and snapshot.get('currency') == 'EUR')
+    capital_identity = (capital.get('company_scope') == finance.get('company_id')
+                and capital.get('as_of_date') == finance.get('as_of_date') and capital.get('currency') == 'EUR')
+    treasury = Decimal(snapshot['available_treasury']) if identity and snapshot.get('available_treasury') is not None else None
+    working_capital = (Decimal(capital['current_assets'])-Decimal(capital['current_liabilities'])
+        if capital_identity and capital.get('current_assets') is not None and capital.get('current_liabilities') is not None else None)
+    payments = Decimal(0)
+    collections = Decimal(0)
+    partial = False
+    for row in finance.get('cash_flows', []):
+        flow = row['canonical']
+        when = flow.get('due_date')
+        if when is None or flow.get('amount') is None or flow.get('currency') != 'EUR':
+            partial = True
+            continue
+        if finance['as_of_date'] < when < payload['due_date']:
+            if flow['flow_type']=='PAYMENT': payments += Decimal(flow['amount'])
+            else: collections += Decimal(flow['amount'])
+    pressure = (working_capital is not None and working_capital<0) or (treasury is not None and payments>treasury+collections)
+    # Totals describe existing documentary maturities only. No sale collection is added,
+    # and aggregate coverage is never presented as a daily cash projection.
+    finance_summary = dict(as_of_date=finance.get('as_of_date'), treasury=str(treasury) if treasury is not None else None,
+        working_capital=str(working_capital) if working_capital is not None else None,
+        payments_before_collection=str(payments), collections_before_collection=str(collections),
+        partial=partial, pressure_indicator=pressure, evidence_pending_count=finance.get('evidence_pending_count'),
+        issues=finance.get('issues', []), forecast_status='NOT_EXECUTED',
+        scope='DOCUMENTARY_MATURITY_TOTALS_NOT_DAILY_PROJECTION',
+        message='Balance y vencimientos documentados: conciliación, completitud y efecto de la venta pendientes. Las alternativas no garantizan liquidez ni viabilidad.')
+    scenarios = []
+    if known and minimum is not None:
+        target = policy['target']
+        def scenario(name, cost, freight, include_gift, due, wording, desired):
+            net_required = (cost/(1-desired/100)).quantize(Decimal('.01'),rounding=ROUND_CEILING)
+            merchandise_net = max(Decimal(0),net_required-freight)
+            current_merchandise = sum(Decimal(l['net_amount']) for l in payload['lines'])
+            factor = merchandise_net/current_merchandise if current_merchandise>0 else None
+            adjusted = []
+            for line in payload['lines']:
+                unit = (Decimal(line['net_amount'])/Decimal(line['quantity'])*factor).quantize(Decimal('.01'),rounding=ROUND_CEILING) if factor is not None else None
+                adjusted.append(dict(article_id=line['article_id'], quantity=line['quantity'],net_unit_price=str(unit) if unit is not None else None))
+            actual_net = sum(Decimal(l['net_unit_price'])*Decimal(l['quantity']) for l in adjusted) + freight if factor is not None else None
+            percentage = ((actual_net-cost)/actual_net*100).quantize(Decimal('.01')) if actual_net is not None and actual_net>0 else None
+            scenarios.append(dict(title=name, lines=adjusted,freight_charged=str(freight),include_gift=include_gift,
+                suggested_due_date=due, collection_terms=wording, margin_percent=str(percentage) if percentage is not None else None,
+                threshold_status='MEETS_DECLARED_MARGIN_ONLY' if percentage is not None and percentage>=minimum else 'NOT_CALCULABLE',
+                message='Precios netos, sin otro descuento. Requiere confirmar costes completos, impuestos, crédito y tesorería. No se aplica automáticamente.'))
+        if target is not None:
+            scenario('1. Mantener el objetivo de origen',total_cost,Decimal(payload['freight_net']),bool(label),
+                payload['offer_date'] if pressure else payload['due_date'],
+                'Proponer cobro anticipado antes de entregar.' if pressure else payload['payment_terms'],target)
+        else:
+            scenarios.append(dict(title='1. Precio de origen pendiente',message='Configura el margen objetivo en Parámetros; no se adopta uno por defecto.'))
+        scenario('2. Reducir concesiones y cobrar en la entrega',merchandise_cost+(logistics or 0),logistics or Decimal(0),False,
+            payload['delivery_date'],'Proponer pago en la entrega y repercutir el coste logístico al cliente.',minimum)
+        scenario('3. Mantener merchandising con cobro anticipado',total_cost,Decimal(0),bool(label),payload['offer_date'],
+            'Proponer pago íntegro antes de la entrega; portes incluidos en el precio.',minimum)
+    return dict(schema='SALES-CONDITIONAL-NEGOTIATION-01', parameters_revision=policy['revision'],
+        parameters_scope='EXPLICIT_PREPARED_VALUES_NOT_RULES_ACTIVATION',
+        policy_snapshot={key:parameters.get('values',{}).get(key) for key in ('P-MGE-001','P-MGE-002')},origin_prices=references,
+        seller_freight_cost=str(logistics) if logistics is not None else None,
+        gift_description=label,gift_cost=str(gift),gift_budget=str(budget.quantize(Decimal('.01'))) if budget is not None else None,
+        gift_scope='INTERNAL_OPTION_NOT_COMMITTED_OR_TAX_CLASSIFIED',
+        contribution_margin_percent=str(actual_margin) if actual_margin is not None else None,
+        cost_scope='HISTORICAL_MERCHANDISE_PLUS_DECLARED_LOGISTICS_AND_GIFT_NOT_COMPLETE_COST',
+        below_declared_minimum=actual_margin<minimum if actual_margin is not None and minimum is not None else None,
+        financial_context=finance_summary, financial_inputs=finance, financial_context_fingerprint=finance.get('fingerprint'),scenarios=scenarios,
+        pending=[] if scenarios else ['Configura margen mínimo y objetivo en Parámetros y declara el coste logístico. Se requieren compras comparables únicas para todos los artículos.'],
+        viability_status='NOT_EVALUATED',decision_authority=False,operational_path='FORBIDDEN')
