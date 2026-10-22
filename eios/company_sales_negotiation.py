@@ -31,7 +31,7 @@ def price_reference(basis, parameters, article=None, on_date=None):
         if not candidate.is_finite() or candidate<0 or (article or {}).get('sale_currency')!='EUR':
             recommended=None;price_source='INVALID_OR_INCOMPATIBLE_CATALOGUE_PRICE'
         else:
-            recommended=candidate;price_source='DOCUMENTED_CATALOGUE_RECOMMENDED_SALE_PRICE'
+            recommended=candidate;price_source='SELECTED_SYNTHETIC_CATALOGUE_PRICE' if (article or {}).get('commercial_catalogue') else 'DOCUMENTED_CATALOGUE_RECOMMENDED_SALE_PRICE'
     tariff=(article or {}).get('received_sale_tariff')
     if tariff:
         selected=tariff['selection'];recommended=None
@@ -54,7 +54,7 @@ def price_reference(basis, parameters, article=None, on_date=None):
                 target_margin_percent=str(target) if target is not None else None,
                 minimum_margin_percent=str(policy['minimum']) if policy['minimum'] is not None else None,
                 parameter_revision=policy['revision'],
-                basis='RECEIVED_TARIFF_PENDING_ADMISSION' if tariff else 'DOCUMENTED_CATALOGUE_PRICE' if price_source=='DOCUMENTED_CATALOGUE_RECOMMENDED_SALE_PRICE' else 'HISTORICAL_PURCHASE_AND_EXPLICIT_PREPARED_MARGIN',
+                basis='RECEIVED_TARIFF_PENDING_ADMISSION' if tariff else 'SELECTED_SYNTHETIC_CATALOGUE_NO_DOCUMENTED_VALIDITY' if price_source=='SELECTED_SYNTHETIC_CATALOGUE_PRICE' else 'DOCUMENTED_CATALOGUE_PRICE' if price_source=='DOCUMENTED_CATALOGUE_RECOMMENDED_SALE_PRICE' else 'CATALOGUE_COST_AND_EXPLICIT_PREPARED_MARGIN' if basis.get('cost_scope')=='EXPLICIT_SYNTHETIC_CATALOGUE_NOT_LAST_PURCHASE' else 'HISTORICAL_PURCHASE_AND_EXPLICIT_PREPARED_MARGIN',
                 authority_status='COMMERCIAL_SIMULATION_ONLY')
 
 

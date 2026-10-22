@@ -64,7 +64,10 @@ def read_minimums(db, company, articles, inventory, history=None):
 
 def save_minimums(db, store, data):
     dataset=data['dataset_id'];info=store.describe(dataset);company=info['company']['company_id']
-    articles={r['data']['article_id']:r['data'] for r in store.records(dataset,'article')}
+    from eios.company_commercial_catalogue import apply_catalogue
+    with sqlite3.connect(db) as c:
+        active_articles,_,_=apply_catalogue(c,dataset,[r['data'] for r in store.records(dataset,'article')],[r['data'] for r in store.records(dataset,'supplier')])
+    articles={a['article_id']:a for a in active_articles}
     changes=data.get('changes')
     if not isinstance(changes,list) or not changes or len(changes)>500: raise ValueError('Indica entre 1 y 500 mínimos modificados.')
     prepared=[];seen=set()
