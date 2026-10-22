@@ -81,14 +81,21 @@ def _save_offer(db, state, data, persist):
     customer = next((c for c in state['customers'] if c['customer_id'] == data.get('customer_id')), None)
     if customer is None:
         raise ValueError('Selecciona un cliente de esta empresa y versión.')
-    reference = text(data.get('reference'), 'referencia', 100)
+    missing=[]
+    def document_text(key,label,maximum=500):
+        if not persist and data.get(key) in (None,''):
+            missing.append(label);return None
+        return text(data.get(key),label,maximum)
+    reference = document_text('reference','referencia',100)
     dates = {}
     for key in ('offer_date', 'valid_until', 'delivery_date', 'due_date'):
+        if not persist and key in ('valid_until','delivery_date') and data.get(key) in (None,''):
+            dates[key]=None;missing.append('fecha de vigencia' if key=='valid_until' else 'fecha de entrega');continue
         try:
             dates[key] = date.fromisoformat(data[key]).isoformat()
         except (KeyError, ValueError, TypeError):
             raise ValueError('Indica fechas válidas de oferta, vigencia, entrega y cobro.') from None
-    if any(dates[k] < dates['offer_date'] for k in ('valid_until','delivery_date','due_date')):
+    if any(dates[k] is not None and dates[k] < dates['offer_date'] for k in ('valid_until','delivery_date','due_date')):
         raise ValueError('Vigencia, entrega y cobro no pueden preceder a la oferta.')
     raw = data.get('lines')
     if not isinstance(raw, list) or not 1 <= len(raw) <= 30:
@@ -100,7 +107,12 @@ def _save_offer(db, state, data, persist):
         article = next((a for a in state['articles'] if a['article_id'] == item.get('article_id')), None)
         if article is None:
             raise ValueError('Cada artículo debe pertenecer a esta versión.')
-        terms = commercial_terms(dict(item, pricing_mode='BEFORE_DISCOUNT', discount_mode='PERCENT',
+        tax_known=item.get('vat_percent') not in (None,'')
+        if not tax_known and persist:raise ValueError('Indica el IVA de cada línea antes de guardar.')
+        if not tax_known:missing.append('IVA de '+article['article_id'])
+        # Zero is only an arithmetic placeholder for the net-price helper. It is
+        # never exposed or conserved as a supplied tax when the tax is missing.
+        terms = commercial_terms(dict(item, vat_percent=item.get('vat_percent') if tax_known else '0', pricing_mode='BEFORE_DISCOUNT', discount_mode='PERCENT',
             order_date=dates['offer_date'], due_date=dates['due_date'], shipping_mode='NONE'))
         basis = orientation(state, customer['customer_id'], article)
         net = Decimal(terms['net'])
@@ -111,16 +123,19 @@ def _save_offer(db, state, data, persist):
         lines.append(dict(article_id=article['article_id'], description=article.get('description') or article['article_id'],
             unit=article['unit_as_documented'], quantity=str(number(item,'quantity')),
             unit_price=str(number(item,'unit_price')), discount_percent=str(number(item,'discount_value',Decimal(100))),
-            vat_percent=str(number(item,'vat_percent',Decimal(100))),
-            net_amount=terms['net'], vat_amount=terms['tax'], total=terms['total'],
+            vat_percent=str(number(item,'vat_percent',Decimal(100))) if tax_known else None,tax_status='SUPPLIED' if tax_known else 'NOT_SUPPLIED',
+            net_amount=terms['net'], vat_amount=terms['tax'] if tax_known else None,total=terms['total'] if tax_known else None,
             orientation=basis, reference_margin_percent=reference_margin))
     freight = number(data,'freight_net')
     if freight != freight.quantize(Decimal('.01')):
         raise ValueError('Los portes facturados admiten dos decimales.')
-    freight_vat = number(data,'freight_vat_percent',Decimal(100))
-    freight_tax = (freight*freight_vat/100).quantize(Decimal('.01'))
+    freight_vat = number(data,'freight_vat_percent',Decimal(100)) if data.get('freight_vat_percent') not in (None,'') else None
+    if freight>0 and freight_vat is None:
+        if persist:raise ValueError('Indica el IVA de los portes facturados antes de guardar.')
+        missing.append('IVA de los portes')
+    freight_tax = (freight*freight_vat/100).quantize(Decimal('.01')) if freight_vat is not None else Decimal(0) if freight==0 else None
     net = sum((Decimal(l['net_amount']) for l in lines), freight)
-    tax = sum((Decimal(l['vat_amount']) for l in lines), freight_tax)
+    tax = sum((Decimal(l['vat_amount']) for l in lines),freight_tax) if freight_tax is not None and all(l['vat_amount'] is not None for l in lines) else None
     warnings = []
     requested = {}
     for line in lines:
@@ -135,12 +150,14 @@ def _save_offer(db, state, data, persist):
     payload = dict(warnings=warnings,schema='COMPANY-SALES-OFFER-01', proposal_id=str(uuid4()), dataset_id=data['dataset_id'],
         reference=reference, created_at=datetime.now(timezone.utc).isoformat(), **dates,
         company=deepcopy(state['info']['company']), customer=deepcopy(customer),
-        delivery_location=text(data.get('delivery_location'),'lugar de entrega'),
-        payment_terms=text(data.get('payment_terms'),'condiciones de cobro'),
-        currency='EUR', lines=lines, freight_net=str(freight), freight_vat_percent=str(freight_vat),
-        freight_tax=str(freight_tax), net_amount=str(net), vat_amount=str(tax), total=str(net+tax),
+        delivery_location=document_text('delivery_location','lugar de entrega'),
+        payment_terms=document_text('payment_terms','condiciones de cobro'),
+        currency='EUR', lines=lines, freight_net=str(freight), freight_vat_percent=str(freight_vat) if freight_vat is not None else None,
+        freight_tax=str(freight_tax) if freight_tax is not None else None,net_amount=str(net),vat_amount=str(tax) if tax is not None else None,total=str(net+tax) if tax is not None else None,
         documentary_context=deepcopy(state['documentary_context']),
         status='SAVED_SYNTHETIC_OFFER', decision_authority=False, operational_path='FORBIDDEN')
+    payload['document_completion_missing']=missing
+    payload['document_ready']=not missing and tax is not None
     from eios.company_sales_negotiation import analyze_offer
     payload['negotiation']=analyze_offer(payload,state,data)
     if data['dataset_id'] != state['documentary_context']['dataset_id']:
@@ -179,7 +196,7 @@ def printable_offer(db, dataset, proposal_id):
         '<table><thead><tr>'+''.join('<th>'+s+'</th>' for s in ('Artículo / unidad','Cantidad','Precio','Dto. %','IVA %','Neto'))+'</tr></thead><tbody>']
     for line in payload['lines']:
         html.append('<tr>'+''.join('<td>'+v+'</td>' for v in (esc(line['article_id']+' · '+line['description']+' / '+line['unit']),esc(number_text(line['quantity'])),money(line['unit_price']),esc(number_text(line['discount_percent'])),esc(number_text(line['vat_percent'])),money(line['net_amount'])))+'</tr>')
-    html.extend(['</tbody></table><p>Portes facturados al cliente (sin IVA): '+money(payload['freight_net'])+' · IVA '+esc(number_text(payload['freight_vat_percent']))+' %</p>',
+    html.extend(['</tbody></table><p>Portes facturados al cliente (sin IVA): '+money(payload['freight_net'])+(' · IVA '+esc(number_text(payload['freight_vat_percent']))+' %' if payload['freight_vat_percent'] is not None else ' · Sin cargo de portes')+'</p>',
         '<p>Base imponible: '+money(payload['net_amount'])+' · IVA: '+money(payload['vat_amount'])+' · <strong>TOTAL: '+money(payload['total'])+'</strong></p>',
         '<p>Entrega prevista: '+esc(date_text(payload['delivery_date']))+' · '+esc(payload['delivery_location'])+'</p>',
         '<p>Cobro previsto: '+esc(date_text(payload['due_date']))+' · '+esc(payload['payment_terms'])+'</p>',
