@@ -163,6 +163,20 @@ class PurchaseDesk:
         from eios.company_commercial_draft import commercial_draft
         return commercial_draft(self._saved_review(dataset, proposal_id, review_id))
 
+    def sales_offer(self, data, *, persist=True):
+        from eios.company_sales_proposals import save_offer
+        return save_offer(self.db,self.state(str(data['dataset_id'])),data,persist=persist)
+
+    def sales_orientation(self, data):
+        from eios.company_sales_proposals import orientation
+        state=self.state(str(data['dataset_id']))
+        if data.get('customer_id') not in {c['customer_id'] for c in state['customers']}:
+            raise ValueError('Selecciona un cliente de esta versión.')
+        article=next((a for a in state['articles'] if a['article_id']==data.get('article_id')),None)
+        if article is None:
+            raise ValueError('Selecciona un artículo de esta versión.')
+        return orientation(state,data['customer_id'],article)
+
     def state(self, dataset):
         info = self.store.describe(dataset)
         history={a['data']['article_id']:purchase_history(self.store,dataset,a['data'],info['as_of_date']) for a in self.store.records(dataset,'article')}
@@ -171,7 +185,8 @@ class PurchaseDesk:
             documentary_context = capture_context(c, dataset)
             proposals = [json.loads(r[0]) for r in c.execute(
                 'SELECT payload FROM manual_purchase_proposal WHERE dataset_id=? ORDER BY created_at DESC', (dataset,))]
-        return dict(info=info, documentary_context=documentary_context, purchase_documents=documented_purchases(self.store,dataset,info['as_of_date']), sales=documented_sales(self.store,dataset,info['as_of_date']), customers=[r['data'] for r in self.store.records(dataset, 'customer')], suppliers=[r['data'] for r in self.store.records(dataset, 'supplier')],
+        from eios.company_sales_proposals import offers
+        return dict(sales_proposals=offers(self.db,dataset),info=info, documentary_context=documentary_context, purchase_documents=documented_purchases(self.store,dataset,info['as_of_date']), sales=documented_sales(self.store,dataset,info['as_of_date']), customers=[r['data'] for r in self.store.records(dataset, 'customer')], suppliers=[r['data'] for r in self.store.records(dataset, 'supplier')],
                     articles=[r['data'] for r in self.store.records(dataset, 'article')],
                     pending=[r['data'] for r in self.store.records(dataset, 'missing_or_conflicting')],
                     purchases=proposals, inventory=read_inventory(self.db, dataset),
@@ -328,9 +343,9 @@ function compare(){
  let delta=price-old,pct=delta/old*100;
  target.textContent='Respecto a la última compra documentada ('+stockDate(r.issue_date)+', '+r.invoice_number+'): '+(delta>=0?'+':'')+money(delta)+' €/unidad · '+(pct>=0?'+':'')+money(pct)+' %. Comparación orientativa de precios netos; no es una recomendación de compra.';
 }
-async function refresh(){commercialDraftSequence++;$('commercial-draft').disabled=true;$('commercial-draft-panel').hidden=true;$('commercial-draft-subject').value='';$('commercial-draft-body').value='';$('commercial-draft-notice').textContent='';printableReview=null;$('proposal-report').disabled=true;$('proposal-report-notice').textContent='';$('stock-minimum-notice').textContent='';reviewRequest++;$('customer-sales').hidden=true;$('sale-lines').hidden=true;$('review-panel').hidden=true;state=await api('/api/state?dataset='+encodeURIComponent($('dataset').value));await loadParameters();$('company').textContent=state.info.company.legal_name||JSON.stringify(state.info.company);$('summary').textContent='Corte: '+stockDate(state.info.as_of_date)+' · Documentos: '+state.info.documents+' · Artículos: '+state.articles.length;$('pending').textContent=state.pending.map(x=>JSON.stringify(x,null,2)).join('\\n');$('supplier').replaceChildren();state.suppliers.forEach(s=>option($('supplier'),s.supplier_id,s.legal_name));articles();catalogues();$('rows').replaceChildren();state.purchases.forEach(p=>{let tr=document.createElement('tr');[p.reference,p.article_id,p.operation_total===null||p.operation_total===undefined?money(p.total)+' mercancía · portes pendientes':money(p.operation_total),stockDate(p.due_date),'PENDIENTE DE EVALUACIÓN'].forEach(v=>{let td=document.createElement('td');td.textContent=v;tr.append(td)});let cell=document.createElement('td'),button=document.createElement('button');button.type='button';button.className='review-button';button.textContent='Revisar';button.onclick=()=>reviewSaved(p.proposal_id,button);cell.append(button);tr.append(cell);$('rows').append(tr)})}
+async function refresh(){commercialDraftSequence++;$('commercial-draft').disabled=true;$('commercial-draft-panel').hidden=true;$('commercial-draft-subject').value='';$('commercial-draft-body').value='';$('commercial-draft-notice').textContent='';printableReview=null;$('proposal-report').disabled=true;$('proposal-report-notice').textContent='';$('stock-minimum-notice').textContent='';reviewRequest++;$('customer-sales').hidden=true;$('sale-lines').hidden=true;$('review-panel').hidden=true;state=await api('/api/state?dataset='+encodeURIComponent($('dataset').value));await loadParameters();$('company').textContent=state.info.company.legal_name||JSON.stringify(state.info.company);$('summary').textContent='Corte: '+stockDate(state.info.as_of_date)+' · Documentos: '+state.info.documents+' · Artículos: '+state.articles.length;$('pending').textContent=state.pending.map(x=>JSON.stringify(x,null,2)).join('\\n');$('supplier').replaceChildren();state.suppliers.forEach(s=>option($('supplier'),s.supplier_id,s.legal_name));articles();catalogues();resetSalesOffers();$('rows').replaceChildren();state.purchases.forEach(p=>{let tr=document.createElement('tr');[p.reference,p.article_id,p.operation_total===null||p.operation_total===undefined?money(p.total)+' mercancía · portes pendientes':money(p.operation_total),stockDate(p.due_date),'PENDIENTE DE EVALUACIÓN'].forEach(v=>{let td=document.createElement('td');td.textContent=v;tr.append(td)});let cell=document.createElement('td'),button=document.createElement('button');button.type='button';button.className='review-button';button.textContent='Revisar';button.onclick=()=>reviewSaved(p.proposal_id,button);cell.append(button);tr.append(cell);$('rows').append(tr)})}
 
-function view(name){reviewRequest++;$('review-panel').hidden=true;document.querySelectorAll('[data-view]').forEach(el=>el.hidden=el.dataset.view!==name);document.querySelectorAll('[data-nav]').forEach(el=>{if(el.dataset.nav===name)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});document.title='EIOS · '+({inicio:'Inicio',propuestas:'Propuestas',compras:'Compras',ventas:'Ventas',proveedores:'Proveedores',clientes:'Clientes',stock:'Stock',parametros:'Parámetros',archivos:'Carga de archivos'}[name]);$('notice').textContent=''}
+function view(name){reviewRequest++;$('review-panel').hidden=true;document.querySelectorAll('[data-view]').forEach(el=>el.hidden=el.dataset.view!==name);document.querySelectorAll('[data-nav]').forEach(el=>{if(el.dataset.nav===name)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});document.title='EIOS · '+({inicio:'Inicio',propuestas:'Propuestas de compra','propuestas-ventas':'Propuestas de venta',compras:'Compras',ventas:'Ventas',proveedores:'Proveedores',clientes:'Clientes',stock:'Stock',parametros:'Parámetros',archivos:'Carga de archivos'}[name]);$('notice').textContent=''}
 function tableRows(id,rows){$(id).replaceChildren();rows.forEach(values=>{let tr=document.createElement('tr');values.forEach(value=>{let td=document.createElement('td');td.textContent=typeof value==='number'?stockNumber(value):/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(value||'')?stockDate(value):value??'Sin datos';tr.append(td)});$(id).append(tr)})}
 
 function salesSource(refs){return (refs||[]).map(r=>(r.document_ref||'Fuente sin referencia')+(r.sheet?' · '+r.sheet:'')+(r.row!==undefined?' · fila '+r.row:'')+(r.page!==undefined?' · pág. '+r.page:'')+(r.section?' · '+r.section:'')).join('; ')||'Sin referencia documental'}
@@ -594,6 +609,12 @@ $('parameters-form').onsubmit=async event=>{event.preventDefault();if(!parameter
 datasets().catch(e=>$('notice').textContent=e.message);
 </script></body></html>'''
 
+from eios.company_sales_proposal_ui import HTML as SALES_OFFER_HTML, JS as SALES_OFFER_JS, CSS as SALES_OFFER_CSS
+PAGE = PAGE.replace('</style>',SALES_OFFER_CSS+'</style>',1).replace('<div data-view="compras"',SALES_OFFER_HTML+'<div data-view="compras"',1)
+PAGE = PAGE.replace('</svg>Propuestas</button>', '</svg>Propuestas de compra</button><button type="button" class="nav" data-nav="propuestas-ventas"><svg viewBox="0 0 24 26" aria-hidden="true"><path d="M4 3h16v20H4zM8 8h8M8 13h8M8 18h5"/></svg>Propuestas de venta</button>',1)
+PAGE = PAGE.replace('</script>',SALES_OFFER_JS+'</script>',1)
+
+
 
 def main():
     parser = argparse.ArgumentParser(description='EIOS: empresa y entrada local de propuestas de compra')
@@ -650,7 +671,7 @@ def main():
                 return self.send(403, dict(error='Host no permitido'))
             if self.headers.get('X-EIOS-Token') != token:
                 return self.send(403, dict(error='Sesión no válida. Recarga la pantalla.'))
-            if self.path not in {'/api/purchases/reviewer-designation/observation', '/api/purchases/reviewer-designation', '/api/purchases/treasury/observation', '/api/purchases/treasury/context', '/api/purchases/treasury/support', '/api/purchases/finance-quality/prepare', '/api/purchases/payments/calendar', '/api/purchases/payments/review', '/api/purchases/payments/document', '/api/purchases/payments/associate', '/api/parameters/finance/activate', '/api/parameters', '/api/stock/minimums', '/api/purchases', '/api/purchases/quote', '/api/purchases/review', '/api/purchases/report', '/api/purchases/commercial-draft', '/api/import/preview', '/api/import/commit', '/api/reception/read', '/api/reception/preview', '/api/reception/commit', '/api/reception/check', '/api/reception/original', '/api/reception/articles', '/api/reception/financials', '/api/reception/versions/save', '/api/reception/version', '/api/reception/version/export', '/api/reception/versions/compare', '/api/reception/records', '/api/reception/purchase/options', '/api/reception/purchase/prepare'}:
+            if self.path not in {'/api/sales-proposals', '/api/sales-proposals/preview', '/api/sales-proposals/context', '/api/sales-proposals/report', '/api/purchases/reviewer-designation/observation', '/api/purchases/reviewer-designation', '/api/purchases/treasury/observation', '/api/purchases/treasury/context', '/api/purchases/treasury/support', '/api/purchases/finance-quality/prepare', '/api/purchases/payments/calendar', '/api/purchases/payments/review', '/api/purchases/payments/document', '/api/purchases/payments/associate', '/api/parameters/finance/activate', '/api/parameters', '/api/stock/minimums', '/api/purchases', '/api/purchases/quote', '/api/purchases/review', '/api/purchases/report', '/api/purchases/commercial-draft', '/api/import/preview', '/api/import/commit', '/api/reception/read', '/api/reception/preview', '/api/reception/commit', '/api/reception/check', '/api/reception/original', '/api/reception/articles', '/api/reception/financials', '/api/reception/versions/save', '/api/reception/version', '/api/reception/version/export', '/api/reception/versions/compare', '/api/reception/records', '/api/reception/purchase/options', '/api/reception/purchase/prepare'}:
                 return self.send(404, dict(error='No encontrado'))
             try:
                 size = int(self.headers.get('Content-Length', '0'))
@@ -743,6 +764,13 @@ def main():
                     return self.send(200, desk.commercial_draft(str(data['dataset_id']), str(data['proposal_id']), str(data['review_id'])))
                 if self.path == '/api/purchases/report':
                     return self.send(200, desk.printable_report(str(data['dataset_id']), str(data['proposal_id']), str(data['review_id'])), html=True)
+                if self.path == '/api/sales-proposals/report':
+                    from eios.company_sales_proposals import printable_offer
+                    return self.send(200,dict(html=printable_offer(desk.db,str(data['dataset_id']),str(data['proposal_id']))))
+                if self.path == '/api/sales-proposals/context':
+                    return self.send(200,desk.sales_orientation(data))
+                if self.path in ('/api/sales-proposals','/api/sales-proposals/preview'):
+                    return self.send(200,desk.sales_offer(data,persist=self.path=='/api/sales-proposals'))
                 if self.path == '/api/purchases/reviewer-designation/observation':
                     return self.send(200,desk.record_designation_observation(data))
                 if self.path == '/api/purchases/reviewer-designation':
