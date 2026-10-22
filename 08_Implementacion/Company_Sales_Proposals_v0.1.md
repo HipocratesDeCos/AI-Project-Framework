@@ -117,3 +117,28 @@ Los vínculos son declaraciones manuales identificadas como tales, limitadas a l
 La consulta comercial utiliza el vínculo activo para recuperar el historial comparable (misma unidad y EUR); el precio anterior se calcula con importe neto/cantidad. Una última fecha ambigua sigue requiriendo elegir una referencia. La orientación conserva actor, motivo, revisión y fuentes; la consulta de facturas advierte de los vínculos manuales. Las propuestas guardadas conservan su instantánea incluso tras retirar el vínculo.
 
 Validación: seis pruebas específicas de recuperación/retirada, conservación de originales y propuestas, rechazo de campos y referencias inválidas, incompatibilidad de SKU/unidad, invalidación por cambio documental y concurrencia de pantallas. Recorrido DOM/HTTP con servidor real: selección de línea, guardado, precio histórico cargado, etiqueta manual, evaluación invalidada y retirada. JavaScript comprobado sintácticamente. Inspección visual pendiente. El PVP documental ausente continúa pendiente de aportar/mapear; este vínculo no lo inventa ni lo sustituye.
+
+## PVP desde tarifas recibidas
+
+Carga de archivos admite «Tarifa de venta: PVP por unidad sin IVA» (`sale_price`) en Excel/CSV. Sus seis campos obligatorios son SKU, unidad, PVP recomendado sin IVA, moneda, vigencia inicial y vigencia final. El mapeo y el formato numérico son explícitos. No se extraen tarifas de PDF ni se calcula un PVP faltante como si fuera documental.
+
+En Ficha e historial, «Seleccionar PVP desde una tarifa» presenta exclusivamente filas de la misma empresa, razón social, naturaleza, corte, SKU, unidad y EUR. El usuario selecciona archivo/fila, indica responsable y motivo y confirma la base unitaria sin IVA. La selección se conserva en `company_sales_tariff` con revisiones append-only y puede retirarse. La referencia muestra archivo, hoja, fila, huella, responsable y vigencia; permanece como tarifa recibida pendiente de admisión, sin autoridad decisional.
+
+El PVP elegido se conserva exactamente. Se comprueba contra la fecha de propuesta tanto en la ficha como al evaluar/guardar. Fuera de vigencia, con fecha ausente o con cambios en archivo/catálogo, no se presenta como un PVP válido ni se sustituye silenciosamente por el cálculo del margen. El historial comparable del cliente sigue teniendo prioridad para iniciar el precio de pedido. El comercial puede trasladar expresamente el PVP a la negociación. Cambiar la fecha actualiza referencias sin sustituir el precio ya editado.
+
+La huella de contexto incluye selección y contenido del archivo recibido. Se rechaza una selección si el archivo cambió desde su consulta. Una propuesta guardada conserva su referencia de tarifa aunque se retire posteriormente. Las tablas originales no se sobrescriben; esta vinculación no activa Rules/NI/Ladder ni transforma la recepción en evidencia admitida.
+
+### Uso
+
+1. En Carga de archivos, identifica exactamente la empresa activa y su corte. Selecciona los datos ficticios para esta prueba.
+2. Carga la tabla, elige el contenido Tarifa de venta y relaciona sus seis columnas. Comprueba y guarda.
+3. En Propuestas de venta, selecciona artículo y abre Seleccionar PVP desde una tarifa. Si se cargó mientras la ficha estaba abierta, vuelve a seleccionar el artículo para consultar las referencias recibidas.
+4. Elige la fila y registra la selección. Revisa la vigencia, el precio anterior del cliente y el margen antes de evaluar.
+
+Ejemplo de cabecera CSV con separador punto y coma (cumplimentar exclusivamente con los datos de la tarifa):
+
+```text
+SKU;Unidad;PVP_sin_IVA;Moneda;Valida_desde;Valida_hasta
+```
+
+Validación: seis pruebas específicas de precio exacto, margen, precedencia del historial, vigencia, conservación de propuestas, fuente modificada, unidades/monedas/empresas incompatibles, concurrencia y formato. Suite general inicial: 2773 correctas; comprobación focal posterior tras exigir la huella de la fila. Recorrido DOM/HTTP con servidor real: selección, procedencia, PVP, historial, traslado, caducidad sin sobrescribir el precio negociado y retirada. JavaScript comprobado. Inspección visual pendiente.
