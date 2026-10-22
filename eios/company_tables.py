@@ -62,7 +62,10 @@ def _cell(value):
     return value
 
 
-def read_table(content, filename, sheet=None, header_row=1, encoding='utf-8-sig', delimiter='auto'):
+def read_table(content, filename, sheet=None, header_row=1, encoding='utf-8-sig', delimiter='auto', max_rows=None):
+    if max_rows is None:max_rows=MAX_ROWS
+    if type(max_rows) is not int or not 1<=max_rows<=20000:
+        raise ValueError('Límite de filas no válido.')
     if not content or len(content)>MAX_BYTES:
         raise ValueError('Selecciona un archivo de hasta 10 MiB.')
     if not isinstance(header_row,int) or not 1<=header_row<=100:
@@ -85,8 +88,8 @@ def read_table(content, filename, sheet=None, header_row=1, encoding='utf-8-sig'
         rows=[]
         try:
             for row in csv.reader(StringIO(text),delimiter=delimiter,strict=True):
-                if len(row)>MAX_COLUMNS or len(rows)>=MAX_ROWS+header_row:
-                    raise ValueError('El límite es de 5.000 filas de datos y 80 columnas.')
+                if len(row)>MAX_COLUMNS or len(rows)>=max_rows+header_row:
+                    raise ValueError(f'El límite es de {max_rows} filas de datos y 80 columnas.')
                 rows.append(row)
         except csv.Error: raise ValueError('El CSV tiene comillas o columnas que no pueden leerse.') from None
         sheet_name='CSV'; sheets=['CSV']
@@ -114,8 +117,8 @@ def read_table(content, filename, sheet=None, header_row=1, encoding='utf-8-sig'
                     raise ValueError('La hoja seleccionada no existe.')
                 rows=[]
                 for row in workbook[sheet_name].iter_rows():
-                    if len(row)>MAX_COLUMNS or len(rows)>=MAX_ROWS+header_row:
-                        raise ValueError('El límite es de 5.000 filas de datos y 80 columnas. Exporta una tabla más pequeña.')
+                    if len(row)>MAX_COLUMNS or len(rows)>=max_rows+header_row:
+                        raise ValueError(f'El límite es de {max_rows} filas de datos y 80 columnas. Exporta una tabla más pequeña.')
                     rows.append([dict(formula=True) if c.data_type in ('f','e') else _cell(c.value) for c in row])
             finally: workbook.close()
         except (zipfile.BadZipFile,KeyError):
