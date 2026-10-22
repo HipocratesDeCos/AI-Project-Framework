@@ -209,7 +209,9 @@ class PurchaseDesk:
             proposals = [json.loads(r[0]) for r in c.execute(
                 'SELECT payload FROM manual_purchase_proposal WHERE dataset_id=? ORDER BY created_at DESC', (dataset,))]
         from eios.company_sales_proposals import offers
-        return dict(sales_proposals=offers(self.db,dataset),info=info, documentary_context=documentary_context, purchase_documents=documented_purchases(self.store,dataset,info['as_of_date']), sales=documented_sales(self.store,dataset,info['as_of_date']), customers=[r['data'] for r in self.store.records(dataset, 'customer')], suppliers=[r['data'] for r in self.store.records(dataset, 'supplier')],
+        from eios.company_sales_links import apply_links
+        sales=apply_links(self.db,self.store,dataset,documented_sales(self.store,dataset,info['as_of_date']))
+        return dict(sales_proposals=offers(self.db,dataset),info=info, documentary_context=documentary_context, purchase_documents=documented_purchases(self.store,dataset,info['as_of_date']), sales=sales, customers=[r['data'] for r in self.store.records(dataset, 'customer')], suppliers=[r['data'] for r in self.store.records(dataset, 'supplier')],
                     articles=[r['data'] for r in self.store.records(dataset, 'article')],
                     pending=[r['data'] for r in self.store.records(dataset, 'missing_or_conflicting')],
                     purchases=proposals, inventory=read_inventory(self.db, dataset),
@@ -696,7 +698,7 @@ def main():
                 return self.send(403, dict(error='Host no permitido'))
             if self.headers.get('X-EIOS-Token') != token:
                 return self.send(403, dict(error='Sesión no válida. Recarga la pantalla.'))
-            if self.path not in {'/api/sales-proposals/cash-plan', '/api/sales-proposals/cash-plan/read', '/api/sales-proposals', '/api/sales-proposals/preview', '/api/sales-proposals/context', '/api/sales-proposals/report', '/api/purchases/reviewer-designation/observation', '/api/purchases/reviewer-designation', '/api/purchases/treasury/observation', '/api/purchases/treasury/context', '/api/purchases/treasury/support', '/api/purchases/finance-quality/prepare', '/api/purchases/payments/calendar', '/api/purchases/payments/review', '/api/purchases/payments/document', '/api/purchases/payments/associate', '/api/parameters/finance/activate', '/api/parameters', '/api/stock/minimums', '/api/purchases', '/api/purchases/quote', '/api/purchases/review', '/api/purchases/report', '/api/purchases/commercial-draft', '/api/import/preview', '/api/import/commit', '/api/reception/read', '/api/reception/preview', '/api/reception/commit', '/api/reception/check', '/api/reception/original', '/api/reception/articles', '/api/reception/financials', '/api/reception/versions/save', '/api/reception/version', '/api/reception/version/export', '/api/reception/versions/compare', '/api/reception/records', '/api/reception/purchase/options', '/api/reception/purchase/prepare'}:
+            if self.path not in {'/api/sales-proposals/link', '/api/sales-proposals/cash-plan', '/api/sales-proposals/cash-plan/read', '/api/sales-proposals', '/api/sales-proposals/preview', '/api/sales-proposals/context', '/api/sales-proposals/report', '/api/purchases/reviewer-designation/observation', '/api/purchases/reviewer-designation', '/api/purchases/treasury/observation', '/api/purchases/treasury/context', '/api/purchases/treasury/support', '/api/purchases/finance-quality/prepare', '/api/purchases/payments/calendar', '/api/purchases/payments/review', '/api/purchases/payments/document', '/api/purchases/payments/associate', '/api/parameters/finance/activate', '/api/parameters', '/api/stock/minimums', '/api/purchases', '/api/purchases/quote', '/api/purchases/review', '/api/purchases/report', '/api/purchases/commercial-draft', '/api/import/preview', '/api/import/commit', '/api/reception/read', '/api/reception/preview', '/api/reception/commit', '/api/reception/check', '/api/reception/original', '/api/reception/articles', '/api/reception/financials', '/api/reception/versions/save', '/api/reception/version', '/api/reception/version/export', '/api/reception/versions/compare', '/api/reception/records', '/api/reception/purchase/options', '/api/reception/purchase/prepare'}:
                 return self.send(404, dict(error='No encontrado'))
             try:
                 size = int(self.headers.get('Content-Length', '0'))
@@ -794,6 +796,9 @@ def main():
                 if self.path == '/api/sales-proposals/report':
                     from eios.company_sales_proposals import printable_offer
                     return self.send(200,dict(html=printable_offer(desk.db,str(data['dataset_id']),str(data['proposal_id']))))
+                if self.path == '/api/sales-proposals/link':
+                    from eios.company_sales_links import save_link
+                    return self.send(200,save_link(desk.db,desk.store,data))
                 if self.path == '/api/sales-proposals/context':
                     return self.send(200,desk.sales_orientation(data))
                 if self.path in ('/api/sales-proposals','/api/sales-proposals/preview'):

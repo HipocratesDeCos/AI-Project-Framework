@@ -39,5 +39,10 @@ def capture_context(connection, dataset):
                   material_nature=manifest.get('material_nature', 'NOT_DECLARED'),
                   records=records, sources=sources,
                   scope='DOCUMENTARY_CONTENT_ONLY', decision_authority=False)
+    from eios.company_sales_links import latest_links
+    links=latest_links(connection,dataset)
+    if links:
+        result['scope']='DOCUMENTARY_CONTENT_AND_MANUAL_SALES_LINKS'
+        result['manual_sales_links']={key:_hash(value) for key,value in sorted(links.items())}
     result['fingerprint'] = _hash(result)
     return result

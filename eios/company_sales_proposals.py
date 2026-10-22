@@ -49,7 +49,7 @@ def orientation(state, customer, article):
                 continue
             sales.append(dict(invoice=invoice['invoice_number'], date=invoice['issue_date'],
                 quantity=str(quantity), net_unit_price=str(net/quantity), unit=line['unit'], currency='EUR',
-                source_refs=deepcopy(line['source_refs'])))
+                source_refs=deepcopy(line['source_refs']),manual_link=deepcopy(line.get('manual_link'))))
     # Multiple latest-day lines are retained; an arbitrary invoice does not become "the last price".
     latest_date = max((s['date'] for s in sales), default=None)
     latest = [s for s in sales if s['date'] == latest_date]
