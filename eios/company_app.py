@@ -165,7 +165,10 @@ class PurchaseDesk:
 
     def sales_offer(self, data, *, persist=True):
         from eios.company_sales_proposals import save_offer
-        return save_offer(self.db,self.sales_state(str(data['dataset_id'])),data,persist=persist)
+        from eios.company_sales_workflow import customer_credit
+        state=self.sales_state(str(data['dataset_id']))
+        state['sales_customer_credit']=customer_credit(self.store,str(data['dataset_id']),data.get('customer_id'),state['info']['as_of_date'])
+        return save_offer(self.db,state,data,persist=persist)
 
     def sales_cash_plan(self, data, *, save=False):
         from eios.company_sales_cash_plan import read_plan, save_plan
@@ -182,14 +185,20 @@ class PurchaseDesk:
     def sales_orientation(self, data):
         from eios.company_sales_proposals import orientation
         state=self.sales_state(str(data['dataset_id']))
-        if data.get('customer_id') not in {c['customer_id'] for c in state['customers']}:
+        if data.get('customer_id') and data.get('customer_id') not in {c['customer_id'] for c in state['customers']}:
             raise ValueError('Selecciona un cliente de esta versión.')
         article=next((a for a in state['articles'] if a['article_id']==data.get('article_id')),None)
         if article is None:
             raise ValueError('Selecciona un artículo de esta versión.')
         from eios.company_sales_negotiation import price_reference
         basis=orientation(state,data['customer_id'],article)
-        return dict(basis,article=article,price_reference=price_reference(basis,state['sales_parameters']))
+        from eios.company_sales_workflow import customer_credit
+        price=price_reference(basis,state['sales_parameters'],article)
+        previous={Decimal(s['net_unit_price']) for s in basis['latest_sales']}
+        default=str(next(iter(previous))) if len(previous)==1 else price['recommended_unit_price'] if not previous else None
+        return dict(basis,article=article,price_reference=price,default_unit_price=default,
+            default_price_source='LAST_CUSTOMER_SALE' if len(previous)==1 else 'RECOMMENDED_ORIGIN' if not previous else 'AMBIGUOUS_HISTORY',
+            customer_credit=customer_credit(self.store,str(data['dataset_id']),data.get('customer_id'),state['info']['as_of_date']))
 
     def state(self, dataset):
         info = self.store.describe(dataset)

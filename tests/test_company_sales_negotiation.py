@@ -32,7 +32,8 @@ class SalesNegotiationTest(unittest.TestCase):
         self.assertEqual(a['origin_prices'],b['origin_prices'])
         self.assertEqual(a['origin_prices'][0]['recommended_unit_price'],'71.43')
         self.assertEqual(a['origin_prices'][0]['maximum_reference_discount_percent'],'12.50')
-        self.assertEqual(len(a['scenarios']),3)
+        self.assertEqual(len(a['scenarios']),0)
+        self.assertEqual(len(b['scenarios']),3)
         self.assertEqual(a['contribution_margin_percent'],'39.47')
         self.assertEqual(a['gift_budget'],'42.00')
         self.assertTrue(b['below_declared_minimum'])
@@ -41,7 +42,7 @@ class SalesNegotiationTest(unittest.TestCase):
             self.assertTrue(all(Decimal(l['net_unit_price'])>=0 for l in scenario['lines']))
 
     def test_financial_inputs_are_bound_without_inventing_a_sales_projection(self):
-        n=self.quote()['negotiation'];f=n['financial_context']
+        n=self.quote(lines=[dict(self.offer['lines'][0],unit_price='60')])['negotiation'];f=n['financial_context']
         self.assertEqual(f['treasury'],'5000')
         self.assertEqual(f['working_capital'],'8000')
         self.assertEqual(f['payments_before_collection'],'500')

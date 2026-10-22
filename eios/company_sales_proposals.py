@@ -32,10 +32,12 @@ def text(value, label, maximum=500):
 def orientation(state, customer, article):
     """A historical reference is comparable only in the exact unit and EUR."""
     sales = []
+    unlinked=0
     for invoice in state['sales']['invoices']:
         if invoice['customer_id'] != customer or invoice['currency'] != 'EUR':
             continue
         for line in invoice['lines']:
+            if not line['article_id'] or not line['unit']:unlinked+=1
             if (line['article_id'] != article['article_id'] or line['unit'] != article['unit_as_documented']
                     or line['currency'] != 'EUR'):
                 continue
@@ -58,7 +60,7 @@ def orientation(state, customer, article):
     inventory = deepcopy(state['inventory'].get(article['article_id']))
     if inventory and inventory.get('unit') != article['unit_as_documented']:
         inventory = None
-    return dict(latest_sales=latest, purchase_references=costs, reference_unit_cost=unit_cost,
+    return dict(unlinked_customer_sales_lines=unlinked,sales_history=sales,latest_sales=latest, purchase_references=costs, reference_unit_cost=unit_cost,
                 inventory=inventory, cost_scope='LAST_COMPARABLE_PURCHASE_EXCLUDES_OTHER_COSTS')
 
 
