@@ -167,6 +167,11 @@ class PurchaseDesk:
         from eios.company_sales_proposals import save_offer
         return save_offer(self.db,self.sales_state(str(data['dataset_id'])),data,persist=persist)
 
+    def sales_cash_plan(self, data, *, save=False):
+        from eios.company_sales_cash_plan import read_plan, save_plan
+        state=self.sales_state(str(data['dataset_id']))
+        return save_plan(self.db,state,data) if save else read_plan(self.db,state,str(data['proposal_id']))
+
     def sales_state(self, dataset):
         from eios.company_parameters import read_parameters
         state=self.state(dataset)
@@ -621,7 +626,9 @@ datasets().catch(e=>$('notice').textContent=e.message);
 from eios.company_sales_proposal_ui import HTML as SALES_OFFER_HTML, JS as SALES_OFFER_JS, CSS as SALES_OFFER_CSS
 PAGE = PAGE.replace('</style>',SALES_OFFER_CSS+'</style>',1).replace('<div data-view="compras"',SALES_OFFER_HTML+'<div data-view="compras"',1)
 PAGE = PAGE.replace('</svg>Propuestas</button>', '</svg>Propuestas de compra</button><button type="button" class="nav" data-nav="propuestas-ventas"><svg viewBox="0 0 24 26" aria-hidden="true"><path d="M4 3h16v20H4zM8 8h8M8 13h8M8 18h5"/></svg>Propuestas de venta</button>',1)
-PAGE = PAGE.replace('</script>',SALES_OFFER_JS+'</script>',1)
+from eios.company_sales_cash_ui import HTML as SALES_CASH_HTML, JS as SALES_CASH_JS
+PAGE = PAGE.replace('</script>',SALES_OFFER_JS+SALES_CASH_JS+'</script>',1)
+PAGE = PAGE.replace(SALES_OFFER_HTML,SALES_OFFER_HTML[:-6]+SALES_CASH_HTML+'</div>',1)
 
 
 
@@ -680,7 +687,7 @@ def main():
                 return self.send(403, dict(error='Host no permitido'))
             if self.headers.get('X-EIOS-Token') != token:
                 return self.send(403, dict(error='Sesión no válida. Recarga la pantalla.'))
-            if self.path not in {'/api/sales-proposals', '/api/sales-proposals/preview', '/api/sales-proposals/context', '/api/sales-proposals/report', '/api/purchases/reviewer-designation/observation', '/api/purchases/reviewer-designation', '/api/purchases/treasury/observation', '/api/purchases/treasury/context', '/api/purchases/treasury/support', '/api/purchases/finance-quality/prepare', '/api/purchases/payments/calendar', '/api/purchases/payments/review', '/api/purchases/payments/document', '/api/purchases/payments/associate', '/api/parameters/finance/activate', '/api/parameters', '/api/stock/minimums', '/api/purchases', '/api/purchases/quote', '/api/purchases/review', '/api/purchases/report', '/api/purchases/commercial-draft', '/api/import/preview', '/api/import/commit', '/api/reception/read', '/api/reception/preview', '/api/reception/commit', '/api/reception/check', '/api/reception/original', '/api/reception/articles', '/api/reception/financials', '/api/reception/versions/save', '/api/reception/version', '/api/reception/version/export', '/api/reception/versions/compare', '/api/reception/records', '/api/reception/purchase/options', '/api/reception/purchase/prepare'}:
+            if self.path not in {'/api/sales-proposals/cash-plan', '/api/sales-proposals/cash-plan/read', '/api/sales-proposals', '/api/sales-proposals/preview', '/api/sales-proposals/context', '/api/sales-proposals/report', '/api/purchases/reviewer-designation/observation', '/api/purchases/reviewer-designation', '/api/purchases/treasury/observation', '/api/purchases/treasury/context', '/api/purchases/treasury/support', '/api/purchases/finance-quality/prepare', '/api/purchases/payments/calendar', '/api/purchases/payments/review', '/api/purchases/payments/document', '/api/purchases/payments/associate', '/api/parameters/finance/activate', '/api/parameters', '/api/stock/minimums', '/api/purchases', '/api/purchases/quote', '/api/purchases/review', '/api/purchases/report', '/api/purchases/commercial-draft', '/api/import/preview', '/api/import/commit', '/api/reception/read', '/api/reception/preview', '/api/reception/commit', '/api/reception/check', '/api/reception/original', '/api/reception/articles', '/api/reception/financials', '/api/reception/versions/save', '/api/reception/version', '/api/reception/version/export', '/api/reception/versions/compare', '/api/reception/records', '/api/reception/purchase/options', '/api/reception/purchase/prepare'}:
                 return self.send(404, dict(error='No encontrado'))
             try:
                 size = int(self.headers.get('Content-Length', '0'))
@@ -773,6 +780,8 @@ def main():
                     return self.send(200, desk.commercial_draft(str(data['dataset_id']), str(data['proposal_id']), str(data['review_id'])))
                 if self.path == '/api/purchases/report':
                     return self.send(200, desk.printable_report(str(data['dataset_id']), str(data['proposal_id']), str(data['review_id'])), html=True)
+                if self.path in ('/api/sales-proposals/cash-plan','/api/sales-proposals/cash-plan/read'):
+                    return self.send(200,desk.sales_cash_plan(data,save=self.path=='/api/sales-proposals/cash-plan'))
                 if self.path == '/api/sales-proposals/report':
                     from eios.company_sales_proposals import printable_offer
                     return self.send(200,dict(html=printable_offer(desk.db,str(data['dataset_id']),str(data['proposal_id']))))
