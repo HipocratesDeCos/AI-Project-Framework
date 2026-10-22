@@ -44,5 +44,10 @@ def capture_context(connection, dataset):
     if links:
         result['scope']='DOCUMENTARY_CONTENT_AND_MANUAL_SALES_LINKS'
         result['manual_sales_links']={key:_hash(value) for key,value in sorted(links.items())}
+    from eios.company_sales_tariffs import context as tariff_context
+    tariffs=tariff_context(connection,dataset)
+    if tariffs:
+        result['scope']='DOCUMENTARY_CONTENT_AND_PREPARED_REFERENCES'
+        result['received_sales_tariffs']=tariffs
     result['fingerprint'] = _hash(result)
     return result

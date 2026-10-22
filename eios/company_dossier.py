@@ -58,7 +58,7 @@ def check_dossier(db, batch_ids):
             references.extend((('supplier', 'supplier_id'), ('article', 'article_id')))
         if kind == 'sales_line':
             references.extend((('customer', 'customer_id'), ('article', 'article_id')))
-        if kind in ('inventory', 'stock_policy'):
+        if kind in ('inventory', 'stock_policy','sale_price'):
             references.append(('article', 'article_id'))
         for target, field in references:
             identifier = data.get(field)

@@ -27,12 +27,13 @@ FIELDS = {
     'inventory': [('article_id','SKU / código de artículo',True),('unit','Unidad',True),('physical','Existencias físicas',True),('reserved','Cantidad reservada',False),('observation_date','Fecha del inventario (si figura)',False)]+STOCK_PARAMETERS,
     'stock_policy': [('article_id','SKU / código de artículo',True),('unit','Unidad',True),('observation_date','Fecha de referencia (si figura)',False)]+STOCK_PARAMETERS,
     'purchase_line': [('invoice_number','Número de factura',True),('issue_date','Fecha de factura',True),('supplier_id','Código de proveedor',True),('article_id','SKU / código de artículo',True),('quantity','Cantidad',True),('unit','Unidad',True),('net_amount','Importe neto de la línea',True),('currency','Moneda',True)],
+    'sale_price': [('article_id','SKU / código de artículo',True),('unit','Unidad',True),('recommended_sale_price','PVP recomendado por unidad, sin IVA (€)',True),('currency','Moneda',True),('valid_from','Tarifa válida desde',True),('valid_until','Tarifa válida hasta',True)],
     'sales_line': [('invoice_number','Número de factura',True),('issue_date','Fecha de factura',True),('customer_id','Código de cliente',True),('article_id','SKU / código de artículo',True),('quantity','Cantidad',True),('unit','Unidad',True),('net_amount','Importe neto de la línea',True),('currency','Moneda',True)],
     'cash_flow': [('flow_id','Referencia del cobro o pago',True),('direction','COBRO o PAGO',True),('amount','Importe',True),('currency','Moneda',True),('due_date','Vencimiento',True),('counterparty','Cliente / proveedor / concepto',False)],
     'balance': [('account_code','Código de cuenta',True),('description','Descripción',False),('balance','Saldo con signo',True),('currency','Moneda',True),('observation_date','Fecha del saldo (si figura)',False)],
     'document': [],
 }
-NUMBERS = {'physical','reserved','quantity','net_amount','amount','balance'} | STOCK_PARAMETER_KEYS
+NUMBERS = {'recommended_sale_price','physical','reserved','quantity','net_amount','amount','balance'} | STOCK_PARAMETER_KEYS
 IDENTIFIERS = {'supplier_id','customer_id','article_id','invoice_number','flow_id','account_code','tax_id'}
 
 
@@ -173,7 +174,7 @@ def normalize(table, kind, mapping, cutoff, convention):
             try:
                 if isinstance(value,dict): raise ValueError('La celda contiene una fórmula. Revisa el resultado y aporta valores fijos.')
                 if field in NUMBERS: value=str(number(value,convention))
-                elif field in ('issue_date','due_date','observation_date'): value=source_date(value)
+                elif field in ('issue_date','due_date','observation_date','valid_from','valid_until'): value=source_date(value)
                 elif field in IDENTIFIERS and not isinstance(value,str):
                     raise ValueError('El código debe ser texto para conservar sus ceros iniciales.')
                 else: value=str(value).strip()
@@ -191,6 +192,9 @@ def normalize(table, kind, mapping, cutoff, convention):
                 seen.add(fingerprint)
                 if output['issue_date']>cutoff: problems.append('La factura es posterior a la fecha de corte.')
                 if Decimal(output['quantity'])<=0 or Decimal(output['net_amount'])<0: problems.append('Las líneas de compra o venta deben tener cantidad positiva e importe neto no negativo; separa los abonos.')
+            if kind=='sale_price':
+                if Decimal(output['recommended_sale_price'])<0:problems.append('El PVP no puede ser negativo.')
+                if output['valid_until']<output['valid_from']:problems.append('La vigencia final no puede preceder a la inicial.')
             if kind=='cash_flow':
                 output['direction']=output['direction'].upper()
                 if output['direction'] not in ('COBRO','PAGO'): problems.append('El movimiento debe indicar COBRO o PAGO.')

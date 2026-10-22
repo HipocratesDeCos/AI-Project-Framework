@@ -18,7 +18,7 @@ def margin_policy(parameters):
     return dict(revision=parameters.get('revision', 0), minimum=minimum, target=target)
 
 
-def price_reference(basis, parameters, article=None):
+def price_reference(basis, parameters, article=None, on_date=None):
     policy = margin_policy(parameters)
     cost = basis['reference_unit_cost']
     target = policy['target']
@@ -32,17 +32,29 @@ def price_reference(basis, parameters, article=None):
             recommended=None;price_source='INVALID_OR_INCOMPATIBLE_CATALOGUE_PRICE'
         else:
             recommended=candidate;price_source='DOCUMENTED_CATALOGUE_RECOMMENDED_SALE_PRICE'
+    tariff=(article or {}).get('received_sale_tariff')
+    if tariff:
+        selected=tariff['selection'];recommended=None
+        price_source='RECEIVED_TARIFF_STALE'
+        if tariff['status']=='ACTIVE':
+            price_source='RECEIVED_TARIFF_DATE_REQUIRED'
+            try:when=date.fromisoformat(on_date)
+            except (ValueError,TypeError):when=None
+            if when is not None:
+                price_source='RECEIVED_TARIFF_OUTSIDE_VALIDITY'
+                if selected['valid_from']<=when.isoformat()<=selected['valid_until']:
+                    recommended=Decimal(selected['price']);price_source='EXPLICIT_RECEIVED_TARIFF'
     discount = None
     if recommended is not None and recommended>0 and policy['minimum'] is not None:
         floor = Decimal(cost)/(1-policy['minimum']/100) if cost is not None else None
         discount = max(Decimal(0),(1-floor/recommended)*100).quantize(Decimal('.01'),rounding=ROUND_FLOOR) if floor is not None else None
-    return dict(recommended_unit_price=str(recommended) if recommended is not None else None,
+    return dict(tariff_reference=tariff,recommended_unit_price=str(recommended) if recommended is not None else None,
                 recommended_margin_percent=str(((recommended-Decimal(cost))/recommended*100).quantize(Decimal('.01'))) if recommended is not None and recommended>0 and cost is not None else None,
                 price_source=price_source,maximum_reference_discount_percent=str(discount) if discount is not None else None,
                 target_margin_percent=str(target) if target is not None else None,
                 minimum_margin_percent=str(policy['minimum']) if policy['minimum'] is not None else None,
                 parameter_revision=policy['revision'],
-                basis='DOCUMENTED_CATALOGUE_PRICE' if price_source=='DOCUMENTED_CATALOGUE_RECOMMENDED_SALE_PRICE' else 'HISTORICAL_PURCHASE_AND_EXPLICIT_PREPARED_MARGIN',
+                basis='RECEIVED_TARIFF_PENDING_ADMISSION' if tariff else 'DOCUMENTED_CATALOGUE_PRICE' if price_source=='DOCUMENTED_CATALOGUE_RECOMMENDED_SALE_PRICE' else 'HISTORICAL_PURCHASE_AND_EXPLICIT_PREPARED_MARGIN',
                 authority_status='COMMERCIAL_SIMULATION_ONLY')
 
 
@@ -65,7 +77,7 @@ def analyze_offer(payload, state, data):
     for line in payload['lines']:
         basis = line['orientation']
         article=next((a for a in state['articles'] if a['article_id']==line['article_id']),{})
-        anchor = price_reference(basis, parameters,article)
+        anchor = price_reference(basis, parameters,article,payload['offer_date'])
         references.append(dict(article_id=line['article_id'], **anchor))
         unit = basis['reference_unit_cost']
         if unit is None:
