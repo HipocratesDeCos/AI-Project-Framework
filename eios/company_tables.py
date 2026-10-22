@@ -37,6 +37,25 @@ NUMBERS = {'recommended_sale_price','physical','reserved','quantity','net_amount
 IDENTIFIERS = {'supplier_id','customer_id','article_id','invoice_number','flow_id','account_code','tax_id'}
 
 
+def tariff_mapping(headers):
+    """Suggest only a complete, unique mapping of explicit tariff headers."""
+    import unicodedata
+    def clean(value):
+        text=unicodedata.normalize('NFD',str(value))
+        return re.sub('[^a-z0-9]','', ''.join(ch for ch in text if not unicodedata.combining(ch)).lower())
+    aliases={
+        'article_id':['SKU'], 'unit':['Unidad'], 'recommended_sale_price':['PVP sin IVA'],
+        'currency':['Moneda'], 'valid_from':['Válida desde'], 'valid_until':['Válida hasta'],
+    }
+    result={}
+    for field,label,_ in FIELDS['sale_price']:
+        names={clean(name) for name in [field,label,*aliases[field]]}
+        matches=[i for i,header in enumerate(headers) if clean(header) in names]
+        if len(matches)!=1:return None
+        result[field]=matches[0]
+    return result if len(set(result.values()))==len(result) else None
+
+
 def _cell(value):
     if isinstance(value,(datetime,date)):
         return value.date().isoformat() if isinstance(value,datetime) else value.isoformat()
