@@ -668,6 +668,10 @@ from eios.company_commercial_catalogue_ui import HTML as CATALOGUE_HTML, JS as C
 PAGE=PAGE.replace('<div data-view="archivos" hidden>','<div data-view="archivos" hidden>'+CATALOGUE_HTML).replace('</script>',CATALOGUE_JS+'</script>')
 
 
+from eios.company_reception_templates import HTML as TEMPLATE_HTML, JS as TEMPLATE_JS
+PAGE=PAGE.replace('<div data-view="archivos" hidden>','<div data-view="archivos" hidden>'+TEMPLATE_HTML).replace('</script>',TEMPLATE_JS+'</script>')
+
+
 def main():
     parser = argparse.ArgumentParser(description='EIOS: empresa y entrada local de propuestas de compra')
     parser.add_argument('--db', type=Path, required=True)
