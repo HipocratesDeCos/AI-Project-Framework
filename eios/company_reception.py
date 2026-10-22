@@ -10,7 +10,7 @@ import sqlite3
 import unicodedata
 from time import monotonic
 
-from eios.company_tables import read_table, normalize, source_date, FIELDS, NUMBERS
+from eios.company_tables import read_table, normalize, source_date, FIELDS, NUMBERS, tariff_mapping
 
 TTL = 600
 
@@ -37,7 +37,8 @@ class CompanyReception:
             raise ValueError('No se puede leer el archivo: '+str(error)[:300]) from None
         upload=secrets.token_urlsafe(32)
         self.file=dict(upload=upload,content=bytes(content),filename=filename,table=deepcopy(table),at=self.clock())
-        return dict(upload=upload,filename=filename,format=table['format'],sheets=table['sheets'],sheet=table['sheet'],
+        suggested=tariff_mapping(table['headers'])
+        return dict(table_profile=dict(kind='sale_price',mapping=suggested) if suggested else None,upload=upload,filename=filename,format=table['format'],sheets=table['sheets'],sheet=table['sheet'],
                     headers=table['headers'],sample=table['rows'][:5],rows=len(table['rows']),
                     fields={kind:[dict(key=k,label=label,required=required) for k,label,required in fields] for kind,fields in FIELDS.items()})
 
