@@ -48,3 +48,13 @@ El uso de Excel requiere actualizar las dependencias del proyecto: `python -m pi
 ## Verificación
 
 Pruebas de números por convención, fechas, fórmulas, ceros iniciales, cabeceras desplazadas, reservas desconocidas, códigos duplicados, límites, XML no admitido, recepción REAL sin promoción, idempotencia, identidad de empresa, PDF de soporte y caducidad. La prueba DOM/HTTP carga CSV y XLSX de otra empresa, mapea columnas, bloquea una fórmula, guarda los expedientes y comprueba que la empresa activa original mantiene 18 artículos y 6 proveedores. La prueba DOM no acredita el aspecto visual exacto del navegador.
+
+## Plantillas compatibles con Google Sheets y Excel
+
+En Carga de archivos, **PLANTILLAS PARA GOOGLE SHEETS Y EXCEL** permite elegir una de diez tablas de recepción o el catálogo comercial ficticio y pulsar **Descargar plantilla para Google Sheets (.csv)**. La pantalla muestra sus campos obligatorios/opcionales y el destino de carga. Las columnas de las tablas ordinarias se generan desde `company_tables.FIELDS`; el catálogo utiliza sus cabeceras propias. No se crea plantilla para un PDF de soporte.
+
+El CSV contiene únicamente las cabeceras, con UTF-8/BOM y separador coma. No contiene filas de ejemplo, importes, monedas, identidades ni datos de empresa predeterminados. Se importa en Google Sheets, se configuran los códigos como texto antes de introducirlos y se completan las filas. Después se descarga como CSV o XLSX para recibirlo en EIOS. Deben conservarse las cabeceras y aportarse valores fijos. La recepción mantiene sus pasos de contexto, mapeo, formato numérico, comprobación y guardado; descargar una plantilla no activa datos ni modifica la empresa.
+
+No es una conexión con la cuenta de Google: no crea documentos nativos en Drive ni sincroniza cambios. La plantilla de catálogo comercial indica la ruta específica de empresa activa y exige las confirmaciones de datos ficticios, unidades y EUR sin IVA. Las otras diez utilizan la recepción ordinaria. La plantilla de parámetros de stock recuerda que, además de SKU y unidad, se necesita al menos un parámetro.
+
+Validación: descarga DOM/HTTP de las once plantillas; cabeceras, codificación, terminación de línea y correspondencia con los campos de la pantalla. Dos descargas cumplimentadas se leyeron y validaron con los lectores reales: inventario con disponible 8 y catálogo con una alta propuesta sin errores. JavaScript comprobado sintácticamente. La importación visual dentro de una cuenta de Google Sheets no se ha probado.
