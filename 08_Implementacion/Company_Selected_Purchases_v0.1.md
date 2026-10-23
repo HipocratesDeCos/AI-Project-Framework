@@ -34,3 +34,13 @@ Se conserva el material ficticio y el alcance de simulación: `decision_authorit
 Cinco pruebas nuevas cubren recepción/vista previa, última cantidad y coste, mínimo automático, propuesta guardada y contexto antiguo, retirada, solapamiento con factura original, duplicados entre partes, contradicciones de cabecera, empresa/corte/unidad/SKU/proveedor incompatibles, proveedor distinto del de ficha, origen cambiado antes/después de seleccionar, ausencia de sustitución silenciosa, confirmación, caducidad, idempotencia, ambigüedad de última fecha y una nueva ficha del catálogo comercial.
 
 Veinte pruebas focales correctas. Recorrido DOM/HTTP con copia de A Monkey y una ficha ficticia de prueba: recepción de CSV, comprobación sin activar, confirmación, 10 unidades y neto 120 EUR → 12 EUR/unidad; consulta en Compras y fichas de compra/venta con procedencia, mínimo automático 1 unidad y ausencia de inventario para esa nueva ficha. Retirada recupera exactamente el historial y existencias anteriores. Registros documentales y bytes originales permanecieron iguales. JavaScript comprobado sintácticamente; revisión visual en navegador pendiente.
+
+## Consulta desde Cartera de Proveedores
+
+La cartera conserva contacto, entrega y artículos asignados en catálogo, y añade recuentos separados de **Facturas originales al corte** y **Líneas recibidas seleccionadas**. **Ver compras** abre la ficha del proveedor exacto con ambas consultas. No se suman líneas y facturas como entidades equivalentes; un proveedor puede tener compras recibidas seleccionadas aunque no tenga facturas originales ni artículos actualmente asignados en la ficha de catálogo.
+
+La tabla original ofrece **Ver artículos**, que abre Compras con el proveedor filtrado y el detalle de la factura elegida. La tabla recibida muestra cantidad, unidad, neto, precio neto efectivo y archivo/fila, con búsqueda por factura, SKU o archivo, orden por fecha descendente y 100 líneas por página. **Revisar archivos recibidos** abre Carga de archivos para consultar y recuperar sus originales.
+
+La consulta recibida exige selección vigente en la empresa activa. Se vacía cuando la selección está retirada o su origen requiere revisión y se limpia al refrescar o cambiar de empresa. El filtro se reinicia al elegir otro proveedor. Las líneas de proveedores distintos del de la ficha del artículo siguen siendo consultables; esto no cambia los criterios que permiten utilizar una referencia como último coste comparable en Propuestas.
+
+Esta ampliación es de consulta y no crea facturas, recepciones, pagos, existencias ni propuestas, ni modifica selecciones o comparadores de precio.
