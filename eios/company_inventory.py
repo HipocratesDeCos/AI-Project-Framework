@@ -33,10 +33,12 @@ def inventory_rows(articles, dataset, as_of):
 
 def read_inventory(db, dataset):
     with sqlite3.connect(db) as c:
-        if not c.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='synthetic_planning_inventory'").fetchone():
-            return {}
-        return {article: json.loads(raw) for article, raw in c.execute(
-            "SELECT article_id,payload FROM synthetic_planning_inventory WHERE dataset_id=?", (dataset,))}
+        baseline={}
+        if c.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='synthetic_planning_inventory'").fetchone():
+            baseline={article:json.loads(raw) for article,raw in c.execute(
+                'SELECT article_id,payload FROM synthetic_planning_inventory WHERE dataset_id=?',(dataset,))}
+        from eios.company_selected_inventory import apply_inventory
+        return apply_inventory(c,dataset,baseline)
 
 
 def create_inventory(db, dataset, output):

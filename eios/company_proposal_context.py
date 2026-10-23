@@ -54,5 +54,10 @@ def capture_context(connection, dataset):
     if catalogue:
         result['commercial_catalogue']=catalogue
         result['scope']='DOCUMENTARY_CONTENT_AND_PREPARED_REFERENCES'
+    from eios.company_selected_inventory import selection_context
+    selected_inventory=selection_context(connection,dataset)
+    if selected_inventory:
+        result['selected_inventory']=selected_inventory
+        result['scope']='DOCUMENTARY_CONTENT_AND_PREPARED_REFERENCES'
     result['fingerprint'] = _hash(result)
     return result
