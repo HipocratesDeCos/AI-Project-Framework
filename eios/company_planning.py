@@ -100,8 +100,14 @@ def coverage_for_article(company, dataset, inventory, planning):
 def planning_context(db,dataset,company,articles):
     inventory=read_inventory(db,dataset)
     plans=read_planning(db,dataset)
-    return {r["data"]["article_id"]:coverage_for_article(company,dataset,
-        inventory.get(r["data"]["article_id"]),plans.get(r["data"]["article_id"])) for r in articles}
+    result={}
+    for r in articles:
+        key=r['data']['article_id'];stock=inventory.get(key)
+        if stock and stock.get('source')!="SYNTHETIC-INVENTORY-01":
+            result[key]=dict(status='MISSING_DATA',message='Inventario recibido seleccionado; la planificación anterior no se reutiliza automáticamente para calcular cobertura.')
+        else:result[key]=coverage_for_article(company,dataset,stock,plans.get(key))
+    return result
+
 
 
 def main():
