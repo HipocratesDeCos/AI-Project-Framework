@@ -33,8 +33,29 @@ FIELDS = {
     'balance': [('account_code','Código de cuenta',True),('description','Descripción',False),('balance','Saldo con signo',True),('currency','Moneda',True),('observation_date','Fecha del saldo (si figura)',False)],
     'document': [],
 }
-NUMBERS = {'recommended_sale_price','physical','reserved','quantity','net_amount','amount','balance'} | STOCK_PARAMETER_KEYS
-IDENTIFIERS = {'supplier_id','customer_id','article_id','invoice_number','flow_id','account_code','tax_id'}
+SALES_DETAILS = [
+    ('description','Descripción del artículo en factura',False),
+    ('line_number','Número de línea',False),
+    ('unit_price_before_discount','Precio unitario antes de descuento, sin IVA',False),
+    ('discount_percent','Descuento de línea (%)',False),
+    ('discount_amount','Descuento total de la línea (€)',False),
+    ('vat_percent','Tipo de IVA de la línea (%)',False),
+    ('vat_amount','Importe de IVA documentado de la línea',False),
+    ('invoice_total','Total de factura documentado, con IVA (mismo valor si se repite)',False),
+]
+COLLECTION_LINKS = [('customer_id','Código de cliente vinculado',False),('invoice_number','Factura vinculada',False),('installment_ref','Referencia de cuota vinculada',False),('payment_method','Forma de cobro declarada',False)]
+FIELDS['sales_line'] += SALES_DETAILS
+FIELDS['sales_installment'] = [
+    ('installment_ref','Referencia única de cuota',True),('customer_id','Código de cliente',True),
+    ('invoice_number','Número de factura',True),('installment_number','Número de cuota',True),
+    ('due_date','Fecha de vencimiento',True),('amount','Importe original de la cuota, con IVA',True),
+    ('currency','Moneda',True),('payment_method','Forma de cobro',True),
+    ('pending_amount','Importe pendiente de cobro al corte (0 si está cobrada)',False),
+    ('flow_id','Referencia del cobro ya previsto, si existe',False),
+]
+FIELDS['cash_flow'] += COLLECTION_LINKS
+NUMBERS = {'recommended_sale_price','physical','reserved','quantity','net_amount','amount','balance','line_number','unit_price_before_discount','discount_percent','discount_amount','vat_percent','vat_amount','invoice_total','installment_number','pending_amount'} | STOCK_PARAMETER_KEYS
+IDENTIFIERS = {'supplier_id','customer_id','article_id','invoice_number','flow_id','account_code','tax_id','installment_ref'}
 
 
 def tariff_mapping(headers):
@@ -187,7 +208,7 @@ def normalize(table, kind, mapping, cutoff, convention):
         output={};problems=[]
         for field,label,required in fields:
             column=mapping.get(field)
-            if column is None and field in STOCK_PARAMETER_KEYS:
+            if column is None and (field in STOCK_PARAMETER_KEYS or kind=='sales_line' and field in {k for k,_,_ in SALES_DETAILS} or kind=='cash_flow' and field in {k for k,_,_ in COLLECTION_LINKS}):
                 continue  # Preserve older inventory payloads; absent parameters are not defaults.
             value=row['values'][column] if column is not None else None
             if value is None or (isinstance(value,str) and not value.strip()):
@@ -214,6 +235,19 @@ def normalize(table, kind, mapping, cutoff, convention):
                 seen.add(fingerprint)
                 if output['issue_date']>cutoff: problems.append('La factura es posterior a la fecha de corte.')
                 if Decimal(output['quantity'])<=0 or Decimal(output['net_amount'])<0: problems.append('Las líneas de compra o venta deben tener cantidad positiva e importe neto no negativo; separa los abonos.')
+            if kind=='sales_line':
+                from eios.company_sales_receipt_math import validate_line
+                problems.extend(validate_line(output,warnings,row['row']))
+            if kind=='sales_installment':
+                n=Decimal(output['installment_number'])
+                if n<1 or n!=n.to_integral_value():problems.append('El número de cuota debe ser un entero positivo.')
+                amount=Decimal(output['amount']);pending=output.get('pending_amount')
+                if amount<0:problems.append('La cuota no puede ser negativa; separa los abonos.')
+                if pending is not None and not 0<=Decimal(pending)<=amount:problems.append('El pendiente debe estar entre cero y el importe original de la cuota.')
+                quota_key=(output['customer_id'],output['invoice_number'],str(n.normalize()))
+                ref_key=('installment_ref',output['installment_ref'])
+                if quota_key in seen or ref_key in seen:problems.append('Referencia de cuota o número de cuota repetido para la misma factura y cliente.')
+                seen.update((quota_key,ref_key))
             if kind=='sale_price':
                 if Decimal(output['recommended_sale_price'])<0:problems.append('El PVP no puede ser negativo.')
                 if output['valid_until']<output['valid_from']:problems.append('La vigencia final no puede preceder a la inicial.')
