@@ -25,9 +25,10 @@ class CompanyReception:
         self.clock=clock
         self.file=None
         self.checked=None
+        self.issue_review=None
 
     def read(self, content, filename, **options):
-        self.file=None;self.checked=None
+        self.file=None;self.checked=None;self.issue_review=None
         filename=PurePosixPath(filename.replace('\\','/')).name[:200]
         try:
             table=read_table(content,filename,**options)
@@ -44,7 +45,7 @@ class CompanyReception:
                     fields={kind:[dict(key=k,label=label,required=required) for k,label,required in fields] for kind,fields in FIELDS.items()})
 
     def preview(self, data):
-        self.checked=None
+        self.checked=None;self.issue_review=None
         if not isinstance(data,dict): raise ValueError('Datos de revisión no válidos.')
         file=self.file
         if not file or data.get('upload')!=file['upload'] or self.clock()-file['at']>TTL:
@@ -74,11 +75,26 @@ class CompanyReception:
                     preview=result['records'][:20],errors=result['errors'][:100],error_count=result['error_count'],
                     warnings=result['warnings'][:100],warning_count=len(result['warnings']),
                     admission_status='PENDING',operational_path='FORBIDDEN',decision_authority=False)
+        issue_ticket=None
+        if result['errors'] or result['warnings']:
+            issue_ticket=secrets.token_urlsafe(32)
+            self.issue_review=dict(ticket=issue_ticket,report=deepcopy(report),errors=deepcopy(result['errors']),warnings=deepcopy(result['warnings']),at=self.clock(),upload=file['upload'])
         if not result['errors']:
             ticket=secrets.token_urlsafe(32)
             self.checked=dict(ticket=ticket,report=deepcopy(report),records=deepcopy(result['records']),content=file['content'],at=self.clock())
-            return dict(report,ticket=ticket)
-        return dict(report,ticket=None)
+            return dict(report,ticket=ticket,issue_report_ticket=issue_ticket)
+        return dict(report,ticket=None,issue_report_ticket=issue_ticket)
+
+    def issues(self, data):
+        review=self.issue_review;file=self.file
+        if not isinstance(data,dict) or not review or not isinstance(data.get('ticket'),str) or not secrets.compare_digest(data['ticket'].encode(),review['ticket'].encode()):
+            raise ValueError('Comprueba de nuevo el archivo para descargar sus incidencias actuales.')
+        if not file or file['upload']!=review['upload'] or self.clock()-review['at']>TTL or self.clock()-file['at']>TTL:
+            raise ValueError('La comprobación ha caducado o el archivo ha cambiado. Vuelve a leerlo y comprobarlo.')
+        if sha256(file['content']).hexdigest()!=review['report']['source_sha256']:
+            raise ValueError('El origen ha cambiado. Vuelve a leer el archivo y comprobarlo.')
+        from eios.company_reception_issues import export_issues
+        return export_issues(review['report'],review['errors'],review['warnings'])
 
     def commit(self, ticket):
         checked=self.checked
