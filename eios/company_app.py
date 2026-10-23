@@ -705,6 +705,10 @@ from eios.company_selected_sales_ui import HTML as SALES_HISTORY_HTML, SALES_HTM
 PAGE=PAGE.replace('<div data-view="archivos" hidden>','<div data-view="archivos" hidden>'+SALES_HISTORY_HTML).replace('<section class="card" id="sale-doc-detail"',RECEIVED_SALES_HTML+'<section class="card" id="sale-doc-detail"').replace('</script>',SALES_HISTORY_JS+'</script>')
 
 
+from eios.company_sales_history_ui import CSS as SALES_HISTORY_TERMS_CSS, JS as SALES_HISTORY_TERMS_JS
+PAGE=PAGE.replace('</style>',SALES_HISTORY_TERMS_CSS+'</style>',1).replace('</script>',SALES_HISTORY_TERMS_JS+'</script>',1)
+
+
 def main():
     parser = argparse.ArgumentParser(description='EIOS: empresa y entrada local de propuestas de compra')
     parser.add_argument('--db', type=Path, required=True)

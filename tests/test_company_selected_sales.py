@@ -92,3 +92,25 @@ class SelectedSalesTest(unittest.TestCase):
         p=self.selection.preview(self.request([self.receive(sku='NEW',unit='uds.',net='120',quantity='10')]))
         self.commit(p);ori=self.desk.sales_orientation(dict(dataset_id='one',customer_id='C',article_id='NEW'))
         self.assertEqual(ori['default_unit_price'],'12');self.assertEqual(ori['reference_unit_cost'],'10');self.assertIsNone(ori['inventory'])
+    def test_expanded_conditions_reach_orientation_without_reapplying_discount(self):
+        reader=CompanyReception(self.path)
+        content=b'Factura;Fecha;Cliente;SKU;Cantidad;Unidad;Neto;Moneda;PrecioAntes;DescuentoPct;DescuentoEuros;IVAPct;IVAEuros\nNEW-TERMS;2026-09-30;C;A;10;palets;900;EUR;100;10;100;21;189\n'
+        upload=reader.read(content,'conditions.csv')
+        fields=['invoice_number','issue_date','customer_id','article_id','quantity','unit','net_amount','currency','unit_price_before_discount','discount_percent','discount_amount','vat_percent','vat_amount']
+        p=reader.preview(dict(upload=upload['upload'],company_id='one',legal_name='Empresa sintética',material_nature='SYNTHETIC',as_of_date='2026-09-30',kind='sales_line',number_format='ES',mapping=dict(zip(fields,range(len(fields))))))
+        self.assertEqual(p['error_count'],0);bid=reader.commit(p['ticket'])['batch_id']
+        self.selection=SalesHistorySelection(self.path);self.commit(self.selection.preview(self.request([bid])))
+        row=self.orientation()['latest_sales'][0]
+        self.assertEqual(row['unit_price_before_discount'],'100');self.assertEqual(row['discount_percent'],'10');self.assertEqual(row['discount_amount'],'100')
+        self.assertEqual(row['net_amount'],'900');self.assertEqual(row['vat_percent'],'21');self.assertEqual(row['vat_amount'],'189')
+        self.assertEqual(self.orientation()['default_unit_price'],'90')
+    def test_original_explicit_terms_are_preserved_without_tax_inference(self):
+        from eios.company_sales_links import save_link
+        with sqlite3.connect(self.path) as c:
+            raw=c.execute("SELECT record_json FROM documentary_company_record WHERE dataset_id='one' AND record_id='F1#1'").fetchone()[0]
+            record=json.loads(raw);record['data'].update(unit_price_before_discount='100',discount_percent='10',discount_amount='20',vat_percent='0',vat_amount='0')
+            c.execute("UPDATE documentary_company_record SET record_json=? WHERE dataset_id='one' AND record_id='F1#1'",(json.dumps(record),))
+        save_link(self.path,self.desk.store,fixture.SalesLinksTest.request(self))
+        row=self.orientation()['latest_sales'][0]
+        self.assertEqual(row['unit_price_before_discount'],'100');self.assertEqual(row['discount_percent'],'10')
+        self.assertEqual(row['vat_percent'],'0');self.assertEqual(row['vat_amount'],'0');self.assertEqual(row['net_unit_price'],'90')

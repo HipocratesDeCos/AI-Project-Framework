@@ -48,6 +48,8 @@ def documented_sales(store, dataset, cutoff):
                   description=data.get('description'),unit=data.get('unit_as_documented'),currency=data.get('currency'),
                   source_refs=deepcopy(record.get('source_refs',[])))
         for field in ('quantity','unit_price','net_amount'): line[field]=_amount(data.get(field))
+        for field in ('unit_price_before_discount','discount_percent','discount_amount','vat_percent','vat_amount'):
+            if field in data:line[field]=_amount(data[field])
         if line['currency'] and invoice['currency'] and line['currency']!=invoice['currency']:
             invoice['warnings'].append('Una línea tiene moneda distinta de la cabecera: '+record['record_id'])
         invoice['lines'].append(line)
