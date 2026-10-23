@@ -57,13 +57,15 @@ def orientation(state, customer, article):
     cost_date = max((p['issue_date'] for p in purchases), default=None)
     costs = [deepcopy(p) for p in purchases if p['issue_date'] == cost_date]
     unit_cost = costs[0]['effective_net_unit_price'] if len(costs) == 1 else None
-    cost_scope='LAST_COMPARABLE_PURCHASE_EXCLUDES_OTHER_COSTS'
-    if not purchases and article.get('commercial_catalogue') and article.get('catalogue_unit_cost') is not None:
+    cost_scope='SELECTED_RECEIVED_PURCHASE_LINES_NOT_ADMITTED' if any(p.get('origin')=='EXPLICIT_RECEIVED_PURCHASE_LINE' for p in costs) else 'LAST_COMPARABLE_PURCHASE_EXCLUDES_OTHER_COSTS'
+    stale_history=(state.get('selected_purchase_history') or {}).get('status')=='STALE'
+    if stale_history:cost_scope='STALE_RECEIVED_PURCHASE_HISTORY'
+    if not stale_history and not purchases and article.get('commercial_catalogue') and article.get('catalogue_unit_cost') is not None:
         unit_cost=article['catalogue_unit_cost'];cost_scope='EXPLICIT_SYNTHETIC_CATALOGUE_NOT_LAST_PURCHASE'
     inventory = deepcopy(state['inventory'].get(article['article_id']))
     if inventory and inventory.get('unit') != article['unit_as_documented']:
         inventory = None
-    return dict(unlinked_customer_sales_lines=unlinked,sales_history=sales,latest_sales=latest, purchase_references=costs, reference_unit_cost=unit_cost,
+    return dict(purchase_history_status=state.get('selected_purchase_history'),unlinked_customer_sales_lines=unlinked,sales_history=sales,latest_sales=latest, purchase_references=costs, reference_unit_cost=unit_cost,
                 inventory=inventory, cost_scope=cost_scope, catalogue_reference=deepcopy(article.get('commercial_catalogue')))
 
 
