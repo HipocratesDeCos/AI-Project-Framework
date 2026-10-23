@@ -50,6 +50,12 @@ def orientation(state, customer, article):
             sales.append(dict(invoice=invoice['invoice_number'], date=invoice['issue_date'],
                 quantity=str(quantity), net_unit_price=str(net/quantity), unit=line['unit'], currency='EUR',
                 source_refs=deepcopy(line['source_refs']),manual_link=deepcopy(line.get('manual_link'))))
+    sales_status=state.get('selected_sales_history')
+    for line in state.get('received_sales_lines',[]):
+        if line['customer_id']==customer and line['article_id']==article['article_id'] and line['unit']==article['unit_as_documented'] and line['currency']=='EUR':
+            sales.append(dict(invoice=line['invoice_number'],date=line['issue_date'],quantity=line['quantity'],net_unit_price=line['effective_net_unit_price'],unit=line['unit'],currency='EUR',source_refs=deepcopy(line['source_refs']),origin='EXPLICIT_RECEIVED_SALES_LINE',description=line.get('description'),discount_percent=line.get('discount_percent'),discount_amount=line.get('discount_amount'),vat_percent=line.get('vat_percent'),vat_amount=line.get('vat_amount')))
+    sales.sort(key=lambda row:(row['date'],row['invoice']),reverse=True)
+    if (sales_status or {}).get('status')=='STALE':sales=[]
     # Multiple latest-day lines are retained; an arbitrary invoice does not become "the last price".
     latest_date = max((s['date'] for s in sales), default=None)
     latest = [s for s in sales if s['date'] == latest_date]
@@ -65,7 +71,7 @@ def orientation(state, customer, article):
     inventory = deepcopy(state['inventory'].get(article['article_id']))
     if inventory and inventory.get('unit') != article['unit_as_documented']:
         inventory = None
-    return dict(purchase_history_status=state.get('selected_purchase_history'),unlinked_customer_sales_lines=unlinked,sales_history=sales,latest_sales=latest, purchase_references=costs, reference_unit_cost=unit_cost,
+    return dict(sales_history_status=sales_status,purchase_history_status=state.get('selected_purchase_history'),unlinked_customer_sales_lines=unlinked,sales_history=sales,latest_sales=latest, purchase_references=costs, reference_unit_cost=unit_cost,
                 inventory=inventory, cost_scope=cost_scope, catalogue_reference=deepcopy(article.get('commercial_catalogue')))
 
 
