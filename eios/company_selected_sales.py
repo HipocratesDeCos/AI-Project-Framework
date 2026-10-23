@@ -68,7 +68,7 @@ def validate(c,dataset,ids):
             seen.add(signature);headers[key]=header
             if problem:errors.append(dict(filename=meta['filename'],row=r.get('source_row'),article_id=sku,message=problem));continue
             ref=dict(document_ref='REC-'+bid,filename=meta['filename'],sheet=meta['sheet'],row=r['source_row'],batch_id=bid,source_sha256=meta['source_sha256'])
-            entries.append(dict(description=d.get('description'),discount_percent=d.get('discount_percent'),discount_amount=d.get('discount_amount'),vat_percent=d.get('vat_percent'),vat_amount=d.get('vat_amount'),article_id=sku,customer_id=customer,customer_name=parties[customer].get('legal_name',customer),invoice_number=inv,issue_date=d['issue_date'],quantity=str(quantity),unit=d['unit'],net_amount=str(net),currency='EUR',effective_net_unit_price=str(net/quantity),source_refs=[ref]))
+            entries.append(dict(unit_price_before_discount=d.get('unit_price_before_discount'),description=d.get('description'),discount_percent=d.get('discount_percent'),discount_amount=d.get('discount_amount'),vat_percent=d.get('vat_percent'),vat_amount=d.get('vat_amount'),article_id=sku,customer_id=customer,customer_name=parties[customer].get('legal_name',customer),invoice_number=inv,issue_date=d['issue_date'],quantity=str(quantity),unit=d['unit'],net_amount=str(net),currency='EUR',effective_net_unit_price=str(net/quantity),source_refs=[ref]))
     return entries,errors,fingerprints,files
 
 
