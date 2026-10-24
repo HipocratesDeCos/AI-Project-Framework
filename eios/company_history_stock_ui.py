@@ -16,10 +16,10 @@ function validStockHistoryOrigin(origin){
 function openHistoryArticleStock(articleId,dataset,sourceButton){
  if(dataset!==$('dataset').value||state?.info?.dataset_id!==dataset)return;const article=(state.articles||[]).find(item=>item.article_id===articleId);if(!article)return;
  const panel=sourceButton?.closest('[data-view]'),labels={compras:'Compras',ventas:'Ventas',proveedores:'Proveedor',clientes:'Cliente',archivos:'Carga de archivos'},origin={dataset,view:panel?.dataset.view,button:sourceButton};stockHistoryOrigin=panel&&!panel.hidden&&labels[origin.view]&&validStockHistoryOrigin(origin)?origin:null;$('stock-history-return').hidden=!stockHistoryOrigin;$('stock-history-return').textContent=stockHistoryOrigin?'Volver a '+labels[origin.view]:'Volver al historial';
- stockExactArticle=articleId;stockPage=0;$('stock-search').value='';$('stock-provider').value='';$('stock-alert-only').checked=false;$('stock-order').value='SKU';
+ stockExactArticle=articleId;stockPage=0;$('stock-search').value='';$('stock-provider').value='';$('stock-family').value='';$('stock-alert-only').checked=false;$('stock-order').value='SKU';
  $('stock-article-scope-message').textContent='ARTÍCULO DEL HISTORIAL · '+articleId+' · '+(article.description||'Sin descripción')+' · '+state.info.company.legal_name+' · corte '+stockDate(state.info.as_of_date)+'. Consulta de existencias y mínimos; la factura no acredita el stock disponible.';$('stock-article-scope').hidden=false;
  view('stock');renderStock();$('stock-article-scope-clear').focus();$('stock-article-scope').scrollIntoView({behavior:'smooth',block:'start'});
 }
 $('stock-history-return').onclick=()=>{const origin=stockHistoryOrigin;if(!validStockHistoryOrigin(origin)){stockHistoryOrigin=null;$('stock-history-return').hidden=true;return}view(origin.view);origin.button.focus();origin.button.scrollIntoView({behavior:'smooth',block:'center'})};
-$('stock-article-scope-clear').onclick=()=>{resetStockArticleScope();$('stock-search').value='';$('stock-provider').value='';$('stock-alert-only').checked=false;stockPage=0;renderStock();$('stock-search').focus()};
+$('stock-article-scope-clear').onclick=()=>{resetStockArticleScope();$('stock-search').value='';$('stock-provider').value='';$('stock-family').value='';$('stock-alert-only').checked=false;stockPage=0;renderStock();$('stock-search').focus()};
 '''
