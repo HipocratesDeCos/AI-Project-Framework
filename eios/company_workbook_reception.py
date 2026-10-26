@@ -1,3 +1,4 @@
+from contextlib import closing
 """Atomic reception of explicitly mapped workbook sheets; never admission."""
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -107,10 +108,10 @@ class CompanyWorkbookReception:
                     reception.commit(report['ticket'])
             if any(r['error_count'] for r in reports):
                 return dict(ticket=None, sheets=reports, status='INVALID', decision_authority=False, operational_path='FORBIDDEN')
-            with sqlite3.connect(temporary) as c:
+            with closing(sqlite3.connect(temporary)) as c, c:
                 staged = existing(c, reports and options['company_id'].strip())
             dossier = check_dossier(temporary, [r[0] for r in staged])
-        with sqlite3.connect(self.db) as c:
+        with closing(sqlite3.connect(self.db)) as c, c:
             prior = existing(c, options['company_id'].strip())
         comparison = compare(staged, prior)
         # Check cross-sheet collisions as well as existing receptions.
@@ -138,7 +139,7 @@ class CompanyWorkbookReception:
         if self.clock() - check['at'] > TTL:
             raise ValueError('La revisión ha caducado.')
         staged = check['staged']; meta = staged[0][1]; saved = []; unchanged = []
-        with sqlite3.connect(self.db) as c:
+        with closing(sqlite3.connect(self.db)) as c, c:
             c.execute('PRAGMA foreign_keys=ON')
             c.executescript('''CREATE TABLE IF NOT EXISTS received_company (
                 company_id TEXT PRIMARY KEY, legal_name TEXT NOT NULL, material_nature TEXT NOT NULL);

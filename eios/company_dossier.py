@@ -1,3 +1,4 @@
+from contextlib import closing
 """Read-only reference checks over explicitly selected received source batches."""
 import json
 import sqlite3
@@ -11,7 +12,7 @@ def selected_batches(db, batch_ids):
             or any(not isinstance(x, str) or len(x) != 64 for x in batch_ids)
             or len(set(batch_ids)) != len(batch_ids)):
         raise ValueError('Selecciona entre 1 y 100 archivos distintos del mismo expediente y fecha de corte.')
-    with sqlite3.connect(db) as c:
+    with closing(sqlite3.connect(db)) as c, c:
         if not c.execute("SELECT 1 FROM sqlite_master WHERE name='received_company_batch'").fetchone():
             raise ValueError('No hay archivos recibidos.')
         rows = c.execute('SELECT batch_id,metadata_json,records_json FROM received_company_batch WHERE batch_id IN (' + ','.join('?' for _ in batch_ids) + ')', batch_ids).fetchall()

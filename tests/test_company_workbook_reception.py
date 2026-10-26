@@ -35,6 +35,26 @@ class WorkbookReceptionTest(unittest.TestCase):
     def setUp(self):
         temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup);self.tmp_path=Path(temp.name)
 
+    def test_preview_closes_all_database_connections(self):
+        from unittest.mock import patch
+        connections = []
+        class TrackedConnection(sqlite3.Connection):
+            was_closed = False
+            def close(self):
+                self.was_closed = True
+                return super().close()
+        original = sqlite3.connect
+        def connect(*args, **kwargs):
+            kwargs['factory'] = TrackedConnection
+            connection = original(*args, **kwargs)
+            connections.append(connection)
+            return connection
+        with patch('sqlite3.connect', side_effect=connect):
+            report = CompanyWorkbookReception(self.tmp_path/'close.db').preview(workbook(), 'book.xlsx', OPTIONS)
+        self.assertTrue(report['ticket'])
+        self.assertTrue(connections)
+        self.assertTrue(all(c.was_closed for c in connections))
+
     def test_batch_idempotent_and_original_preserved(self):
         tmp_path=self.tmp_path
         db=tmp_path/'company.db';service=CompanyWorkbookReception(db);content=workbook()
