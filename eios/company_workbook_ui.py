@@ -1,6 +1,6 @@
 """Explicit workbook reception beside the existing per-sheet workflow."""
 HTML = '''<section class="card"><h2>Cargar un libro con varias hojas</h2>
-<p>Usa los datos de empresa, fecha de corte y formato numérico del formulario de recepción. El libro debe incluir <strong>97_Guia_Carga</strong>, con las columnas Hoja, Tipo EIOS, Campo EIOS y Columna del archivo.</p>
+<p>Se utilizarán los datos de empresa del paso 1. Selecciona el libro preparado para EIOS, que incluye la hoja <strong>97_Guia_Carga</strong> para identificar automáticamente sus tablas.</p>
 <p>Se comprueban formatos, referencias y coincidencias con archivos recibidos del mismo corte. El catálogo activo y las propuestas se conservan. Esta comprobación no concilia financieramente todo el expediente.</p>
 <label>Libro Excel <input id="workbook-file" type="file" accept=".xlsx"></label>
 <button id="workbook-check" type="button">Comprobar todas las hojas</button>

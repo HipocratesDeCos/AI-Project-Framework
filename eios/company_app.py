@@ -781,6 +781,9 @@ from eios.company_purchase_article_search_ui import HTML as PURCHASE_ARTICLE_SEA
 PAGE=PAGE.replace('<label>Descripción<select name="article_id" id="article"',PURCHASE_ARTICLE_SEARCH_HTML+'<label>Descripción<select name="article_id" id="article"',1).replace('</script>',PURCHASE_ARTICLE_SEARCH_JS+'</script>',1)
 
 
+from eios.company_upload_guide_ui import CSS as UPLOAD_GUIDE_CSS, JS as UPLOAD_GUIDE_JS
+PAGE=PAGE.replace("</style>",UPLOAD_GUIDE_CSS+"</style>",1).replace("</script>",UPLOAD_GUIDE_JS+"</script>",1)
+
 def main():
     parser = argparse.ArgumentParser(description='EIOS: empresa y entrada local de propuestas de compra')
     parser.add_argument('--db', type=Path, required=True)
