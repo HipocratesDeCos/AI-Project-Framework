@@ -1,3 +1,4 @@
+from contextlib import closing
 """Source-preserving company reception, isolated from admitted decision datasets."""
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -108,7 +109,7 @@ class CompanyReception:
         identity.pop('preview');identity.pop('errors');identity.pop('warnings')
         batch=sha256(canonical(dict(metadata=identity,records=checked['records'])).encode()).hexdigest()
         received=datetime.now(timezone.utc).isoformat()
-        with sqlite3.connect(self.db) as c:
+        with closing(sqlite3.connect(self.db)) as c, c:
             c.execute('PRAGMA foreign_keys=ON')
             c.executescript('''CREATE TABLE IF NOT EXISTS received_company (
                 company_id TEXT PRIMARY KEY, legal_name TEXT NOT NULL, material_nature TEXT NOT NULL);
@@ -129,7 +130,7 @@ class CompanyReception:
         """Recover exact received bytes, scoped to a company and verified hash."""
         if not isinstance(company_id, str) or not isinstance(batch_id, str) or not re.fullmatch(r'[0-9a-f]{64}', batch_id):
             raise ValueError('Identificación de archivo no válida.')
-        with sqlite3.connect(self.db) as c:
+        with closing(sqlite3.connect(self.db)) as c, c:
             if not c.execute("SELECT 1 FROM sqlite_master WHERE name='received_company_batch' AND type='table'").fetchone():
                 raise ValueError('Archivo no disponible para esta empresa.')
             row = c.execute('SELECT metadata_json,content FROM received_company_batch WHERE company_id=? AND batch_id=?', (company_id, batch_id)).fetchone()
@@ -150,7 +151,7 @@ class CompanyReception:
             raise ValueError('La página debe tener un desplazamiento no negativo y entre 1 y 100 filas.')
         if not isinstance(query,str) or len(query)>200:
             raise ValueError('La búsqueda debe tener hasta 200 caracteres.')
-        with sqlite3.connect(self.db) as c:
+        with closing(sqlite3.connect(self.db)) as c, c:
             if not c.execute("SELECT 1 FROM sqlite_master WHERE name='received_company_batch' AND type='table'").fetchone():
                 raise ValueError('Archivo no disponible para esta empresa.')
             row=c.execute('SELECT metadata_json,records_json FROM received_company_batch WHERE company_id=? AND batch_id=?',(company_id,batch_id)).fetchone()
@@ -178,7 +179,7 @@ class CompanyReception:
             admission_status='PENDING',operational_path='FORBIDDEN',decision_authority=False)
 
     def batches(self):
-        with sqlite3.connect(self.db) as c:
+        with closing(sqlite3.connect(self.db)) as c, c:
             if not c.execute("SELECT 1 FROM sqlite_master WHERE name='received_company_batch' AND type='table'").fetchone(): return []
             rows=c.execute('SELECT batch_id,received_at,metadata_json FROM received_company_batch ORDER BY received_at DESC,batch_id').fetchall()
         return [dict(json.loads(raw),batch_id=batch,received_at=when,fields=[dict(key=k,label=label) for k,label,_ in FIELDS[json.loads(raw)['kind']]]) for batch,when,raw in rows]
