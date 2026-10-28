@@ -58,6 +58,15 @@ NUMBERS = {'recommended_sale_price','physical','reserved','quantity','net_amount
 IDENTIFIERS = {'supplier_id','customer_id','article_id','invoice_number','flow_id','account_code','tax_id','installment_ref'}
 
 
+from eios.company_workbook_fields import EXTENSIONS, REFERENCE_FIELDS, CACHED_PRICE_FIELDS
+for _kind,_fields in EXTENSIONS.items():
+    FIELDS[_kind] += [(key,label,False) for key,label in _fields]
+FIELDS['price_reference']=REFERENCE_FIELDS
+NUMBERS |= {'unit_price','reference_cost','reference_price','target_margin'}
+IDENTIFIERS |= {'postal_code','support_ref','order_ref','delivery_ref'}
+
+
+
 def tariff_mapping(headers):
     """Suggest only a complete, unique mapping of explicit tariff headers."""
     import unicodedata
@@ -133,15 +142,18 @@ def read_table(content, filename, sheet=None, header_row=1, encoding='utf-8-sig'
                 sheets=workbook.sheetnames
                 if not sheets or len(sheets)>100:
                     raise ValueError('El libro debe tener entre 1 y 100 hojas.')
+                cached_workbook=load_workbook(BytesIO(content),read_only=True,data_only=True,keep_links=False)
                 sheet_name=sheet or sheets[0]
                 if sheet_name not in sheets:
                     raise ValueError('La hoja seleccionada no existe.')
                 rows=[]
-                for row in workbook[sheet_name].iter_rows():
+                for row,cached_row in zip(workbook[sheet_name].iter_rows(),cached_workbook[sheet_name].iter_rows()):
                     if len(row)>MAX_COLUMNS or len(rows)>=max_rows+header_row:
                         raise ValueError(f'El límite es de {max_rows} filas de datos y 80 columnas. Exporta una tabla más pequeña.')
-                    rows.append([dict(formula=True) if c.data_type in ('f','e') else _cell(c.value) for c in row])
-            finally: workbook.close()
+                    rows.append([dict(formula=True,cached=_cell(cached_row[index].value)) if c.data_type=='f' else dict(formula=True) if c.data_type=='e' else _cell(c.value) for index,c in enumerate(row)])
+            finally:
+                workbook.close()
+                if 'cached_workbook' in locals():cached_workbook.close()
         except (zipfile.BadZipFile,KeyError):
             raise ValueError('No se puede leer el archivo XLSX.') from None
     else:
@@ -208,23 +220,25 @@ def normalize(table, kind, mapping, cutoff, convention):
         output={};problems=[]
         for field,label,required in fields:
             column=mapping.get(field)
-            if column is None and (field in STOCK_PARAMETER_KEYS or kind=='sales_line' and field in {k for k,_,_ in SALES_DETAILS} or kind=='cash_flow' and field in {k for k,_,_ in COLLECTION_LINKS}):
+            if column is None and (field in {k for k,_ in EXTENSIONS.get(kind,[])} or field in STOCK_PARAMETER_KEYS or kind=='sales_line' and field in {k for k,_,_ in SALES_DETAILS} or kind=='cash_flow' and field in {k for k,_,_ in COLLECTION_LINKS}):
                 continue  # Preserve older inventory payloads; absent parameters are not defaults.
             value=row['values'][column] if column is not None else None
             if value is None or (isinstance(value,str) and not value.strip()):
                 if required: problems.append(label+': dato vacío')
                 output[field]=None;continue
             try:
-                if isinstance(value,dict): raise ValueError('La celda contiene una fórmula. Revisa el resultado y aporta valores fijos.')
+                if isinstance(value,dict):
+                    if field not in CACHED_PRICE_FIELDS.get(kind,set()) or value.get('cached') is None:raise ValueError('La celda contiene una fórmula sin resultado utilizable para este campo. Recalcula y guarda el libro o aporta valores fijos.')
+                    value=value['cached'];warnings.append('Fila '+str(row['row'])+': '+label+' utiliza el resultado guardado de una fórmula; no se ejecuta la fórmula ni se acredita su vigencia.')
                 if field in NUMBERS: value=str(number(value,convention))
-                elif field in ('issue_date','due_date','observation_date','valid_from','valid_until'): value=source_date(value)
+                elif field in ('issue_date','due_date','observation_date','valid_from','valid_until','reference_date','order_date','delivery_date','contractual_due_date'): value=source_date(value)
                 elif field in IDENTIFIERS and not isinstance(value,str):
                     raise ValueError('El código debe ser texto para conservar sus ceros iniciales.')
                 else: value=str(value).strip()
                 output[field]=value
             except (ValueError,InvalidOperation) as error: problems.append(label+': '+str(error))
         if not problems:
-            key_fields={'supplier':['supplier_id'],'customer':['customer_id'],'article':['article_id'],'inventory':['article_id','unit'],'stock_policy':['article_id','unit'],'cash_flow':['flow_id'],'balance':['account_code','currency']}.get(kind)
+            key_fields={'supplier':['supplier_id'],'customer':['customer_id'],'article':['article_id'],'inventory':['article_id','unit'],'stock_policy':['article_id','unit'],'cash_flow':['flow_id'],'balance':['account_code','currency'],'price_reference':['article_id','unit']}.get(kind)
             if key_fields:
                 key=tuple(output.get(k) for k in key_fields)
                 if key in seen: problems.append('Identificador duplicado dentro del archivo.')
@@ -235,6 +249,12 @@ def normalize(table, kind, mapping, cutoff, convention):
                 seen.add(fingerprint)
                 if output['issue_date']>cutoff: problems.append('La factura es posterior a la fecha de corte.')
                 if Decimal(output['quantity'])<=0 or Decimal(output['net_amount'])<0: problems.append('Las líneas de compra o venta deben tener cantidad positiva e importe neto no negativo; separa los abonos.')
+            if kind=='purchase_line' and output.get('unit_price') is not None and Decimal(output['quantity'])>0:
+                if Decimal(output['unit_price'])<0 or abs(Decimal(output['unit_price'])-Decimal(output['net_amount'])/Decimal(output['quantity']))>Decimal('.005'):
+                    problems.append('Precio unitario incompatible con el importe neto y la cantidad.')
+            if kind=='price_reference':
+                if Decimal(output['reference_cost'])<0 or Decimal(output['reference_price'])<0:problems.append('Las referencias de precio no pueden ser negativas.')
+                if output.get('target_margin') is not None and not 0<=Decimal(output['target_margin'])<1:problems.append('El margen supuesto debe ser una fracción entre 0 y 1, sin incluir 1.')
             if kind=='sales_line':
                 from eios.company_sales_receipt_math import validate_line
                 problems.extend(validate_line(output,warnings,row['row']))
@@ -255,7 +275,7 @@ def normalize(table, kind, mapping, cutoff, convention):
                 output['direction']=output['direction'].upper()
                 if output['direction'] not in ('COBRO','PAGO'): problems.append('El movimiento debe indicar COBRO o PAGO.')
                 if Decimal(output['amount'])<0: problems.append('Usa un importe positivo e indica COBRO o PAGO.')
-            if 'currency' in output and not re.fullmatch('[A-Z]{3}',output['currency'] or ''): problems.append('Moneda: usa un código de tres letras mayúsculas, por ejemplo EUR.')
+            if (kind!='price_reference' or output.get('currency') is not None) and 'currency' in output and not re.fullmatch('[A-Z]{3}',output['currency'] or ''): problems.append('Moneda: usa un código de tres letras mayúsculas, por ejemplo EUR.')
             if kind in ('inventory','stock_policy','balance') and output.get('observation_date') and output['observation_date']!=cutoff:
                 problems.append('La fecha de referencia de la fila no coincide con la fecha de corte indicada.')
             if kind in ('inventory','stock_policy'):

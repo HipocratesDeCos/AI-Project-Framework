@@ -4,6 +4,7 @@ import re
 import unicodedata
 
 from eios.company_tables import FIELDS, tariff_mapping
+from eios.company_workbook_fields import EXTENSIONS
 
 
 def clean(value):
@@ -15,6 +16,7 @@ def suggestions(headers,kind):
     mapping={};conflicts=[];normalized=[clean(header) for header in headers]
     for key,label,_ in FIELDS[kind]:
         names={clean(key),clean(label)}
+        names.update(clean(x) for x in {'supplier_id':['Cod.Proveedor'],'customer_id':['Cod.Cliente'],'article_id':['Sku'],'email':['Correo electrónico'],'postal_code':['C.P']}.get(key,[]))
         matches=[i for i,header in enumerate(normalized) if header in names]
         mapping[key]=matches[0] if len(matches)==1 else None
         if len(matches)>1:conflicts.append(key)
@@ -32,11 +34,13 @@ def profiles(headers):
     exact=[]
     for kind,proposal in proposals.items():
         mapping=proposal['mapping']
-        if len(headers)==len(mapping) and all(index is not None for index in mapping.values()) and len(set(mapping.values()))==len(headers):
+        optional_new={key for key,_ in EXTENSIONS.get(kind,[])}
+        used=[index for index in mapping.values() if index is not None]
+        if len(headers)==len(used) and len(set(used))==len(headers) and all(index is not None for key,index in mapping.items() if key not in optional_new):
             exact.append(kind)
     profile=None
     if len(exact)==1:
-        kind=exact[0];profile=dict(kind=kind,mapping=proposals[kind]['mapping'],basis='EXACT_TEMPLATE_HEADERS')
+        kind=exact[0];optional_new={key for key,_ in EXTENSIONS.get(kind,[])};profile=dict(kind=kind,mapping={k:v for k,v in proposals[kind]['mapping'].items() if v is not None or k not in optional_new},basis='EXACT_TEMPLATE_HEADERS')
     elif not exact:
         # Preserve the existing explicit tariff workbook, including read-only columns.
         tariff=tariff_mapping(headers)
