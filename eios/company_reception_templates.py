@@ -5,7 +5,7 @@ import json
 from eios.company_tables import FIELDS
 from eios.company_commercial_catalogue import FIELDS as CATALOGUE_FIELDS
 
-LABELS=dict(supplier='Proveedores',customer='Clientes',article='Artículos',inventory='Inventario',
+LABELS=dict(price_reference='Referencias de precios sin activar tarifa',supplier='Proveedores',customer='Clientes',article='Artículos',inventory='Inventario',
     stock_policy='Parámetros de stock y entrega',purchase_line='Compras históricas',
     sales_line='Ventas históricas',sales_installment='Vencimientos de venta (una fila por cuota)',sale_price='Tarifa de venta',cash_flow='Previsión de cobros y pagos',
     balance='Saldos contables',commercial_catalogue='Catálogo comercial de empresa ficticia')

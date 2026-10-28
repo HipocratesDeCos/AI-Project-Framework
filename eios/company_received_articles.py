@@ -6,7 +6,7 @@ import json
 from eios.company_dossier import selected_batches
 
 
-ARTICLE_KINDS = {'article', 'inventory', 'stock_policy', 'purchase_line', 'sales_line'}
+ARTICLE_KINDS = {'article', 'inventory', 'stock_policy', 'purchase_line', 'sales_line','price_reference'}
 
 
 def unit_price(data):
@@ -50,6 +50,7 @@ def received_article(db, batch_ids, article_id=None):
     catalog_status = 'MISSING_CATALOG' if not catalog else 'CONFLICTING_CATALOG' if len(variants) > 1 else 'DOCUMENTED_CATALOG'
     documented_unit = catalog[0]['data']['unit'] if catalog_status == 'DOCUMENTED_CATALOG' else None
     purchases, sales, inventory, policies = [], [], [], []
+    references=[]
     for entry in rows:
         data = entry['data']
         if entry['kind'] in ('purchase_line', 'sales_line'):
@@ -60,8 +61,11 @@ def received_article(db, batch_ids, article_id=None):
             # Never interpret a missing reservation as zero, or sum alternative snapshots.
             data['available'] = format(Decimal(data['physical']) - Decimal(data['reserved']), 'f') if data.get('reserved') is not None else None
             inventory.append(entry)
+        elif entry['kind']=='price_reference':references.append(entry)
         elif entry['kind'] == 'stock_policy':
             policies.append(entry)
+    result['price_references']=references
+    result['has_price_reference']=any(e['data']['unit']==documented_unit for e in references) if documented_unit else False
     purchases.sort(key=lambda e:(e['data']['issue_date'],e['data']['invoice_number'],e['source']['batch_id'],e['source']['row']), reverse=True)
     sales.sort(key=lambda e:(e['data']['issue_date'],e['data']['invoice_number'],e['source']['batch_id'],e['source']['row']), reverse=True)
     grouped = defaultdict(list)

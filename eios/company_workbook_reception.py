@@ -26,7 +26,7 @@ def keys(kind, records):
               'article': ('article_id',), 'inventory': ('article_id', 'unit'),
               'stock_policy': ('article_id', 'unit'), 'balance': ('account_code', 'currency'),
               'cash_flow': ('flow_id',), 'sales_installment': ('installment_ref',),
-              'sale_price': ('article_id', 'unit'),
+              'sale_price': ('article_id', 'unit'), 'price_reference': ('article_id','unit'),
               'sales_line': ('customer_id', 'invoice_number'),
               'purchase_line': ('supplier_id', 'invoice_number')}[kind]
     return {tuple(r['data'].get(f) for f in fields) for r in records}
@@ -53,7 +53,7 @@ def compare(incoming, previous):
             elif keys(meta['kind'], records) & keys(meta['kind'], old_records):
                 overlaps.append(old_id)
         results.append(dict(batch_id=bid, sheet=meta['sheet'], kind=meta['kind'], rows=len(records),
-                            status='CONFLICT' if overlaps else 'UNCHANGED' if same else 'NEW',
+                            status='UNCHANGED' if same else 'CONFLICT' if overlaps else 'NEW',
                             existing_batches=sorted(same), conflicting_batches=sorted(overlaps)))
     return results
 
@@ -87,6 +87,15 @@ class CompanyWorkbookReception:
             if plan['kind'] != kind or field in plan['headers'] or field not in {f[0] for f in FIELDS[kind]}:
                 raise ValueError('La guía contiene campos repetidos o incompatibles.')
             plan['headers'][field] = header
+        if '08_Referencias_Precios' in guide['sheets'] and '08_Referencias_Precios' not in plans:
+            from eios.company_workbook_fields import REFERENCE_FIELDS, header_index
+            table=read_table(content,filename,sheet='08_Referencias_Precios')
+            explicit={}
+            for key,label,required in REFERENCE_FIELDS:
+                try: explicit[key]=table['headers'][header_index(table['headers'],label)]
+                except ValueError:
+                    if required:raise
+            plans['08_Referencias_Precios']=dict(kind='price_reference',headers=explicit)
         if not 1 <= len(plans) <= 20:
             raise ValueError('Selecciona entre 1 y 20 hojas en la guía.')
         reports = []; staged = []
@@ -97,10 +106,10 @@ class CompanyWorkbookReception:
                 read = reception.read(content, filename, sheet=sheet)
                 mapping = {}
                 for field, header in plan['headers'].items():
-                    matches = [i for i, name in enumerate(read['headers']) if name == header]
-                    if len(matches) != 1:
-                        raise ValueError('Columna ausente o ambigua en ' + sheet + ': ' + header)
-                    mapping[field] = matches[0]
+                    from eios.company_workbook_fields import header_index
+                    mapping[field] = header_index(read['headers'],header)
+                from eios.company_workbook_fields import enrich_plan
+                mapping=enrich_plan(read['headers'],plan['kind'],mapping)
                 report = reception.preview(dict(options, upload=read['upload'], kind=plan['kind'], mapping=mapping))
                 reports.append(dict(sheet=sheet, kind=plan['kind'], rows=report['rows'],
                                     error_count=report['error_count'], errors=report['errors'], warnings=report['warnings']))
@@ -113,18 +122,23 @@ class CompanyWorkbookReception:
             dossier = check_dossier(temporary, [r[0] for r in staged])
         with closing(sqlite3.connect(self.db)) as c, c:
             prior = existing(c, options['company_id'].strip())
+        revision=options.get('preserve_revision',False)
+        if type(revision) is not bool:raise ValueError('La opción de nueva recepción debe ser verdadera o falsa.')
         comparison = compare(staged, prior)
         # Check cross-sheet collisions as well as existing receptions.
         within = compare(staged, [])
         for i, item in enumerate(staged):
             within[i] = compare([item], staged[:i])[0]
         blocking = [i for i in dossier['issues'] if i['code'] not in ('OUTSIDE_SCOPE', 'SOURCE_WARNINGS')]
-        blocked = bool(blocking or any(r['status'] == 'CONFLICT' for r in comparison)
+        blocked = bool(blocking or any(r['status'] == 'CONFLICT' for r in comparison) and not revision
                        or any(r['status'] != 'NEW' for r in within))
         ticket = None if blocked else secrets.token_urlsafe(32)
         if ticket:
             self.checked = dict(ticket=ticket, at=self.clock(), staged=deepcopy(staged),
-                                previous=canonical(prior), content=bytes(content))
+                                previous=canonical(prior), content=bytes(content), preserve_revision=revision)
+        if revision:
+            for item in comparison:
+                if item['status']=='CONFLICT':item['status']='NEW_REVISION'
         return dict(ticket=ticket, status='CONFLICT' if blocked else 'READY', sheets=reports,
                     comparison=comparison, reference_issues=dossier['issues'],
                     ignored_sheets=[s for s in guide['sheets'] if s not in plans],
@@ -159,7 +173,9 @@ class CompanyWorkbookReception:
             for (bid, report, records), result in zip(staged, comparison):
                 if result['status'] == 'UNCHANGED':
                     unchanged.extend(result['existing_batches']); continue
-                if result['status'] != 'NEW':
+                if result['status']=='CONFLICT' and check.get('preserve_revision'):
+                    report['supersedes_received_batches']=result['conflicting_batches']
+                elif result['status'] != 'NEW':
                     raise ValueError('Conflicto con un archivo recibido.')
                 c.execute('INSERT INTO received_company_batch VALUES(?,?,?,?,?,?)',
                           (bid, meta['company_id'], datetime.now(timezone.utc).isoformat(),
