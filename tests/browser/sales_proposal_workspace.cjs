@@ -1,0 +1,27 @@
+const {JSDOM,VirtualConsole}=require(process.env.EIOS_JSDOM_MODULE||'jsdom'),assert=require('node:assert/strict');
+(async()=>{
+ const url=process.env.EIOS_TEST_URL||'http://127.0.0.1:8774',errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
+ const dom=new JSDOM(await(await fetch(url)).text(),{url,runScripts:'dangerously',virtualConsole:vc,beforeParse(w){w.fetch=(p,o)=>fetch(new URL(p,url),o);w.HTMLElement.prototype.scrollIntoView=function(){this.dataset.scrolled='true'}}});
+ const w=dom.window,d=w.document,$=id=>d.getElementById(id),until=async fn=>{for(let i=0;i<600;i++){if(fn())return;await new Promise(r=>setTimeout(r,20))}throw Error('Timeout: '+$('so-notice').textContent+' / '+$('so-document-status').textContent)},change=(id,v)=>{$(id).value=v;$(id).dispatchEvent(new w.Event('change',{bubbles:true}))},input=(el,v)=>{el.value=v;el.dispatchEvent(new w.Event('input',{bubbles:true}))};
+ await until(()=>$('so-lines').children.length&&$('dataset').value==='one');d.querySelector('[data-nav="propuestas-ventas"]').click();
+ change('so-customer','C');const row=$('so-lines').children[0];row.querySelector('[data-so=article_id]').value='A';row.querySelector('[data-so=article_id]').dispatchEvent(new w.Event('change',{bubbles:true}));await until(()=>!row.soLoading);
+ assert.equal($('so-lines').querySelector('[data-so=unit_price]'),null);assert.equal($('so-payment-method').tagName,'SELECT');assert.equal($('so-payment-term').tagName,'SELECT');
+ change('so-date','2026-01-31');await until(()=>!row.soLoading);change('so-payment-method','Transferencia');change('so-payment-term','30');assert.equal($('so-due').value,'2026-03-02');
+ change('so-payment-term','60');assert.equal($('so-due').value,'2026-04-01');change('so-payment-term','90');assert.equal($('so-due').value,'2026-05-01');
+ change('so-due','2026-05-10');assert.equal($('so-payment-term').value,'CUSTOM');change('so-date','2026-02-01');await until(()=>!row.soLoading);assert.equal($('so-due').value,'2026-05-10');
+ change('so-date','2026-10-29');await until(()=>!row.soLoading);change('so-payment-term','30');assert.equal($('so-due').value,'2026-11-28');change('so-payment-method','Recibo domiciliado');
+ for(const [key,value] of Object.entries({quantity:'2',unit_price:'60',discount_value:'5',vat_percent:''}))input(row.soConditions.querySelector('[data-so='+key+']'),value);
+ change('so-logistics-mode','KNOWN');input($('so-seller-freight'),'10');change('so-delivery-date','2026-10-30');change('so-valid','2026-11-30');input($('so-delivery'),'Almacén cliente');
+ assert.match(w.eval('salesOfferData()').payment_terms,/Recibo domiciliado.*30 días/);assert.equal(w.eval('salesOfferData()').lines[0].discount_value,'5');
+ $('so-preview').click();await until(()=>w.eval('salesOfferEvaluated'));
+ assert.ok($('so-evaluation-result').querySelector('.so-verdict-stop'));assert.equal($('so-evaluation-result').dataset.scrolled,'true');assert.equal(d.activeElement.id,'so-evaluation-result');assert.match($('so-summary').textContent,/Pendiente de IVA/);assert.ok($('so-negotiation').querySelectorAll('.so-scenario').length);
+ const apply=[...$('so-negotiation').querySelectorAll('button')].find(b=>b.textContent.includes('Llevar esta opción'));apply.click();assert.equal($('so-payment-method').value,'OTHER');assert.equal($('so-payment-term').value,'CUSTOM');assert.ok($('so-payment-note').value);assert.ok($('so-due').value);assert.equal(w.eval('salesOfferEvaluated'),false);assert.match($('so-negotiation').textContent,/Sin evaluación vigente/);
+ input(row.soConditions.querySelector('[data-so=unit_price]'),'100');input(row.soConditions.querySelector('[data-so=vat_percent]'),'21');input(row.soConditions.querySelector('[data-so=discount_value]'),'10');
+ $('so-preview').click();await until(()=>w.eval('salesOfferEvaluated'));assert.equal($('so-save').disabled,false,$('so-document-status').textContent);
+ const reference=$('so-reference').value;$('so-save').click();await until(()=>$('so-saved').textContent.includes(reference));
+ const saved=w.eval('state.sales_proposals[0]');assert.equal(saved.lines[0].discount_percent,'10');assert.match(saved.payment_terms,/Otra forma acordada/);assert.equal(saved.decision_authority,false);assert.equal(saved.operational_path,'FORBIDDEN');
+ $('so-add').click();assert.equal($('so-discounts').children.length,2);$('so-lines').lastElementChild.lastElementChild.click();assert.equal($('so-discounts').children.length,1);
+ $('so-customer-query').value='no match';$('so-customer-query').dispatchEvent(new w.Event('input'));$('so-customer-search-clear').click();assert.equal($('so-customer-query').value,'');assert.equal($('so-customer').value,'C');
+ $('so-document').open=false;d.querySelector('.so-step-nav a[href="#so-document"]').click();assert.equal($('so-document').open,true);
+ assert.deepEqual(errors,[]);dom.window.close();console.log('PASS: full HTTP sales flow; moved agreed fields, 30/60/90 days, custom date, payment methods, red verdict, missing VAT, alternative application, invalidation, save and conserved boundaries, remove and search controls.');
+})().catch(e=>{console.error(e);process.exit(1)});
