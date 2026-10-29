@@ -69,5 +69,8 @@ def capture_context(connection, dataset):
     if selected_sales:
         result['selected_sales_history']=selected_sales
         result['scope']='DOCUMENTARY_CONTENT_AND_PREPARED_REFERENCES'
+    from eios.company_sales_treasury import selection_context as treasury_context
+    treasury=treasury_context(connection,dataset)
+    if treasury:result['sales_treasury_selection']=treasury
     result['fingerprint'] = _hash(result)
     return result

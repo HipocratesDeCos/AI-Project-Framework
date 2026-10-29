@@ -23,7 +23,7 @@ def sales_checks(payload, state, analysis):
     treasury=analysis.get('financial_context',{}).get('treasury')
     add('TREASURY','Saldo inicial de tesorería','PENDING' if treasury is None else 'CHECKED',
         'La situación financiera vinculada no aporta un saldo de tesorería utilizable para esta empresa, corte y moneda. Revisa el vínculo y los soportes de caja y bancos.' if treasury is None else
-        f'Saldo documental vinculado: {treasury} EUR. No acredita por sí solo conciliación ni disponibilidad actual.','SOURCES')
+        f'Saldo documental vinculado: {treasury} EUR. No acredita por sí solo conciliación ni disponibilidad actual.','TREASURY')
     flows=finance.get('cash_flows') or []
     pending=finance.get('evidence_pending_count',0)
     add('QUALITY','Calidad y cobertura de datos','PENDING',
