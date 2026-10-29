@@ -42,7 +42,7 @@ def proposal_precheck(payload,state,data,analysis):
     reasons=[];pending=[]
     margin=analysis.get('contribution_margin_exact',analysis['contribution_margin_percent'])
     if minimum is None or margin is None:
-        pending.append('Faltan margen mínimo o costes comparables para contrastar la propuesta.')
+        pending.append('Configura el margen mínimo empresarial en Parámetros.' if minimum is None else 'Revisa costes comparables, logística declarada e importe neto de la propuesta.')
     elif Decimal(margin)<Decimal(str(minimum)):
         reasons.append(dict(code='MARGIN_BELOW_MINIMUM',message='El margen de la propuesta queda por debajo del mínimo preparado.'))
     if absolute is not None:
@@ -70,9 +70,11 @@ def proposal_precheck(payload,state,data,analysis):
     if not isinstance(note,str) or len(note)>1000:raise ValueError('La explicación admite hasta 1.000 caracteres.')
     if motive=='OTHER' and not note.strip():raise ValueError('Explica el motivo de la negociación.')
     if motive=='CLIENT_STOCK':pending.append('El cliente declara que tiene stock: confirmar necesidad, cantidad y fecha antes de proponer un pedido.')
-    pending.extend(['Integración de ventas con evaluación autorizada, crédito, calidad y efecto completo de tesorería pendiente.'])
+    from eios.company_sales_checks import sales_checks
+    checks=sales_checks(payload,state,analysis)
+    pending.extend(item['message'] for item in checks if item['code'] in ('TREASURY','QUALITY','CASH_PLAN','AUTHORITY') and item['status']=='PENDING')
     return dict(status='NOT_APPROPRIATE_AS_PROPOSED' if reasons else 'PENDING_VALIDATION',
-        reasons=reasons,pending=pending,customer_credit=credit,
+        reasons=reasons,pending=pending,checks=checks,customer_credit=credit,
         negotiation_reason=motive,proposal_origin=origin,negotiation_note=note.strip(),
         protocol_references=PROTOCOL_REFERENCES,protocol_execution_status='SALES_BINDING_PENDING',
         commercial_precheck_only=True,automatic_acceptance=False,decision_authority=False)
