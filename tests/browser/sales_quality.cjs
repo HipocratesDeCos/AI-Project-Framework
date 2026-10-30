@@ -1,0 +1,19 @@
+const {JSDOM,VirtualConsole}=require(process.env.EIOS_JSDOM_MODULE||'jsdom'),assert=require('node:assert/strict');
+(async()=>{
+const url=process.env.EIOS_TEST_URL,errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
+const dom=new JSDOM(await(await fetch(url)).text(),{url,runScripts:'dangerously',virtualConsole:vc,beforeParse(w){w.fetch=(p,o)=>fetch(new URL(p,url),o);w.HTMLElement.prototype.scrollIntoView=function(){}}});
+const w=dom.window,d=w.document,$=id=>d.getElementById(id),until=async f=>{for(let i=0;i<500;i++){if(f())return;await new Promise(r=>setTimeout(r,20))}throw Error('Timeout '+$('so-quality-notice').textContent+' / '+$('so-quality-status').textContent)},change=(id,v)=>{$(id).value=v;$(id).dispatchEvent(new w.Event('change',{bubbles:true}))};
+await until(()=>$('so-lines').children.length);d.querySelector('[data-nav=propuestas-ventas]').click();await w.eval('openSalesQuality()');
+assert.match($('so-quality-status').textContent,/Sin revisión/);assert.equal($('so-quality-rows').children.length,1);change('so-quality-filter','ALL');assert.equal($('so-quality-rows').children.length,2);
+$('so-quality-rows').querySelector('button').click();assert.match($('so-quality-source-title').textContent,/flujos.csv/);assert.match($('so-quality-source-data').textContent,/C1/);
+const doc=[...$('so-quality-support').options].find(o=>o.textContent.includes('extracto.pdf')).value;
+change('so-quality-flow','P1');change('so-quality-support',doc);$('so-quality-link-note').value='Contraste documental del pago sintético';$('so-quality-add-link').click();assert.match($('so-quality-links').textContent,/P1/);
+const account=$('so-quality-accounts').querySelector('[data-quality-account="572"]');assert.equal(account.querySelector('input').value,'');account.querySelector('select').value=doc;account.querySelector('input').value='58300';
+change('so-quality-coverage','DECLARED_COMPLETE');$('so-quality-until').value='2026-12-31';[...$('so-quality-coverage-sources').options].find(o=>o.value===doc).selected=true;
+$('so-quality-actor').value='Responsable de prueba';$('so-quality-note').value='Revisión sintética del calendario y saldo';$('so-quality-ack').checked=true;await $('so-quality-save').onclick();
+assert.match($('so-quality-notice').textContent,/Revisión conservada/);assert.match($('so-quality-status').textContent,/Revisión registrada/);assert.match($('so-quality-history').textContent,/Responsable de prueba/);assert.match($('so-quality-accounts').textContent,/coincide/);
+const payload=w.eval('salesOfferData()');payload.customer_id='C';payload.lines=[{article_id:'A',quantity:'2',unit_price:'100',discount_value:'0',vat_percent:'21'}];payload.seller_freight_cost='0';payload.due_date=payload.offer_date;
+const result=await w.eval('api')('/api/sales-proposals/preview',{method:'POST',headers:{'Content-Type':'application/json','X-EIOS-Token':w.eval('token')},body:JSON.stringify(payload)});
+const checks=result.negotiation.proposal_evaluation.checks;assert.equal(checks.find(c=>c.code==='CREDIT').status,'INFO');assert.equal(checks.find(c=>c.code==='QUALITY').status,'INFO');assert.ok(result.negotiation.financial_inputs.cash_flows.every(f=>f.canonical.evidence_state==='NOT_EVIDENCED'));assert.deepEqual(errors,[]);dom.window.close();
+console.log('PASS HTTP+DOM: movement source rows, support declaration, independent observed balance, coverage, persisted history, at-sight credit and preserved evidence boundaries.');
+})().catch(e=>{console.error(e);process.exit(1)});
