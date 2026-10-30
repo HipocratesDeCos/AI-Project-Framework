@@ -25,3 +25,9 @@ Se conserva historial por dataset, responsable, motivo, cuentas, archivos, filas
 `tests/test_company_sales_treasury.py`: selección, suma 650 + 58.300, sustitución del calendario, rechazo de mezcla de empresas y niveles, confirmación obligatoria, fuente alterada, retirada y conservación del plan anterior. Verifica ejecución del motor con el saldo seleccionado y evidencia pendiente.
 
 `python tests/browser/run_sales_treasury.py`: HTTP y DOM con empresa y archivos temporales, selección en la pantalla y evaluación con tesorería de 58.950 EUR. Comprueba también el rechazo del vínculo antes de confirmar la diferencia de código de empresa y su aceptación tras confirmarla. Requiere Node y jsdom (`EIOS_JSDOM_MODULE` admite ruta al paquete instalado).
+
+## Presentación del vínculo
+
+El panel utiliza cuatro pasos: empresa/archivo, cuentas y suma, calendario, revisión/guardado. Las cuentas de caja y bancos muestran código y saldo en tarjetas seleccionables; el total se destaca separadamente y se identifica como orientativo hasta el guardado. La procedencia del archivo se muestra fuera del selector para evitar textos truncados. Las identidades repetidas se agrupan; la confirmación adicional solo aparece cuando corresponde.
+
+Un estado visible distingue selección modificada, vínculo guardado y error. Las opciones de retirada y alcance están en un desplegable secundario. El estado guardado se refiere al vínculo de datos, no a la viabilidad de una venta.

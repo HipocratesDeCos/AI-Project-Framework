@@ -111,6 +111,8 @@ from eios.company_sales_conditions_ui import JS as SALES_CONDITIONS_JS, CSS as S
 JS += SALES_CONDITIONS_JS
 CSS += SALES_CONDITIONS_CSS
 
-from eios.company_sales_treasury_ui import HTML as SALES_TREASURY_HTML, JS as SALES_TREASURY_JS
+from eios.company_sales_treasury_ui import HTML as SALES_TREASURY_HTML, JS as SALES_TREASURY_JS, CSS as SALES_TREASURY_CSS
 HTML=HTML.replace('<section class="so-step so-evaluation"', SALES_TREASURY_HTML+'<section class="so-step so-evaluation"',1)
 JS += SALES_TREASURY_JS
+
+CSS += SALES_TREASURY_CSS
