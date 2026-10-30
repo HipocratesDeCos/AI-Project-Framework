@@ -52,3 +52,6 @@ class FastSalesReviewTest(fixture.SalesNegotiationTest):
         self.assertFalse(preview['decision_authority'])
         finance=deepcopy(state['sales_financial_context']);finance['cash_flows'][0]['canonical'].update(flow_type='COLLECTION',amount=result['total'],due_date=result['due_date'])
         self.assertEqual(cash_preview(self.path,result,finance)['status'],'NOT_EXECUTED')
+        finance['cash_flows'][0]['canonical']['amount']=None
+        preview=cash_preview(self.path,result,finance)
+        self.assertEqual(preview['with_declared_plan']['projection']['status'],'NOT_EVIDENCED')

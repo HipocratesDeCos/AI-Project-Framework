@@ -8,7 +8,11 @@ def cash_preview(db,payload,finance):
     from eios.company_sales_cash_plan import _execute
     result=dict(status='NOT_EXECUTED',message='Falta el total con IVA para simular el cobro.',decision_authority=False,operational_path='FORBIDDEN')
     if payload.get('total') is None:return result
-    if any(f['canonical'].get('flow_type')=='COLLECTION' and f['canonical'].get('due_date')==payload['due_date'] and Decimal(str(f['canonical'].get('amount',0)))==Decimal(payload['total']) for f in finance.get('cash_flows',[])):
+    def amount(value):
+        try:
+            number=Decimal(str(value));return number if number.is_finite() else None
+        except (ValueError,ArithmeticError):return None
+    if any(f['canonical'].get('flow_type')=='COLLECTION' and f['canonical'].get('due_date')==payload['due_date'] and amount(f['canonical'].get('amount'))==Decimal(payload['total']) for f in finance.get('cash_flows',[])):
         result['message']='Existe un cobro con el mismo importe y vencimiento. Administración debe comprobar su relación para evitar duplicarlo.';return result
     # A preview is a separate hypothetical scenario, never a stored collection.
     row=dict(flow_id='SALES-PREVIEW-'+payload['proposal_id'],flow_type='COLLECTION',amount=payload['total'],due_date=payload['due_date'],declaration_ref='PROPOSED-COLLECTION:'+payload['proposal_id'],disposition='NEW_DECLARATION')
