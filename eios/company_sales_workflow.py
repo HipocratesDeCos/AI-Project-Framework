@@ -59,7 +59,7 @@ def proposal_precheck(payload,state,data,analysis):
     capital=analysis['financial_context'].get('working_capital')
     if capital is not None and Decimal(capital)<0 and deferred:
         reasons.append(dict(code='WORKING_CAPITAL_RISK',message='Fondo de maniobra negativo al corte y cobro aplazado: revisar la exposición antes de financiar.'))
-    if credit['status']=='UNKNOWN' or credit.get('unresolved'):
+    if deferred and (credit['status']=='UNKNOWN' or credit.get('unresolved')):
         pending.append('Historial de cobro insuficiente o con cuotas sin interpretar; no se presupone buen pagador.')
     motive=data.get('negotiation_reason','INITIAL')
     if motive not in ('INITIAL','PRICE','CLIENT_STOCK','PAYMENT_TERMS','OTHER'):
@@ -72,9 +72,12 @@ def proposal_precheck(payload,state,data,analysis):
     if motive=='CLIENT_STOCK':pending.append('El cliente declara que tiene stock: confirmar necesidad, cantidad y fecha antes de proponer un pedido.')
     from eios.company_sales_checks import sales_checks
     checks=sales_checks(payload,state,analysis)
+    from eios.company_sales_fast_review import stock_check,conclusion
+    stock=stock_check(payload);checks.append(stock);reasons.extend(stock['issues'])
+    commercial=conclusion(payload,state,analysis,checks,reasons,pending)
     pending.extend(item['message'] for item in checks if item['code'] in ('TREASURY','QUALITY','CASH_PLAN','AUTHORITY') and item['status']=='PENDING')
     return dict(status='NOT_APPROPRIATE_AS_PROPOSED' if reasons else 'PENDING_VALIDATION',
-        reasons=reasons,pending=pending,checks=checks,customer_credit=credit,
+        commercial_conclusion=commercial,reasons=reasons,pending=pending,checks=checks,customer_credit=credit,
         negotiation_reason=motive,proposal_origin=origin,negotiation_note=note.strip(),
         protocol_references=PROTOCOL_REFERENCES,protocol_execution_status='SALES_BINDING_PENDING',
         commercial_precheck_only=True,automatic_acceptance=False,decision_authority=False)

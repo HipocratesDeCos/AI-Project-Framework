@@ -170,7 +170,11 @@ def _save_offer(db, state, data, persist):
     payload['document_completion_missing']=missing
     payload['document_ready']=not missing and tax is not None
     from eios.company_sales_negotiation import analyze_offer
+    from eios.company_sales_fast_review import cash_preview
+    automatic_cash=cash_preview(db,payload,state.get('sales_financial_context') or {})
+    state=dict(state,automatic_sales_cash_preview=automatic_cash,sales_negotiation_reason=data.get('negotiation_reason'))
     payload['negotiation']=analyze_offer(payload,state,data)
+    payload['negotiation']['automatic_cash_preview']=automatic_cash
     financial_cutoff=payload['negotiation']['financial_context'].get('as_of_date')
     if financial_cutoff and payload['offer_date']<financial_cutoff:
         raise ValueError('La fecha de propuesta no puede ser anterior al corte financiero utilizado: '+financial_cutoff+'. Cambia la fecha o selecciona una versión financiera anterior.')

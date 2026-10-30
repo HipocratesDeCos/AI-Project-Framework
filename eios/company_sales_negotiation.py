@@ -173,5 +173,5 @@ def analyze_offer(payload, state, data):
     from eios.company_sales_workflow import proposal_precheck
     result['proposal_evaluation']=proposal_precheck(payload,state,data,result)
     result['alternatives_trigger']='AFTER_UNAPPROPRIATE_PROPOSAL_ONLY'
-    result['scenarios']=scenarios if result['proposal_evaluation']['reasons'] else []
+    result['scenarios']=scenarios if result['proposal_evaluation']['reasons'] and not any(r['code']=='INSUFFICIENT_DOCUMENTED_STOCK' for r in result['proposal_evaluation']['reasons']) else []
     return result
