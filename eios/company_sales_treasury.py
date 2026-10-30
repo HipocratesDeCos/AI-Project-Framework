@@ -106,7 +106,10 @@ def options(db,dataset):
         if c.execute("SELECT 1 FROM sqlite_master WHERE name='received_company_batch'").fetchone():
             compatible={r['batch_id'] for r in candidates(c,dataset)}
             for bid,raw in c.execute('SELECT batch_id,metadata_json FROM received_company_batch'):
-                meta=json.loads(raw)
+                try:meta=json.loads(raw)
+                except (ValueError,TypeError):
+                    excluded.append(dict(filename='Recepción '+bid[:12],company_id='Sin identificar',legal_name='Metadatos ilegibles',as_of_date=None,reason='Revisar la identificación de la recepción.'));continue
+                if not isinstance(meta,dict):continue
                 if bid not in compatible and meta.get('kind') in ('balance','cash_flow'):excluded.append(dict(filename=meta['filename'],company_id=meta.get('company_id'),legal_name=meta.get('legal_name'),as_of_date=meta.get('as_of_date'),reason='Empresa o naturaleza no compatibles.'))
         return dict(batches=batches,excluded=excluded,company_id=company,current=current,company_name=name,as_of_date=current.get('as_of_date',cutoff) if current else cutoff,base_as_of_date=cutoff)
 
@@ -146,7 +149,7 @@ def apply(db,dataset,finance):
             if computed['as_of_date']!=result['as_of_date']:
                 base_snapshot={}
                 result['working_capital_input']=None
-                result['cash_flows']=[];result['record_counts']['cash_flow']=0
+                result['cash_flows']=[];result['record_counts']['cash_flow']=0;result['evidence_pending_count']=0
                 result['issues'].append('El corte financiero es más reciente que el balance canónico de base; no se mezclan sus magnitudes de fondo de maniobra ni sus movimientos.')
             result['as_of_date']=computed['as_of_date']
             raw=dict(base_snapshot,company_scope=result['company_id'],as_of_date=result['as_of_date'],data_snapshot_id=_hash(selected)[:64],currency='EUR',available_treasury=computed['amount'],treasury_evidence_ref='SALES-TREASURY-DECLARATION:'+_hash(selected))
@@ -159,7 +162,7 @@ def apply(db,dataset,finance):
             result['treasury_selection']=dict(mode=selected.get('mode','MANUAL'),as_of_date=computed['as_of_date'],balance_batch=selected['balance_batch'],flow_batch=selected.get('flow_batch'),status='AUTO_SELECTED_NOT_RECONCILED' if selected.get('mode')=='AUTO' else 'SELECTED_DECLARATION_NOT_RECONCILED',revision=selected['revision'],accounts=computed['accounts'],actor=selected['actor'],amount=computed['amount'])
         except (ValueError,KeyError,TypeError,ArithmeticError) as error:
             result['as_of_date']=selected.get('as_of_date',result['as_of_date'])
-            result['financial_snapshot']=None;result['cash_flows']=[];result['record_counts']['cash_flow']=0
+            result['financial_snapshot']=None;result['cash_flows']=[];result['record_counts']['cash_flow']=0;result['evidence_pending_count']=0
             result['treasury_selection']=dict(mode=selected.get('mode','MANUAL'),as_of_date=selected.get('as_of_date'),status='STALE',message=str(error),revision=selected['revision'])
         result['opening_treasury_reconciled']=None
         result['issues']=[x for x in result['issues'] if 'situación financiera' not in x and 'tesorería disponible' not in x]

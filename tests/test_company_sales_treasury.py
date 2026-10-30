@@ -160,3 +160,12 @@ class SalesTreasuryTest(unittest.TestCase):
         self.assertIsNone(self.desk.sales_state('one')['sales_financial_context']['financial_snapshot'])
         save(self.path,self.request(bid,codes=['570']))
         self.assertEqual(self.desk.sales_state('one')['sales_financial_context']['financial_snapshot']['available_treasury'],'650')
+
+    def test_unreadable_new_receipt_blocks_auto_finance_without_breaking_company_state(self):
+        self.receive();self.receive('cash_flow')
+        bid=self.receive(rows='572;90000;EUR\n')
+        with sqlite3.connect(self.path) as c:c.execute('UPDATE received_company_batch SET metadata_json=? WHERE batch_id=?',('invalid json',bid))
+        state=self.desk.sales_state('one')
+        self.assertIsNone(state['sales_financial_context']['financial_snapshot'])
+        self.assertIn('ilegible',state['sales_financial_context']['treasury_selection']['message'])
+        self.assertTrue(options(self.path,'one')['excluded'])

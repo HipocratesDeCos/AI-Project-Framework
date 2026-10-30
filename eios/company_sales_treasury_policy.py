@@ -8,7 +8,9 @@ def candidates(c,dataset,verify=True):
     target=scope(c,dataset);result=[]
     if target[2]!='SYNTHETIC' or not c.execute("SELECT 1 FROM sqlite_master WHERE name='received_company_batch'").fetchone():return result
     for bid,received,ordinal,raw in c.execute('SELECT batch_id,received_at,rowid,metadata_json FROM received_company_batch'):
-        meta=json.loads(raw)
+        try:meta=json.loads(raw)
+        except (ValueError,TypeError):continue
+        if not isinstance(meta,dict):continue
         if meta.get('kind') not in ('balance','cash_flow'):continue
         cutoff=meta.get('as_of_date')
         if not cutoff or identity_status(meta,(*target[:3],cutoff))=='INCOMPATIBLE':continue
@@ -35,6 +37,22 @@ def automatic(c,dataset):
             _,item['records'],item['fingerprint'],item['intact']=source(c,item['batch_id'])
     selected['source_fingerprints']={r['batch_id']:r['fingerprint'] for r in (balance,flow) if r}
     problems=[]
+    from eios.company_sales_treasury import scope,identity_status
+    target=scope(c,dataset);unclassified=[]
+    for bid,company_id,raw in c.execute('SELECT batch_id,company_id,metadata_json FROM received_company_batch'):
+        try:
+            parsed=json.loads(raw)
+            if isinstance(parsed,dict):continue
+        except (ValueError,TypeError):pass
+        name=None
+        if c.execute("SELECT 1 FROM sqlite_master WHERE name='received_company'").fetchone():
+            party=c.execute('SELECT legal_name FROM received_company WHERE company_id=?',(company_id,)).fetchone()
+            name=party[0] if party else None
+        same=company_id==target[0] or (name and identity_status(dict(company_id=company_id,legal_name=name,material_nature='SYNTHETIC',as_of_date=target[3]),target)!='INCOMPATIBLE')
+        if same:unclassified.append(dict(batch_id=bid,metadata=raw))
+    if unclassified:
+        selected['unclassified_sources']=unclassified
+        problems.append('Hay recepciones de la empresa con identificación ilegible. Revisa esos archivos antes de elegir automáticamente una versión financiera.')
     if balance is None:problems.append('Faltan saldos contables del último corte '+cutoff+'. No se recuperan saldos de cortes anteriores.')
     if flow is None:problems.append('Falta el calendario de cobros y pagos del último corte '+cutoff+'. No se mezcla con un calendario anterior.')
     if any(not r['intact'] for r in (balance,flow) if r):problems.append('Un archivo de la última recepción no conserva su integridad. Revisa el origen; no se sustituye por una versión antigua.')
