@@ -72,5 +72,8 @@ def capture_context(connection, dataset):
     from eios.company_sales_treasury import selection_context as treasury_context
     treasury=treasury_context(connection,dataset)
     if treasury:result['sales_treasury_selection']=treasury
+    from eios.company_sales_quality import context as sales_quality_context
+    quality=sales_quality_context(connection,dataset)
+    if quality:result['sales_quality_review']=quality
     result['fingerprint'] = _hash(result)
     return result
