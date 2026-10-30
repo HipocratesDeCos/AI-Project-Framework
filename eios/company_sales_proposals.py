@@ -171,6 +171,9 @@ def _save_offer(db, state, data, persist):
     payload['document_ready']=not missing and tax is not None
     from eios.company_sales_negotiation import analyze_offer
     payload['negotiation']=analyze_offer(payload,state,data)
+    financial_cutoff=payload['negotiation']['financial_context'].get('as_of_date')
+    if financial_cutoff and payload['offer_date']<financial_cutoff:
+        raise ValueError('La fecha de propuesta no puede ser anterior al corte financiero utilizado: '+financial_cutoff+'. Cambia la fecha o selecciona una versión financiera anterior.')
     if data['dataset_id'] != state['documentary_context']['dataset_id']:
         raise ValueError('La empresa y versión no coinciden.')
     if not persist:
