@@ -22,7 +22,7 @@ def main():
         port = sock.getsockname()[1]
     case = SalesNegotiationTest()
     case.setUp()
-    case.receive()
+    case.receive(company='Cliente_001',name='EMPRESA SINTÉTICA.')
     case.receive('cash_flow')
     server = None
     try:

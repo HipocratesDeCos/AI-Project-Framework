@@ -12,13 +12,13 @@ class SalesTreasuryTest(unittest.TestCase):
     financial_data=Fixture.financial_data
     set_policy=Fixture.set_policy
 
-    def receive(self,kind='balance',company='one',rows=None):
+    def receive(self,kind='balance',company='one',rows=None,name='Empresa sintética'):
         reader=CompanyReception(self.path)
         if kind=='balance':
             raw=('Cuenta;Saldo;Moneda\n'+(rows or '570;650;EUR\n572;58300;EUR\n572001;100;EUR\n')).encode();mapping=dict(account_code=0,balance=1,currency=2)
         else:
             raw=b'Ref;Tipo;Importe;Moneda;Fecha\nFLOW1;PAGO;500;EUR;2026-10-15\n';mapping=dict(flow_id=0,direction=1,amount=2,currency=3,due_date=4)
-        r=reader.read(raw,kind+'.csv');p=reader.preview(dict(upload=r['upload'],company_id=company,legal_name='Empresa sintética',material_nature='SYNTHETIC',as_of_date='2026-09-30',kind=kind,number_format='ES',mapping=mapping))
+        r=reader.read(raw,kind+'.csv');p=reader.preview(dict(upload=r['upload'],company_id=company,legal_name=name,material_nature='SYNTHETIC',as_of_date='2026-09-30',kind=kind,number_format='ES',mapping=mapping))
         self.assertEqual(p['error_count'],0)
         return reader.commit(p['ticket'])['batch_id']
 
@@ -41,7 +41,7 @@ class SalesTreasuryTest(unittest.TestCase):
         self.assertIsNone(stale['financial_snapshot']);self.assertEqual(stale['treasury_selection']['status'],'STALE')
 
     def test_parent_child_and_foreign_sources_rejected_and_clear_is_reversible(self):
-        bid=self.receive();foreign=self.receive(company='two')
+        bid=self.receive();foreign=self.receive(company='two',name='Otra empresa')
         self.assertNotIn(foreign,[b['batch_id'] for b in options(self.path,'one')['batches']])
         with self.assertRaises(ValueError):save(self.path,self.request(bid,codes=['572','572001']))
         with self.assertRaises(ValueError):save(self.path,self.request(foreign))
@@ -73,3 +73,21 @@ class SalesTreasuryTest(unittest.TestCase):
         clear=self.request(bid);clear['clear']=True;save(self.path,clear)
         read=self.desk.sales_cash_plan(dict(dataset_id='one',proposal_id=offer['proposal_id']))
         self.assertFalse(read['can_edit']);self.assertEqual(read['plan'],plan)
+
+    def test_same_legal_name_with_different_internal_id_requires_explicit_confirmation(self):
+        bid=self.receive(company='Cliente_001',name='EMPRESA SINTÉTICA.')
+        item=next(x for x in options(self.path,'one')['batches'] if x['batch_id']==bid)
+        self.assertTrue(item['requires_identity_confirmation'])
+        request=self.request(bid)
+        with self.assertRaises(ValueError):save(self.path,request)
+        request['confirm_identity']=True;save(self.path,request)
+        finance=self.desk.sales_state('one')['sales_financial_context']
+        self.assertEqual(finance['financial_snapshot']['available_treasury'],'58950')
+        self.assertEqual(finance['treasury_selection']['status'],'SELECTED_DECLARATION_NOT_RECONCILED')
+
+    def test_confirmation_never_allows_a_different_legal_name(self):
+        bid=self.receive(company='other',name='Otra empresa')
+        result=options(self.path,'one')
+        self.assertTrue(any(x['company_id']=='other' for x in result['excluded']))
+        request=self.request(bid);request['confirm_identity']=True
+        with self.assertRaises(ValueError):save(self.path,request)
