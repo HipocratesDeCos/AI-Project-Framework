@@ -8,8 +8,9 @@ class SalesChecksTest(SalesNegotiationTest):
         checks={c['code']:c for c in result['negotiation']['proposal_evaluation']['checks']}
         self.assertEqual(checks['MARGIN']['status'],'CHECKED')
         self.assertEqual(checks['TREASURY']['status'],'CHECKED')
-        for key in ('QUALITY','CASH_PLAN','AUTHORITY'):
+        for key in ('QUALITY','CASH_PLAN'):
             self.assertEqual(checks[key]['status'],'PENDING')
+        self.assertEqual(checks['AUTHORITY']['status'],'INFO')
         self.assertFalse(result['decision_authority'])
 
     def test_missing_minimum_has_a_specific_action(self):

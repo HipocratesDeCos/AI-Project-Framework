@@ -32,8 +32,9 @@ def sales_checks(payload, state, analysis):
     summary=quality.get('summary') or {}
     message=(f"{summary.get('total',len(flows))} movimientos: {summary.get('matched',0)} coinciden con cuotas, {summary.get('discrepancies',0)} presentan discrepancias y {summary.get('pending',len(flows))} están sin contraste. {summary.get('declared_reviewed',0)} revisados documentalmente por declaración. "+('Revisión registrada para estas fuentes; consulta por separado cobertura y conciliación.' if quality.get('review_status')=='CURRENT' else 'Abre la revisión para comprobar los orígenes, cobertura y saldo inicial.'))
     add('QUALITY','Calidad y cobertura de datos','REVIEW' if quality.get('status')=='DISCREPANCIES' else 'INFO' if quality.get('review_status')=='CURRENT' else 'PENDING',message,'QUALITY')
-    add('CASH_PLAN','Efecto de esta venta en tesorería','PENDING',
-        'Completa y guarda la oferta. Después abre su plan de cobros y pagos, declara las cuotas y los pagos de costes y señala los movimientos ya documentados para no duplicarlos. El motor requiere horizonte y mínimo de tesorería vigentes.','CASH_PLAN')
-    add('AUTHORITY','Validación integral de la venta','PENDING',
-        'El circuito integral de ventas con calidad y crédito verificados todavía no está implementado en esta pantalla. Las comprobaciones comerciales y la proyección financiera no autorizan la operación.','NONE')
+    preview=state.get('automatic_sales_cash_preview') or {}
+    add('CASH_PLAN','Simulación automática del cobro','INFO' if preview.get('status')=='EXECUTED' else 'PENDING',
+        'Motor financiero ejecutado automáticamente con el cobro único propuesto y el calendario vigente. Evidencia, pagos adicionales y cobertura se muestran en el detalle; no acredita capacidad financiera.' if preview.get('status')=='EXECUTED' else preview.get('message','Faltan parámetros o datos para ejecutar la simulación.'),'CASH_PLAN')
+    add('AUTHORITY','Alcance de la evaluación','INFO',
+        'La orientación comercial y la simulación financiera se conservan con sus fuentes y límites. No acreditan aceptación, cobro recibido ni autorización operacional.','NONE')
     return checks
