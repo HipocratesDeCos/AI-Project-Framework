@@ -133,14 +133,20 @@ def _material(staged,meta):
     return list(records.values()),inventories
 
 
-def activate(db,dataset,batch_id):
-    eligible=options(db,dataset)
+def activate(db,dataset,batch_id,from_received=False):
+    eligible=options(db,dataset) if not from_received else None
     previous_info=CompanyDataStore(db).describe(dataset)
-    related_companies=set((previous_info.get('exclusive_workbook') or {}).get('linked_company_ids',[]))|{previous_info['company']['company_id']}
-    if batch_id not in {r['batch_id'] for r in eligible['files']}:raise ValueError('Selecciona un Excel recibido de esta empresa.')
+    related_companies=set()
+    if not from_received and batch_id not in {r['batch_id'] for r in eligible['files']}:raise ValueError('Selecciona un Excel recibido de esta empresa.')
     with closing(sqlite3.connect(db)) as c:
         meta,_,fp,intact=source(c,batch_id)
         if not intact:raise ValueError('La integridad del libro no coincide. Recíbelo de nuevo.')
+        if from_received:
+            registered=c.execute('SELECT legal_name,material_nature FROM received_company WHERE company_id=?',(meta['company_id'],)).fetchone()
+            if registered!=(meta['legal_name'],meta['material_nature']):raise ValueError('El archivo no coincide con la empresa registrada.')
+        from eios.company_sales_treasury import identity_status
+        target=(previous_info['company']['company_id'],previous_info['company'].get('legal_name'), 'SYNTHETIC',meta['as_of_date'])
+        if (not from_received and identity_status(meta,target)!='INCOMPATIBLE') or (from_received and meta['company_id']==previous_info['company']['company_id'] and meta['legal_name']==previous_info['company'].get('legal_name')):related_companies=set((previous_info.get('exclusive_workbook') or {}).get('linked_company_ids',[]))|{previous_info['company']['company_id']}
         content=bytes(c.execute('SELECT content FROM received_company_batch WHERE batch_id=?',(batch_id,)).fetchone()[0])
     if meta['material_nature']!='SYNTHETIC':raise ValueError('Esta activación admite solo datos ficticios.')
     # Re-read every guided sheet from exactly these bytes, including sheets whose
