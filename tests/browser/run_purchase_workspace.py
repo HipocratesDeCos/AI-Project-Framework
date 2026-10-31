@@ -42,6 +42,11 @@ def main():
                 time.sleep(.1)
         else:
             raise RuntimeError('The isolated test server did not start.')
+        # A browser connection waiting for headers must not block action requests.
+        with socket.create_connection(('127.0.0.1', port), timeout=2) as idle:
+            idle.sendall(b'GET / HTTP/1.1\r\nHost: localhost\r\n')
+            with urllib.request.urlopen(url, timeout=3) as response:
+                assert response.status == 200
         subprocess.run(
             ['node', str(Path(__file__).with_name('purchase_workspace.cjs'))],
             cwd=ROOT, env={**os.environ, 'EIOS_TEST_URL': url}, check=True, timeout=120,
