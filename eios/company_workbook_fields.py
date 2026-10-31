@@ -13,7 +13,9 @@ CACHED_PRICE_FIELDS={'purchase_line':{'unit_price'},'price_reference':{'referenc
 
 def header_index(headers,name):
     from eios.company_table_profiles import clean
-    matches=[i for i,h in enumerate(headers) if clean(h)==clean(name)]
+    aliases=[{'Coste fuente','Coste de compra de referencia'},{'PVP fuente','Precio de venta recomendado'}]
+    accepted=next(({clean(v) for v in group} for group in aliases if clean(name) in {clean(v) for v in group}),{clean(name)})
+    matches=[i for i,h in enumerate(headers) if clean(h) in accepted]
     if len(matches)!=1:raise ValueError('Columna ausente o ambigua: '+str(name))
     return matches[0]
 

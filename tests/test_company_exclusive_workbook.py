@@ -45,6 +45,32 @@ class ExclusiveWorkbookTest(unittest.TestCase):
         reader.commit(p['ticket'])
         return options(self.path,'one')['files'][0]['batch_id']
 
+    def test_reference_price_names_reach_sales_without_inheriting_prior_catalogues(self):
+        from openpyxl import load_workbook
+        from eios.company_sales_proposals import orientation
+        for guided in (False,True):
+            for renamed in (False,True):
+                with self.subTest(guided=guided,renamed=renamed):
+                    wb=load_workbook(BytesIO(book()))
+                    sh=wb.create_sheet('08_Referencias_Precios')
+                    old=['Sku','Coste fuente','PVP fuente','Unidad','Moneda']
+                    new=['Sku','Coste de compra de referencia','Precio de venta recomendado','Unidad','Moneda']
+                    sh.append(new if renamed else old);sh.append(['A',40,72.73,'palets','EUR'])
+                    if guided:
+                        for field,header in zip(['article_id','reference_cost','reference_price','unit','currency'],old):
+                            wb['97_Guia_Carga'].append([sh.title,'price_reference',field,header])
+                    out=BytesIO();wb.save(out)
+                    bid=self.receive(out.getvalue());did=activate(self.path,'one',bid)['dataset_id']
+                    state=self.desk.sales_state(did);article=state['articles'][0]
+                    self.assertEqual(article['catalogue_unit_cost'],'40')
+                    self.assertEqual(article['recommended_sale_price'],'72.73')
+                    advice=orientation(state,'4300001',article)
+                    self.assertEqual(advice['reference_unit_cost'],'40')
+                    from eios.company_sales_negotiation import price_reference
+                    price=price_reference(advice,dict(values={}),article)
+                    self.assertEqual(price['recommended_unit_price'],'72.73')
+                    self.assertFalse(advice['catalogue_reference']['decision_authority'])
+
     def test_exclusive_snapshot_never_inherits_customers_stock_history_or_balance(self):
         old=self.desk.state('one');bid=self.receive();r=activate(self.path,'one',bid);did=r['dataset_id']
         state=self.desk.sales_state(did)

@@ -253,6 +253,8 @@ def normalize(table, kind, mapping, cutoff, convention):
                 if Decimal(output['unit_price'])<0 or abs(Decimal(output['unit_price'])-Decimal(output['net_amount'])/Decimal(output['quantity']))>Decimal('.005'):
                     problems.append('Precio unitario incompatible con el importe neto y la cantidad.')
             if kind=='price_reference':
+                if not output.get('unit') or not output.get('currency'):
+                    warnings.append('Fila '+str(row['row'])+': referencia de precio conservada sin uso en la ficha de venta; completa Unidad y Moneda (EUR) para vincularla al artículo.')
                 if Decimal(output['reference_cost'])<0 or Decimal(output['reference_price'])<0:problems.append('Las referencias de precio no pueden ser negativas.')
                 if output.get('target_margin') is not None and not 0<=Decimal(output['target_margin'])<1:problems.append('El margen supuesto debe ser una fracción entre 0 y 1, sin incluir 1.')
             if kind=='sales_line':
