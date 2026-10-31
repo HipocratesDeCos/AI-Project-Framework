@@ -319,6 +319,16 @@ def render_report(report):
     if any(refs.values()):
         pieces.append(_rows([('Pedido documentado',refs.get('order_ref')),('Versión del pedido',refs.get('order_version')),('Confirmación documentada',refs.get('confirmation_ref'))]))
     pieces.append(_payment_plan(p.get('payment_plan')))
+    draft_cash=p.get('cash_orientation_at_save')
+    if draft_cash:
+        pieces.append('<h3>ESTUDIO DE TESORERÍA AL GUARDAR · ESCENARIO ORIENTATIVO</h3><p>'+_text(draft_cash.get('message'))+'</p>')
+        scenario=draft_cash.get('scenario')
+        if scenario:
+            pieces.append(_rows([('Tesorería al corte (EUR)',number_text(draft_cash['opening_balance'],2)),('Mínimo configurado (EUR)',number_text(draft_cash['treasury_minimum'],2)),('Saldo mínimo del escenario (EUR)',number_text(scenario['minimum_balance'],2)),('Déficit del escenario (EUR)',number_text(scenario['deficit'],2)),('Primera fecha de déficit',date_text(scenario['first_shortfall_date'])),('Fin del horizonte',date_text(draft_cash['horizon_end']))]))
+            for alternative in draft_cash.get('alternatives',[]):
+                pieces.append('<h4>'+_text(alternative['title'])+'</h4><p>'+_text(alternative['negotiation_text'])+'</p>')
+        pieces.append('<p>No acredita conciliación, disponibilidad actual ni viabilidad final. Los datos e hipótesis son los conservados al guardar.</p>')
+
     pieces.extend(['<h2>3. COMPARACIÓN CON LA ÚLTIMA COMPRA</h2>', '<p>' + _text(price.get('message')) + '</p>'])
     if price.get('status') == 'COMPARABLE':
         ref = price['reference']

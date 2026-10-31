@@ -1,0 +1,13 @@
+# Estudio de tesorería durante la propuesta de compra
+
+La pantalla solicita un escenario al editar precio, cantidad, impuestos, portes, fechas o cuotas, antes de guardar. Se invalidan resultados y alternativas anteriores al cambiar el borrador o la empresa. El endpoint exige empresa activa y huella documental vigente. El servidor recalcula el estudio al guardar, lo conserva con la propuesta y lo muestra en el informe interno.
+
+El escenario utiliza saldo inicial de empresa/corte/EUR, flujos de esa versión y horizonte/mínimo activados para ese corte. Se agregan entradas y salidas por día hasta el horizonte. Sin cuotas se declara visiblemente la hipótesis de un pago único de mercancía y otro de portes si existen; nunca se registra ese calendario como documentado. Con cuotas se validan sumas y últimos vencimientos mediante el contrato existente. Coincidencias fecha/importe con pagos existentes requieren comprobar vínculo; no se duplican ni se eliminan automáticamente. No se presumen cobrados movimientos vencidos al corte. Datos inválidos, portes pendientes o vencimientos fuera de horizonte producen un resultado pendiente.
+
+El escenario orientativo es distinto del motor financiero formal. Se conserva su ejecución y sus restricciones de evidencia sin cambiar NOT_EVIDENCED a DEMONSTRATED. La pantalla no emite viabilidad ni capacidad financiera acreditada. Sin déficit se indica solamente que las hipótesis declaradas respetan el mínimo; calidad, disponibilidad bancaria y cobertura siguen sin acreditarse.
+
+Ante déficit, se prueban hasta tres alternativas: precio a céntimos y cantidad entera para calendarios sin cuotas y sin descuento fijo de línea; aplazamiento del calendario completo dentro del horizonte. Cada alternativa conserva la política, impuestos, portes y cálculos comerciales existentes, y se vuelve a calcular antes de ofrecerla. No se ofrecen resultados que incumplan el mínimo ni coincidan con pagos previos. Descuentos fijos o cuotas explícitas no se redistribuyen silenciosamente. Aplicar modifica el formulario y exige recálculo. No se autoriza la operación.
+
+La aportación teórica para cubrir el déficit se muestra como medida pendiente de aprobación y desembolso. No se incluye como dinero disponible ni acredita la adecuación societaria de una ampliación de capital.
+
+Límites visibles: saldo al corte, compensación diaria sin garantía intradía, previsiones no conciliadas, calendario no acreditado completo y otras ofertas no sumadas. Reducir precio o cantidad no resuelve un déficit que ya existe en la base. No se evalúan aplazamientos posteriores al horizonte.
