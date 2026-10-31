@@ -38,7 +38,7 @@ def check_dossier(db, batch_ids):
             source = dict(batch_id=bid, filename=meta['filename'], sheet=meta['sheet'], row=record['source_row'])
             entries.append((record['kind'], record['data'], source))
         if meta['kind'] in ('document', 'balance', 'cash_flow','sales_installment'):
-            issue('OUTSIDE_SCOPE', 'Este archivo no se concilia financieramente en esta revisión de referencias.', dict(batch_id=bid, filename=meta['filename'], sheet=meta['sheet'], row=None))
+            issue('OUTSIDE_SCOPE', 'Revisión de referencias completada. La conciliación financiera se consulta en la evaluación de tesorería.', dict(batch_id=bid, filename=meta['filename'], sheet=meta['sheet'], row=None))
         if meta.get('warning_count', 0):
             issue('SOURCE_WARNINGS', 'La recepción conserva avisos que deben revisarse: ' + str(meta['warning_count']), dict(batch_id=bid, filename=meta['filename'], sheet=meta['sheet'], row=None))
     catalog = {kind: defaultdict(list) for kind in ('supplier', 'customer', 'article')}
