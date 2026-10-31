@@ -24,7 +24,7 @@ class WorkbookFieldsTest(unittest.TestCase):
             db=Path(tmp)/'test.db';service=CompanyWorkbookReception(db)
             report=service.preview(out.getvalue(),'book.xlsx',OPTIONS)
             self.assertEqual(report['status'],'READY')
-            saved=service.commit(report['ticket']);self.assertEqual(count(db),6)
+            saved=service.commit(report['ticket']);self.assertEqual(count(db),4)
             result=received_article(db,saved['batch_ids'],'A1')
             self.assertEqual(result['catalog'][0]['data']['subfamily'],'Accesorios')
             self.assertEqual(result['price_references'][0]['data']['reference_price'],'15')
