@@ -102,3 +102,16 @@ class ExclusiveWorkbookTest(unittest.TestCase):
         with sqlite3.connect(self.path) as c:
             self.assertEqual(c.execute('SELECT count(*) FROM documentary_company_snapshot').fetchone()[0],before)
             self.assertEqual(c.execute('SELECT dataset_id FROM company_active_workbook WHERE company_id=?',('one',)).fetchone()[0],did)
+
+    def test_price_reference_without_unit_does_not_invent_a_unit_cost(self):
+        from openpyxl import load_workbook
+        wb=load_workbook(BytesIO(book()))
+        sheet=wb.create_sheet('Precios');headers=['article_id','reference_cost','reference_price','currency']
+        sheet.append(headers);sheet.append(['A',10,20,'EUR'])
+        for field in headers:wb['97_Guia_Carga'].append(['Precios','price_reference',field,field])
+        output=BytesIO();wb.save(output)
+        bid=self.receive(output.getvalue());did=activate(self.path,'one',bid)['dataset_id']
+        state=self.desk.state(did)
+        self.assertIsNone(state['articles'][0].get('catalogue_unit_cost'))
+        self.assertIsNone(state['articles'][0].get('recommended_sale_price'))
+        self.assertTrue(any(r['data']['table_kind']=='price_reference' for r in self.desk.store.records(did,'source_sheet_row')))

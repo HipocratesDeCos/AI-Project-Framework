@@ -83,7 +83,7 @@ def _material(staged,meta):
     # Price references without validity remain labelled references, not active tariffs.
     for d,refs in bykind['price_reference']:
         article=records.get(('article',d['article_id']))
-        if not article or (d.get('unit') and d['unit']!=article['data']['unit_as_documented']):continue
+        if not article or d.get('unit')!=article['data']['unit_as_documented']:continue
         if d.get('currency')!='EUR':continue
         a=article['data'];a.update(catalogue_unit_cost=d['reference_cost'],recommended_sale_price=d['reference_price'],sale_currency='EUR',commercial_catalogue=dict(filename=meta['filename'],sheet=refs[0]['sheet'],source_row=refs[0]['row'],source_sha256=meta['source_sha256'],scope='WORKBOOK_PRICE_REFERENCE_WITHOUT_DOCUMENTED_VALIDITY',decision_authority=False))
     for kind,party,invoicekind,linekind in [('purchase_line','supplier_id','purchase_invoice','purchase_invoice_line'),('sales_line','customer_id','sales_invoice','sales_invoice_line')]:
