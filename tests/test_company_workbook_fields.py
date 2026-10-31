@@ -36,6 +36,15 @@ class WorkbookFieldsTest(unittest.TestCase):
         self.assertEqual(header_index(['Número\n de línea'],'Número de línea'),0)
         with self.assertRaises(ValueError):header_index(['Sku','SKU'],'Sku')
 
+    def test_reference_price_aliases_accept_old_guide_and_reject_duplicate_meanings(self):
+        self.assertEqual(header_index(['Coste de compra de referencia'],'Coste fuente'),0)
+        self.assertEqual(header_index(['Precio de venta recomendado'],'PVP fuente'),0)
+        self.assertEqual(header_index(['PVP fuente'],'Precio de venta recomendado'),0)
+        with self.assertRaises(ValueError):
+            header_index(['Coste fuente','Coste de compra de referencia'],'Coste fuente')
+        with self.assertRaises(ValueError):
+            header_index(['PVP fuente','Precio de venta recomendado'],'PVP fuente')
+
     def test_only_scoped_cached_price_results_are_accepted(self):
         table=dict(headers=['Sku','Coste fuente','PVP fuente','Unidad'],rows=[dict(row=2,values=['A1',10,dict(formula=True,cached=15),'Unidad'])])
         mapping=dict(article_id=0,reference_cost=1,reference_price=2,unit=3)
@@ -45,6 +54,12 @@ class WorkbookFieldsTest(unittest.TestCase):
         self.assertEqual(normalize(table,'price_reference',mapping,'2026-09-30','ES')['error_count'],1)
         table['rows'][0]['values'][0]=dict(formula=True,cached='A1')
         self.assertEqual(normalize(table,'price_reference',mapping,'2026-09-30','ES')['error_count'],1)
+
+    def test_reference_without_unit_or_currency_warns_without_assuming_them(self):
+        table=dict(headers=['Sku','Coste fuente','PVP fuente'],rows=[dict(row=2,values=['A1',10,15])])
+        r=normalize(table,'price_reference',dict(article_id=0,reference_cost=1,reference_price=2),'2026-09-30','ES')
+        self.assertEqual(r['error_count'],0)
+        self.assertTrue(any('Unidad y Moneda' in w for w in r['warnings']))
 
     def test_purchase_price_must_agree_with_quantity_and_net(self):
         headers=['Factura','Fecha','Proveedor','Sku','Cantidad','Unidad','Neto','Moneda','Precio']
