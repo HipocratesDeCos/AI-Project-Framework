@@ -22,6 +22,9 @@ def main():
         port = sock.getsockname()[1]
     case = SalesNegotiationTest()
     case.setUp()
+    from tests.test_company_finance_activation import FinanceActivationTest
+    FinanceActivationTest.prepare(case,revision=1)
+    FinanceActivationTest.activate(case,revision=2)
     server = None
     try:
         server = subprocess.Popen(
