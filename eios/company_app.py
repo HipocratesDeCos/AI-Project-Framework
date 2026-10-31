@@ -802,6 +802,9 @@ PAGE=PAGE.replace('<div id="received-overview"></div>','<div id="received-source
 from eios.company_upload_flow_ui import JS as UPLOAD_FLOW_JS
 PAGE=PAGE.replace('</script>',UPLOAD_FLOW_JS+'</script>')
 
+from eios.company_purchase_workspace_ui import CSS as PURCHASE_WORKSPACE_CSS, JS as PURCHASE_WORKSPACE_JS
+PAGE=PAGE.replace('</style>',PURCHASE_WORKSPACE_CSS+'</style>',1).replace('</script>',PURCHASE_WORKSPACE_JS+'</script>',1)
+
 
 def main():
     parser = argparse.ArgumentParser(description='EIOS: empresa y entrada local de propuestas de compra')
