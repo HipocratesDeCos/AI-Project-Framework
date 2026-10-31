@@ -7,7 +7,7 @@ HTML = '''<section class="card"><h2>Cargar un libro con varias hojas</h2>
 <button id="workbook-check" type="button">Comprobar todas las hojas</button>
 <div id="workbook-summary" role="status"></div><div id="workbook-results" class="scroll"></div>
 <div id="workbook-details"></div><button id="workbook-save" type="button" class="primary" hidden>Confirmar y guardar las hojas comprobadas</button>
-<p>Las hojas auxiliares se conservan en el archivo original, sin importarse como registros. Los precios sin vigencia no se activan como tarifas. Tras guardar, revisa el expediente y selecciona expresamente los datos para las propuestas.</p></section>'''
+<p>Las hojas auxiliares se conservan en el archivo original, sin importarse como registros. Los precios sin vigencia no se activan como tarifas. Tras guardar, utiliza el apartado «Expediente activo · Un solo Excel» para consultar exclusivamente este libro.</p></section>'''
 
 JS = r'''
 let workbookTicket=null,workbookSequence=0,workbookBusy=false;
@@ -27,7 +27,7 @@ $('workbook-check').onclick=async()=>{
  }catch(e){if(revision===workbookSequence)$('workbook-summary').textContent=e.message}finally{workbookBusy=false;$('workbook-check').disabled=false}
 };
 $('workbook-save').onclick=async()=>{if(!workbookTicket||workbookBusy)return;const ticket=workbookTicket,revision=workbookSequence;workbookBusy=true;$('workbook-save').disabled=true;$('workbook-check').disabled=true;
- try{const r=await api('/api/reception/workbook/commit',{method:'POST',headers:{'Content-Type':'application/json','X-EIOS-Token':token},body:JSON.stringify({ticket})});if(revision!==workbookSequence)return;workbookTicket=null;$('workbook-save').hidden=true;$('workbook-summary').textContent=r.batch_ids.length+' hojas recibidas; '+r.unchanged_batch_ids.length+' ya existentes conservadas. Consulta Expedientes recibidos. Pendiente de admisión y selección para propuestas.';try{await received()}catch(e){$('workbook-summary').textContent+=' No se pudo actualizar la lista: '+e.message}}
+ try{const r=await api('/api/reception/workbook/commit',{method:'POST',headers:{'Content-Type':'application/json','X-EIOS-Token':token},body:JSON.stringify({ticket})});if(revision!==workbookSequence)return;workbookTicket=null;$('workbook-save').hidden=true;$('workbook-summary').textContent=r.batch_ids.length+' hojas recibidas; '+r.unchanged_batch_ids.length+' ya existentes conservadas. Ahora utiliza «Expediente activo · Un solo Excel» para activar la versión sin mezclarla con datos anteriores.';try{await received()}catch(e){$('workbook-summary').textContent+=' No se pudo actualizar la lista: '+e.message}}
  catch(e){if(revision===workbookSequence){workbookTicket=null;$('workbook-save').hidden=true;$('workbook-summary').textContent=e.message}}
  finally{workbookBusy=false;$('workbook-save').disabled=false;$('workbook-check').disabled=false}
 };

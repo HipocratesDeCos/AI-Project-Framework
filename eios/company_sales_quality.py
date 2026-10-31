@@ -36,7 +36,9 @@ def support_inventory(c,dataset):
         for bid,received,order,raw in c.execute('SELECT batch_id,received_at,rowid,metadata_json FROM received_company_batch'):
             try:meta=json.loads(raw)
             except (ValueError,TypeError):continue
-            if not isinstance(meta,dict) or meta.get('kind') not in KINDS or identity_status(meta,(*target[:3],cutoff))=='INCOMPATIBLE':continue
+            from eios.company_exclusive_workbook import allowed
+            if not isinstance(meta,dict) or not allowed(c,dataset,meta,bid):continue
+            if meta.get('kind') not in KINDS or identity_status(meta,(*target[:3],cutoff))=='INCOMPATIBLE':continue
             # One version per sheet; distinct files of standalone supports remain distinct.
             key=(meta['kind'],meta.get('sheet') or meta['filename'])
             rank=(received,order)

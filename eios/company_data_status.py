@@ -13,10 +13,12 @@ def describe_status(db,state):
     identity=(info['company']['company_id'],info['company'].get('legal_name'),context['material_nature'],info['as_of_date'])
     with sqlite3.connect(Path(db).resolve().as_uri()+'?mode=ro',uri=True) as c:
         if c.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='received_company_batch'").fetchone():
-            for raw, in c.execute('SELECT metadata_json FROM received_company_batch WHERE company_id=?',(identity[0],)):
+            for bid,raw in c.execute('SELECT batch_id,metadata_json FROM received_company_batch WHERE company_id=?',(identity[0],)):
                 try:
                     meta=json.loads(raw)
                     if not isinstance(meta,dict):raise ValueError()
+                    from eios.company_exclusive_workbook import allowed
+                    if info.get('exclusive_workbook') and not allowed(c,info['dataset_id'],meta,bid):continue
                     if tuple(meta.get(k) for k in ('company_id','legal_name','material_nature','as_of_date'))==identity:
                         receipts[meta['kind']]+=1
                 except (ValueError,TypeError,KeyError):unclassified+=1
@@ -50,4 +52,9 @@ def describe_status(db,state):
     add('finance','BALANCE Y TESORERÍA','BASELINE' if financial else 'RECEIVED_ONLY' if any(receipts[k] for k in ('balance','cash_flow','sales_installment')) else 'MISSING',
         [('Registros originales de saldo contable',counts.get('account_balance',0)),('Registros originales de cobro/pago',counts.get('cash_flow',0))],
         'Recuento de registros documentales, no de importes validados. Recibir saldos, previsiones o cuotas no los incorpora automáticamente al análisis financiero. La conciliación, evidencia, horizonte y evaluación se revisan en cada propuesta.', 'propuestas',['balance','cash_flow','sales_installment'])
-    return dict(dataset_id=info['dataset_id'],company_id=identity[0],legal_name=identity[1],material_nature=identity[2],as_of_date=identity[3],context_fingerprint=context['fingerprint'],ordinary_received_file_count=sum(receipts.values()),unclassified_company_file_count=unclassified,blocks=blocks,scope='DISPLAYED_REFERENCES_AND_RECEIPTS_ONLY',decision_authority=False,operational_path='FORBIDDEN')
+    exclusive=info.get('exclusive_workbook')
+    if exclusive:
+        for block in blocks:
+            block['description']='Fuente exclusiva: '+exclusive['filename']+'. Se consultan solo los registros de esta versión del Excel; lo ausente no se completa con datos anteriores. '+('Las cifras siguen siendo referencias al corte, sin acreditación de conciliación o disponibilidad actual.' if block['key']=='finance' else '')
+            block['source_files']=[exclusive['filename']]
+    return dict(exclusive_workbook=exclusive,dataset_id=info['dataset_id'],company_id=identity[0],legal_name=identity[1],material_nature=identity[2],as_of_date=identity[3],context_fingerprint=context['fingerprint'],ordinary_received_file_count=sum(receipts.values()),unclassified_company_file_count=unclassified,blocks=blocks,scope='DISPLAYED_REFERENCES_AND_RECEIPTS_ONLY',decision_authority=False,operational_path='FORBIDDEN')

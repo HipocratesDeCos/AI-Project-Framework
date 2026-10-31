@@ -56,14 +56,15 @@ def read_minimums(db, company, articles, inventory, history=None):
     for a in articles:
         key=a['article_id'];unit=a.get('unit_as_documented','')
         value,revision,updated=saved.get((key,unit),(None,0,None))
-        automatic=automatic_minimum((history or {}).get(key,[]),unit) if value is None else None
-        effective=value if value is not None else automatic['value'] if automatic else None
-        result[key]=dict(value=effective,manual_value=value,source='MANUAL' if value is not None else 'AUTOMATIC' if automatic else 'UNCONFIGURED',automatic=automatic,revision=revision,updated_at=updated,unit=unit,**alert(inventory.get(key),effective,unit))
+        file_value=decimal((inventory.get(key) or {}).get('minimum_stock')) if (inventory.get(key) or {}).get('source')=='EXCLUSIVE_RECEIVED_WORKBOOK' else None
+        automatic=automatic_minimum((history or {}).get(key,[]),unit) if value is None and file_value is None else None
+        effective=value if value is not None else str(file_value) if file_value is not None else automatic['value'] if automatic else None
+        result[key]=dict(value=effective,manual_value=value,source='MANUAL' if value is not None else 'WORKBOOK' if file_value is not None else 'AUTOMATIC' if automatic else 'UNCONFIGURED',automatic=automatic,revision=revision,updated_at=updated,unit=unit,**alert(inventory.get(key),effective,unit))
     return result
 
 
 def save_minimums(db, store, data):
-    dataset=data['dataset_id'];info=store.describe(dataset);company=info['company']['company_id']
+    dataset=data['dataset_id'];info=store.describe(dataset);company=dataset if info.get('exclusive_workbook') else info['company']['company_id']
     from eios.company_commercial_catalogue import apply_catalogue
     with sqlite3.connect(db) as c:
         active_articles,_,_=apply_catalogue(c,dataset,[r['data'] for r in store.records(dataset,'article')],[r['data'] for r in store.records(dataset,'supplier')])

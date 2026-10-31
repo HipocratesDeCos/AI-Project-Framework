@@ -40,6 +40,8 @@ def candidates(c,documentary,article):
     for (bid,) in c.execute('SELECT batch_id FROM received_company_batch WHERE company_id=? ORDER BY batch_id',(documentary['company_id'],)).fetchall():
         loaded=batch(c,bid)
         meta,records,fingerprint,intact=loaded
+        from eios.company_exclusive_workbook import allowed
+        if not allowed(c,documentary['dataset_id'],meta,bid):continue
         if not intact or meta.get('kind')!='sale_price':continue
         if (meta.get('company_id'),meta.get('legal_name'),meta.get('material_nature'),meta.get('as_of_date'))!=(documentary['company_id'],documentary['company_name'],documentary['material_nature'],documentary['documentary_cutoff']):continue
         for row in records:
