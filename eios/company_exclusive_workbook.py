@@ -44,7 +44,7 @@ def options(db,dataset):
                 if not isinstance(meta,dict) or not str(meta.get('filename','')).lower().endswith('.xlsx'):continue
                 cut=meta.get('as_of_date')
                 if not cut or identity_status(meta,(*target[:3],cut))=='INCOMPATIBLE':continue
-                key=(meta['company_id'],cut,meta.get('source_sha256'))
+                key=(meta['company_id'],cut,meta.get('source_sha256'),meta['filename'])
                 if key not in groups or (at,ordinal)>groups[key]['rank']:
                     groups[key]=dict(batch_id=bid,filename=meta['filename'],as_of_date=cut,company_id=meta['company_id'],legal_name=meta['legal_name'],source_sha256=meta['source_sha256'],rank=(at,ordinal))
         rows=sorted(groups.values(),key=lambda x:(x['as_of_date'],x['rank']),reverse=True)

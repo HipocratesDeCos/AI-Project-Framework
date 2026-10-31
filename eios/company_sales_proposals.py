@@ -214,6 +214,9 @@ def printable_offer(db, dataset, proposal_id):
         '<table><thead><tr>'+''.join('<th>'+s+'</th>' for s in ('Artículo / unidad','Cantidad','Precio','Dto. %','IVA %','Neto'))+'</tr></thead><tbody>']
     for line in payload['lines']:
         html.append('<tr>'+''.join('<td>'+v+'</td>' for v in (esc(line['article_id']+' · '+line['description']+' / '+line['unit']),esc(number_text(line['quantity'])),money(line['unit_price']),esc(number_text(line['discount_percent'])),esc(number_text(line['vat_percent'])),money(line['net_amount'])))+'</tr>')
+    source=payload.get('documentary_context') or {}
+    book=source.get('exclusive_workbook') or {}
+    html.insert(3,'<p><strong>Versión documental utilizada:</strong> '+esc(book.get('filename') or 'Expediente documental base')+' · Corte '+esc(date_text(source.get('documentary_cutoff')))+' · Identificador '+esc(str(source.get('dataset_id',''))[:12])+'</p>')
     html.extend(['</tbody></table><p>Portes facturados al cliente (sin IVA): '+money(payload['freight_net'])+(' · IVA '+esc(number_text(payload['freight_vat_percent']))+' %' if payload['freight_vat_percent'] is not None else ' · Sin cargo de portes')+'</p>',
         '<p>Base imponible: '+money(payload['net_amount'])+' · IVA: '+money(payload['vat_amount'])+' · <strong>TOTAL: '+money(payload['total'])+'</strong></p>',
         '<p>Entrega prevista: '+esc(date_text(payload['delivery_date']))+' · '+esc(payload['delivery_location'])+'</p>',

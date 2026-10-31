@@ -24,7 +24,7 @@ const pending=[],renders=[],parameterRenders=[];
 function api(url){return new Promise((resolve,reject)=>pending.push({url,resolve,reject}))}
 function take(url){const index=pending.findIndex(item=>item.url===url);assert.notEqual(index,-1,'Missing request: '+url);return pending.splice(index,1)[0]}
 function snapshot(dataset){return {info:{dataset_id:dataset,company:{legal_name:dataset},as_of_date:'2026-09-30',documents:0},articles:[],pending:[],suppliers:[],purchases:[],data_status:{dataset_id:dataset}}}
-function resetStockArticleScope(){}function resetPortfolioSearch(){}function resetSupplierPurchaseHistory(){}function resetCustomerReceivedHistory(){}function resetCompanyDataStatus(){}
+function resetSourceIdentity(){}function resetStockArticleScope(){}function resetPortfolioSearch(){}function resetSupplierPurchaseHistory(){}function resetCustomerReceivedHistory(){}function resetCompanyDataStatus(){}
 function renderCompanyDataStatus(report){renders.push(report.dataset_id)}function renderSelectedSales(){}function renderSelectedPurchases(){}function renderSelectedInventory(){}function renderCommercialCatalogue(){}function articles(){}function catalogues(){}function resetSalesOffers(){}
 function stockDate(value){return value}function renderParameters(){parameterRenders.push(parametersState.dataset_id)}
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
