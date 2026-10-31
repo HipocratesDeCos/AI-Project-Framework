@@ -24,7 +24,7 @@ class WorkbookFieldsTest(unittest.TestCase):
             db=Path(tmp)/'test.db';service=CompanyWorkbookReception(db)
             report=service.preview(out.getvalue(),'book.xlsx',OPTIONS)
             self.assertEqual(report['status'],'READY')
-            saved=service.commit(report['ticket']);self.assertEqual(count(db),4)
+            saved=service.commit(report['ticket']);self.assertEqual(count(db),6)
             result=received_article(db,saved['batch_ids'],'A1')
             self.assertEqual(result['catalog'][0]['data']['subfamily'],'Accesorios')
             self.assertEqual(result['price_references'][0]['data']['reference_price'],'15')
@@ -65,10 +65,10 @@ class WorkbookFieldsTest(unittest.TestCase):
             self.assertEqual(service.preview(changed,'book.xlsx',OPTIONS)['status'],'CONFLICT')
             report=service.preview(changed,'book.xlsx',dict(OPTIONS,preserve_revision=True))
             self.assertEqual(report['status'],'READY');service.commit(report['ticket'])
-            self.assertEqual(count(db),4)
+            self.assertEqual(count(db),6)
             again=service.preview(changed,'book.xlsx',dict(OPTIONS,preserve_revision=True))
             self.assertEqual(service.commit(again['ticket'])['batch_ids'],[])
-            self.assertEqual(count(db),4)
+            self.assertEqual(count(db),6)
 
     def test_formula_without_cache_is_visible_to_the_reader(self):
         wb=load_workbook(BytesIO(workbook()));wb['Articles']['B2']='="Description"';out=BytesIO();wb.save(out)
