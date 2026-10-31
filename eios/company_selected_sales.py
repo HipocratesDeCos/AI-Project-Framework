@@ -46,6 +46,8 @@ def validate(c,dataset,ids):
         loaded=batch(c,bid)
         if not loaded or not loaded[3]:raise ValueError('Algún archivo no está disponible o su integridad ha cambiado.')
         meta,records,fp,_=loaded
+        from eios.company_exclusive_workbook import allowed
+        if not allowed(c,dataset,meta,bid):raise ValueError('La referencia no pertenece al Excel activo.')
         if (meta.get('kind'),meta.get('company_id'),meta.get('legal_name'),meta.get('material_nature'),meta.get('as_of_date'))!=('sales_line',scoped[0],manifest['company'].get('legal_name'),'SYNTHETIC',scoped[1]):raise ValueError('Selecciona solo líneas de venta de la empresa ficticia y corte activos.')
         total+=len(records)
         if total>20000:raise ValueError('Máximo 20.000 líneas entre todos los archivos seleccionados.')

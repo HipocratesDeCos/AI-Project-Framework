@@ -95,6 +95,8 @@ class InventorySelection:
             rows=[];fingerprints={};seen=set();errors=[];files=[];unknown=0;total_rows=0
             for bid in sorted(ids):
                 meta,records,fp,intact=source(c,bid)
+                from eios.company_exclusive_workbook import allowed
+                if not allowed(c,dataset,meta,bid):raise ValueError('El inventario no pertenece al Excel activo.')
                 if not intact:raise ValueError('La integridad de un archivo no coincide.')
                 if (meta.get('kind'),meta.get('company_id'),meta.get('legal_name'),meta.get('material_nature'),meta.get('as_of_date'))!=('inventory',ctx['company_id'],ctx['company_name'],'SYNTHETIC',ctx['documentary_cutoff']):raise ValueError('Usa solo inventarios de la misma empresa ficticia, razón social y fecha de corte activas.')
                 total_rows+=len(records)

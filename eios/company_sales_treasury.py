@@ -44,6 +44,8 @@ def identity_status(meta,target):
 
 def checked_source(c,dataset,bid,kind,confirm_identity=False,cutoff=None):
     meta,records,fp,intact=source(c,bid)
+    from eios.company_exclusive_workbook import allowed
+    if not allowed(c,dataset,meta,bid):raise ValueError('Este archivo no pertenece al Excel activo. Activa una nueva versión para cambiar de expediente.')
     target=scope(c,dataset)
     identity=identity_status(meta,(*target[:3],cutoff or target[3]))
     if not intact or identity=='INCOMPATIBLE' or (identity=='CONFIRM_IDENTITY' and confirm_identity is not True) or meta.get('kind')!=kind:

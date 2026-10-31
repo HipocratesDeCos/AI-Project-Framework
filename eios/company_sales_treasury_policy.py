@@ -11,6 +11,8 @@ def candidates(c,dataset,verify=True):
         try:meta=json.loads(raw)
         except (ValueError,TypeError):continue
         if not isinstance(meta,dict):continue
+        from eios.company_exclusive_workbook import allowed
+        if not allowed(c,dataset,meta,bid):continue
         if meta.get('kind') not in ('balance','cash_flow'):continue
         cutoff=meta.get('as_of_date')
         if not cutoff or identity_status(meta,(*target[:3],cutoff))=='INCOMPATIBLE':continue
@@ -39,11 +41,14 @@ def automatic(c,dataset):
     problems=[]
     from eios.company_sales_treasury import scope,identity_status
     target=scope(c,dataset);unclassified=[]
+    from eios.company_exclusive_workbook import binding
+    exclusive=binding(c,dataset)
     for bid,company_id,raw in c.execute('SELECT batch_id,company_id,metadata_json FROM received_company_batch'):
         try:
             parsed=json.loads(raw)
             if isinstance(parsed,dict):continue
         except (ValueError,TypeError):pass
+        if exclusive:continue # unreadable unrelated receipts never enter a pinned workbook
         name=None
         if c.execute("SELECT 1 FROM sqlite_master WHERE name='received_company'").fetchone():
             party=c.execute('SELECT legal_name FROM received_company WHERE company_id=?',(company_id,)).fetchone()

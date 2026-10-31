@@ -169,7 +169,7 @@ class CompanyDataStore:
             manifest = json.loads(row[0])
             counts = dict(connection.execute("SELECT kind,COUNT(*) FROM documentary_company_record WHERE dataset_id=? GROUP BY kind", (dataset_id,)).fetchall())
             documents = connection.execute("SELECT COUNT(*) FROM documentary_source WHERE dataset_id=?", (dataset_id,)).fetchone()[0]
-        return {"dataset_id": dataset_id, "company": manifest["company"], "as_of_date": manifest["as_of_date"], "record_counts": counts, "documents": documents, "scope": "PERSISTENT_DOCUMENTARY_INTAKE", "operational_path": "FORBIDDEN"}
+        return {"dataset_id": dataset_id, "company": manifest["company"], "as_of_date": manifest["as_of_date"], "record_counts": counts, "documents": documents, "scope": "PERSISTENT_DOCUMENTARY_INTAKE", "operational_path": "FORBIDDEN", **({"exclusive_workbook":manifest["exclusive_workbook"]} if manifest.get("exclusive_workbook") else {})}
 
     def records(self, dataset_id: str, kind: str):
         self.describe(dataset_id)  # A missing/foreign scope cannot silently return healthy emptiness.

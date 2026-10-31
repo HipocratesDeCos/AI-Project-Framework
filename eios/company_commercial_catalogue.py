@@ -65,6 +65,7 @@ class CommercialCatalogue:
             raise ValueError('Confirma datos ficticios, venta por unidades, EUR y coste/PVP sin IVA.')
         with sqlite3.connect(self.db) as c:
             ctx=capture_context(c,dataset)
+            if ctx.get('exclusive_workbook'):raise ValueError('Esta versión usa exclusivamente su Excel. Recibe y activa una nueva versión del libro para cambiar el catálogo.')
             if ctx['material_nature']!='SYNTHETIC':raise ValueError('Esta incorporación admite solo empresas ficticias.')
             if data.get('context_fingerprint')!=ctx['fingerprint']:raise ValueError('La empresa o sus referencias han cambiado. Recarga la pantalla.')
             base=[json.loads(r[0])['data'] for r in c.execute("SELECT record_json FROM documentary_company_record WHERE dataset_id=? AND kind='article'",(dataset,))]
