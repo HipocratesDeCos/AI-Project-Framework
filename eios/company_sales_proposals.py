@@ -148,16 +148,9 @@ def _save_offer(db, state, data, persist):
     net = sum((Decimal(l['net_amount']) for l in lines), freight)
     tax = sum((Decimal(l['vat_amount']) for l in lines),freight_tax) if freight_tax is not None and all(l['vat_amount'] is not None for l in lines) else None
     warnings = []
-    requested = {}
-    for line in lines:
-        key = line['article_id']
-        requested[key] = requested.get(key,Decimal(0))+Decimal(line['quantity'])
-    for key, quantity in requested.items():
-        inventory = next(l['orientation']['inventory'] for l in lines if l['article_id']==key)
-        if inventory is None:
-            warnings.append(key+': sin stock comparable; disponibilidad pendiente de comprobar.')
-        elif quantity > Decimal(str(inventory['available'])):
-            warnings.append(key+': la cantidad total supera el stock disponible de referencia a '+inventory['as_of_date']+'.')
+    from eios.company_sales_supply import proposal_supply
+    supply=proposal_supply(lines,state,reference,dates['delivery_date'])
+    warnings.extend(i['article_id']+': '+i['title']+'. '+i['condition'] for i in supply['items'] if i['conditional'])
     payload = dict(warnings=warnings,schema='COMPANY-SALES-OFFER-01', proposal_id=str(uuid4()), dataset_id=data['dataset_id'],
         reference=reference, created_at=datetime.now(timezone.utc).isoformat(), **dates,
         company=deepcopy(state['info']['company']), customer=deepcopy(customer),
@@ -167,6 +160,7 @@ def _save_offer(db, state, data, persist):
         freight_tax=str(freight_tax) if freight_tax is not None else None,net_amount=str(net),vat_amount=str(tax) if tax is not None else None,total=str(net+tax) if tax is not None else None,
         documentary_context=deepcopy(state['documentary_context']),
         status='SAVED_SYNTHETIC_OFFER', decision_authority=False, operational_path='FORBIDDEN')
+    payload['supply']=supply
     payload['document_completion_missing']=missing
     payload['document_ready']=not missing and tax is not None
     from eios.company_sales_negotiation import analyze_offer
@@ -217,7 +211,12 @@ def printable_offer(db, dataset, proposal_id):
     source=payload.get('documentary_context') or {}
     book=source.get('exclusive_workbook') or {}
     html.insert(3,'<p><strong>Versión documental utilizada:</strong> '+esc(book.get('filename') or 'Expediente documental base')+' · Corte '+esc(date_text(source.get('documentary_cutoff')))+' · Identificador '+esc(str(source.get('dataset_id',''))[:12])+'</p>')
-    html.extend(['</tbody></table><p>Portes facturados al cliente (sin IVA): '+money(payload['freight_net'])+(' · IVA '+esc(number_text(payload['freight_vat_percent']))+' %' if payload['freight_vat_percent'] is not None else ' · Sin cargo de portes')+'</p>',
+    html.append('</tbody></table>')
+    supply=payload.get('supply',{})
+    if supply.get('conditional'):
+        from eios.company_sales_supply import CONDITION
+        html.append('<section style="border:3px solid #b57614;background:#fff3d6;padding:16px"><h2>PRESUPUESTO ORIENTATIVO CONDICIONADO</h2><p>'+esc(CONDITION)+'</p>'+''.join('<p>'+esc(i['article_id']+' · '+i['title'])+'</p>' for i in supply['items'] if i['conditional'])+'</section>')
+    html.extend(['<p>Portes facturados al cliente (sin IVA): '+money(payload['freight_net'])+(' · IVA '+esc(number_text(payload['freight_vat_percent']))+' %' if payload['freight_vat_percent'] is not None else ' · Sin cargo de portes')+'</p>',
         '<p>Base imponible: '+money(payload['net_amount'])+' · IVA: '+money(payload['vat_amount'])+' · <strong>TOTAL: '+money(payload['total'])+'</strong></p>',
         '<p>Entrega prevista: '+esc(date_text(payload['delivery_date']))+' · '+esc(payload['delivery_location'])+'</p>',
         '<p>Cobro previsto: '+esc(date_text(payload['due_date']))+' · '+esc(payload['payment_terms'])+'</p>',
