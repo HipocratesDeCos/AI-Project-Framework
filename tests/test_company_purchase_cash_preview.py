@@ -35,6 +35,26 @@ class PurchaseCashPreviewTest(unittest.TestCase):
         self.assertFalse(r['decision_authority']);self.assertEqual(r['viability_status'],'NOT_EVALUATED')
         self.assertEqual(r['formal_engine']['with_declared_plan']['projection']['status'],'NOT_EVIDENCED')
 
+    def test_balance_overrun_remains_visible_without_activated_horizon_or_complete_freight(self):
+        self.financial_data()
+        self.data.update(shipping_mode='NONE',quantity='20000',unit_price='8',vat_percent='21')
+        state=self.desk.sales_state('one')
+        r=preview(self.path,state,self.data)
+        self.assertEqual(r['status'],'PENDING')
+        self.assertIn('horizonte',r['message'])
+        b=r['balance_comparison']
+        self.assertEqual(Decimal(b['purchase_amount']),Decimal('193600'))
+        self.assertEqual(Decimal(b['excess_over_balance']),Decimal('188600'))
+        self.assertFalse(b['includes_forecast'])
+        self.assertNotIn('scenario',r)
+        partial=preview(self.path,state,dict(self.data,shipping_mode='PENDING'))
+        self.assertEqual(partial['balance_comparison']['amount_basis'],'MERCHANDISE_ONLY')
+        self.assertEqual(partial['status'],'PENDING')
+        state['sales_financial_context']['financial_snapshot']=None
+        missing=preview(self.path,state,self.data)
+        self.assertEqual(missing['status'],'PENDING')
+        self.assertNotIn('balance_comparison',missing)
+
     def test_deferral_only_when_collections_support_it_inside_horizon(self):
         self.ready();self.add('cash_flow','C-2',dict(canonical=dict(flow_id='C-2',flow_type='COLLECTION',amount='10000',currency='EUR',due_date='2026-12-01',due_date_evidenced=False,source_ref='DOC',evidence_state='NOT_EVIDENCED')))
         state=self.desk.sales_state('one');r=preview(self.path,state,self.data)

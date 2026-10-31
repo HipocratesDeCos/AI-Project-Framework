@@ -23,7 +23,6 @@ def preview(db,state,data,*,alternatives=True):
             manifest=json.loads(c.execute('SELECT manifest_json FROM documentary_company_snapshot WHERE dataset_id=?',(state['info']['dataset_id'],)).fetchone()[0])
         if manifest.get('material_nature')!='SYNTHETIC':return pending('Esta simulación requiere un expediente marcado como ficticio.')
         quote=commercial_terms(data)
-        if quote['operation_total'] is None:return pending('Confirma quién asume los portes para calcular el pago completo.')
         article=next((a for a in state['articles'] if a['article_id']==data.get('article_id') and a.get('supplier_id')==data.get('supplier_id')),None)
         if article is None:return pending('Selecciona un artículo del proveedor de esta versión.')
         snapshot=finance.get('financial_snapshot') or {}
@@ -32,6 +31,13 @@ def preview(db,state,data,*,alternatives=True):
             return pending('Falta un saldo de tesorería de esta empresa, corte y moneda. Revisa caja y bancos del archivo activo.')
         opening=Decimal(str(snapshot['available_treasury']))
         if not opening.is_finite():raise ValueError('Saldo inicial inválido.')
+        # A missing calendar must not hide a documented balance overrun.
+        total=Decimal(quote['operation_total'] if quote['operation_total'] is not None else quote['total'])
+        result['balance_comparison']=dict(opening_balance=str(opening),purchase_amount=str(total),
+            excess_over_balance=str(max(Decimal('0'),total-opening)),currency='EUR',cutoff=cut.isoformat(),
+            amount_basis='FULL_OPERATION' if quote['operation_total'] is not None else 'MERCHANDISE_ONLY',
+            scope='DOCUMENTARY_BALANCE_COMPARISON',includes_forecast=False)
+        if quote['operation_total'] is None:return pending('Confirma quién asume los portes para calcular el pago completo.')
         with sqlite3.connect(db) as c:
             if not c.execute("SELECT 1 FROM sqlite_master WHERE name='company_finance_parameter_activation'").fetchone():return pending('Activa horizonte y tesorería mínima para este corte en Parámetros.')
             row=c.execute('SELECT payload FROM company_finance_parameter_activation WHERE company_id=? AND as_of_date=?',(company,cut.isoformat())).fetchone()
