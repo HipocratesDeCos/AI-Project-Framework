@@ -65,9 +65,11 @@ class WorkbookReceptionTest(unittest.TestCase):
         with sqlite3.connect(db) as c:
             assert all(bytes(row[0])==content for row in c.execute('SELECT content FROM received_company_batch'))
             assert not c.execute("SELECT 1 FROM sqlite_master WHERE name='documentary_company_record'").fetchone()
-        report=service.preview(content,'renamed.xlsx',OPTIONS)
-        assert all(row['status']=='UNCHANGED' for row in report['comparison'])
+        report=service.preview(content,'book.xlsx',OPTIONS)
         assert service.commit(report['ticket'])['status']=='UNCHANGED' and count(db)==3
+        report=service.preview(content,'renamed.xlsx',OPTIONS)
+        assert all(row['status']=='UNCHANGED' and row['new_source_version'] for row in report['comparison'])
+        assert service.commit(report['ticket'])['status']=='RECEIVED' and count(db)==6
 
 
     def test_bad_sheet_or_reference_never_writes(self):

@@ -8,7 +8,7 @@ Un recuadro independiente identifica el expediente utilizado para propuestas por
 
 ## Propuesta de venta
 
-Antes del formulario se muestra un recuadro permanente con estado, empresa, nombre completo del archivo, fecha de corte e identificador de versión. El nombre conserva la versión que el usuario haya incluido en él. El identificador distingue también archivos con el mismo nombre pero bytes diferentes.
+Antes del formulario se muestra un recuadro permanente con estado, empresa, nombre completo del archivo, fecha de corte e identificador de versión. El nombre conserva la versión que el usuario haya incluido en él. El identificador distingue también archivos con el mismo nombre pero bytes diferentes. La recepción conserva además un nombre o unos bytes nuevos aunque las filas normalizadas coincidan: no descarta la versión indicada por el usuario. Repetir exactamente la misma recepción sigue siendo idempotente.
 
 Los estados diferencian Excel activo, histórico de solo consulta, libro no activado y expediente documental base sin Excel exclusivo. No se presenta una versión base como si fuera el último Excel recibido.
 

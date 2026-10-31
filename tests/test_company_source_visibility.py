@@ -47,3 +47,18 @@ class SourceVisibilityTest(unittest.TestCase):
         self.assertIn('Versión documental utilizada:',html)
         self.assertIn('Empresa.xlsx',html)
         self.assertIn(did[:12],html)
+
+    def test_version_name_is_preserved_even_when_workbook_values_are_unchanged(self):
+        from eios.company_workbook_reception import CompanyWorkbookReception
+        from eios.company_exclusive_workbook import options
+        content=fixture.book();reader=CompanyWorkbookReception(self.path)
+        args=dict(company_id='one',legal_name='Empresa sintética',as_of_date='2026-09-30',material_nature='SYNTHETIC',number_format='ES')
+        for name in ('Empresa_v1.xlsx','Empresa_v2.xlsx'):
+            preview=reader.preview(content,name,args);reader.commit(preview['ticket'])
+        files=options(self.path,'one')['files']
+        self.assertEqual({f['filename'] for f in files},{'Empresa_v1.xlsx','Empresa_v2.xlsx'})
+        chosen=next(f for f in files if f['filename']=='Empresa_v2.xlsx')
+        did=activate(self.path,'one',chosen['batch_id'])['dataset_id']
+        self.assertEqual(source_status(self.path,did)['filename'],'Empresa_v2.xlsx')
+        rows=mark_received(self.path,CompanyReception(self.path).batches())
+        self.assertTrue(all(r['filename']=='Empresa_v2.xlsx' for r in rows if r['workbook_usage']=='ACTIVE'))

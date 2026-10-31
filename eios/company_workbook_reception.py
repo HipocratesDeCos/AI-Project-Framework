@@ -54,7 +54,7 @@ def compare(incoming, previous):
                 overlaps.append(old_id)
         results.append(dict(batch_id=bid, sheet=meta['sheet'], kind=meta['kind'], rows=len(records),
                             status='UNCHANGED' if same else 'CONFLICT' if overlaps else 'NEW',
-                            existing_batches=sorted(same), conflicting_batches=sorted(overlaps)))
+                            existing_batches=sorted(same), conflicting_batches=sorted(overlaps),new_source_version=bool(same and bid not in same)))
     return results
 
 
@@ -171,11 +171,11 @@ class CompanyWorkbookReception:
                       (meta['company_id'], meta['legal_name'], meta['material_nature']))
             comparison = compare(staged, prior)
             for (bid, report, records), result in zip(staged, comparison):
-                if result['status'] == 'UNCHANGED':
-                    unchanged.extend(result['existing_batches']); continue
+                if result['status'] == 'UNCHANGED' and bid in result['existing_batches']:
+                    unchanged.append(bid); continue
                 if result['status']=='CONFLICT' and check.get('preserve_revision'):
                     report['supersedes_received_batches']=result['conflicting_batches']
-                elif result['status'] != 'NEW':
+                elif result['status'] not in ('NEW','UNCHANGED'):
                     raise ValueError('Conflicto con un archivo recibido.')
                 c.execute('INSERT INTO received_company_batch VALUES(?,?,?,?,?,?)',
                           (bid, meta['company_id'], datetime.now(timezone.utc).isoformat(),
