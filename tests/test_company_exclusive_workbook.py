@@ -66,6 +66,7 @@ class ExclusiveWorkbookTest(unittest.TestCase):
         with sqlite3.connect(self.path) as c:
             rows=c.execute('SELECT dataset_id,company_id,as_of_date FROM documentary_company_snapshot').fetchall()
         self.assertTrue(dataset_options(self.path,rows)[0]['active_workbook'])
+        self.assertFalse(next(r for r in dataset_options(self.path,rows) if r['dataset_id']=='two')['historical'])
 
     def test_later_unrelated_financial_receipt_cannot_replace_pinned_workbook(self):
         bid=self.receive();did=activate(self.path,'one',bid)['dataset_id']

@@ -135,6 +135,8 @@ def _material(staged,meta):
 
 def activate(db,dataset,batch_id):
     eligible=options(db,dataset)
+    previous_info=CompanyDataStore(db).describe(dataset)
+    related_companies=set((previous_info.get('exclusive_workbook') or {}).get('linked_company_ids',[]))|{previous_info['company']['company_id']}
     if batch_id not in {r['batch_id'] for r in eligible['files']}:raise ValueError('Selecciona un Excel recibido de esta empresa.')
     with closing(sqlite3.connect(db)) as c:
         meta,_,fp,intact=source(c,batch_id)
@@ -152,7 +154,7 @@ def activate(db,dataset,batch_id):
         staged=reader.checked['staged'];records,inventory=_material(staged,meta)
         doc=dict(document_ref='WORKBOOK',path='documents/workbook.xlsx',filename=meta['filename'],bytes=len(content),sha256=sha256(content).hexdigest())
         raw=json.dumps(records,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
-        manifest=dict(schema_version=SCHEMA,company=dict(company_id=meta['company_id'],legal_name=meta['legal_name']),as_of_date=meta['as_of_date'],material_nature='SYNTHETIC',operational_path='FORBIDDEN',decision_authority=False,records=dict(path='records.json',sha256=sha256(raw).hexdigest()),record_counts=dict(Counter(r['kind'] for r in records)),documents=[doc],exclusive_workbook=dict({k:meta[k] for k in ('company_id','as_of_date','source_sha256','filename')},batch_ids=sorted(bid for bid,_,_ in staged)))
+        manifest=dict(schema_version=SCHEMA,company=dict(company_id=meta['company_id'],legal_name=meta['legal_name']),as_of_date=meta['as_of_date'],material_nature='SYNTHETIC',operational_path='FORBIDDEN',decision_authority=False,records=dict(path='records.json',sha256=sha256(raw).hexdigest()),record_counts=dict(Counter(r['kind'] for r in records)),documents=[doc],exclusive_workbook=dict({k:meta[k] for k in ('company_id','as_of_date','source_sha256','filename')},batch_ids=sorted(bid for bid,_,_ in staged),linked_company_ids=sorted(related_companies|{meta['company_id']})))
         package=Path(folder)/'isolated.zip'
         with zipfile.ZipFile(package,'w',zipfile.ZIP_DEFLATED) as z:
             z.writestr('company_manifest.json',json.dumps(manifest,ensure_ascii=False));z.writestr('records.json',raw);z.writestr(doc['path'],content)
@@ -179,21 +181,18 @@ def activate(db,dataset,batch_id):
     return dict(status='ACTIVATED_EXCLUSIVELY',dataset_id=new_id,filename=meta['filename'],as_of_date=meta['as_of_date'],record_counts=manifest['record_counts'],decision_authority=False,operational_path='FORBIDDEN')
 
 
-def _company_key(name):
-    import re,unicodedata
-    return re.sub('[^a-z0-9]','',unicodedata.normalize('NFKD',str(name)).encode('ascii','ignore').decode().lower())
-
-
 def dataset_options(db,rows):
     with closing(sqlite3.connect(db)) as c:
         active=set()
         if c.execute("SELECT 1 FROM sqlite_master WHERE name='company_active_workbook'").fetchone():active={r[0] for r in c.execute('SELECT dataset_id FROM company_active_workbook')}
         manifests={did:json.loads(raw) for did,raw in c.execute('SELECT dataset_id,manifest_json FROM documentary_company_snapshot')}
-        active_names={_company_key(manifests[did]['company'].get('legal_name')) for did in active if did in manifests}
-        active_companies={r[1] for r in rows if r[0] in active};result=[]
+        active_companies={r[1] for r in rows if r[0] in active}
+        for did in active:
+            active_companies.update((manifests.get(did,{}).get('exclusive_workbook') or {}).get('linked_company_ids',[]))
+        result=[]
         for did,company,cut in rows:
             manifest=manifests[did];selected=manifest.get('exclusive_workbook')
-            archived=company in active_companies or _company_key(manifest['company'].get('legal_name')) in active_names
+            archived=company in active_companies
             result.append(dict(dataset_id=did,company_id=company,as_of_date=cut,active_workbook=did in active,historical=archived and did not in active,filename=selected['filename'] if selected else None))
     return sorted(result,key=lambda r:(r['active_workbook'],r['as_of_date']),reverse=True)
 
