@@ -45,7 +45,7 @@ def compare(incoming, previous):
         same = []; overlaps = []
         for old_id, old_meta, old_records in previous:
             if (meta['legal_name'], meta['material_nature']) != (old_meta['legal_name'], old_meta['material_nature']):
-                raise ValueError('El código de empresa ya identifica otra razón social o naturaleza.')
+                raise ValueError('El código de empresa ya identifica otra razón social o naturaleza. Datos registrados: '+old_meta['company_id']+' · '+old_meta['legal_name']+' · '+old_meta['material_nature']+'. Selecciona esa empresa en el paso 1; no crees otro código para actualizarla.')
             if (meta['kind'], meta['as_of_date']) != (old_meta['kind'], old_meta['as_of_date']):
                 continue
             if signature(records) == signature(old_records):
