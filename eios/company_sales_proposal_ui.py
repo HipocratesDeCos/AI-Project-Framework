@@ -27,7 +27,7 @@ function addSalesOfferLine(){
  const conditions=document.createElement('section');conditions.className='so-line-conditions';
  const heading=document.createElement('h4');heading.textContent='Artículo pendiente de seleccionar';conditions.append(heading);row.soConditionsTitle=heading;const supply=document.createElement('div');supply.className='so-supply';supply.setAttribute('role','status');conditions.append(supply);row.soSupply=supply;const loss=document.createElement('div');loss.className='so-loss-live';conditions.append(loss);row.soLoss=loss;
  const agreed=document.createElement('div');agreed.className='fields';conditions.append(agreed);
- salesOfferField(agreed,'Cantidad propuesta','quantity');salesOfferField(agreed,'Precio acordado por unidad, antes de descuento (€)','unit_price');
+ salesOfferField(agreed,'Cantidad propuesta','quantity');const agreedPrice=salesOfferField(agreed,'Precio unitario acordado (€)','unit_price');const priceHint=document.createElement('small');priceHint.textContent='Antes de descuento.';agreedPrice.parentElement.append(priceHint);
  const discount=salesOfferField(agreed,'Descuento acordado (%)','discount_value');discount.value='0';discount.placeholder='0 si no se acuerda descuento';
  salesOfferField(agreed,'IVA del artículo (%) · para guardar','vat_percent');
  row.soConditions=conditions;$('so-discounts').append(conditions);
