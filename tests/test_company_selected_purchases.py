@@ -78,3 +78,23 @@ class SelectedPurchasesTest(unittest.TestCase):
         article=next(a for a in self.desk.state('one')['articles'] if a['article_id']=='NEW')
         p=self.selection.preview(self.request([self.receive(invoice='NEW-3',sku='NEW',supplier=article['supplier_id'],unit='uds.',net='120',quantity='10')]))
         self.commit(p);ori=self.desk.sales_orientation(dict(dataset_id='one',customer_id='C',article_id='NEW'));self.assertEqual(ori['reference_unit_cost'],'12');self.assertIsNone(ori['inventory'])
+
+    def test_explicit_zero_discount_reaches_header_history_and_saved_reference(self):
+        reader = CompanyReception(self.path)
+        content = b'Factura;Fecha;Proveedor;SKU;Cantidad;Unidad;Neto;Moneda;Descuento (%)\nNEW-D;2026-09-30;S;A;10;palets;700;EUR;0\n'
+        uploaded = reader.read(content, 'discount.csv')
+        mapping = dict(invoice_number=0,issue_date=1,supplier_id=2,article_id=3,quantity=4,unit=5,net_amount=6,currency=7,discount_percent=8)
+        prepared = reader.preview(dict(upload=uploaded['upload'],company_id='one',legal_name='Empresa sintética',
+                                       material_nature='SYNTHETIC',as_of_date='2026-09-30',kind='purchase_line',number_format='ES',mapping=mapping))
+        self.assertEqual(prepared['error_count'], 0)
+        bid = reader.commit(prepared['ticket'])['batch_id']
+        self.selection = PurchaseHistorySelection(self.path)
+        self.commit(self.selection.preview(self.request([bid])))
+        latest = self.desk.state('one')['history']['A'][0]
+        self.assertEqual(latest['discount_percent'], '0')
+        self.assertEqual(latest['effective_net_unit_price'], '70')
+        saved = self.desk.save(dict(dataset_id='one',supplier_id='S',article_id='A',reference='DISCOUNT-TEST',
+                                   quantity='2',unit_price='100',vat_percent='21',shipping_mode='NONE',
+                                   order_date='2026-10-01',due_date='2026-11-01'))
+        self.assertEqual(saved['price_reference_at_save']['discount_percent'], '0')
+        self.assertEqual(saved['price_reference_at_save']['source_refs'][0]['filename'], 'discount.csv')

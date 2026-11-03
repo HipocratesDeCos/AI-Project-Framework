@@ -90,3 +90,22 @@ class WorkbookFieldsTest(unittest.TestCase):
         table=read_table(out.getvalue(),'book.xlsx',sheet='Articles')
         self.assertTrue(table['rows'][0]['values'][1]['formula'])
         self.assertIsNone(table['rows'][0]['values'][1]['cached'])
+
+    def test_purchase_discount_is_explicit_optional_and_not_applied_to_net_again(self):
+        from eios.company_workbook_fields import enrich_plan
+        headers = ['Factura','Fecha','Proveedor','Sku','Cantidad','Unidad','Neto','Moneda','Descuento (%)']
+        mapping = dict(invoice_number=0,issue_date=1,supplier_id=2,article_id=3,quantity=4,unit=5,net_amount=6,currency=7)
+        mapping = enrich_plan(headers, 'purchase_line', mapping)
+        values = ['I1','01/09/2026','S1','A1',2,'Unidad',18,'EUR',10]
+        table = dict(headers=headers,rows=[dict(row=2,values=values)])
+        result = normalize(table,'purchase_line',mapping,'2026-09-30','ES')
+        self.assertEqual(result['error_count'], 0)
+        self.assertEqual(result['records'][0]['data']['discount_percent'], '10')
+        self.assertEqual(result['records'][0]['data']['net_amount'], '18')
+        values[-1] = 0
+        result = normalize(table,'purchase_line',mapping,'2026-09-30','ES')
+        self.assertEqual(result['records'][0]['data']['discount_percent'], '0')
+        values[-1] = None
+        self.assertIsNone(normalize(table,'purchase_line',mapping,'2026-09-30','ES')['records'][0]['data']['discount_percent'])
+        values[-1] = 101
+        self.assertEqual(normalize(table,'purchase_line',mapping,'2026-09-30','ES')['error_count'], 1)

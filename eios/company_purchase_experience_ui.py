@@ -28,7 +28,7 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f5f8fe;color:#132846}
 .po-identity>div{min-width:0}
 .po-identity span,.po-metric-label{font-size:10px;letter-spacing:.025em;font-weight:700;display:block;color:#385774;text-transform:uppercase}
 .po-identity strong{font-size:14px;display:block;margin-top:3px;overflow-wrap:anywhere}
-.po-metric-ribbon{display:grid;grid-template-columns:1.1fr repeat(3,.8fr) 1.2fr 1fr;align-items:center;gap:10px;padding:14px 16px;margin-top:8px;min-height:84px;background:#e7f0ff;border:1px solid #b9cfee;border-radius:9px}
+.po-metric-ribbon{display:grid;grid-template-columns:1fr repeat(3,.7fr) 1.1fr .8fr .9fr;align-items:center;gap:10px;padding:14px 16px;margin-top:8px;min-height:84px;background:#e7f0ff;border:1px solid #b9cfee;border-radius:9px}
 .po-ribbon-title{font-size:13px;font-weight:800;line-height:1.5}
 .po-ribbon-title small{display:block;font-size:11px;font-weight:400;color:#385774}
 .po-metric{border-left:1px solid #c1d3eb;padding-left:12px;min-width:0}
@@ -47,7 +47,7 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f5f8fe;color:#132846}
 .po-original-summary dt{font-size:11px;color:#49617b}.po-original-summary dd{margin:4px 0;font-weight:700;font-size:15px}
 @media(min-width:1550px){.po-metric-value,.po-saved-ribbon .po-metric-value{font-size:42px}}
 @media(max-width:1100px){[data-view=propuestas] .po-workspace{grid-template-columns:minmax(0,1fr)}[data-view=propuestas] #po-cash .po-cash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.po-metric-ribbon{gap:6px;padding:12px}.po-metric{padding-left:8px}.po-metric-value,.po-saved-ribbon .po-metric-value{font-size:30px}.po-ribbon-title{font-size:11px}}
-@media(max-width:760px){.po-identity{grid-template-columns:1fr .6fr;padding:8px 10px;gap:6px}.po-identity>div:last-child{grid-column:1/-1}.po-metric-ribbon{grid-template-columns:repeat(5,minmax(0,1fr));padding:8px;min-height:0}.po-ribbon-title{grid-column:1/-1}.po-ribbon-title small{display:inline;margin-left:8px}.po-metric-value,.po-saved-ribbon .po-metric-value{font-size:23px;letter-spacing:-.5px}.po-metric-label{font-size:8px}.po-metric-unit{font-size:10px}.po-metric{padding-left:5px}.po-ribbon-meta{font-size:10px}.po-identity strong{font-size:12px}.po-ribbons{padding-top:3px}.po-original-summary dl{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.po-identity{grid-template-columns:1fr .6fr;padding:8px 10px;gap:6px}.po-identity>div:last-child{grid-column:1/-1}.po-metric-ribbon{grid-template-columns:repeat(3,minmax(0,1fr));padding:8px;min-height:0}.po-ribbon-title{grid-column:1/-1}.po-ribbon-title small{display:inline;margin-left:8px}.po-metric-value,.po-saved-ribbon .po-metric-value{font-size:23px;letter-spacing:-.5px}.po-metric-label{font-size:8px}.po-metric-unit{font-size:10px}.po-metric{padding-left:5px}.po-ribbon-meta{font-size:10px}.po-identity strong{font-size:12px}.po-ribbons{padding-top:3px}.po-original-summary dl{grid-template-columns:1fr 1fr}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
 '''
 JS = r'''
@@ -56,14 +56,15 @@ function purchaseContextRibbons(id){
  const identity=document.createElement('div');identity.className='po-identity';root.append(identity);
  const ids={};for(const key of ['supplier','sku','description']){const box=document.createElement('div'),label=document.createElement('span'),value=document.createElement('strong');label.textContent={supplier:'PROVEEDOR',sku:'SKU',description:'DESCRIPCIÓN DEL ARTÍCULO'}[key];box.append(label,value);identity.append(box);ids[key]=value}
  const metrics=document.createElement('div');metrics.className='po-metric-ribbon';const title=document.createElement('div');title.className='po-ribbon-title';title.textContent='DATOS DE LA COMPRA';const pin=document.createElement('small');pin.textContent='Siempre visible';title.append(pin);metrics.append(title);root.append(metrics);
- for(const [key,label,unit] of [['quantity','CANTIDAD','unidades'],['available','STOCK DISPONIBLE','unidades'],['reserved','RESERVADAS','unidades'],['price','PRECIO UNITARIO DE REFERENCIA','euros'],['coverage','COBERTURA ESTIMADA','días']]){const box=document.createElement('div');box.className='po-metric';const heading=document.createElement('span'),value=document.createElement('strong'),suffix=document.createElement('span');heading.className='po-metric-label';heading.textContent=label;value.className='po-metric-value';suffix.className='po-metric-unit';suffix.textContent=unit;box.append(heading,value,suffix);metrics.append(box);ids[key]=value;ids[key+'Unit']=suffix}
+ for(const [key,label,unit] of [['quantity','CANTIDAD','unidades'],['available','STOCK DISPONIBLE','unidades'],['reserved','RESERVADAS','unidades'],['price','PRECIO UNITARIO DE REFERENCIA','euros'],['discount','DESCUENTO DEL LIBRO','%'],['coverage','COBERTURA ESTIMADA','días']]){const box=document.createElement('div');box.className='po-metric';const heading=document.createElement('span'),value=document.createElement('strong'),suffix=document.createElement('span');heading.className='po-metric-label';heading.textContent=label;value.className='po-metric-value';suffix.className='po-metric-unit';suffix.textContent=unit;box.append(heading,value,suffix);metrics.append(box);ids[key]=value;ids[key+'Unit']=suffix}
  const meta=document.createElement('div');meta.className='po-ribbon-meta';const source=document.createElement('span'),explain=document.createElement('button');explain.type='button';explain.textContent='Ver stock, demanda y fuentes';meta.append(source,explain);root.append(meta);
  const defined=v=>v!==null&&v!==undefined&&v!=='';
- function update({supplier,article,quantity,inventory,price,planning,cutoff,filename,saved=false}){
+ function update({supplier,article,quantity,inventory,price,planning,cutoff,filename,discount,discountDate,saved=false}){
   ids.supplier.textContent=supplier?.legal_name||supplier?.supplier_id||'Selecciona proveedor';ids.sku.textContent=article?.article_id||'Selecciona artículo';ids.description.textContent=article?.description||'Sin descripción documentada';
   ids.quantity.textContent=defined(quantity)?stockNumber(quantity):'—';ids.available.textContent=defined(inventory?.available)?stockNumber(inventory.available):'—';ids.reserved.textContent=defined(inventory?.reserved)?stockNumber(inventory.reserved):'—';
   const unit=inventory?.unit||article?.unit_as_documented||'unidades';for(const key of ['quantity','available','reserved'])ids[key+'Unit'].textContent=unit;
   ids.price.textContent=defined(price)?money(price):'—';ids.priceUnit.textContent=defined(price)?'euros · neto sin IVA':'Sin referencia única';
+  const validDiscount=defined(discount)&&Number.isFinite(Number(discount))&&Number(discount)>=0&&Number(discount)<=100;ids.discount.textContent=validDiscount?stockNumber(discount)+' %':'—';ids.discountUnit.textContent=validDiscount?'Última compra · '+stockDate(discountDate):'No documentado';
   // Display only the existing engine output, never derive demand from the current stock.
   const coverage=planning?.status==='FINITE'&&defined(planning.coverage_days)&&inventory?.as_of_date===planning.as_of_date&&inventory?.unit===planning.unit;
   ids.coverage.textContent=coverage?stockNumber(planning.coverage_days):'—';ids.coverageUnit.textContent=coverage?'días · según planificación':planning?.status==='UNBOUNDED'?'Sin consumo previsto':'Consumo por validar';
@@ -85,7 +86,7 @@ function purchaseContextRibbons(id){
   if(!state||state.info.dataset_id!==$('dataset').value){ribbons.update({});return}
   const article=state.articles.find(a=>a.article_id===$('article').value),supplier=state.suppliers.find(s=>s.supplier_id===$('supplier').value),inventory=state.inventory?.[article?.article_id];
   const history=state.history?.[article?.article_id]||[],latest=history.filter(r=>r.issue_date===history[0]?.issue_date),reference=latest.length===1&&latest[0].comparable?latest[0]:null;
-  ribbons.update({supplier,article,inventory,quantity:form.elements.quantity.value,price:reference?.effective_net_unit_price,planning:state.planning?.[article?.article_id],cutoff:state.info.as_of_date,filename:state.info.exclusive_workbook?.filename});
+  ribbons.update({supplier,article,inventory,quantity:form.elements.quantity.value,price:reference?.effective_net_unit_price,discount:reference?.discount_percent,discountDate:reference?.issue_date,planning:state.planning?.[article?.article_id],cutoff:state.info.as_of_date,filename:state.info.exclusive_workbook?.filename});
  }
  ribbons.explain.onclick=()=>{for(const details of refs.querySelectorAll(':scope>details'))details.open=true;refs.scrollIntoView({block:'start'})};
  for(const event of ['input','change'])form.addEventListener(event,render);$('dataset').addEventListener('change',()=>ribbons.update({}));form.addEventListener('reset',()=>queueMicrotask(render));
@@ -97,7 +98,7 @@ function renderPurchaseSavedRibbons(proposal){
  let old=$('po-saved-ribbons');if(old)old.remove();const ribbon=purchaseContextRibbons('po-saved-ribbons');ribbon.root.classList.add('po-saved-ribbon');$('review-panel').prepend(ribbon.root);
  // Saved identity and inventory stay tied to this proposal, never to the draft selection.
  const context=proposal.documentary_context_at_save,inventory=proposal.stock_context_at_save?.inventory;
- ribbon.update({supplier:proposal.supplier_commercial_at_save||{supplier_id:proposal.supplier_id},article:{article_id:proposal.article_id,description:proposal.article_description_at_save,unit_as_documented:proposal.unit},quantity:proposal.quantity,inventory,price:proposal.price_reference_at_save?.unit_price,cutoff:context?.documentary_cutoff,filename:context?.exclusive_workbook?.filename,saved:true});
+ ribbon.update({supplier:proposal.supplier_commercial_at_save||{supplier_id:proposal.supplier_id},article:{article_id:proposal.article_id,description:proposal.article_description_at_save,unit_as_documented:proposal.unit},quantity:proposal.quantity,inventory,price:proposal.price_reference_at_save?.unit_price,discount:proposal.price_reference_at_save?.discount_percent,discountDate:proposal.price_reference_at_save?.issue_date,cutoff:context?.documentary_cutoff,filename:context?.exclusive_workbook?.filename,saved:true});
  ribbon.explain.onclick=()=>$('review-documentary-context').scrollIntoView({block:'start'});
 }
 '''

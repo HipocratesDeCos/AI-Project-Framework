@@ -99,3 +99,16 @@ class PurchaseComparisonTest(unittest.TestCase):
             payload['actor']='Altered'
             c.execute('UPDATE purchase_condition_comparison SET payload=?',(json.dumps(payload),))
         with self.assertRaisesRegex(ValueError,'integridad'):history(self.desk,data)
+
+    def test_negotiated_freight_and_vat_remain_part_of_financial_comparison(self):
+        data = self.request()
+        patch = dict(unit_price='100', pricing_mode='BEFORE_DISCOUNT', discount_mode='PERCENT',
+                     discount_value='10', vat_percent='10', shipping_mode='BUYER',
+                     shipping_net='10', shipping_vat_percent='21', shipping_billed_by='SUPPLIER',
+                     shipping_due_date='2026-11-15')
+        data['alternatives'] = [dict(label='Portes negociados', patch=patch,
+                                    conditions={key:dict(origin='HYPOTHETICAL') for key in patch})]
+        result = compare(self.desk, data)
+        self.assertEqual(result['baseline']['total'], '242.00')
+        self.assertEqual(result['alternatives'][0]['result']['total'], '210.10')
+        self.assertEqual(result['alternatives'][0]['saving'], '31.90')

@@ -7,19 +7,22 @@ const assert=require('node:assert/strict');
   const page=await browser.newPage({viewport:{width:1600,height:1100},locale:'es-ES'}),errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error('PAGE ERROR:',e.message)});
   await page.goto(process.env.EIOS_TEST_URL);await page.locator('#article').waitFor({state:'attached'});await page.waitForFunction(()=>document.getElementById('article').value==='A');
   await page.locator('[data-nav=propuestas]').click();const form=page.locator('#form'),ribbon=page.locator('#po-draft-ribbons');
-  await page.waitForFunction(()=>document.getElementById('po-draft-ribbons').textContent.includes('Disponible = físico'));assert((await ribbon.innerText()).includes('2'));assert.equal(await ribbon.locator('.po-identity strong').count(),3);assert.equal(await ribbon.locator('.po-metric').count(),5);
+  await page.waitForFunction(()=>document.getElementById('po-draft-ribbons').textContent.includes('Disponible = físico'));assert((await ribbon.innerText()).includes('2'));assert.equal(await ribbon.locator('.po-identity strong').count(),3);assert.equal(await ribbon.locator('.po-metric').count(),6);
   await page.getByRole('link',{name:'Condiciones',exact:true}).click();
+  assert((await ribbon.innerText()).includes('No documentado'));await page.evaluate(()=>{state.history.A[0].discount_percent='0';document.getElementById('form').dispatchEvent(new Event('change',{bubbles:true}))});assert((await ribbon.innerText()).includes('0 %'));await page.evaluate(()=>{delete state.history.A[0].discount_percent;document.getElementById('form').dispatchEvent(new Event('change',{bubbles:true}))});assert((await ribbon.innerText()).includes('No documentado'));
   await form.locator('[name=quantity]').fill('2');await form.locator('[name=unit_price]').fill('100');
-  page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Introducir precio y descuento',exact:true}).click();assert.equal(await form.locator('[name=unit_price]').inputValue(),'');
+  assert.equal(await form.locator('[name=pricing_mode]').isVisible(),false);
   await form.locator('[name=unit_price]').fill('100');await form.locator('[name=discount_value]').fill('10');await form.locator('[name=vat_percent]').fill('21');
-  await form.locator('[name=order_date]').fill('22/10/2026');await form.locator('[name=due_date]').fill('30/11/2026');await page.getByRole('link',{name:'Cuotas y portes',exact:true}).click();await form.locator('[name=shipping_mode]').selectOption('NONE');
+  await form.locator('[name=order_date]').fill('22/10/2026');await form.locator('[name=due_date]').fill('30/11/2026');await form.locator('[name=shipping_mode]').selectOption('NONE');
   await page.waitForFunction(()=>document.getElementById('po-totals').textContent.includes('217,80'));
   await page.getByRole('link',{name:'Condiciones',exact:true}).click();
-  const draft=page.locator('#po-draft-negotiation');assert.equal(await draft.locator(':scope>section').count(),3);
+  const draft=page.locator('#po-draft-negotiation');for(const key of ['cost','discount','shipping','due','vat','total']){const positions=await draft.locator('[data-condition-row='+key+']').evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().y));assert(Math.max(...positions)-Math.min(...positions)<2,'Aligned row: '+key)}assert.equal(await draft.locator(':scope>section').count(),3);
   await draft.getByLabel('Preparar mi propuesta',{exact:true}).check();await page.locator('#po-neg-mine-unit_price').fill('100');await page.locator('#po-neg-mine-discount_mode').selectOption('PERCENT');await page.locator('#po-neg-mine-discount_value').fill('5');
   await draft.getByLabel('Añadir respuesta recibida',{exact:true}).check();await page.locator('#po-neg-response-unit_price').fill('100');await page.locator('#po-neg-response-discount_mode').selectOption('PERCENT');await page.locator('#po-neg-response-discount_value').fill('8');
   await page.waitForFunction(()=>Array.from(document.querySelectorAll('#po-draft-negotiation .po-column-total strong')).map(n=>n.textContent).join('|').includes('222,64'));
   assert((await draft.innerText()).includes('229,90'));assert((await draft.innerText()).includes('217,80'));
+  const reply=draft.locator('section[aria-label="RESPUESTA DEL PROVEEDOR"]');await page.locator('#po-neg-response-vat_percent').fill('10');await page.locator('#po-neg-response-shipping_mode').selectOption('BUYER');await reply.getByText('Detalle de portes',{exact:true}).click();await page.locator('#po-neg-response-shipping_net').fill('10');await page.locator('#po-neg-response-shipping_vat_percent').fill('21');await page.locator('#po-neg-response-shipping_billed_by').selectOption('SUPPLIER');await page.locator('#po-neg-response-shipping_due_date').fill('2026-11-30');await page.waitForFunction(()=>document.querySelectorAll('#po-draft-negotiation .po-column-total strong')[2].textContent.includes('214,50'));assert.equal(await form.locator('[name=vat_percent]').inputValue(),'21');assert.equal(await form.locator('[name=shipping_mode]').inputValue(),'NONE');
+
   await page.waitForFunction(()=>document.querySelector('#po-cash .po-treasury-chart svg'));await page.evaluate(()=>window.scrollTo(0,document.getElementById('form').getBoundingClientRect().top+scrollY));
   if(process.env.EIOS_SCREENSHOT_DIR)await page.screenshot({path:process.env.EIOS_SCREENSHOT_DIR+'/purchase-conditions.png'});
   // Clear an alternative input: a previously calculated total must disappear immediately.
@@ -33,7 +36,7 @@ const assert=require('node:assert/strict');
   await comp.getByLabel('Responsable',{exact:true}).fill('QA visual');await comp.getByLabel('Nuevo precio por unidad (opcional)',{exact:true}).fill('100');await comp.getByLabel('Descuento porcentual alternativo (opcional)',{exact:true}).fill('5');
   await comp.getByLabel('Comparar respuesta recibida').check();await comp.getByLabel('Precio de respuesta antes de descuentos',{exact:true}).fill('100');await comp.getByLabel('Descuento de respuesta (%)',{exact:true}).fill('8');
   await comp.getByRole('button',{name:'Comparar y conservar estudio',exact:true}).click();await comp.locator('.comparison-status').filter({hasText:'ESTUDIO GUARDADO.'}).waitFor();
-  const row=comp.locator('.comparison-result').last();assert((await row.innerText()).includes('Respuesta del proveedor'));assert((await row.innerText()).includes('222,64'));assert((await row.innerText()).includes('229,90'));
+  const row=comp.locator('.comparison-result').last();assert((await row.innerText()).includes('Respuesta del proveedor'));assert((await row.innerText()).includes('214,50'));assert((await row.innerText()).includes('229,90'));
   // Editing a draft must not change the saved proposal ribbon.
   const before=await saved.innerText();await page.getByRole('link',{name:'Condiciones',exact:true}).click();await form.locator('[name=quantity]').fill('99');assert.equal(await saved.innerText(),before);assert((await ribbon.innerText()).includes('99'));
   await comp.scrollIntoViewIfNeeded();const savedPos=await saved.boundingBox();assert(savedPos.y>=-1&&savedPos.y<12,'Saved ribbon pinned inside review');

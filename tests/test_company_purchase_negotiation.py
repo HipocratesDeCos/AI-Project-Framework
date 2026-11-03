@@ -53,3 +53,14 @@ class NegotiationCaptureTest(unittest.TestCase):
             self.assertEqual(saved['total'], '242.00')
         finally:
             case.tearDown()
+
+    def test_independent_freight_and_vat_are_recalculated_without_changing_original(self):
+        variant = deepcopy(self.variant)
+        variant['patch'].update(vat_percent='10', shipping_mode='BUYER', shipping_net='10',
+                                shipping_vat_percent='21', shipping_billed_by='SUPPLIER',
+                                shipping_due_date='2026-11-15')
+        saved = capture(self.base, [variant])['alternatives'][0]
+        self.assertEqual(saved['quote']['operation_total'], '210.10')
+        self.assertEqual(saved['patch']['shipping_net'], '10')
+        self.assertEqual(self.base['shipping_mode'], 'NONE')
+        self.assertEqual(self.base['vat_percent'], '21')

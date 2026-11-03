@@ -28,3 +28,13 @@ Los totales utilizan el endpoint comercial existente: no hay un segundo calculad
 El panel de tesorería incorpora una gráfica escalonada de los saldos al cierre de cada fecha del escenario de la oferta original y una línea de reserva mínima. Sus puntos salen de la misma acumulación que calcula saldo mínimo y saldo final; no se interpolan cobros ni se muestra una curva con información pendiente. La gráfica identifica expresamente su escenario. No incluye todavía las alternativas sin comparar.
 
 Validación adicional: captura/reapertura de alternativas, rechazo de doble descuento, campos inyectados, duplicación de columnas y oferta documentada sin referencia; conciliación de los puntos gráficos con los saldos del motor. Chromium comprueba las tres columnas en Condiciones, los tres totales, invalidación inmediata, gráfica y recuperación tras guardar, además del recorrido de revisión anterior.
+
+## Revisión: filas alineadas y descuento documental
+
+La entrada se dispone en filas comunes entre las tres columnas: Coste de adquisición, Descuento, Coste neto, Portes, Vencimiento de propuesta e IVA de la mercancía. Los selectores visibles de modo de precio se eliminan. El coste unitario de entrada es antes de descuento y sin IVA; se conserva el calculador comercial existente. El soporte de precios NET de propuestas previas no se reinterpreta al abrir su revisión.
+
+Cantidad y fecha de pedido permanecen comunes. Portes e IVA son independientes por alternativa y se conservan tanto en la captura como al recuperar la comparación financiera. Los detalles de factura, IVA y vencimiento de los portes se despliegan debajo de las filas principales. La cuadrícula comparte alturas de fila, incluidas las cintas de totales.
+
+La cinta superior añade Descuento del libro. Se muestra el porcentaje explícito de la última compra única comparable, con su fecha; se conserva su fuente al guardar. No se presenta como tarifa de proveedor de vigencia verificada ni se aplica otra vez al precio histórico neto. Un 0 % documentado se distingue de un campo ausente. Sin porcentaje de compra se indica No documentado. La recepción admite el campo opcional discount_percent / Descuento (%) en compras históricas y valida el rango 0–100. Los registros antiguos sin ese campo no se rellenan con porcentajes de ventas ni con supuestos.
+
+Validación: medición en Chromium de la misma posición vertical para las cinco filas solicitadas y los totales; ausencia de selector visible de modo de precio; descuento cero frente a ausente; recepción/selección/guardado de procedencia; recálculo y comparación de IVA y portes independientes.
