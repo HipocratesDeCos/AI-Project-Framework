@@ -64,3 +64,13 @@ Desactivar una alternativa la excluye del cálculo y del guardado, conservando l
 El endpoint de cotización calcula importes aunque falten fecha de pedido o vencimientos. Los devuelve como ausentes, sin inventar fechas, y señala PENDING_DATES. El mismo calculador continúa exigiendo fechas por defecto: guardado, captura de alternativas y simulación de tesorería conservan su validación estricta. Los portes desconocidos siguen impidiendo conocer el total completo.
 
 Regresión de la captura del usuario: 100 unidades a 13,50 y 14 euros, descuento 0 %, IVA 21 % y portes del proveedor producen 1.633,50 y 1.694,00 euros respectivamente, sin fecha de pedido. Chromium verifica ambos importes y que intentar guardar sin la fecha recibe 400. Las pruebas unitarias cubren fechas ausentes y portes conocidos sin vencimiento, manteniendo el rechazo del guardado estricto.
+
+## Revisión: coste del encabezado, IVA documental y celdas no aplicables
+
+La referencia de Coste de adquisición de Oferta original coincide con el precio del artículo seleccionado en el encabezado: última compra única comparable, neta y sin IVA. Coste neto unitario se obtiene del neto documental dividido por su cantidad incluso cuando no existe porcentaje de descuento. Informar un descuento no vuelve a restarlo del neto ya documentado.
+
+La recepción de compras históricas admite Descuento (%) e IVA de la mercancía (%), con el alias IVA (%). Son campos opcionales, explícitos y numéricos en puntos porcentuales (21 representa 21 %). Se valida el rango 0–100 y se rechazan cabeceras de IVA ambiguas. Se conservan ambos valores en la referencia seleccionada y al guardar; su ausencia no se transforma en cero. No se modifica el libro del usuario en esta revisión.
+
+Portes y Vencimiento de propuesta de Oferta original se muestran en controles deshabilitados, con fondo #f0f5fc igual a Condiciones. Sin dato se presenta un guion. El resto de referencias documentales permanece en solo lectura.
+
+Validación: 26 pruebas unitarias de recepción, selección, historial y guardado; Chromium verifica coincidencia entre coste del encabezado y de la oferta, neto disponible sin descuento, controles deshabilitados y color de fondo, además del recorrido de importes, calendarios, guardado y comparación.

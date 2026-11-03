@@ -3,7 +3,7 @@ EXTENSIONS = {
  'supplier':[('email','Correo electrónico'),],
  'customer':[('address','Dirección'),('province','Provincia'),('postal_code','C.P'),('country','País')],
  'article':[('subfamily','Subfamilia'),('provenance','Procedencia')],
- 'purchase_line':[('discount_percent','Descuento (%)'),('unit_price','Precio unitario neto'),('description','Descripción'),('order_date','Fecha pedido'),('delivery_date','Fecha entrega'),('origin','Origen'),('order_ref','Referencia pedido'),('delivery_ref','Referencia albarán')],
+ 'purchase_line':[('vat_percent','IVA de la mercancía (%)'),('discount_percent','Descuento (%)'),('unit_price','Precio unitario neto'),('description','Descripción'),('order_date','Fecha pedido'),('delivery_date','Fecha entrega'),('origin','Origen'),('order_ref','Referencia pedido'),('delivery_ref','Referencia albarán')],
  'sales_line':[('origin','Origen')],
  'cash_flow':[('supplier_id','Cod.Proveedor'),('counterparty_type','Tipo de contraparte'),('support_ref','Referencia soporte'),('support_type','Tipo de soporte'),('not_applicable_reason','Motivo de campos no aplicables'),('contractual_due_date','Vencimiento contractual')],
 }
@@ -26,7 +26,9 @@ def enrich_plan(headers,kind,mapping):
     result=dict(mapping)
     for key,label in EXTENSIONS.get(kind,[]):
         if key in result:continue
-        matches=[i for i,h in enumerate(headers) if clean(h) in {clean(key),clean(label)}]
+        accepted={clean(key),clean(label)}
+        if kind=='purchase_line' and key=='vat_percent':accepted.add(clean('IVA (%)'))
+        matches=[i for i,h in enumerate(headers) if clean(h) in accepted]
         if len(matches)>1:raise ValueError('Columna ambigua: '+label)
         if matches and matches[0] not in result.values():result[key]=matches[0]
     return result

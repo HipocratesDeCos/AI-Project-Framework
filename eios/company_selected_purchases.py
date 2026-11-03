@@ -70,7 +70,7 @@ def validate(c,dataset,ids):
             seen.add(signature);headers[key]=header
             if problem:errors.append(dict(filename=meta['filename'],row=r.get('source_row'),article_id=sku,message=problem));continue
             ref=dict(document_ref='REC-'+bid,filename=meta['filename'],sheet=meta['sheet'],row=r['source_row'],batch_id=bid,source_sha256=meta['source_sha256'])
-            entries.append(dict(article_id=sku,supplier_id=supplier,supplier_name=parties[supplier].get('legal_name',supplier),invoice_number=inv,issue_date=d['issue_date'],quantity=str(quantity),unit=d['unit'],net_amount=str(net),discount_percent=d.get('discount_percent'),currency='EUR',effective_net_unit_price=str(net/quantity),source_refs=[ref],is_primary_supplier=supplier==catalogue[sku].get('supplier_id')))
+            entries.append(dict(article_id=sku,supplier_id=supplier,supplier_name=parties[supplier].get('legal_name',supplier),invoice_number=inv,issue_date=d['issue_date'],quantity=str(quantity),unit=d['unit'],net_amount=str(net),discount_percent=d.get('discount_percent'),vat_percent=d.get('vat_percent'),currency='EUR',effective_net_unit_price=str(net/quantity),source_refs=[ref],is_primary_supplier=supplier==catalogue[sku].get('supplier_id')))
     return entries,errors,fingerprints,files
 
 
@@ -92,7 +92,7 @@ def apply_history(c,dataset,baseline):
     result=deepcopy(baseline)
     for e in entries:
         if not e['is_primary_supplier']:continue
-        result.setdefault(e['article_id'],[]).append(dict(invoice_id='REC-'+e['source_refs'][0]['batch_id']+'-'+e['invoice_number'],invoice_number=e['invoice_number'],supplier_id=e['supplier_id'],issue_date=e['issue_date'],quantity=e['quantity'],unit=e['unit'],unit_price=e['effective_net_unit_price'],discount_percent=e.get('discount_percent'),net_amount=e['net_amount'],currency='EUR',effective_net_unit_price=e['effective_net_unit_price'],comparable=Decimal(e['net_amount'])>0,source_refs=e['source_refs'],origin='EXPLICIT_RECEIVED_PURCHASE_LINE'))
+        result.setdefault(e['article_id'],[]).append(dict(invoice_id='REC-'+e['source_refs'][0]['batch_id']+'-'+e['invoice_number'],invoice_number=e['invoice_number'],supplier_id=e['supplier_id'],issue_date=e['issue_date'],quantity=e['quantity'],unit=e['unit'],unit_price=e['effective_net_unit_price'],discount_percent=e.get('discount_percent'),vat_percent=e.get('vat_percent'),net_amount=e['net_amount'],currency='EUR',effective_net_unit_price=e['effective_net_unit_price'],comparable=Decimal(e['net_amount'])>0,source_refs=e['source_refs'],origin='EXPLICIT_RECEIVED_PURCHASE_LINE'))
     for rows in result.values():rows.sort(key=lambda r:(r['issue_date'],r['invoice_id']),reverse=True)
     return result,status,entries
 
