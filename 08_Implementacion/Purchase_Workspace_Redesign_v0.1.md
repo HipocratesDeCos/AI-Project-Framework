@@ -38,3 +38,13 @@ Cantidad y fecha de pedido permanecen comunes. Portes e IVA son independientes p
 La cinta superior añade Descuento del libro. Se muestra el porcentaje explícito de la última compra única comparable, con su fecha; se conserva su fuente al guardar. No se presenta como tarifa de proveedor de vigencia verificada ni se aplica otra vez al precio histórico neto. Un 0 % documentado se distingue de un campo ausente. Sin porcentaje de compra se indica No documentado. La recepción admite el campo opcional discount_percent / Descuento (%) en compras históricas y valida el rango 0–100. Los registros antiguos sin ese campo no se rellenan con porcentajes de ventas ni con supuestos.
 
 Validación: medición en Chromium de la misma posición vertical para las cinco filas solicitadas y los totales; ausencia de selector visible de modo de precio; descuento cero frente a ausente; recepción/selección/guardado de procedencia; recálculo y comparación de IVA y portes independientes.
+
+## Revisión: columna de etiquetas, tipografía y calendarios
+
+La tabla incorpora una primera columna de etiquetas en negrita. Se eliminan las etiquetas visuales repetidas de las tres columnas de valores manteniendo los nombres accesibles de los controles. Las filas y los totales permanecen alineados mediante una cuadrícula común; en pantallas estrechas la tabla dispone de desplazamiento horizontal dentro de su marco.
+
+Los valores editables y los costes netos utilizan 18 px y la misma familia sans serif. Las etiquetas de fila son de 16 px en negrita; los encabezados y totales tienen mayor peso. Los detalles comerciales, procedencia, portes e importes se mantienen desplegables para compactar la tabla.
+
+Tras confirmar el usuario que el calendario corresponde a vencimientos, las tres celdas de Vencimiento de propuesta tienen botón visible de calendario. El IVA permanece numérico. Los botones de alternativas se deshabilitan cuando no está activada su columna y abren el selector de su propio campo sin modificar el resto.
+
+Validación de navegador: cuatro columnas, etiquetas en negrita, valores de al menos 18 px, alturas y posiciones compartidas, tres botones principales de calendario y apertura del campo correcto; conservación del recorrido previo de cálculo, guardado y comparación.
