@@ -1041,7 +1041,7 @@ def main():
                     return self.send(200, desk.purchase_cash_preview(data))
                 if self.path == '/api/purchases/quote':
                     from eios.company_commercial_terms import commercial_terms
-                    return self.send(200, commercial_terms(data))
+                    return self.send(200, commercial_terms(data, require_dates=False))
                 if self.path == '/api/purchases/commercial-draft':
                     return self.send(200, desk.commercial_draft(str(data['dataset_id']), str(data['proposal_id']), str(data['review_id'])))
                 if self.path == '/api/purchases/report':

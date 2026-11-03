@@ -58,3 +58,9 @@ Oferta original deja de ser un formulario de entrada: muestra únicamente la úl
 La operación que calcula y guarda el formulario corresponde a Mi propuesta si está activa; si solo está activa Respuesta del proveedor, corresponde a esta. Las alternativas se conservan con la operación y la referencia documental se captura por separado mediante price_reference_at_save. La gráfica identifica la propuesta activa, sin representar la compra histórica como un nuevo pago. La revisión posterior denomina su base Propuesta guardada para distinguirla de la referencia del libro.
 
 Desactivar una alternativa la excluye del cálculo y del guardado, conservando lo escrito si se reactiva. Cambiar de artículo o versión documental limpia sus datos. Validación en Chromium: original sin inputs/selects, precio documental independiente de los importes negociados, ambos pares alineados, cinta centrada, alternancia de la propuesta activa, conservación al reactivar y recorrido completo de cálculo/guardado/comparación.
+
+## Corrección: importes sin fechas de calendario
+
+El endpoint de cotización calcula importes aunque falten fecha de pedido o vencimientos. Los devuelve como ausentes, sin inventar fechas, y señala PENDING_DATES. El mismo calculador continúa exigiendo fechas por defecto: guardado, captura de alternativas y simulación de tesorería conservan su validación estricta. Los portes desconocidos siguen impidiendo conocer el total completo.
+
+Regresión de la captura del usuario: 100 unidades a 13,50 y 14 euros, descuento 0 %, IVA 21 % y portes del proveedor producen 1.633,50 y 1.694,00 euros respectivamente, sin fecha de pedido. Chromium verifica ambos importes y que intentar guardar sin la fecha recibe 400. Las pruebas unitarias cubren fechas ausentes y portes conocidos sin vencimiento, manteniendo el rechazo del guardado estricto.

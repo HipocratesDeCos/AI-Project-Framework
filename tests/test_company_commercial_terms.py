@@ -57,3 +57,28 @@ class CommercialPersistenceTest(unittest.TestCase):
         self.assertEqual(saved,result)
         self.assertEqual(saved['operation_total'],'217.80')
         self.assertEqual(saved['unit_price'],'90.00')
+
+    def test_amount_preview_does_not_require_order_or_payment_dates(self):
+        for price, total in [('13.50','1633.50'),('14','1694.00')]:
+            data = dict(quantity='100',unit_price=price,vat_percent='21',pricing_mode='BEFORE_DISCOUNT',
+                        discount_mode='PERCENT',discount_value='0',shipping_mode='SUPPLIER',order_date='',due_date='2026-11-03')
+            quote = commercial_terms(data, require_dates=False)
+            self.assertEqual(quote['operation_total'], total)
+            self.assertEqual(quote['schedule_status'], 'PENDING_DATES')
+            self.assertIsNone(quote['order_date'])
+            with self.assertRaises(ValueError):
+                commercial_terms(data)
+        data.pop('due_date')
+        self.assertEqual(commercial_terms(data, require_dates=False)['operation_total'], '1694.00')
+
+    def test_freight_amount_can_be_quoted_before_its_due_date(self):
+        data = dict(self.data,order_date='',due_date='',shipping_mode='BUYER',shipping_net='10',
+                    shipping_vat_percent='21',shipping_billed_by='CARRIER')
+        quote = commercial_terms(data, require_dates=False)
+        self.assertEqual(quote['operation_total'], '254.10')
+        self.assertIsNone(quote['commercial_terms']['shipping']['due_date'])
+        with self.assertRaises(ValueError):
+            commercial_terms(data)
+        data['shipping_mode'] = 'PENDING'
+        for key in ['shipping_net','shipping_vat_percent','shipping_billed_by']:data.pop(key)
+        self.assertIsNone(commercial_terms(data, require_dates=False)['operation_total'])
