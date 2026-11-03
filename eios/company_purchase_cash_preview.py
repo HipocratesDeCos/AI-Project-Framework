@@ -74,11 +74,14 @@ def preview(db,state,data,*,alternatives=True):
             for d,a in base:events[d]+=a
             for d,a in extra:events[d]-=a
             balance=opening;low=opening;lowdate=cut;first=cut if opening<minimum else None
+            points=[dict(date=cut.isoformat(),balance=str(opening))]
             for d in sorted(events):
                 balance+=events[d]
+                points.append(dict(date=d.isoformat(),balance=str(balance)))
                 if balance<low:low=balance;lowdate=d
                 if first is None and balance<minimum:first=d
-            return dict(minimum_balance=str(low),minimum_date=lowdate.isoformat(),first_shortfall_date=first.isoformat() if first else None,deficit=str(max(Decimal(0),minimum-low)),closing_balance=str(balance))
+            if points[-1]['date']!=end.isoformat():points.append(dict(date=end.isoformat(),balance=str(balance)))
+            return dict(points=points,minimum_balance=str(low),minimum_date=lowdate.isoformat(),first_shortfall_date=first.isoformat() if first else None,deficit=str(max(Decimal(0),minimum-low)),closing_balance=str(balance))
         baseline=project([]);scenario=project(payments)
         result.update(status='SHORTFALL' if Decimal(scenario['deficit'])>0 else 'WITHIN_DECLARED_SCENARIO',message='Déficit en el escenario de pagos propuesto.' if Decimal(scenario['deficit'])>0 else 'El escenario respeta el mínimo de tesorería con las previsiones declaradas; no acredita viabilidad final.',baseline=baseline,scenario=scenario,opening_balance=str(opening),treasury_minimum=str(minimum),horizon_end=end.isoformat(),cutoff=cut.isoformat(),total=quote['operation_total'],payment_basis='DECLARED_INSTALLMENTS' if plan['status']!='NOT_DECLARED' else 'HYPOTHETICAL_SINGLE_PAYMENT_PER_COMPONENT',payments=[dict(due_date=d.isoformat(),amount=str(a)) for d,a in payments],documentary_context=deepcopy(state['documentary_context']),financial_source_fingerprint=finance.get('fingerprint'),parameter_activation=activation,
             assumptions=['Se usan los importes y fechas del archivo financiero activo sin acreditar cobro, pago ni conciliación.','Los movimientos de cada día se compensan al cierre; no se garantiza liquidez dentro del día.','Sin cuotas declaradas se simula un pago único de mercancía y otro de portes, si existen, en sus fechas indicadas. No se registra ese calendario.','No se suman otras propuestas guardadas ni financiación hipotética. El saldo corresponde al corte, no al día actual.'],evidence_pending_count=finance.get('evidence_pending_count'),data_quality_status='NOT_VERIFIED')

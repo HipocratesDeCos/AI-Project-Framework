@@ -18,3 +18,13 @@ No se calcula rotación a partir del stock. La cobertura solo muestra el resulta
 - Datos sintéticos aislados: no se modifica la base de la empresa.
 
 Esta entrega requiere revisión visual del usuario antes de integrar. No cambia decisiones financieras, saldos contables ni la autoridad de aceptación de ofertas.
+
+## Revisión: negociación dentro de Condiciones
+
+La pestaña Condiciones contiene ahora las tres columnas desde la entrada, antes de guardar: Oferta original, Mi propuesta y Respuesta del proveedor. Cantidad, IVA y fecha de pedido son comunes. Cada alternativa tiene precio, modalidad de descuento, vencimiento, origen y soporte independientes. Cada columna termina en una cinta de total con IVA y portes. Los campos conservan los modos NET, BEFORE_DISCOUNT, NONE, PERCENT y LINE_AMOUNT.
+
+Los totales utilizan el endpoint comercial existente: no hay un segundo calculador en JavaScript. Un cambio borra el resultado anterior mientras se recalcula; datos incompletos y portes desconocidos permanecen pendientes. Las alternativas activadas se validan y calculan de nuevo en servidor al guardar, y se capturan dentro de la propuesta. Se recuperan en la revisión, donde se puede conservar una comparación financiera. No se ejecuta una compra ni se confirma aceptación.
+
+El panel de tesorería incorpora una gráfica escalonada de los saldos al cierre de cada fecha del escenario de la oferta original y una línea de reserva mínima. Sus puntos salen de la misma acumulación que calcula saldo mínimo y saldo final; no se interpolan cobros ni se muestra una curva con información pendiente. La gráfica identifica expresamente su escenario. No incluye todavía las alternativas sin comparar.
+
+Validación adicional: captura/reapertura de alternativas, rechazo de doble descuento, campos inyectados, duplicación de columnas y oferta documentada sin referencia; conciliación de los puntos gráficos con los saldos del motor. Chromium comprueba las tres columnas en Condiciones, los tres totales, invalidación inmediata, gráfica y recuperación tras guardar, además del recorrido de revisión anterior.

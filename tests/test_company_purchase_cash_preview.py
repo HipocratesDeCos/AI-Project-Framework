@@ -81,3 +81,14 @@ class PurchaseCashPreviewTest(unittest.TestCase):
         report=self.desk.review('one',saved['proposal_id'])
         html=self.desk.printable_report('one',saved['proposal_id'],report['review_id'])
         self.assertIn('ESTUDIO DE TESORERÍA AL GUARDAR',html)
+
+    def test_chart_points_reconcile_to_scenario_and_documentary_dates(self):
+        self.ready()
+        result = self.desk.purchase_cash_preview(self.data)
+        points = result['scenario']['points']
+        self.assertEqual(points[0], dict(date=result['cutoff'], balance=result['opening_balance']))
+        self.assertEqual(points[-1]['date'], result['horizon_end'])
+        self.assertEqual(points[-1]['balance'], result['scenario']['closing_balance'])
+        self.assertEqual(min(Decimal(p['balance']) for p in points), Decimal(result['scenario']['minimum_balance']))
+        self.assertEqual([p['date'] for p in points], sorted(p['date'] for p in points))
+        self.assertIn('2026-11-01', [p['date'] for p in points])
