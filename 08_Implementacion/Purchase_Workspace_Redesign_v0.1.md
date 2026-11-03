@@ -74,3 +74,15 @@ La recepción de compras históricas admite Descuento (%) e IVA de la mercancía
 Portes y Vencimiento de propuesta de Oferta original se muestran en controles deshabilitados, con fondo #f0f5fc igual a Condiciones. Sin dato se presenta un guion. El resto de referencias documentales permanece en solo lectura.
 
 Validación: 26 pruebas unitarias de recepción, selección, historial y guardado; Chromium verifica coincidencia entre coste del encabezado y de la oferta, neto disponible sin descuento, controles deshabilitados y color de fondo, además del recorrido de importes, calendarios, guardado y comparación.
+
+## Corrección: carga de un libro revisado sobre un expediente existente
+
+Una recepción con 0 errores puede quedar bloqueada por coincidencias con archivos recibidos del mismo corte. Comprobar únicamente una base vacía no cubre esta situación. Se distingue el cambio de versión de los errores de formato del Excel.
+
+Cuando está marcado Usar este libro como expediente activo, la comprobación solicita conservar la versión anterior. Esta opción ya promete mantenerla como histórico; ahora el parámetro preserve_revision es coherente con esa promesa aunque la casilla secundaria no esté marcada. El backend conserva las comprobaciones de formato, referencias, identidad y transacción.
+
+Si se elige recepción sin activación y sin conservar revisión, los cambios permanecen bloqueados. La pantalla explica que los datos no tienen errores de formato y ofrece Conservar la versión anterior y volver a comprobar. La acción vuelve a validar y no guarda automáticamente.
+
+Regresión: recepción previa y libro modificado con inventario y balance cambiados; bloqueo sin preserve_revision; READY con preserve_revision; guardado y activación efectivos conservando identificadores y bytes de las recepciones anteriores. Chromium verifica la opción de recuperación y el caso exacto de activación marcada con conservación secundaria desmarcada. Pasan 19 pruebas unitarias de recepción/mapeo.
+
+Se reproduce también con el libro reparado completo frente al expediente anterior: 10 hojas con 0 errores; CONFLICT sin conservar revisión, READY con revisión y bytes anteriores intactos. No se vuelven a modificar los datos del Excel para evitar esta comprobación.
