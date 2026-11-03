@@ -48,3 +48,13 @@ Los valores editables y los costes netos utilizan 18 px y la misma familia sans 
 Tras confirmar el usuario que el calendario corresponde a vencimientos, las tres celdas de Vencimiento de propuesta tienen botón visible de calendario. El IVA permanece numérico. Los botones de alternativas se deshabilitan cuando no está activada su columna y abren el selector de su propio campo sin modificar el resto.
 
 Validación de navegador: cuatro columnas, etiquetas en negrita, valores de al menos 18 px, alturas y posiciones compartidas, tres botones principales de calendario y apertura del campo correcto; conservación del recorrido previo de cálculo, guardado y comparación.
+
+## Revisión: origen documental no editable y alineación de cabeceras
+
+Cantidad y Fecha de pedido comparten posición vertical de entrada. Los vistos de Mi propuesta y Añadir respuesta recibida se anclan en la misma línea de las cabeceras, con independencia de la longitud de los títulos y del estado de sus campos. Los textos e importes de la cinta Datos de la compra se centran.
+
+Oferta original deja de ser un formulario de entrada: muestra únicamente la última compra única comparable del libro activo, con fecha y fuente. Se identifican su coste neto y descuento explícito sin descontarlo otra vez. Los datos no documentados —IVA, portes o vencimiento si faltan— se indican como tales; el total no se inventa. No hay controles editables en esa columna ni se presenta el histórico como una oferta actual verificada.
+
+La operación que calcula y guarda el formulario corresponde a Mi propuesta si está activa; si solo está activa Respuesta del proveedor, corresponde a esta. Las alternativas se conservan con la operación y la referencia documental se captura por separado mediante price_reference_at_save. La gráfica identifica la propuesta activa, sin representar la compra histórica como un nuevo pago. La revisión posterior denomina su base Propuesta guardada para distinguirla de la referencia del libro.
+
+Desactivar una alternativa la excluye del cálculo y del guardado, conservando lo escrito si se reactiva. Cambiar de artículo o versión documental limpia sus datos. Validación en Chromium: original sin inputs/selects, precio documental independiente de los importes negociados, ambos pares alineados, cinta centrada, alternancia de la propuesta activa, conservación al reactivar y recorrido completo de cálculo/guardado/comparación.
