@@ -94,3 +94,9 @@ En Cuotas y portes, el calendario declarado incorpora un selector para repartir 
 El cálculo usa el total comercial vigente y exige portes conocidos. Mantiene el contrato existente de mercancía y portes separados: cuando procede, muestra líneas desglosadas por concepto, sin atribuir al proveedor los portes del transportista. Se mantiene el máximo de 20 líneas y la validación de sumas y vencimientos al guardar. Los cambios posteriores del precio o descuento requieren revisar/regenerar las cuotas.
 
 Validación: recorrido Chromium para reparto por número, importe fijo, redondeo, conservación de totales por concepto, rechazo de entrada inválida sin borrar el calendario y total pendiente; 15 pruebas unitarias de calendario y simulación de tesorería satisfactorias.
+
+### Ajustes visuales del calendario de pagos
+
+El bloque de calendario se abre por defecto, sin activar automáticamente la declaración de cuotas. Cada fila alinea número y concepto, importe, vencimiento y papelera roja accesible. El número crece un 30 %. Todos los vencimientos incorporan un selector de fecha que conserva la entrada DD/MM/YYYY. El pie muestra la suma con IVA en la columna de importes y se actualiza al generar, editar, añadir o eliminar filas; si hay importes inválidos, indica que deben revisarse.
+
+Verificación Chromium: apertura inicial, papelera y calendario por fila, selección de fecha, suma inicial y edición, eliminación con renumeración y comprobación geométrica de alineación, además de los casos de reparto existentes. La selección de propuesta activa sigue siendo una base de simulación, sin registrar aceptación contractual.
