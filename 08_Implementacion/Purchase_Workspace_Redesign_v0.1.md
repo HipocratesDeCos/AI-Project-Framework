@@ -122,3 +122,11 @@ Las dos columnas editables precargan el IVA de la misma última compra única co
 Cantidad y fecha del pedido usan fuente de 18 px como los campos inferiores. La cinta Datos de la compra incorpora una chincheta azul vectorial, sin imagen externa.
 
 Verificación Chromium: precarga del IVA en ambas columnas, cero frente a dato ausente, conservación de un tipo editado, igualdad de tamaño de fuente e icono presente. Regresión del cálculo de columnas con aviso de fechas y calendario fijo satisfactoria.
+
+### Total original y diferencias entre columnas
+
+La fila TOTAL CON IVA muestra en las tres columnas el total de mercancía para la misma cantidad: neto de línea e IVA redondeados por el calculador comercial. El original usa el coste neto histórico único comparable y su IVA documentado; no reaplica el descuento histórico. Los portes mantienen su desglose independiente y el total completo de operación conserva su cálculo para cuotas y tesorería. Se explicita esta base común junto a la tabla.
+
+Se añaden los recuadros «Mi propuesta − Oferta original» y «Respuesta del proveedor − Mi propuesta». La resta se hace en céntimos enteros: negativo verde, positivo rojo y cero neutro, con texto que explica el signo. Los recuadros esperan a disponer de ambos cálculos vigentes y descartan resultados asíncronos obsoletos. Si falta referencia, IVA, cantidad o datos válidos de una columna, la diferencia permanece pendiente.
+
+Validación Chromium: cálculo original sin doble descuento, ambas restas, inversión de signos y colores al editar, cero neutro, exclusión consistente de portes de la base comparada y dato ausente pendiente. Regresiones de IVA del libro y cálculo con avisos de fecha satisfactorias.
