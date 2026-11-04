@@ -8,6 +8,30 @@ def _text(value):
     return escape('Sin datos' if value is None else str(value), quote=True)
 
 
+def _scenario_comparison(study):
+    if not study or not study.get('current_terms'):return ''
+    parts=['<h3>COMBINACIONES Y SENSIBILIDAD CONSERVADAS</h3><p>Comparación parcial de coste y saldo mínimo a igual cantidad. No es una clasificación de calidad, fiabilidad ni preferencia empresarial. Ninguna hipótesis acredita aceptación del proveedor.</p>']
+    sensitivity=study.get('collection_sensitivity') or {};excluded=sensitivity.get('excluded_collection')
+    if excluded:parts.append('<p>Prueba de tensión: sin el mayor cobro individual previsto, '+_text(excluded['flow_id'])+' · '+_text(number_text(excluded['amount'],2))+' EUR · '+_text(date_text(excluded['due_date']))+'. No es una previsión de impago ni cubre todos los riesgos.</p>')
+    for item in [dict(study['current_terms'],title='Propuesta activa',savings='0')]+study.get('alternatives',[]):
+        parts.append('<h4>'+_text(item.get('comparison_id',''))+' '+_text(item['title'])+'</h4>')
+        parts.append(_rows([('Cantidad',item.get('quantity')),('Total operación con IVA y portes (EUR)',number_text(item.get('total'),2)),('Ahorro frente a propuesta activa (EUR)',number_text(item.get('savings'),2)),('Saldo mínimo (EUR)',number_text(item.get('minimum_balance'),2)),('Vencimiento mercancía',item.get('due_date'))]))
+        stress=item.get('collection_sensitivity')
+        if stress:parts.append('<p>Sin el cobro indicado: saldo mínimo '+_text(number_text(stress['minimum_balance'],2))+' EUR; falta para reserva '+_text(number_text(stress['deficit'],2))+' EUR.</p>')
+        if item.get('basis'):parts.append('<p>'+_text(item['basis'])+'</p>')
+        if item.get('source'):parts.append('<details><summary>Fuentes conservadas</summary>'+_detail(item['source'])+'</details>')
+        comparison=item.get('metric_comparison') or {}
+        if comparison.get('dominated_by'):parts.append('<p>Otra opción mejora coste o caja sin empeorar la otra métrica, a igual cantidad: '+_text(', '.join(comparison['dominated_by']))+'.</p>')
+    search=study.get('combination_analysis')
+    if search:
+        parts.append('<p>Búsqueda combinada: '+str(search['evaluated'])+' comprobaciones; '+str(search['retained'])+' alternativas conservadas. Límite: '+str(search['limit'])+(' · Exploración limitada, no exhaustiva.' if search['truncated'] else '.')+'</p>')
+        reasons={}
+        for entry in search.get('rejected',[]):reasons[entry['reason']]=reasons.get(entry['reason'],0)+1
+        parts.extend('<p>'+str(count)+' descartes: '+_text(reason)+'</p>' for reason,count in reasons.items())
+    parts.append('<p>Huella del estudio: '+_text(study.get('analysis_fingerprint'))+'</p>')
+    return ''.join(parts)
+
+
 def _rows(items):
     numeric = {'Cantidad', 'Tipo de IVA declarado (%)', 'Línea antes de descuentos', 'Descuento de línea',
                'Valor de descuento declarado', 'Neto', 'IVA', 'Total', 'Cantidad histórica',
@@ -327,6 +351,7 @@ def render_report(report):
             pieces.append(_rows([('Tesorería al corte (EUR)',number_text(draft_cash['opening_balance'],2)),('Mínimo configurado (EUR)',number_text(draft_cash['treasury_minimum'],2)),('Saldo mínimo del escenario (EUR)',number_text(scenario['minimum_balance'],2)),('Déficit del escenario (EUR)',number_text(scenario['deficit'],2)),('Primera fecha de déficit',date_text(scenario['first_shortfall_date'])),('Fin del horizonte',date_text(draft_cash['horizon_end']))]))
             for alternative in draft_cash.get('alternatives',[]):
                 pieces.append('<h4>'+_text(alternative['title'])+'</h4><p>'+_text(alternative['negotiation_text'])+'</p>')
+        pieces.append(_scenario_comparison(draft_cash))
         pieces.append('<p>No acredita conciliación, disponibilidad actual ni viabilidad final. Los datos e hipótesis son los conservados al guardar.</p>')
 
     pieces.extend(['<h2>3. COMPARACIÓN CON LA ÚLTIMA COMPRA</h2>', '<p>' + _text(price.get('message')) + '</p>'])

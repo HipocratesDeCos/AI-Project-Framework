@@ -11,13 +11,7 @@ def opportunities(state, data, quote, plan, scenario, end, check):
     from eios.company_commercial_terms import commercial_terms
     notes=[]; candidates=[]
     article=next(a for a in state['articles'] if a['article_id']==data['article_id'])
-    rows=state.get('history',{}).get(data['article_id'],[])
-    horizon=min(data['order_date'],state['info']['as_of_date'])
-    rows=[r for r in rows if r.get('issue_date','')<=horizon]
-    latest=max((r.get('issue_date','') for r in rows),default=None)
-    refs=[r for r in rows if r.get('issue_date')==latest]
-    stale=(state.get('selected_purchase_history') or {}).get('status')=='STALE'
-    ref=refs[0] if len(refs)==1 and not stale else None
+    ref=historical_reference(state,data,article)
     if ref and ref.get('comparable') and ref.get('unit')==article['unit_as_documented'] and ref.get('currency')=='EUR':
         try:
             price=Decimal(str(ref['effective_net_unit_price']))
@@ -72,3 +66,12 @@ def resized_installments(data,revised,quote):
             if amount<=0 or amount>remaining:raise ValueError('El ajuste de cantidad genera una cuota no positiva; revisa el calendario.')
             row['amount']=format(amount,'.2f');remaining-=amount
         return schedule
+
+
+def historical_reference(state,data,article):
+    rows=[r for r in state.get('history',{}).get(data['article_id'],[]) if r.get('issue_date','')<=min(data['order_date'],state['info']['as_of_date'])]
+    last=max((r.get('issue_date','') for r in rows),default=None)
+    refs=[r for r in rows if r.get('issue_date')==last]
+    if len(refs)!=1 or (state.get('selected_purchase_history') or {}).get('status')=='STALE':return None
+    r=refs[0]
+    return r if r.get('comparable') and r.get('unit')==article['unit_as_documented'] and r.get('currency')=='EUR' else None

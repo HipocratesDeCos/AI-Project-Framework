@@ -73,10 +73,11 @@ def preview(db,state,data,*,alternatives=True):
             return any(f['canonical']['flow_type']=='PAYMENT' and (date.fromisoformat(f['canonical']['due_date']),Decimal(str(f['canonical']['amount']))) in payments for f in source)
         if any(not cut<=d<=end for d,a in payments):return pending('Todos los pagos deben quedar dentro del horizonte activado; no se evalúan aplazamientos fuera de él.')
         if collision(payments):return pending('Un pago coincide en fecha e importe con la previsión existente. Comprueba su vínculo para no duplicarlo; no se añade automáticamente.')
-        def project(extra):
+        def project(extra,excluded_collection=None):
             events=defaultdict(Decimal)
             for d,a in base:events[d]+=a
             for d,a in extra:events[d]-=a
+            if excluded_collection:events[date.fromisoformat(excluded_collection['due_date'])]-=Decimal(str(excluded_collection['amount']))
             balance=opening;low=opening;lowdate=cut;first=cut if opening<minimum else None
             points=[dict(date=cut.isoformat(),balance=str(opening))]
             for d in sorted(events):
@@ -94,13 +95,16 @@ def preview(db,state,data,*,alternatives=True):
             if c.execute("SELECT 1 FROM sqlite_master WHERE name='company_finance_parameter_configuration'").fetchone():
                 rows=[dict(flow_id='PURCHASE-DRAFT-'+str(i),flow_type='PAYMENT',amount=str(a),due_date=d.isoformat(),declaration_ref='HYPOTHETICAL-PURCHASE-PAYMENT',disposition='NEW_DECLARATION') for i,(d,a) in enumerate(payments)]
                 result['formal_engine']=_execute(c,dict(proposal_id='PURCHASE-DRAFT'),finance,rows)
-        def check(values):
+        def evaluate(values):
             try:
                 q,p,ps=candidate(values)
-                if any(not cut<=d<=end for d,a in ps) or collision(ps):return None
+                if any(not cut<=d<=end for d,a in ps):return None,'Algún pago queda fuera del horizonte financiero activado.'
+                if collision(ps):return None,'Un pago coincide en fecha e importe con la previsión: falta resolver su relación para evitar duplicados.'
                 sc=project(ps)
-                return (q,p,ps,sc) if Decimal(sc['deficit'])==0 else None
-            except (ValueError,TypeError,KeyError,ArithmeticError):return None
+                if Decimal(sc['deficit'])>0:return None,'No respeta la reserva mínima: faltan '+sc['deficit']+' EUR.'
+                return (q,p,ps,sc),None
+            except (ValueError,TypeError,KeyError,ArithmeticError) as error:return None,'Datos o cuotas incompatibles: '+str(error)
+        def check(values):return evaluate(values)[0]
         result['current_terms']=dict(quantity=quote['quantity'],unit=article['unit_as_documented'],net_unit_price=quote['unit_price'],total=quote['operation_total'],due_date=quote['due_date'],payments=deepcopy(result['payments']),minimum_balance=scenario['minimum_balance'],minimum_date=scenario['minimum_date'],basis='FULL_OPERATION_WITH_VAT_AND_FREIGHT')
         def add(kind,title,patch,checked,text):
             result['alternatives'].append(dict(kind=kind,title=title,patch=patch,total=checked[0]['operation_total'],minimum_balance=checked[3]['minimum_balance'],quantity=checked[0]['quantity'],unit=article['unit_as_documented'],net_unit_price=checked[0]['unit_price'],minimum_date=checked[3]['minimum_date'],due_date=checked[0]['due_date'],payments=[dict(due_date=d.isoformat(),amount=str(a)) for d,a in checked[2]],negotiation_text=text,status='WITHIN_DECLARED_SCENARIO',decision_authority=False))
@@ -154,6 +158,10 @@ def preview(db,state,data,*,alternatives=True):
                             negotiation_text='Proponemos comprar '+str(q)+' '+article['unit_as_documented']+' conforme a nuestro escenario interno de cobertura. Sujeto a disponibilidad y aceptación del proveedor.'))
                     else:notes.append('La cantidad del objetivo hipotético no respeta la reserva de tesorería o el calendario declarado. Revisa conjuntamente stock y pagos.')
 
+            from eios.company_purchase_scenario_search import search,metric_comparison
+            combined,search_report=search(state,data,quote,plan,target,end,scenario,evaluate)
+            suggestions.extend(combined)
+            result['combination_analysis']=search_report
             seen_patches={json.dumps(a['patch'],sort_keys=True) for a in result['alternatives']}
             for suggestion in suggestions:
                 key=json.dumps(suggestion['patch'],sort_keys=True)
@@ -170,9 +178,18 @@ def preview(db,state,data,*,alternatives=True):
                     savings=str(Decimal(quote['operation_total'])-Decimal(alternative['total'])),
                     minimum_balance_improvement=str(Decimal(alternative['minimum_balance'])-Decimal(scenario['minimum_balance'])),
                     comparison_basis='FULL_OPERATION_WITH_VAT_AND_FREIGHT',
-                    stock_effect='QUANTITY_CHANGED_NEED_NOT_VERIFIED' if alternative['kind'] in ('QUANTITY','STOCK_TARGET') else 'SAME_QUANTITY',
+                    stock_effect='QUANTITY_CHANGED_NEED_NOT_VERIFIED' if Decimal(alternative['quantity'])!=Decimal(quote['quantity']) else 'SAME_QUANTITY',
                     operational_path='FORBIDDEN')
                 alternative.setdefault('basis','Condición hipotética calculada para respetar la reserva mínima. No acredita necesidad de compra ni aceptación del proveedor.')
+            result['combination_analysis']['retained']=sum(a['kind']=='COMBINED' for a in result['alternatives'])
+            metric_comparison(result['current_terms'],result['alternatives'])
+            incoming=[item['canonical'] for item in source if item['canonical']['flow_type']=='COLLECTION' and Decimal(str(item['canonical']['amount']))>0 and cut<date.fromisoformat(item['canonical']['due_date'])<=end]
+            excluded=sorted(incoming,key=lambda f:(-Decimal(str(f['amount'])),f['flow_id']))[0] if incoming else None
+            result['collection_sensitivity']=dict(status='CALCULATED' if excluded else 'NO_COLLECTION',excluded_collection=deepcopy(excluded),scope='REMOVE_ONE_LARGEST_IN_HORIZON_COLLECTION_ONLY',message='Hipótesis de tensión: elimina por completo el mayor cobro individual previsto dentro del horizonte. No es una previsión ni prueba otros retrasos, impagos o disponibilidad intradía.')
+            for entry in [result['current_terms']]+result['alternatives']:
+                if excluded:
+                    stress=project([(date.fromisoformat(p['due_date']),Decimal(p['amount'])) for p in entry['payments']],excluded)
+                    entry['collection_sensitivity']=dict(minimum_balance=stress['minimum_balance'],deficit=stress['deficit'],first_shortfall_date=stress['first_shortfall_date'],reserve_respected=Decimal(stress['deficit'])==0)
         result['analysis_fingerprint']=sha256(json.dumps(result,sort_keys=True,default=str).encode()).hexdigest()
         return result
     except (ValueError,TypeError,KeyError,ArithmeticError) as error:return pending(str(error))
