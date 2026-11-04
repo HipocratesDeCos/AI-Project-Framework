@@ -67,3 +67,20 @@ def review_quantity(state,data):
     missing('RECEIPTS_AND_DEMAND','Contrasta pedidos de compra pendientes de recibir y demanda comprometida, con cantidades, fechas y reservas, para no contarlos dos veces.')
     missing('PURCHASE_TARGET','Falta un criterio de reposición autorizado (por ejemplo, cobertura objetivo y límites aplicables). EIOS no transforma el mínimo de stock en una orden de compra.')
     return result
+
+
+def attach_simulation_readiness(review, planning):
+    """Keep documentary gaps separate from a complete, validated hypothesis."""
+    if planning is None:
+        review['simulation_readiness']='MISSING_ASSUMPTIONS'
+        return review
+    review['simulation_readiness']='COMPLETE_HYPOTHETICAL'
+    review['simulation_source']=planning['fingerprint']
+    review['simulation_covered']=[
+        'Stock libre declarado al inicio del pedido, con reservas ya descontadas.',
+        'Consumo diario adicional a las reservas declarado para el período.',
+        'Plazo de recepción declarado y falta anterior a la entrega comprobada.',
+        'Todas las entradas pendientes declaradas, incluida lista vacía si no hay.',
+        'Cobertura objetivo, seguridad y múltiplo de compra declarados.']
+    review['message']='Los cinco grupos de datos están completos para simular la cantidad. Son hipótesis declaradas; la comprobación documental se muestra por separado.'
+    return review

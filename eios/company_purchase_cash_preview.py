@@ -33,6 +33,8 @@ def preview(db,state,data,*,alternatives=True):
         result['quantity_review']=review_quantity(state,data)
         from eios.company_purchase_stock_scenario import calculate as stock_scenario
         result['stock_planning']=stock_scenario(state,data)
+        from eios.company_purchase_stock_review import attach_simulation_readiness
+        attach_simulation_readiness(result['quantity_review'],result['stock_planning'])
         quote=commercial_terms(data)
         article=next((a for a in state['articles'] if a['article_id']==data.get('article_id') and a.get('supplier_id')==data.get('supplier_id')),None)
         if article is None:return pending('Selecciona un artículo del proveedor de esta versión.')
