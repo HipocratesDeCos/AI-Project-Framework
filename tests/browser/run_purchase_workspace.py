@@ -48,7 +48,7 @@ def main():
             with urllib.request.urlopen(url, timeout=3) as response:
                 assert response.status == 200
         subprocess.run(
-            ['node', str(Path(__file__).with_name('purchase_workspace.cjs'))],
+            ['node', os.environ.get('EIOS_PURCHASE_SCRIPT', str(Path(__file__).with_name('purchase_workspace.cjs')))],
             cwd=ROOT, env={**os.environ, 'EIOS_TEST_URL': url}, check=True, timeout=120,
         )
     finally:

@@ -120,6 +120,27 @@ def preview(db,state,data,*,alternatives=True):
                 tested=check(dict(data,**patch))
                 if tested:add('DEFER','Aplazar el calendario de pagos',patch,tested,'Solicitamos desplazar el calendario '+str(shift)+' días. Último vencimiento de mercancía: '+patch['due_date']+'. Sujeto a aceptación del proveedor.');break
             result['capital_measure']=dict(amount=scenario['deficit'],needed_by=scenario['first_shortfall_date'],status='PENDING_APPROVAL_AND_DISBURSEMENT',message='Aportación mínima teórica para cubrir el déficit del escenario si estuviera disponible antes de la primera falta. No se incorpora como liquidez ni acredita que una ampliación de capital sea adecuada.')
+        if alternatives:
+            from eios.company_purchase_opportunities import opportunities
+            suggestions,notes,stock=opportunities(state,data,quote,plan,scenario,end,check)
+            seen_patches={json.dumps(a['patch'],sort_keys=True) for a in result['alternatives']}
+            for suggestion in suggestions:
+                key=json.dumps(suggestion['patch'],sort_keys=True)
+                if key in seen_patches:continue
+                seen_patches.add(key)
+                tested=suggestion.pop('checked')
+                add(suggestion.pop('kind'),suggestion.pop('title'),suggestion.pop('patch'),tested,suggestion.pop('negotiation_text'))
+                result['alternatives'][-1].update(suggestion)
+            result['opportunity_notes']=notes
+            result['stock_context']=stock
+            for alternative in result['alternatives']:
+                alternative.update(origin='HYPOTHETICAL',supplier_acceptance='NOT_CONFIRMED',
+                    savings=str(Decimal(quote['operation_total'])-Decimal(alternative['total'])),
+                    minimum_balance_improvement=str(Decimal(alternative['minimum_balance'])-Decimal(scenario['minimum_balance'])),
+                    comparison_basis='FULL_OPERATION_WITH_VAT_AND_FREIGHT',
+                    stock_effect='QUANTITY_CHANGED_NEED_NOT_VERIFIED' if alternative['kind']=='QUANTITY' else 'SAME_QUANTITY',
+                    operational_path='FORBIDDEN')
+                alternative.setdefault('basis','Condición hipotética calculada para respetar la reserva mínima. No acredita necesidad de compra ni aceptación del proveedor.')
         result['analysis_fingerprint']=sha256(json.dumps(result,sort_keys=True,default=str).encode()).hexdigest()
         return result
     except (ValueError,TypeError,KeyError,ArithmeticError) as error:return pending(str(error))

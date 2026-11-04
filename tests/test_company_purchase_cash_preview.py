@@ -92,3 +92,53 @@ class PurchaseCashPreviewTest(unittest.TestCase):
         self.assertEqual(min(Decimal(p['balance']) for p in points), Decimal(result['scenario']['minimum_balance']))
         self.assertEqual([p['date'] for p in points], sorted(p['date'] for p in points))
         self.assertIn('2026-11-01', [p['date'] for p in points])
+
+    def reference(self,**patch):
+        self.data.update(quantity='2',unit_price='100')
+        self.state['history']['A']=[dict(issue_date='2026-09-20',comparable=True,unit='palets',currency='EUR',effective_net_unit_price='80',invoice_number='H-80',source_refs=[dict(document_ref='H-DOC')],**patch)]
+
+    def test_price_opportunity_without_deficit_is_source_bound_and_replayable(self):
+        self.ready();self.reference()
+        before=deepcopy(self.state)
+        result=preview(self.path,self.state,self.data)
+        self.assertEqual(result['status'],'WITHIN_DECLARED_SCENARIO')
+        option=next(a for a in result['alternatives'] if a['kind']=='HISTORICAL_PRICE')
+        self.assertEqual(Decimal(option['savings']),Decimal('48.40'))
+        self.assertEqual(option['source']['invoice_number'],'H-80')
+        self.assertEqual(option['origin'],'HYPOTHETICAL')
+        self.assertEqual(option['supplier_acceptance'],'NOT_CONFIRMED')
+        replay=preview(self.path,self.state,dict(self.data,**option['patch']),alternatives=False)
+        self.assertEqual(replay['total'],option['total'])
+        self.assertEqual(replay['scenario']['minimum_balance'],option['minimum_balance'])
+        self.assertEqual(before,self.state)
+        self.assertFalse(option['decision_authority'])
+
+    def test_reference_does_not_reapply_discount_and_reallocates_declared_installments(self):
+        self.ready();self.reference();self.data.update(payment_installments=[dict(component='MERCHANDISE',amount='121',due_date='2026-10-20'),dict(component='MERCHANDISE',amount='121',due_date='2026-11-01')])
+        result=preview(self.path,self.state,self.data)
+        option=next(a for a in result['alternatives'] if a['kind']=='HISTORICAL_PRICE')
+        self.assertEqual(option['patch']['discount_mode'],'NONE')
+        rows=option['patch']['payment_installments']
+        self.assertEqual([r['due_date'] for r in rows],['2026-10-20','2026-11-01'])
+        self.assertEqual(sum(Decimal(r['amount']) for r in rows),Decimal('193.60'))
+        self.assertEqual(preview(self.path,self.state,dict(self.data,**option['patch']),alternatives=False)['total'],'193.60')
+
+    def test_reference_ambiguity_unit_currency_and_future_are_not_opportunities(self):
+        self.ready();self.reference()
+        for patch in [dict(comparable=False),dict(unit='cajas'),dict(currency='USD'),dict(issue_date='2027-01-01')]:
+            state=deepcopy(self.state);state['history']['A'][0].update(patch)
+            self.assertFalse(any(a['kind']=='HISTORICAL_PRICE' for a in preview(self.path,state,self.data)['alternatives']))
+        state=deepcopy(self.state);state['history']['A']*=2
+        self.assertFalse(any(a['kind']=='HISTORICAL_PRICE' for a in preview(self.path,state,self.data)['alternatives']))
+        state=deepcopy(self.state);state['selected_purchase_history']={'status':'STALE'}
+        self.assertFalse(any(a['kind']=='HISTORICAL_PRICE' for a in preview(self.path,state,self.data)['alternatives']))
+
+    def test_collection_based_deferral_improves_liquidity_without_deficit(self):
+        self.ready();self.data.update(quantity='20',unit_price='100')
+        self.add('cash_flow','C-LATE',dict(canonical=dict(flow_id='C-LATE',flow_type='COLLECTION',amount='1000',currency='EUR',due_date='2026-12-01',due_date_evidenced=False,source_ref='DOC',evidence_state='NOT_EVIDENCED')))
+        state=self.desk.sales_state('one');result=preview(self.path,state,self.data)
+        option=next(a for a in result['alternatives'] if a['kind']=='COLLECTION_ALIGNED_PAYMENT')
+        self.assertGreater(Decimal(option['minimum_balance_improvement']),0)
+        self.assertEqual(Decimal(option['savings']),0)
+        self.assertEqual(option['source']['flow_ids'],['C-LATE'])
+        self.assertEqual(preview(self.path,state,dict(self.data,**option['patch']),alternatives=False)['status'],'WITHIN_DECLARED_SCENARIO')

@@ -140,3 +140,18 @@ Las acciones indicadas llevan a Condiciones, Parámetros, Carga de archivos o al
 El calendario guardado indica que sus sumas y fechas han pasado la validación de captura y, solo si el escenario conservado lo acredita, que se usó en esa simulación. Se elimina la afirmación fija «No incorporados a la proyección». Se aclara que guardar no crea movimientos del libro ni acredita aceptación del proveedor. No cambia el cálculo, evidencia, admisión, autoridad ni la ruta operacional.
 
 Validación: 30 pruebas de calendario, cálculo comercial y simulación de tesorería; recorrido Chromium con guardado y revisión reales en expediente aislado, acceso a informe, estados de simulación pendiente/calculada/déficit, conflictos documentales y apertura de los formularios existentes. Los escenarios adicionales de presentación se comprueban mediante variantes del informe en memoria sin alterar datos financieros.
+
+### Primer bloque de alternativas justificadas con y sin déficit
+
+Se reutilizan `purchase_history` (historial filtrado por artículo, proveedor, corte, moneda y unidad), `commercial_terms`, `payment_plan` y el comprobador de escenarios de `company_purchase_cash_preview`. El nuevo adaptador `company_purchase_opportunities` propone únicamente hipótesis con fuentes identificadas:
+
+- Precio neto de la última compra única comparable, si reduce el coste final y el escenario recalculado respeta la reserva. No se reaplica el descuento histórico. Con cuotas declaradas se redistribuye la mercancía proporcionalmente, en céntimos, conservando fechas y portes; si aparece una cuota inválida no se propone.
+- Desplazamiento de pagos hasta una fecha de cobro de la previsión (hasta 64 fechas candidatas), si mejora el saldo mínimo y respeta la reserva. Se conservan importes; no se presenta ahorro económico ni garantía de cobro.
+
+Ambas búsquedas se ejecutan también sin déficit. Se conservan las alternativas anteriores para déficit, sin duplicar parches. Cada opción muestra fuente, base, ahorro con IVA y portes, variación del saldo mínimo y efecto sobre cantidad. Origen hipotético, aceptación no confirmada, sin autoridad ni ruta operacional. No se elige ganadora.
+
+Aplicar una alternativa actualiza explícitamente Mi propuesta y su calendario, dispara los cálculos existentes y conserva la respuesta del proveedor y la referencia histórica. Guardar utiliza la captura de negociación existente, con procedencia declarada y aceptación sin verificar. Las alternativas y explicaciones generadas se incluyen en el estudio de tesorería conservado al guardar.
+
+El inventario disponible se muestra como referencia documental. Este bloque no optimiza cantidades ni acredita cobertura futura o necesidad: los datos de demanda, entregas y criterios autorizados siguen siendo requisitos del siguiente tramo. No ejecuta ni simula haber ejecutado el motor completo de Scenario Engine, NI o Decision Twin: sus contratos canónicos requieren contexto y autoridades que el formulario no aporta aún. Se integra una primera capacidad útil sin duplicar el cálculo comercial ni crear autoridad de precios.
+
+Validación: 34 pruebas de calendario, cálculo y tesorería; incluyen generación sin déficit, repetición independiente de candidatos, ambigüedad, unidad/moneda, historial futuro/obsoleto, cuotas recalculadas e inmutabilidad. Chromium con servidor y expediente aislados: generación real sin déficit, aplicación, recálculo de Mi propuesta, conservación de respuesta y guardado real de negociación con origen HYPOTHETICAL y aceptación UNVERIFIED.
