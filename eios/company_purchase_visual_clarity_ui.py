@@ -1,6 +1,8 @@
 """Progressive disclosure for purchase conditions; preserve saved evidence and actions."""
 CSS='''
 #po-study-state{margin:16px 0;padding:16px;border:1px solid #bfd2ed;border-radius:8px;background:#f3f7ff}#po-study-state h3{font-size:16px;margin:0 0 8px}#po-study-state p{font-size:13px;line-height:1.5}.po-state-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.po-state-tile{padding:12px;border-radius:8px;background:#edf1f6;border:1px solid #c5cfdd}.po-state-tile strong,.po-state-tile span{display:block}.po-state-tile strong{font-size:13px;margin-bottom:6px}.po-state-tile span{font-size:15px;font-weight:650}.po-state-tile[data-tone=green]{background:#e6f5eb;border-color:#8ec29d;color:#195d32}.po-state-tile[data-tone=amber]{background:#fff5dd;border-color:#d7b86c;color:#745000}.po-state-tile[data-tone=red]{background:#ffebe8;border-color:#d9948d;color:#8b2922}.po-state-tile span::before{content:'●';margin-right:7px}#po-study-state details>summary,.po-cash>details>summary{cursor:pointer;font-weight:bold;font-size:14px}.po-cash{background:#f4f8ff;border:1px solid #bfd2ed}.po-state-reference{color:#49617b}#po-study-state #po-save-progress{margin:0;padding:0;border:0}#po-study-state .po-user-tasks button{white-space:normal}@media(max-width:650px){.po-state-grid{grid-template-columns:1fr}}
+#po-review-chart .po-treasury-chart{margin:8px 0}#po-review-chart svg{display:block;width:100%;max-height:260px}#po-review-chart .chart-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px}#po-review-chart figcaption{font-size:12px;line-height:1.45;color:#536b85;margin-top:8px}#review-minimum{margin-top:12px}#review-minimum small{font-size:12px;line-height:1.45}.po-stock-source-difference{font-size:12px;color:#805300}
+
 '''
 JS=r'''
 (function(){
@@ -16,4 +18,14 @@ JS=r'''
  const oldAlternatives=renderPurchaseAlternativesTable;renderPurchaseAlternativesTable=function(r){if(savedMode)return;oldAlternatives(r);$('po-alternatives-table').dataset.mode='draft'};
  $('dataset').addEventListener('change',()=>{savedMode=false;draft(null)});draft(null);
 })();
+(function compactSavedStockAndChart(){
+ const stock=$('review-stock'),minimum=$('review-minimum'),stockCard=stock.closest('.review-card'),chartCard=minimum.closest('.review-card');
+ stockCard.id='po-review-stock-card';chartCard.id='po-review-chart-card';stockCard.append(minimum);chartCard.querySelector('h3').textContent='EVOLUCIÓN DEL DINERO PREVISTO';const slot=document.createElement('div');slot.id='po-review-chart';chartCard.append(slot);
+ const originalStock=renderReviewStock;renderReviewStock=function(data){originalStock(data);const reference=new Map(Array.from(stock.querySelectorAll('dl>div')).map(row=>[row.querySelector('dt')?.textContent,row.querySelector('dd')?.textContent]));stockCard.querySelector('.po-stock-source-difference')?.remove();let different=false;
+ for(const row of Array.from(minimum.querySelectorAll('dl>div'))){const dt=row.querySelector('dt'),dd=row.querySelector('dd');if(!dt||!reference.has(dt.textContent))continue;if(reference.get(dt.textContent)===dd?.textContent)row.remove();else{dt.textContent=dt.textContent==='Disponible de referencia'?'Disponible al guardar':'Fecha de inventario al guardar';different=true}}
+ if(different){const note=document.createElement('p');note.className='po-stock-source-difference';note.textContent='Las referencias de inventario no coinciden. Se muestran ambos valores para que puedas contrastarlos.';minimum.append(note)}
+ };
+ const originalSavedCash=renderPurchaseCashSaved;renderPurchaseCashSaved=function(proposal){originalSavedCash(proposal);slot.replaceChildren();const figure=$('po-cash-saved')?.querySelector('.po-treasury-chart');if(figure){slot.append(figure);figure.querySelector('svg')?.setAttribute('aria-label','Dinero previsto del estudio guardado y reserva mínima')}else{const note=document.createElement('p');note.textContent='Gráfica no disponible en este estudio. '+(proposal.cash_orientation_at_save?.message||'No conserva una previsión de pagos calculada.');slot.append(note)}};
+})();
+
 '''

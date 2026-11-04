@@ -221,3 +221,11 @@ La tabla ancha de diez columnas se sustituye por tarjetas adaptables, tanto en b
 Si cambia la cantidad, la diferencia se etiqueta como desembolso de otra cantidad, no como ahorro comparable a igual volumen. Cada «Ver detalle», cerrado inicialmente, conserva precio neto, saldo mínimo y fecha, vencimientos, pagos, fuente, alcance, sensibilidad y comparación parcial. «Saber más · criterios y comprobaciones» conserva la referencia completa, prueba de cobro, descartes, límites y huella. Los botones de aplicar solo existen en el borrador. Se mantienen cálculos, procedencia y persistencia.
 
 Verificación Chromium: tarjetas sin tabla, detalle accesible y plegado inicial, contenedor sin desbordamiento a 390 px, consulta guardada sin aplicación, transición a borrador y aplicación/recalculado de una combinación. Revisión visual de tarjetas en escritorio.
+
+### Stock unificado y gráfica de consulta compacta
+
+En la revisión guardada, el contenido de mínimo de stock se integra en la tarjeta izquierda de stock y cobertura. Las etiquetas Disponible de referencia y Fecha del inventario se muestran una sola vez cuando sus valores coinciden. Si las capturas difieren, se mantienen las cifras históricas bajo etiquetas explícitas (Disponible al guardar / Fecha de inventario al guardar) y una nota breve; no se elimina una discrepancia como si fuese un duplicado.
+
+La tarjeta derecha pasa a mostrar la gráfica de dinero previsto del estudio guardado. Se desplaza el mismo elemento SVG desde la evaluación inferior, con altura máxima de 260 px, leyenda y descripción. No se duplica ni se cambia la proyección. Cambiar de estudio sustituye la gráfica; si el siguiente no conserva previsión, se retira la anterior y se explica su ausencia. Los estudios antiguos sin mínimo mantienen su aviso histórico.
+
+Validación Chromium: ubicación y tamaño, campos coincidentes sin repetición, conservación de campos específicos del mínimo, referencias distintas identificadas, actualización entre estudios y retirada de gráfica/datos ausentes. Verificación visual de ambas tarjetas.
