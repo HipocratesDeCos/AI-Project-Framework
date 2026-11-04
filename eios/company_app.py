@@ -853,6 +853,9 @@ PAGE=PAGE.replace('</style>',ALTERNATIVES_TABLE_CSS+'</style>',1).replace('</scr
 from eios.company_purchase_summary_ui import CSS as PURCHASE_SUMMARY_CSS, JS as PURCHASE_SUMMARY_JS
 PAGE=PAGE.replace('</style>',PURCHASE_SUMMARY_CSS+'</style>',1).replace('</script>',PURCHASE_SUMMARY_JS+'</script>',1)
 
+from eios.company_purchase_visual_clarity_ui import CSS as PURCHASE_VISUAL_CSS, JS as PURCHASE_VISUAL_JS
+PAGE=PAGE.replace('</style>',PURCHASE_VISUAL_CSS+'</style>',1).replace('</script>',PURCHASE_VISUAL_JS+'</script>',1)
+
 
 def main():
     parser = argparse.ArgumentParser(description='EIOS: empresa y entrada local de propuestas de compra')
