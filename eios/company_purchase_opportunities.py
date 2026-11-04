@@ -26,16 +26,7 @@ def opportunities(state, data, quote, plan, scenario, end, check):
                 patch=dict(unit_price=str(price),pricing_mode='NET',discount_mode='NONE',discount_value=None)
                 if plan['status']!='NOT_DECLARED':
                     revised=commercial_terms(dict(data,**patch))
-                    with localcontext() as ctx:
-                        ctx.prec=60
-                        schedule=deepcopy(data['payment_installments'])
-                        merchandise=[r for r in schedule if r['component']=='MERCHANDISE']
-                        remaining=Decimal(revised['total']);old=Decimal(quote['total'])
-                        for index,row in enumerate(merchandise):
-                            amount=remaining if index==len(merchandise)-1 else (Decimal(row['amount'])*Decimal(revised['total'])/old).quantize(Decimal('.01'),rounding=ROUND_HALF_EVEN)
-                            if amount<=0 or amount>remaining:raise ValueError()
-                            row['amount']=format(amount,'.2f');remaining-=amount
-                    patch['payment_installments']=schedule
+                    patch['payment_installments']=resized_installments(data,revised,quote)
                 tested=check(dict(data,**patch))
                 if tested and Decimal(tested[0]['operation_total'])<Decimal(quote['operation_total']):
                     candidates.append(dict(kind='HISTORICAL_PRICE',title='Negociar el precio neto de la última compra comparable',patch=patch,checked=tested,
@@ -68,3 +59,16 @@ def opportunities(state, data, quote, plan, scenario, end, check):
     if stock and stock.get('unit')==article['unit_as_documented'] and stock.get('available') is not None:
         stock_context=dict(status='DOCUMENTARY_REFERENCE',available=str(stock['available']),purchase_quantity=str(data['quantity']),unit=article['unit_as_documented'],as_of_date=stock.get('as_of_date'),message='Stock documental disponible. Las alternativas mantienen la cantidad; no acreditan cobertura futura ni necesidad de compra.')
     return candidates,notes,stock_context
+
+
+def resized_installments(data,revised,quote):
+    with localcontext() as ctx:
+        ctx.prec=60
+        schedule=deepcopy(data['payment_installments']);rows=[r for r in schedule if r['component']=='MERCHANDISE']
+        remaining=Decimal(revised['total']);old=Decimal(quote['total'])
+        if old<=0:raise ValueError('No se pueden redistribuir cuotas sin una base positiva.')
+        for index,row in enumerate(rows):
+            amount=remaining if index==len(rows)-1 else (Decimal(row['amount'])*Decimal(revised['total'])/old).quantize(Decimal('.01'),rounding=ROUND_HALF_EVEN)
+            if amount<=0 or amount>remaining:raise ValueError('El ajuste de cantidad genera una cuota no positiva; revisa el calendario.')
+            row['amount']=format(amount,'.2f');remaining-=amount
+        return schedule

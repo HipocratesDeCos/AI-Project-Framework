@@ -24,6 +24,8 @@ def preview(db,state,data,*,alternatives=True):
         if manifest.get('material_nature')!='SYNTHETIC':return pending('Esta simulación requiere un expediente marcado como ficticio.')
         from eios.company_purchase_stock_review import review_quantity
         result['quantity_review']=review_quantity(state,data)
+        from eios.company_purchase_stock_scenario import calculate as stock_scenario
+        result['stock_planning']=stock_scenario(state,data)
         quote=commercial_terms(data)
         article=next((a for a in state['articles'] if a['article_id']==data.get('article_id') and a.get('supplier_id')==data.get('supplier_id')),None)
         if article is None:return pending('Selecciona un artículo del proveedor de esta versión.')
@@ -125,6 +127,32 @@ def preview(db,state,data,*,alternatives=True):
         if alternatives:
             from eios.company_purchase_opportunities import opportunities
             suggestions,notes,stock=opportunities(state,data,quote,plan,scenario,end,check)
+            target=result.get('stock_planning')
+            if target:
+                notes=[n for n in notes if not n.startswith('Cantidad sin optimizar:')]
+                q=Decimal(target['scenario_quantity'])
+                result['alternatives']=[a for a in result['alternatives'] if a['kind']!='QUANTITY' or target['status']!='PRE_DELIVERY_SHORTFALL' and Decimal(a['patch']['quantity'])>=q]
+                if target['status']=='PRE_DELIVERY_SHORTFALL':
+                    notes.append('La simulación de stock presenta una falta antes de la entrega. Cambiar solo la cantidad de esta compra no la resuelve.')
+                elif q==0:
+                    notes.append('El objetivo declarado no requiere una compra adicional. No se genera ni se ejecuta automáticamente una cancelación.')
+                elif q==Decimal(data['quantity']):
+                    notes.append('La cantidad actual coincide con la necesaria para el objetivo hipotético declarado.')
+                else:
+                    patch={'quantity':str(q)}
+                    from eios.company_purchase_opportunities import resized_installments
+                    try:
+                        revised=commercial_terms(dict(data,**patch))
+                        if plan['status']!='NOT_DECLARED':patch['payment_installments']=resized_installments(data,revised,quote)
+                        tested=check(dict(data,**patch))
+                    except (ValueError,TypeError,ArithmeticError):tested=None
+                    if tested:
+                        suggestions.append(dict(kind='STOCK_TARGET',title='Ajustar cantidad al objetivo de cobertura declarado',patch=patch,checked=tested,
+                            basis='Cantidad calculada para los supuestos de demanda, seguridad, entregas y cobertura que has declarado. No es una cantidad óptima ni una necesidad acreditada. El precio unitario, descuentos, IVA y portes se mantienen según lo declarado; confirma sus condiciones al cambiar el volumen.',
+                            source=dict(planning_fingerprint=target['fingerprint'],issue_date=data['order_date'],invoice_number=target['assumptions']['source_reference']),
+                            negotiation_text='Proponemos comprar '+str(q)+' '+article['unit_as_documented']+' conforme a nuestro escenario interno de cobertura. Sujeto a disponibilidad y aceptación del proveedor.'))
+                    else:notes.append('La cantidad del objetivo hipotético no respeta la reserva de tesorería o el calendario declarado. Revisa conjuntamente stock y pagos.')
+
             seen_patches={json.dumps(a['patch'],sort_keys=True) for a in result['alternatives']}
             for suggestion in suggestions:
                 key=json.dumps(suggestion['patch'],sort_keys=True)
@@ -134,13 +162,14 @@ def preview(db,state,data,*,alternatives=True):
                 add(suggestion.pop('kind'),suggestion.pop('title'),suggestion.pop('patch'),tested,suggestion.pop('negotiation_text'))
                 result['alternatives'][-1].update(suggestion)
             result['opportunity_notes']=notes
+            if target:stock['message']='Inventario documental de referencia. Las cantidades del escenario dependen de supuestos declarados, sin necesidad de compra acreditada.'
             result['stock_context']=stock
             for alternative in result['alternatives']:
                 alternative.update(origin='HYPOTHETICAL',supplier_acceptance='NOT_CONFIRMED',
                     savings=str(Decimal(quote['operation_total'])-Decimal(alternative['total'])),
                     minimum_balance_improvement=str(Decimal(alternative['minimum_balance'])-Decimal(scenario['minimum_balance'])),
                     comparison_basis='FULL_OPERATION_WITH_VAT_AND_FREIGHT',
-                    stock_effect='QUANTITY_CHANGED_NEED_NOT_VERIFIED' if alternative['kind']=='QUANTITY' else 'SAME_QUANTITY',
+                    stock_effect='QUANTITY_CHANGED_NEED_NOT_VERIFIED' if alternative['kind'] in ('QUANTITY','STOCK_TARGET') else 'SAME_QUANTITY',
                     operational_path='FORBIDDEN')
                 alternative.setdefault('basis','Condición hipotética calculada para respetar la reserva mínima. No acredita necesidad de compra ni aceptación del proveedor.')
         result['analysis_fingerprint']=sha256(json.dumps(result,sort_keys=True,default=str).encode()).hexdigest()
