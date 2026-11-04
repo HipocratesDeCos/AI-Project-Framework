@@ -213,3 +213,11 @@ Los textos iniciales usan lenguaje sencillo («Hay margen», «Falta dinero», �
 Consultar un estudio muestra su referencia, síntesis y alternativas históricas en modo de consulta, sin aplicar condiciones al formulario. Un aviso identifica que el formulario superior es un borrador separado. «Volver al borrador» recalcula los datos actuales. Editar cualquier dato o cambiar de versión retira inmediatamente la síntesis guardada y restablece «Sin guardar», evitando conservar un semáforo verde del estudio anterior. Los controles documentales y sus acciones se desplazan, no se clonan ni se eliminan. No cambian los cálculos ni la persistencia.
 
 Validación: recorrido Chromium de posición de bloques, semáforos con estados distintos, plegado inicial, apertura de acciones, consulta sucesiva de dos estudios, tabla histórica sin botones de aplicar y retirada inmediata al editar. Regresiones de guardado/revisión documental y combinación aplicada desde el borrador. Pruebas Python de síntesis e informe.
+
+### Alternativas minimalistas
+
+La tabla ancha de diez columnas se sustituye por tarjetas adaptables, tanto en borrador como en consulta guardada. Encabezado breve («Ajustar la cantidad», «Pagar más tarde»), identificador estable, cantidad, total con IVA y portes, diferencia frente a referencia y señal de reserva prevista. La propuesta de referencia ocupa una sola línea. No hay tabla ni desplazamiento horizontal.
+
+Si cambia la cantidad, la diferencia se etiqueta como desembolso de otra cantidad, no como ahorro comparable a igual volumen. Cada «Ver detalle», cerrado inicialmente, conserva precio neto, saldo mínimo y fecha, vencimientos, pagos, fuente, alcance, sensibilidad y comparación parcial. «Saber más · criterios y comprobaciones» conserva la referencia completa, prueba de cobro, descartes, límites y huella. Los botones de aplicar solo existen en el borrador. Se mantienen cálculos, procedencia y persistencia.
+
+Verificación Chromium: tarjetas sin tabla, detalle accesible y plegado inicial, contenedor sin desbordamiento a 390 px, consulta guardada sin aplicación, transición a borrador y aplicación/recalculado de una combinación. Revisión visual de tarjetas en escritorio.
