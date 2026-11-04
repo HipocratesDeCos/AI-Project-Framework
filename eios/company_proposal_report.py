@@ -8,6 +8,20 @@ def _text(value):
     return escape('Sin datos' if value is None else str(value), quote=True)
 
 
+def _purchase_summary(study):
+    summary=(study or {}).get('purchase_summary')
+    if not summary:return '<p>Este estudio anterior no conserva una síntesis de compra; no se reconstruye con datos actuales.</p>'
+    parts=['<h3>SÍNTESIS DE LA COMPRA GUARDADA</h3><p><strong>'+_text(summary['title'])+'</strong></p><p>'+_text(summary['explanation'])+'</p>']
+    parts.append(_rows([(f['label']+' (EUR)',number_text(f['value'],2)) for f in summary['facts']]))
+    stock=summary['stock'];parts.append('<p>Stock: '+_text(stock['message'])+' '+_text(stock['limitation'])+'</p>')
+    stress=summary.get('sensitivity')
+    if stress:parts.append('<p>Prueba sin el cobro '+_text(stress['flow_id'])+': falta para reserva '+_text(number_text(stress['deficit'],2))+' EUR. Hipótesis, no previsión de impago.</p>')
+    parts.append('<p><strong>SIGUIENTE ACCIÓN AL GUARDAR:</strong> '+_text(summary['next_action'])+'</p>')
+    parts.append('<ul>'+''.join('<li>'+_text(text)+'</li>' for text in summary['pending'])+'</ul>')
+    parts.append('<p>'+_text(summary['scope'])+'</p>')
+    return ''.join(parts)
+
+
 def _scenario_comparison(study):
     if not study or not study.get('current_terms'):return ''
     parts=['<h3>COMBINACIONES Y SENSIBILIDAD CONSERVADAS</h3><p>Comparación parcial de coste y saldo mínimo a igual cantidad. No es una clasificación de calidad, fiabilidad ni preferencia empresarial. Ninguna hipótesis acredita aceptación del proveedor.</p>']
@@ -351,6 +365,7 @@ def render_report(report):
             pieces.append(_rows([('Tesorería al corte (EUR)',number_text(draft_cash['opening_balance'],2)),('Mínimo configurado (EUR)',number_text(draft_cash['treasury_minimum'],2)),('Saldo mínimo del escenario (EUR)',number_text(scenario['minimum_balance'],2)),('Déficit del escenario (EUR)',number_text(scenario['deficit'],2)),('Primera fecha de déficit',date_text(scenario['first_shortfall_date'])),('Fin del horizonte',date_text(draft_cash['horizon_end']))]))
             for alternative in draft_cash.get('alternatives',[]):
                 pieces.append('<h4>'+_text(alternative['title'])+'</h4><p>'+_text(alternative['negotiation_text'])+'</p>')
+        pieces.append(_purchase_summary(draft_cash))
         pieces.append(_scenario_comparison(draft_cash))
         pieces.append('<p>No acredita conciliación, disponibilidad actual ni viabilidad final. Los datos e hipótesis son los conservados al guardar.</p>')
 

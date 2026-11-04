@@ -14,7 +14,14 @@ from eios.company_payment_plan import payment_plan
 def preview(db,state,data,*,alternatives=True):
     result=dict(schema='PURCHASE-DRAFT-CASH-01',status='PENDING',message='',alternatives=[],
         scope='HYPOTHETICAL_DOCUMENTARY_CASH_ORIENTATION',viability_status='NOT_EVALUATED',decision_authority=False,operational_path='FORBIDDEN')
-    def pending(message):result['message']=message;return result
+    def finish():
+        from eios.company_purchase_summary import summarize
+        result['purchase_summary']=summarize(result)
+        result['analysis_fingerprint']=sha256(json.dumps(result,sort_keys=True,default=str).encode()).hexdigest()
+        return result
+    def pending(message):
+        result['status']='PENDING';result['message']=message
+        return finish()
     if state['info'].get('material_nature') not in (None,'SYNTHETIC'):
         return pending('Esta simulación de compra admite únicamente datos ficticios.')
     finance=state.get('sales_financial_context') or {}
@@ -190,6 +197,5 @@ def preview(db,state,data,*,alternatives=True):
                 if excluded:
                     stress=project([(date.fromisoformat(p['due_date']),Decimal(p['amount'])) for p in entry['payments']],excluded)
                     entry['collection_sensitivity']=dict(minimum_balance=stress['minimum_balance'],deficit=stress['deficit'],first_shortfall_date=stress['first_shortfall_date'],reserve_respected=Decimal(stress['deficit'])==0)
-        result['analysis_fingerprint']=sha256(json.dumps(result,sort_keys=True,default=str).encode()).hexdigest()
-        return result
+        return finish()
     except (ValueError,TypeError,KeyError,ArithmeticError) as error:return pending(str(error))
