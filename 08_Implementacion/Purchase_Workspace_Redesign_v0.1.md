@@ -114,3 +114,11 @@ La consulta de importes devuelve netos, IVA y totales aunque los vencimientos se
 El calendario de pagos es una sección fija, sin summary ni control de plegado, y su editor permanece visible aunque no se declare un plan. Generar cuotas activa expresamente la declaración; desmarcarla conserva las filas visibles deshabilitadas y no envía el plan.
 
 Verificación: 30 pruebas unitarias de importes, calendario y tesorería; Chromium con la captura reproducida (1.000 unidades, 2,60/10 % y 2,75/5 %, IVA 21 %, vencimiento anterior al pedido) muestra 2.831,40 y 3.161,12 euros con aviso visible. Recorrido de generación, suma, fechas, eliminación y alineación de cuotas satisfactorio.
+
+### IVA del libro y ajustes de encabezado
+
+Las dos columnas editables precargan el IVA de la misma última compra única comparable que sustenta la referencia original del artículo en el libro. Se conserva el cero documentado y se deja vacío el dato ausente; no se presupone un tipo general. El tipo sigue editable: un cambio explícito del usuario se conserva al recalcular y se reinicia al cambiar de artículo/proveedor/expediente. El título del campo indica la fecha documental de origen.
+
+Cantidad y fecha del pedido usan fuente de 18 px como los campos inferiores. La cinta Datos de la compra incorpora una chincheta azul vectorial, sin imagen externa.
+
+Verificación Chromium: precarga del IVA en ambas columnas, cero frente a dato ausente, conservación de un tipo editado, igualdad de tamaño de fuente e icono presente. Regresión del cálculo de columnas con aviso de fechas y calendario fijo satisfactoria.
