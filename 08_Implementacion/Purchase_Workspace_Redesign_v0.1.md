@@ -100,3 +100,9 @@ Validación: recorrido Chromium para reparto por número, importe fijo, redondeo
 El bloque de calendario se abre por defecto, sin activar automáticamente la declaración de cuotas. Cada fila alinea número y concepto, importe, vencimiento y papelera roja accesible. El número crece un 30 %. Todos los vencimientos incorporan un selector de fecha que conserva la entrada DD/MM/YYYY. El pie muestra la suma con IVA en la columna de importes y se actualiza al generar, editar, añadir o eliminar filas; si hay importes inválidos, indica que deben revisarse.
 
 Verificación Chromium: apertura inicial, papelera y calendario por fila, selección de fecha, suma inicial y edición, eliminación con renumeración y comprobación geométrica de alineación, además de los casos de reparto existentes. La selección de propuesta activa sigue siendo una base de simulación, sin registrar aceptación contractual.
+
+### Selección compacta de proveedor y artículo
+
+La sección Proveedor y artículo muestra «Proveedor de esta propuesta» con código y razón social en una fila, y contacto/localidad debajo. «Artículo de esta propuesta» contiene SKU y descripción/unidad en otra fila, con familia y contador de resultados debajo. Los pares de desplegables comparten la selección existente: cambiar cualquiera de ellos actualiza su pareja y conserva los eventos de catálogo, referencias, stock y propuesta. Se oculta el buscador textual de esta sección según el nuevo esquema; sus controles internos y el filtro de familia mantienen el contrato anterior. En pantallas estrechas las parejas se apilan.
+
+Verificación Chromium: cambio de proveedor desde código y razón social, sincronización SKU/descripción en ambos sentidos, filtro de familia, contador y alineación geométrica de las parejas sin errores de JavaScript.
