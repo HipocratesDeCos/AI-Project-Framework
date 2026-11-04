@@ -130,3 +130,13 @@ La fila TOTAL CON IVA muestra en las tres columnas el total de mercancía para l
 Se añaden los recuadros «Mi propuesta − Oferta original» y «Respuesta del proveedor − Mi propuesta». La resta se hace en céntimos enteros: negativo verde, positivo rojo y cero neutro, con texto que explica el signo. Los recuadros esperan a disponer de ambos cálculos vigentes y descartan resultados asíncronos obsoletos. Si falta referencia, IVA, cantidad o datos válidos de una columna, la diferencia permanece pendiente.
 
 Validación Chromium: cálculo original sin doble descuento, ambas restas, inversión de signos y colores al editar, cero neutro, exclusión consistente de portes de la base comparada y dato ausente pendiente. Regresiones de IVA del libro y cálculo con avisos de fecha satisfactorias.
+
+### Claridad de Guardar y documentos
+
+La revisión guardada presenta primero un estado derivado del informe: guardado completado, simulación calculada o pendiente con causa, datos financieros vinculados, proyección del libro y revisión documental. La simulación hipotética de la compra se distingue de la proyección de los movimientos del expediente. Un déficit se presenta como incidencia para decidir, sin afirmar que falló el guardado. Una asociación declarada o una comprobación registrada no se presenta como aceptación ni validación automática.
+
+Las acciones indicadas llevan a Condiciones, Parámetros, Carga de archivos o al detalle de revisión, según el requisito. No se pide modificar la naturaleza de un expediente para eludir un límite de simulación. Las notas explicativas del bloque financiero y del importe usan fondo azul neutro; el ámbar se reserva en el resumen para requisitos o incidencias concretas y el rojo para conflictos. Los avisos de stock y precio conservan su presentación. Todos los formularios documentales y mensajes técnicos siguen disponibles en el desplegable «Abrir revisiones documentales y detalle financiero».
+
+El calendario guardado indica que sus sumas y fechas han pasado la validación de captura y, solo si el escenario conservado lo acredita, que se usó en esa simulación. Se elimina la afirmación fija «No incorporados a la proyección». Se aclara que guardar no crea movimientos del libro ni acredita aceptación del proveedor. No cambia el cálculo, evidencia, admisión, autoridad ni la ruta operacional.
+
+Validación: 30 pruebas de calendario, cálculo comercial y simulación de tesorería; recorrido Chromium con guardado y revisión reales en expediente aislado, acceso a informe, estados de simulación pendiente/calculada/déficit, conflictos documentales y apertura de los formularios existentes. Los escenarios adicionales de presentación se comprueban mediante variantes del informe en memoria sin alterar datos financieros.
