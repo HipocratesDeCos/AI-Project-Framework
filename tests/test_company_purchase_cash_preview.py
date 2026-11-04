@@ -149,3 +149,15 @@ class PurchaseCashPreviewTest(unittest.TestCase):
         self.assertEqual(r['status'],'PENDING')
         self.assertIn('quantity_review',r)
         self.assertEqual(r['quantity_review']['quantity_assessment'],'NOT_DETERMINED')
+
+    def test_comparison_metadata_matches_replayed_server_calculations(self):
+        self.ready();self.reference();r=preview(self.path,self.state,self.data)
+        self.assertEqual(r['current_terms']['quantity'],'2')
+        self.assertEqual(r['current_terms']['total'],r['total'])
+        for a in r['alternatives']:
+            replay=preview(self.path,self.state,dict(self.data,**a['patch']),alternatives=False)
+            self.assertEqual(a['total'],replay['current_terms']['total'])
+            self.assertEqual(a['quantity'],replay['current_terms']['quantity'])
+            self.assertEqual(a['net_unit_price'],replay['current_terms']['net_unit_price'])
+            self.assertEqual(a['minimum_date'],replay['scenario']['minimum_date'])
+            self.assertEqual(a['payments'],replay['payments'])

@@ -847,6 +847,9 @@ PAGE=PAGE.replace('</style>',QUANTITY_REVIEW_CSS+'</style>',1).replace('</script
 from eios.company_purchase_stock_scenario_ui import CSS as STOCK_SCENARIO_CSS, JS as STOCK_SCENARIO_JS
 PAGE=PAGE.replace('</style>',STOCK_SCENARIO_CSS+'</style>',1).replace('</script>',STOCK_SCENARIO_JS+'</script>',1)
 
+from eios.company_purchase_alternatives_table_ui import CSS as ALTERNATIVES_TABLE_CSS, JS as ALTERNATIVES_TABLE_JS
+PAGE=PAGE.replace('</style>',ALTERNATIVES_TABLE_CSS+'</style>',1).replace('</script>',ALTERNATIVES_TABLE_JS+'</script>',1)
+
 
 def main():
     parser = argparse.ArgumentParser(description='EIOS: empresa y entrada local de propuestas de compra')

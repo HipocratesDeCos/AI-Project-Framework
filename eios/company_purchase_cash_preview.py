@@ -101,8 +101,9 @@ def preview(db,state,data,*,alternatives=True):
                 sc=project(ps)
                 return (q,p,ps,sc) if Decimal(sc['deficit'])==0 else None
             except (ValueError,TypeError,KeyError,ArithmeticError):return None
+        result['current_terms']=dict(quantity=quote['quantity'],unit=article['unit_as_documented'],net_unit_price=quote['unit_price'],total=quote['operation_total'],due_date=quote['due_date'],payments=deepcopy(result['payments']),minimum_balance=scenario['minimum_balance'],minimum_date=scenario['minimum_date'],basis='FULL_OPERATION_WITH_VAT_AND_FREIGHT')
         def add(kind,title,patch,checked,text):
-            result['alternatives'].append(dict(kind=kind,title=title,patch=patch,total=checked[0]['operation_total'],minimum_balance=checked[3]['minimum_balance'],negotiation_text=text,status='WITHIN_DECLARED_SCENARIO',decision_authority=False))
+            result['alternatives'].append(dict(kind=kind,title=title,patch=patch,total=checked[0]['operation_total'],minimum_balance=checked[3]['minimum_balance'],quantity=checked[0]['quantity'],unit=article['unit_as_documented'],net_unit_price=checked[0]['unit_price'],minimum_date=checked[3]['minimum_date'],due_date=checked[0]['due_date'],payments=[dict(due_date=d.isoformat(),amount=str(a)) for d,a in checked[2]],negotiation_text=text,status='WITHIN_DECLARED_SCENARIO',decision_authority=False))
         if alternatives and result['status']=='SHORTFALL':
             if plan['status']=='NOT_DECLARED' and Decimal(baseline['deficit'])==0 and data.get('discount_mode')!='LINE_AMOUNT':
                 # Search cents using the same discount and tax calculator as the form.
