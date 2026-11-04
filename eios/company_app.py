@@ -830,6 +830,9 @@ from eios.company_purchase_experience_ui import JS as PURCHASE_EXPERIENCE_JS, CS
 from eios.company_purchase_negotiation_ui import JS as PURCHASE_NEGOTIATION_JS, CSS as PURCHASE_NEGOTIATION_CSS
 PAGE=PAGE.replace('</style>',PURCHASE_CASH_CSS+PURCHASE_COMPARISON_CSS+PURCHASE_EXPERIENCE_CSS+PURCHASE_NEGOTIATION_CSS+'</style>',1).replace('</script>',PURCHASE_CASH_JS+PURCHASE_COMPARISON_JS+PURCHASE_EXPERIENCE_JS+PURCHASE_NEGOTIATION_JS+'</script>',1)
 
+from eios.company_purchase_installments_ui import CSS as INSTALLMENTS_CSS, JS as INSTALLMENTS_JS
+PAGE=PAGE.replace('</style>',INSTALLMENTS_CSS+'</style>',1).replace('</script>',INSTALLMENTS_JS+'</script>',1)
+
 
 def main():
     parser = argparse.ArgumentParser(description='EIOS: empresa y entrada local de propuestas de compra')

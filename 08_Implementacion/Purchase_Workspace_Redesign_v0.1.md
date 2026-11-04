@@ -86,3 +86,11 @@ Si se elige recepción sin activación y sin conservar revisión, los cambios pe
 Regresión: recepción previa y libro modificado con inventario y balance cambiados; bloqueo sin preserve_revision; READY con preserve_revision; guardado y activación efectivos conservando identificadores y bytes de las recepciones anteriores. Chromium verifica la opción de recuperación y el caso exacto de activación marcada con conservación secundaria desmarcada. Pasan 19 pruebas unitarias de recepción/mapeo.
 
 Se reproduce también con el libro reparado completo frente al expediente anterior: 10 hojas con 0 errores; CONFLICT sin conservar revisión, READY con revisión y bytes anteriores intactos. No se vuelven a modificar los datos del Excel para evitar esta comprobación.
+
+### Generador del calendario de cuotas
+
+En Cuotas y portes, el calendario declarado incorpora un selector para repartir por número de cuotas o importe fijo. Genera las columnas número, importe con IVA y fecha de vencimiento; ajusta los céntimos o el remanente en la última cuota y permite editar el resultado. Generar sustituye expresamente el calendario anterior. Las fechas intermedias deben introducirse según el acuerdo; no se inventa periodicidad. Se conserva el último vencimiento declarado de cada concepto.
+
+El cálculo usa el total comercial vigente y exige portes conocidos. Mantiene el contrato existente de mercancía y portes separados: cuando procede, muestra líneas desglosadas por concepto, sin atribuir al proveedor los portes del transportista. Se mantiene el máximo de 20 líneas y la validación de sumas y vencimientos al guardar. Los cambios posteriores del precio o descuento requieren revisar/regenerar las cuotas.
+
+Validación: recorrido Chromium para reparto por número, importe fijo, redondeo, conservación de totales por concepto, rechazo de entrada inválida sin borrar el calendario y total pendiente; 15 pruebas unitarias de calendario y simulación de tesorería satisfactorias.
