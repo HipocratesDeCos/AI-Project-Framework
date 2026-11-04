@@ -22,6 +22,8 @@ def preview(db,state,data,*,alternatives=True):
         with sqlite3.connect(db) as c:
             manifest=json.loads(c.execute('SELECT manifest_json FROM documentary_company_snapshot WHERE dataset_id=?',(state['info']['dataset_id'],)).fetchone()[0])
         if manifest.get('material_nature')!='SYNTHETIC':return pending('Esta simulación requiere un expediente marcado como ficticio.')
+        from eios.company_purchase_stock_review import review_quantity
+        result['quantity_review']=review_quantity(state,data)
         quote=commercial_terms(data)
         article=next((a for a in state['articles'] if a['article_id']==data.get('article_id') and a.get('supplier_id')==data.get('supplier_id')),None)
         if article is None:return pending('Selecciona un artículo del proveedor de esta versión.')

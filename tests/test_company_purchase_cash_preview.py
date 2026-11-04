@@ -142,3 +142,10 @@ class PurchaseCashPreviewTest(unittest.TestCase):
         self.assertEqual(Decimal(option['savings']),0)
         self.assertEqual(option['source']['flow_ids'],['C-LATE'])
         self.assertEqual(preview(self.path,state,dict(self.data,**option['patch']),alternatives=False)['status'],'WITHIN_DECLARED_SCENARIO')
+
+    def test_stock_review_remains_available_when_financial_parameters_are_missing(self):
+        self.financial_data();self.data.update(shipping_mode='NONE')
+        r=preview(self.path,self.desk.sales_state('one'),self.data)
+        self.assertEqual(r['status'],'PENDING')
+        self.assertIn('quantity_review',r)
+        self.assertEqual(r['quantity_review']['quantity_assessment'],'NOT_DETERMINED')

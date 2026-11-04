@@ -839,6 +839,9 @@ PAGE=PAGE.replace('</style>',SELECTION_CSS+'</style>',1).replace('</script>',SEL
 from eios.company_purchase_save_clarity_ui import CSS as SAVE_CLARITY_CSS, JS as SAVE_CLARITY_JS
 PAGE=PAGE.replace('</style>',SAVE_CLARITY_CSS+'</style>',1).replace('</script>',SAVE_CLARITY_JS+'</script>',1)
 
+from eios.company_purchase_quantity_ui import CSS as QUANTITY_REVIEW_CSS, JS as QUANTITY_REVIEW_JS
+PAGE=PAGE.replace('</style>',QUANTITY_REVIEW_CSS+'</style>',1).replace('</script>',QUANTITY_REVIEW_JS+'</script>',1)
+
 
 def main():
     parser = argparse.ArgumentParser(description='EIOS: empresa y entrada local de propuestas de compra')
