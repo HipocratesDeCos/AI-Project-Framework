@@ -7,7 +7,7 @@ let r=await generate('COUNT','3',{operation_total:'100.00',total:'100.00'});asse
 r=await generate('AMOUNT','30',{operation_total:'100.00',total:'100.00'});assert.deepEqual(r.rows.map(x=>x.amount),['30.00','30.00','30.00','10.00']);
 r=await generate('COUNT','3',{operation_total:'121.00',total:'100.00'});assert.equal(r.rows.reduce((s,x)=>s+Math.round(Number(x.amount)*100),0),12100);assert.equal(r.rows.filter(x=>x.component==='MERCHANDISE').reduce((s,x)=>s+Math.round(Number(x.amount)*100),0),10000);assert.equal(r.rows.filter(x=>x.component==='FREIGHT').reduce((s,x)=>s+Math.round(Number(x.amount)*100),0),2100);
 const before=r.rows;r=await generate('COUNT','21',{operation_total:'121.00',total:'100.00'});assert.deepEqual(r.rows,before);assert.match(r.notice,/20/);r=await generate('AMOUNT','0',{operation_total:'121.00',total:'100.00'});assert.deepEqual(r.rows,before);r=await generate('COUNT','3',{operation_total:null,total:'100'});assert.match(r.notice,/Completa/);assert.deepEqual(r.rows,before);
-assert.equal(await page.locator('#proposal-payment-plan').evaluate(n=>n.open),true);
+assert.equal(await page.locator('#proposal-payment-plan').evaluate(n=>n.tagName),'SECTION');assert.equal(await page.locator('#proposal-payment-plan>summary').count(),0);
 assert.equal(await page.locator('.po-payment-delete').count(),before.length);
 assert.equal(await page.locator('.po-payment-calendar').count(),before.length);
 assert.equal(await page.locator('.po-payment-delete').first().textContent(),'');

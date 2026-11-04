@@ -9,7 +9,8 @@ CSS = '''
 JS = r'''
 (()=>{
  const editor=$('payment-plan-editor'),rows=$('payment-plan-rows');
- $('proposal-payment-plan').open=true;
+ const collapsible=$('proposal-payment-plan'),fixed=document.createElement('section');fixed.id=collapsible.id;
+ const summary=collapsible.querySelector(':scope>summary'),heading=document.createElement('h3');heading.textContent=summary.textContent;summary.replaceWith(heading);fixed.append(...collapsible.childNodes);collapsible.replaceWith(fixed);editor.hidden=false;
  const controls=document.createElement('div');controls.className='files-step';
  controls.innerHTML='<div class="fields"><label>Repartir la deuda por<select id="payment-split-mode"><option value="COUNT">Número de cuotas</option><option value="AMOUNT">Importe de cada cuota</option></select></label><label><span id="payment-split-label">Número de cuotas</span><input id="payment-split-value" type="number" min="1" max="20" step="1" value="3"></label></div><button type="button" id="payment-split-generate">Generar tabla de cuotas</button><p id="payment-split-notice" role="status"></p><small>Importes con IVA. Revisa los vencimientos antes de guardar. Generar sustituye el calendario actual. Si existen portes separados, se conserva su desglose y su acreedor; no se consideran deuda del proveedor los portes facturados por el transportista.</small>';
  editor.prepend(controls);
@@ -46,6 +47,7 @@ JS = r'''
   for(let i=0;i<n;i++){const amount=count?Math.floor(total/n)+(i===n-1?total%n:0):Math.min(fixed,remaining);const m=i===n-1?remainingMerch:Math.max(0,amount-(remaining-remainingMerch),Math.min(amount,remainingMerch,Math.round(amount*merch/total)));const f=amount-m;allocations.push({m,f});remaining-=amount;remainingMerch-=m;}
   const records=allocations.flatMap((a,i)=>[['MERCHANDISE',a.m],['FREIGHT',a.f]].filter(x=>x[1]>0).map(([component,amount])=>({component,amount,index:i})));
   if(records.length>20)throw Error('El desglose de mercancía y portes supera las 20 líneas admitidas. Reduce el número de cuotas.');
+  $('payment-plan-enabled').checked=true;
   rows.replaceChildren();for(const item of records){addPaymentRow();const row=rows.lastElementChild;row.querySelector('[data-payment-field="component"]').value=item.component;row.querySelector('[data-payment-field="amount"]').value=(item.amount/100).toFixed(2);row.querySelector('[data-payment-field="due_date"]').value=item.index===n-1?$('form').elements[item.component==='MERCHANDISE'?'due_date':'shipping_due_date'].value:'';}
   updateTotal();
   notice.textContent='Total distribuido: '+money(total/100)+' euros · '+n+' cuotas'+(freight?' con desglose de mercancía y portes':'')+'. Completa y revisa cada vencimiento. La última fecha de cada concepto debe coincidir con su vencimiento acordado.';

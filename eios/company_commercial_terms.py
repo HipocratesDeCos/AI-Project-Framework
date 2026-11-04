@@ -27,12 +27,20 @@ def _calculate(data, *, require_dates=True):
     if qty<=0: raise ValueError('La cantidad debe ser positiva.')
     entered=number(data,'unit_price')
     vat=number(data,'vat_percent',Decimal(100))
-    try:
-        ordered=date.fromisoformat(data['order_date']) if require_dates or data.get('order_date') else None
-        due=date.fromisoformat(data['due_date']) if require_dates or data.get('due_date') else None
-    except (ValueError,TypeError,KeyError):
-        raise ValueError('Indica fecha de pedido y vencimiento válidos.') from None
-    if due is not None and ordered is not None and due<ordered: raise ValueError('El vencimiento no puede ser anterior al pedido.')
+    schedule_issues=[]
+    def read_date(field,message):
+        try:
+            return date.fromisoformat(data[field]) if require_dates or data.get(field) else None
+        except (ValueError,TypeError,KeyError):
+            if require_dates: raise ValueError(message) from None
+            schedule_issues.append(message)
+            return None
+    ordered=read_date('order_date','Indica fecha de pedido válida.')
+    due=read_date('due_date','Indica vencimiento de mercancía válido.')
+    if due is not None and ordered is not None and due<ordered:
+        message='El vencimiento no puede ser anterior al pedido.'
+        if require_dates: raise ValueError(message)
+        schedule_issues.append(message)
     pricing=data.get('pricing_mode','NET')
     discount_mode=data.get('discount_mode','NONE')
     if pricing not in ('NET','BEFORE_DISCOUNT') or discount_mode not in ('NONE','PERCENT','LINE_AMOUNT'):
@@ -69,9 +77,11 @@ def _calculate(data, *, require_dates=True):
         shipping_vat=number(data,'shipping_vat_percent',Decimal(100))
         billed=data.get('shipping_billed_by')
         if billed not in ('SUPPLIER','CARRIER'): raise ValueError('Indica si factura los portes el proveedor o el transportista.')
-        try: shipping_due=date.fromisoformat(data['shipping_due_date']) if require_dates or data.get('shipping_due_date') else None
-        except (ValueError,TypeError,KeyError): raise ValueError('Indica el vencimiento propio de los portes.') from None
-        if shipping_due is not None and ordered is not None and shipping_due<ordered: raise ValueError('El vencimiento de portes no puede ser anterior al pedido.')
+        shipping_due=read_date('shipping_due_date','Indica el vencimiento propio de los portes.')
+        if shipping_due is not None and ordered is not None and shipping_due<ordered:
+            message='El vencimiento de portes no puede ser anterior al pedido.'
+            if require_dates: raise ValueError(message)
+            schedule_issues.append(message)
         shipping_tax=(shipping_net*shipping_vat/100).quantize(CENT,rounding=ROUND_HALF_EVEN)
         freight.update(net=format(shipping_net.quantize(CENT),'f'),tax=format(shipping_tax,'f'),total=format(shipping_net+shipping_tax,'f'),vat_percent=format(shipping_vat,'f'),billed_by=billed,due_date=shipping_due.isoformat() if shipping_due else None)
     else:
@@ -87,5 +97,6 @@ def _calculate(data, *, require_dates=True):
         cost_status='PENDING_SHIPPING' if mode=='PENDING' else 'DECLARED_COSTS',
         order_date=ordered.isoformat() if ordered else None,due_date=due.isoformat() if due else None)
     if not require_dates:
-        result['schedule_status']='PENDING_DATES' if ordered is None or due is None or mode=='BUYER' and freight['due_date'] is None else 'DATES_PRESENT'
+        result['schedule_issues']=schedule_issues
+        result['schedule_status']='INVALID_DATES' if schedule_issues else 'PENDING_DATES' if ordered is None or due is None or mode=='BUYER' and freight['due_date'] is None else 'DATES_PRESENT'
     return result

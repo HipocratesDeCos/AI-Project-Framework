@@ -106,3 +106,11 @@ Verificación Chromium: apertura inicial, papelera y calendario por fila, selecc
 La sección Proveedor y artículo muestra «Proveedor de esta propuesta» con código y razón social en una fila, y contacto/localidad debajo. «Artículo de esta propuesta» contiene SKU y descripción/unidad en otra fila, con familia y contador de resultados debajo. Los pares de desplegables comparten la selección existente: cambiar cualquiera de ellos actualiza su pareja y conserva los eventos de catálogo, referencias, stock y propuesta. Se oculta el buscador textual de esta sección según el nuevo esquema; sus controles internos y el filtro de familia mantienen el contrato anterior. En pantallas estrechas las parejas se apilan.
 
 Verificación Chromium: cambio de proveedor desde código y razón social, sincronización SKU/descripción en ambos sentidos, filtro de familia, contador y alineación geométrica de las parejas sin errores de JavaScript.
+
+### Importes calculables con fechas incoherentes y calendario fijo
+
+La consulta de importes devuelve netos, IVA y totales aunque los vencimientos sean anteriores al pedido; acompaña el resultado de `INVALID_DATES` y mensajes visibles junto al total de cada columna. Guardar y evaluar tesorería mantienen la validación estricta de fechas. Los errores de consulta también se muestran en la columna, evitando un «Pendiente» sin explicación. La referencia original sigue requiriendo condiciones documentadas completas para mostrar un total.
+
+El calendario de pagos es una sección fija, sin summary ni control de plegado, y su editor permanece visible aunque no se declare un plan. Generar cuotas activa expresamente la declaración; desmarcarla conserva las filas visibles deshabilitadas y no envía el plan.
+
+Verificación: 30 pruebas unitarias de importes, calendario y tesorería; Chromium con la captura reproducida (1.000 unidades, 2,60/10 % y 2,75/5 %, IVA 21 %, vencimiento anterior al pedido) muestra 2.831,40 y 3.161,12 euros con aviso visible. Recorrido de generación, suma, fechas, eliminación y alineación de cuotas satisfactorio.

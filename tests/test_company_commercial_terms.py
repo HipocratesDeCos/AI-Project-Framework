@@ -82,3 +82,15 @@ class CommercialPersistenceTest(unittest.TestCase):
         data['shipping_mode'] = 'PENDING'
         for key in ['shipping_net','shipping_vat_percent','shipping_billed_by']:data.pop(key)
         self.assertIsNone(commercial_terms(data, require_dates=False)['operation_total'])
+
+    def test_amount_preview_keeps_totals_when_dates_are_reversed(self):
+        data=dict(quantity='1000',unit_price='2.60',vat_percent='21',pricing_mode='BEFORE_DISCOUNT',discount_mode='PERCENT',discount_value='10',shipping_mode='SUPPLIER',order_date='2026-11-04',due_date='2026-02-15')
+        quote=commercial_terms(data,require_dates=False)
+        self.assertEqual(quote['unit_price'],'2.34')
+        self.assertEqual(quote['operation_total'],'2831.40')
+        self.assertEqual(quote['schedule_status'],'INVALID_DATES')
+        self.assertIn('anterior al pedido',quote['schedule_issues'][0])
+        with self.assertRaisesRegex(ValueError,'anterior al pedido'):commercial_terms(data)
+        data.update(shipping_mode='BUYER',shipping_net='10',shipping_vat_percent='21',shipping_billed_by='CARRIER',shipping_due_date='2026-02-15',due_date='2026-11-30')
+        self.assertEqual(commercial_terms(data,require_dates=False)['operation_total'],'2843.50')
+        with self.assertRaisesRegex(ValueError,'portes.*anterior'):commercial_terms(data)
