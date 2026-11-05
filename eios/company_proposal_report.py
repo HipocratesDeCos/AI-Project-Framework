@@ -341,6 +341,12 @@ def render_report(report):
                      ('Precio neto unitario', amount('unit_price')), ('Mercancía neta', amount('net')),
                      ('IVA de mercancía', amount('tax')), ('Tipo de IVA declarado (%)', p.get('vat_percent')), ('Total mercancía', amount('total')),
                      ('Total operación', amount('operation_total')), ('Vencimiento mercancía', p.get('due_date'))])]
+    agreement=report.get('purchase_agreement')
+    if agreement:
+        pieces.append('<h3>ACUERDO DECLARADO</h3><p>'+_text({'DECLARED_UNVERIFIED':'Acuerdo anotado, sin verificar','RETRACTED':'Declaración dejada sin efecto','NOT_DECLARED':'Sin acuerdo declarado'}[agreement['status']])+'</p>')
+        for event in agreement['events']:
+            pieces.append(_rows([('Acción','Declarar acuerdo' if event['action']=='DECLARE' else 'Dejar sin efecto'),('Responsable declarado',event['actor']),('Fecha declarada',date_text(event['agreement_date'])),('Referencia del soporte',event['source_reference']),('Motivo',event.get('reason'))]))
+        pieces.append('<p>'+_text(agreement['scope'])+'</p>')
     if p.get('draft_source'):
         pieces.append(_rows([('Borrador creado desde el estudio',p['draft_source']['reference']),('Identificador del estudio original',p['draft_source']['proposal_id'])]))
     if terms:
