@@ -200,7 +200,7 @@ def printable_offer(db, dataset, proposal_id):
     esc = lambda value: escape(str(value), quote=True)
     money = lambda value: esc(number_text(value,2))+' €'
     html = ['<!doctype html><html lang="es"><meta charset="utf-8"><title>Propuesta de venta</title>',
-        '<style>body{font:15px Arial;color:#172b49;max-width:1000px;margin:35px auto;padding:15px}h1{color:#0a369d}table{width:100%;border-collapse:collapse}th,td{padding:9px;text-align:left;border-bottom:1px solid #ccd7e4}th{background:#edf4fc}p{line-height:1.5}@media print{button{display:none}body{margin:0}tr{break-inside:avoid}}</style>',
+        '<style>body{font:15px "Segoe UI",Arial,sans-serif;color:#172b49;max-width:1000px;margin:35px auto;padding:15px}h1{color:#0a369d}table{width:100%;border-collapse:collapse}th,td{padding:9px;text-align:left;border-bottom:1px solid #ccd7e4}th{background:#edf4fc}p{line-height:1.5}@media print{button{display:none}body{margin:0}tr{break-inside:avoid}}</style>',
         '<button onclick="window.print()">Imprimir / Guardar PDF</button><h1>PROPUESTA DE VENTA · PRUEBA SINTÉTICA</h1>',
         '<p>'+esc(payload['company'].get('legal_name','Empresa'))+' · '+esc(payload['reference'])+'</p>',
         '<p>Cliente: '+esc(payload['customer'].get('legal_name',payload['customer']['customer_id']))+'</p>',

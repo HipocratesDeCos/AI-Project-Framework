@@ -229,3 +229,13 @@ En la revisión guardada, el contenido de mínimo de stock se integra en la tarj
 La tarjeta derecha pasa a mostrar la gráfica de dinero previsto del estudio guardado. Se desplaza el mismo elemento SVG desde la evaluación inferior, con altura máxima de 260 px, leyenda y descripción. No se duplica ni se cambia la proyección. Cambiar de estudio sustituye la gráfica; si el siguiente no conserva previsión, se retira la anterior y se explica su ausencia. Los estudios antiguos sin mínimo mantienen su aviso histórico.
 
 Validación Chromium: ubicación y tamaño, campos coincidentes sin repetición, conservación de campos específicos del mínimo, referencias distintas identificadas, actualización entre estudios y retirada de gráfica/datos ausentes. Verificación visual de ambas tarjetas.
+
+### Tipografía y matriz de condiciones según referencia visual
+
+Decisiones del usuario: Segoe UI para EIOS; conservar nombres actuales de campos; incorporar Base imponible, IVA y Total con IVA alineados por columna. Se usa la fuente del sistema con alternativas locales, sin descargas ni dependencias externas. Los informes HTML de compra y venta usan la misma familia, conservando sus tamaños y estructura. La cinta conserva sus tamaños destacados; los campos de la matriz se adaptan a 15 px, etiquetas a 14 px y totales a 21–25 px.
+
+La matriz presenta fondo blanco, separadores suaves y columna Mi propuesta en azul claro con borde redondeado. Mantiene columnas de referencia/negociación/respuesta, edición del IVA, modalidades de descuento y portes, calendarios, fuentes, diferencias y comportamiento de copia/consulta. El IVA porcentual sigue siendo editable en su fila. Las dos filas monetarias añadidas muestran `quote.net` y `quote.tax` del mismo calculador que produce el total; se retiran si la cotización queda pendiente. El total sigue siendo mercancía con IVA, con portes en su detalle separado. El neto unitario se presenta con hasta seis decimales, sin alterar el cálculo ni el redondeo monetario de línea.
+
+La rejilla comparte doce filas entre las cuatro columnas. En pantallas estrechas mantiene el desplazamiento de la matriz para preservar la comparación; no altera el resto de la página. Los totales usan el símbolo € para evitar saltos de línea innecesarios.
+
+Validación Chromium: herencia de Segoe UI, fila a fila alineada (cuatro columnas), distinción visual de Mi propuesta, IVA editable, fechas y vista estrecha. Caso de referencia 500 × 12,25, descuento 3 %, IVA 21 %: base 5.941,25, IVA 1.247,66, total 7.188,91; original 7.411,25. Regresiones de diferencias y copia/guardado de estudio, más pruebas Python de cálculos, negociación e informe. No cambia persistencia ni autoridades.
