@@ -341,6 +341,8 @@ def render_report(report):
                      ('Precio neto unitario', amount('unit_price')), ('Mercancía neta', amount('net')),
                      ('IVA de mercancía', amount('tax')), ('Tipo de IVA declarado (%)', p.get('vat_percent')), ('Total mercancía', amount('total')),
                      ('Total operación', amount('operation_total')), ('Vencimiento mercancía', p.get('due_date'))])]
+    if p.get('draft_source'):
+        pieces.append(_rows([('Borrador creado desde el estudio',p['draft_source']['reference']),('Identificador del estudio original',p['draft_source']['proposal_id'])]))
     if terms:
         labels = {'pricing_mode': 'Modalidad de precio', 'gross_line': 'Línea antes de descuentos',
                   'discount_mode': 'Modalidad de descuento', 'discount_amount': 'Descuento de línea',
