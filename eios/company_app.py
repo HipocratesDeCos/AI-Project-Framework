@@ -869,6 +869,9 @@ PAGE=PAGE.replace('</style>',AGREEMENT_CSS+'</style>',1).replace('</script>',AGR
 from eios.company_purchase_typography_ui import CSS as PURCHASE_TYPOGRAPHY_CSS
 PAGE=PAGE.replace('</style>',PURCHASE_TYPOGRAPHY_CSS+'</style>',1)
 
+from eios.company_appearance_ui import CSS as APPEARANCE_CSS, JS as APPEARANCE_JS
+PAGE=PAGE.replace('</style>',APPEARANCE_CSS+'</style>',1).replace('</script>',APPEARANCE_JS+'</script>',1)
+
 
 def main():
     parser = argparse.ArgumentParser(description='EIOS: empresa y entrada local de propuestas de compra')

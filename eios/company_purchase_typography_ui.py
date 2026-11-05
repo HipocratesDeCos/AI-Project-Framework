@@ -1,7 +1,10 @@
-"""Segoe UI throughout EIOS and reference-led negotiation styling, without new calculations."""
-CSS='''
-:root{--eios-font:"Segoe UI",SegoeUI,system-ui,-apple-system,BlinkMacSystemFont,Arial,sans-serif}
+"""Bundled IBM Plex Sans and Bricolage Grotesque with reference-led negotiation styling."""
+from eios.company_font_assets import CSS as FONT_ASSET_CSS
+
+CSS=FONT_ASSET_CSS+'''
+:root{--eios-font:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;--eios-display:"Bricolage Grotesque","IBM Plex Sans",sans-serif}
 #purchase-comparison{font-family:var(--eios-font)}
+h1,h2,h3,h4,.po-metric-value,.po-column-total strong,.po-alt-total,.po-alt-baseline strong{font-family:var(--eios-display)!important;font-variant-numeric:tabular-nums}
 body{font-family:var(--eios-font);font-size:15px;-webkit-font-smoothing:antialiased}button,input,select,textarea{font-family:inherit}#po-conditions{font-family:var(--eios-font)!important}input,select,.metric strong,.po-metric-value{font-variant-numeric:tabular-nums}
 #po-conditions .po-negotiation-scroll{background:#fff;border:1px solid #dce5f1;border-radius:16px;padding:3px 8px;box-shadow:0 3px 14px #19375c05}
 #po-conditions .po-draft-negotiation{grid-template-columns:minmax(135px,.85fr) minmax(150px,1fr) minmax(185px,1.15fr) minmax(150px,1fr);min-width:680px;grid-template-rows:repeat(12,auto)}
