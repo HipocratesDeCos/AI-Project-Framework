@@ -7,6 +7,30 @@ from eios.company_proposal_report import _purchase_summary
 
 
 class PurchaseSummaryTest(unittest.TestCase):
+    def test_reference_coverage_is_visible_when_finance_is_pending(self):
+        from eios.company_purchase_summary import summarize
+        r=dict(status='PENDING',message='Activa horizonte y reserva.',alternatives=[],
+               reference_stock_coverage=dict(status='FINITE',coverage_days='151.178378',as_of_date='2026-09-30'))
+        s=summarize(r)
+        self.assertEqual(s['stock']['status'],'REFERENCE_ONLY')
+        self.assertEqual(s['stock']['coverage_days'],'151')
+        self.assertIsNone(s['stock']['current_meets_target'])
+        self.assertEqual(s['status'],'PENDING')
+        self.assertIn('No incluye esta compra',s['stock']['limitation'])
+
+    def test_cash_preview_keeps_stock_reference_before_finance_parameters(self):
+        import sqlite3
+        self.ready()
+        article=next(a for a in self.state['articles'] if a['article_id']=='A')
+        unit=article['unit_as_documented']
+        self.state['inventory']={'A':dict(article_id='A',unit=unit,as_of_date='2026-09-30',physical='310',reserved='6',available='304')}
+        self.state['planning']={'A':dict(status='FINITE',coverage_days='151.178378',daily_demand='2.01087',unit=unit,as_of_date='2026-09-30',valid_to='2026-12-29',engine='eios.stock.engine.calculate_coverage')}
+        with sqlite3.connect(self.path) as c:c.execute('DELETE FROM company_finance_parameter_activation')
+        r=preview(self.path,self.state,dict(self.data,shipping_mode='SUPPLIER'))
+        self.assertEqual(r['blocking_code'],'FINANCE_PARAMETERS')
+        self.assertEqual(r['purchase_summary']['stock']['coverage_days'],'151')
+        self.assertEqual(r['alternatives'],[])
+
     setUp=fixtures.CombinationSearchTest.setUp
     tearDown=fixtures.CombinationSearchTest.tearDown
     ready=fixtures.CombinationSearchTest.ready

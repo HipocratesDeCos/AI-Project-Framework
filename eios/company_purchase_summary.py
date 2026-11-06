@@ -1,5 +1,5 @@
 """Descriptive synthesis of existing purchase results; no new decision authority."""
-from decimal import Decimal
+from decimal import Decimal, ROUND_FLOOR
 
 
 def summarize(result):
@@ -32,6 +32,14 @@ def summarize(result):
             scenario_quantity=stock['scenario_quantity'],source=stock['fingerprint'],
             limitation='Resultado condicionado al consumo, las entradas y los plazos declarados; necesidad de compra sin acreditar.')
         if stock['status']=='PRE_DELIVERY_SHORTFALL' or not enough:summary['pending'].append('Revisa stock libre, consumo y entregas; contrasta la cantidad objetivo y el tramo anterior a la recepción.')
+    elif (result.get('reference_stock_coverage') or review.get('coverage')):
+        ref=result.get('reference_stock_coverage') or review['coverage']
+        days=str(Decimal(ref['coverage_days']).to_integral_value(rounding=ROUND_FLOOR)) if ref.get('status')=='FINITE' else None
+        summary['stock']=dict(status='REFERENCE_ONLY',coverage_days=days,as_of_date=ref['as_of_date'],
+            current_meets_target=None,source='reference_stock_coverage',
+            message=('Cobertura de referencia: '+days+' días al '+ref['as_of_date']+'.') if days is not None else 'Sin consumo previsto en la referencia.',
+            limitation='No incluye esta compra. Revisa y confirma la planificación del libro para evaluar cantidad y entrega.')
+        summary['pending'].append('Revisa y confirma la planificación del libro para evaluar la cantidad y la entrega de esta compra.')
     else:
         summary['stock']=dict(status='NOT_ASSESSED',message='La necesidad y la cobertura de esta cantidad no están justificadas.',
             source='quantity_review',limitation='El inventario histórico y el mínimo de stock no sustituyen una previsión aplicable.')

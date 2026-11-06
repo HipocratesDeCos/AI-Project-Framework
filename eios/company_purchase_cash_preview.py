@@ -19,8 +19,8 @@ def preview(db,state,data,*,alternatives=True):
         result['purchase_summary']=summarize(result)
         result['analysis_fingerprint']=sha256(json.dumps(result,sort_keys=True,default=str).encode()).hexdigest()
         return result
-    def pending(message):
-        result['status']='PENDING';result['message']=message
+    def pending(message,code=None):
+        result['status']='PENDING';result['message']=message;result['blocking_code']=code
         return finish()
     if state['info'].get('material_nature') not in (None,'SYNTHETIC'):
         return pending('Esta simulación de compra admite únicamente datos ficticios.')
@@ -31,6 +31,10 @@ def preview(db,state,data,*,alternatives=True):
         if manifest.get('material_nature')!='SYNTHETIC':return pending('Esta simulación requiere un expediente marcado como ficticio.')
         from eios.company_purchase_stock_review import review_quantity
         result['quantity_review']=review_quantity(state,data)
+        plan=state.get('planning',{}).get(data.get('article_id')) or {}
+        inv=state.get('inventory',{}).get(data.get('article_id')) or {}
+        if plan.get('engine')=='eios.stock.engine.calculate_coverage' and plan.get('unit')==inv.get('unit') and plan.get('as_of_date')==inv.get('as_of_date') and plan.get('status') in ('FINITE','UNBOUNDED'):
+            result['reference_stock_coverage']={k:plan.get(k) for k in ('status','coverage_days','as_of_date','unit','daily_demand','engine')}
         from eios.company_purchase_stock_scenario import calculate as stock_scenario
         result['stock_planning']=stock_scenario(state,data)
         from eios.company_purchase_stock_review import attach_simulation_readiness
@@ -52,9 +56,9 @@ def preview(db,state,data,*,alternatives=True):
             scope='DOCUMENTARY_BALANCE_COMPARISON',includes_forecast=False)
         if quote['operation_total'] is None:return pending('Confirma quién asume los portes para calcular el pago completo.')
         with sqlite3.connect(db) as c:
-            if not c.execute("SELECT 1 FROM sqlite_master WHERE name='company_finance_parameter_activation'").fetchone():return pending('Activa horizonte y tesorería mínima para este corte en Parámetros.')
+            if not c.execute("SELECT 1 FROM sqlite_master WHERE name='company_finance_parameter_activation'").fetchone():return pending('Activa horizonte y tesorería mínima para este corte en Parámetros.','FINANCE_PARAMETERS')
             row=c.execute('SELECT payload FROM company_finance_parameter_activation WHERE company_id=? AND as_of_date=?',(company,cut.isoformat())).fetchone()
-        if not row:return pending('Activa horizonte y tesorería mínima para este corte en Parámetros.')
+        if not row:return pending('Activa horizonte y tesorería mínima para este corte en Parámetros.','FINANCE_PARAMETERS')
         activation=json.loads(row[0]);minimum=Decimal(activation['values']['P-FIN-002']);days=Decimal(activation['values']['P-FIN-001'])
         if not minimum.is_finite() or minimum<0 or not days.is_finite() or days<=0 or days!=days.to_integral_value():raise ValueError('Parámetros financieros inválidos.')
         end=cut+timedelta(days=int(days))

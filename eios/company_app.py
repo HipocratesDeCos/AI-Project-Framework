@@ -318,6 +318,7 @@ class PurchaseDesk:
         from eios.company_purchase_draft import validate_source
         result['draft_source']=validate_source(state,data)
         result['article_description_at_save']=article.get('description')
+        result['article_family_at_save']=article.get('family')
         rows=state['history'].get(article['article_id'],[])
         latest=[row for row in rows if row['issue_date']==rows[0]['issue_date']] if rows else []
         result['price_reference_at_save']=(dict(unit_price=latest[0]['effective_net_unit_price'],unit=latest[0]['unit'],currency=latest[0]['currency'],issue_date=latest[0]['issue_date'],discount_percent=latest[0].get('discount_percent'),vat_percent=latest[0].get('vat_percent'),source_refs=latest[0].get('source_refs',[])) if len(latest)==1 and latest[0].get('comparable') else None)
