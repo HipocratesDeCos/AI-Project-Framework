@@ -2,6 +2,26 @@
 
 Fecha: 06/11/2026. Cambio: EIOS-CHG-004.
 
+## Actualización: consulta de pasos guardados (EIOS-CHG-005)
+
+Se reproduce el motivo del rechazo de navegación en la versión anterior: las
+anclas de los pasos 1 a 4 se marcaban como deshabilitadas y su destino se
+sustituía por el paso 5. Ahora cada ancla conserva su destino y muestra datos
+históricos en texto, con los controles independientes del borrador ocultos.
+
+`purchase_saved_navigation.cjs` comprueba los cuatro destinos a 1536 y 390 px,
+ausencia de controles editables en las capturas, conservación exacta de valores
+y activación de campos del formulario, cuotas guardadas, retorno al borrador,
+copia desde un paso de consulta y acceso al comparador desde el acuerdo.
+Una respuesta de revisión con capturas antiguas ausentes comprueba que no se
+presentan datos actuales como si estuvieran conservados. Las propuestas
+persistidas permanecen idénticas después de consultar y copiar.
+
+Las llamadas internas de apertura de una revisión siguen conduciendo al paso 5;
+esto se distingue de pulsar voluntariamente un paso de consulta. Se adaptan las
+pruebas de navegación anteriores a esa distinción, manteniendo sus comprobaciones
+de importes, procedencia, acciones y conservación del original.
+
 ## Comprobaciones ejecutadas
 
 71 casos unittest pasan en los módulos de pantalla de compra, síntesis,

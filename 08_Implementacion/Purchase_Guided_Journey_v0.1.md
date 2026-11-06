@@ -1,6 +1,14 @@
-# Propuesta de compra: recorrido guiado v0.1
+# Propuesta de compra: recorrido guiado v0.2
 
 Fecha: 06/11/2026. Cambio: **EIOS-CHG-004**.
+
+Actualización **EIOS-CHG-005**, autorizada por el usuario: los pasos 1 a 4
+también se pueden consultar en un estudio guardado. Se elimina la redirección
+silenciosa al paso 5. Cada paso presenta una lectura de sus capturas históricas,
+sin rellenar, clonar ni deshabilitar los controles del borrador independiente.
+Se ofrecen las acciones explícitas de crear copia y volver al formulario.
+Los campos no capturados se identifican como no conservados; no se completan
+con el catálogo actual. El paso 6 incorpora retorno directo al comparador del 5.
 
 ## Decisión y alcance
 
