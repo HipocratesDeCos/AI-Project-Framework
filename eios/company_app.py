@@ -309,9 +309,12 @@ class PurchaseDesk:
         from eios.company_required_calendar import document_references
         result['operation_document_references'] = document_references(data)
         from eios.company_purchase_cash_preview import preview as purchase_cash_preview
-        result['cash_orientation_at_save']=purchase_cash_preview(self.db,self.sales_state(dataset),data)
+        analysis_state=self.sales_state(dataset)
+        result['cash_orientation_at_save']=purchase_cash_preview(self.db,analysis_state,data)
         from eios.company_purchase_negotiation import capture as capture_negotiation
-        result['negotiation_at_save']=capture_negotiation(data, data.get('negotiation_alternatives'))
+        result['negotiation_at_save']=capture_negotiation(data, data.get('negotiation_alternatives'), analyze=lambda values: purchase_cash_preview(self.db,analysis_state,values))
+        from eios.company_purchase_negotiation import ensure_analysis_context
+        ensure_analysis_context([result['cash_orientation_at_save']]+[entry['cash_orientation'] for entry in (result['negotiation_at_save'] or {}).get('alternatives',[])])
         from eios.company_purchase_draft import validate_source
         result['draft_source']=validate_source(state,data)
         result['article_description_at_save']=article.get('description')
@@ -875,6 +878,9 @@ PAGE=PAGE.replace('</style>',APPEARANCE_CSS+'</style>',1).replace('</script>',AP
 
 from eios.company_purchase_guide_ui import CSS as PURCHASE_GUIDE_CSS, JS as PURCHASE_GUIDE_JS
 PAGE=PAGE.replace('</style>',PURCHASE_GUIDE_CSS+'</style>',1).replace('</script>',PURCHASE_GUIDE_JS+'</script>',1)
+
+from eios.company_purchase_option_studies_ui import CSS as OPTION_STUDIES_CSS, JS as OPTION_STUDIES_JS
+PAGE=PAGE.replace('</style>',OPTION_STUDIES_CSS+'</style>',1).replace('</script>',OPTION_STUDIES_JS+'</script>',1)
 
 def main():
     parser = argparse.ArgumentParser(description='EIOS: empresa y entrada local de propuestas de compra')

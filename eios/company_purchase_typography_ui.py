@@ -22,7 +22,7 @@ body{font-family:var(--eios-font);font-size:15px;-webkit-font-smoothing:antialia
 #po-conditions .po-row-label{font-size:14px;line-height:1.35;font-weight:650;color:#142c46}
 #po-conditions .po-draft-column input:not([type=checkbox]),#po-conditions .po-draft-column select{font-family:var(--eios-font)!important;font-size:15px!important;min-height:38px!important;height:38px;padding:7px 10px!important;border:1px solid #cfdbeb;border-radius:10px;background:#fff;color:#142c46;box-shadow:none;margin-top:0}
 #po-conditions .po-draft-column input:focus-visible,#po-conditions .po-draft-column select:focus-visible{outline:2px solid #5d8af5;outline-offset:1px;border-color:#5d8af5}
-#po-conditions .po-draft-column[aria-label="RESPUESTA DEL PROVEEDOR"] input:placeholder-shown,#po-conditions .po-draft-column[aria-label="RESPUESTA DEL PROVEEDOR"] input:disabled{border-style:dashed;background:#fff}
+#po-conditions .po-draft-column[aria-label="PROPUESTA DEL PROVEEDOR"] input:placeholder-shown,#po-conditions .po-draft-column[aria-label="PROPUESTA DEL PROVEEDOR"] input:disabled{border-style:dashed;background:#fff}
 #po-conditions .po-draft-column input:disabled,#po-conditions .po-draft-column select:disabled{color:#637b9b}
 #po-conditions .po-draft-column .po-net{font-size:16px;font-weight:700;color:#102a43}
 #po-conditions .po-book-value{font-size:15px;line-height:1.4;font-weight:400}

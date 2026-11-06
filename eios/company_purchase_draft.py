@@ -42,6 +42,8 @@ def prepare(desk,data):
     used={p['reference'] for p in state['purchases']};stem=proposal['reference'][:80]+'-BORRADOR';reference=stem;index=2
     while reference in used:reference=stem+'-'+str(index);index+=1
     values['reference']=reference
+    selected=(proposal.get('negotiation_at_save') or {}).get('selected_slot')
+    if selected:values['negotiation_selected_slot']=selected
     variants=deepcopy((proposal.get('negotiation_at_save') or {}).get('alternatives') or [])
     if variants:
         values['negotiation_alternatives']=[dict(slot=v['slot'],patch=v['patch'],condition=dict(origin=v['condition']['origin'],source_reference=v['condition'].get('source_reference'),acceptance='PENDING')) for v in variants]

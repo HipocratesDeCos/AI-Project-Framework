@@ -342,6 +342,15 @@ def render_report(report):
                      ('Precio neto unitario', amount('unit_price')), ('Mercancía neta', amount('net')),
                      ('IVA de mercancía', amount('tax')), ('Tipo de IVA declarado (%)', p.get('vat_percent')), ('Total mercancía', amount('total')),
                      ('Total operación', amount('operation_total')), ('Vencimiento mercancía', p.get('due_date'))])]
+    negotiation=p.get('negotiation_at_save') or {}
+    if negotiation.get('alternatives'):
+        pieces.append('<h3>ESTUDIOS INDEPENDIENTES DE NEGOCIACIÓN</h3><p>Opción principal guardada: '+_text({'mine':'Mi propuesta','response':'Propuesta del proveedor'}.get(negotiation.get('selected_slot'),'No identificada en este estudio anterior'))+'. La selección no acredita aceptación ni autoriza la compra.</p>')
+        for entry in negotiation['alternatives']:
+            pieces.append('<h4>'+_text(entry['label'])+'</h4>')
+            pieces.append(_rows([('Total operación (EUR)',number_text(entry['quote'].get('operation_total'),2)),('Vencimiento',entry['quote'].get('due_date'))]))
+            pieces.append(_payment_plan(entry.get('payment_plan')))
+            pieces.append(_purchase_summary(entry.get('cash_orientation')))
+            pieces.append(_scenario_comparison(entry.get('cash_orientation')))
     agreement=report.get('purchase_agreement')
     if agreement:
         pieces.append('<h3>ACUERDO DECLARADO</h3><p>'+_text({'DECLARED_UNVERIFIED':'Acuerdo anotado, sin verificar','RETRACTED':'Declaración dejada sin efecto','NOT_DECLARED':'Sin acuerdo declarado'}[agreement['status']])+'</p>')
