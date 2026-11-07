@@ -36,3 +36,7 @@ JS=r'''
 from eios.company_purchase_topbar_ui import CSS as TOPBAR_CSS, JS as TOPBAR_JS
 CSS += TOPBAR_CSS
 JS += TOPBAR_JS
+
+from eios.company_purchase_review_gate_ui import CSS as REVIEW_GATE_CSS, JS as REVIEW_GATE_JS
+CSS += REVIEW_GATE_CSS
+JS += REVIEW_GATE_JS

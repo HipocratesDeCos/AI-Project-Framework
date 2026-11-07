@@ -41,3 +41,18 @@ class PurchaseOptionStudiesTest(unittest.TestCase):
         with patch('eios.company_purchase_cash_preview.preview',side_effect=values),self.assertRaisesRegex(ValueError,'criterios financieros'):
             self.case.desk.save(self.data)
         self.assertEqual(self.case.desk.state('one')['purchases'],[])
+
+    def test_empty_other_option_calendar_identifies_its_owner(self):
+        from datetime import date, timedelta
+        self.mine['patch']['payment_installments']=[]
+        end=date.fromisoformat(self.data['due_date'])
+        rows=[dict(component='MERCHANDISE',amount='3630.00',due_date=(end-timedelta(days=n)).isoformat()) for n in [2,1,0]]
+        self.provider['patch']['payment_installments']=rows
+        self.data['payment_installments']=rows
+        with self.assertRaisesRegex(ValueError,'Mi propuesta.*entre 1 y 20'):
+            self.case.desk.save(self.data)
+        self.assertEqual(self.case.desk.state('one')['purchases'],[])
+        self.mine['patch']['payment_installments']=None
+        saved=self.case.desk.save(self.data)
+        self.assertEqual(len(saved['payment_plan']['installments']),3)
+        self.assertEqual(saved['operation_total'],'10890.00')

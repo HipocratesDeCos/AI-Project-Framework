@@ -33,7 +33,10 @@ def capture(base, variants, *, analyze=None):
                             patch={key: quote['due_date'] if key == 'due_date' else patch[key] for key in patch},
                             condition=metadata, quote=quote)
         from .company_payment_plan import payment_plan
-        entry['payment_plan']=payment_plan(values,dict(quote,proposal_id='NEGOTIATION-'+slot,currency='EUR'))
+        try:
+            entry['payment_plan']=payment_plan(values,dict(quote,proposal_id='NEGOTIATION-'+slot,currency='EUR'))
+        except ValueError as error:
+            raise ValueError(entry['label']+' · Calendario de pagos: '+str(error)) from error
         if analyze is not None:entry['cash_orientation']=analyze(values)
         entries.append(entry)
     selected=base.get('negotiation_selected_slot')

@@ -70,7 +70,7 @@ JS = r'''
  const markers=new Map();for(const id of ['po-study-state','po-purchase-summary','po-alternatives-table']){const node=$(id);if(node){const marker=document.createComment('draft location '+id);analysis.append(marker,node);markers.set(node,marker)}}
  let active='po-selection',lastMode=document.body.dataset.purchaseMode,report=null,lastField=null,invalidQueued=false;
  const links=new Map(),states=new Map(),results=new Map(),editors=new Map(),snapshots=new Map(),headings=new Map();nav.replaceChildren();
- const nextLabels=['Continuar con este artículo','Revisar las condiciones','Preparar los pagos','Revisar antes de guardar',null,null];
+ const nextLabels=['Continuar con este artículo','Revisar las condiciones','Elegir condiciones para los pagos','Ver resumen antes de guardar',null,null];
  for(const [index,step] of steps.entries()){
   const [id,title,,instruction]=step,box=$(id),h=box.querySelector('.po-heading');h.querySelector('span').textContent=index+1;
   if(index!==2)h.querySelector('h2').textContent=index===1?title:title.toUpperCase();h.querySelector('p').textContent=step[2];
@@ -78,7 +78,7 @@ JS = r'''
   const status=document.createElement('span');status.className='po-guide-state';h.querySelector('div').append(status);states.set(id,status);
   const link=document.createElement('a'),caption=document.createElement('strong'),small=document.createElement('small');link.href='#'+id;caption.textContent=title;link.dataset.number=String(index+1);link.append(caption,small);link.onclick=e=>{e.preventDefault();navigate(id,true)};nav.append(link);links.set(id,link);
   const footer=document.createElement('div');footer.className='po-guide-result';const result=document.createElement('p');footer.append(result);results.set(id,result);
-  if(nextLabels[index]){const next=document.createElement('button');next.dataset.guideNext=String(index);next.type='button';next.textContent=nextLabels[index];next.onclick=()=>{if(saved()){navigate(steps[index+1][0],true);return}const invalid=invalidFields(box)[0];if(invalid){openField(invalid);invalid.reportValidity();return}navigate(steps[index+1][0],true)};footer.append(next)}
+  if(nextLabels[index]){const next=document.createElement('button');next.dataset.guideNext=String(index);next.type='button';next.textContent=nextLabels[index];next.onclick=()=>{if(saved()){navigate(steps[index+1][0],true);return}if(index===2){$('po-option-studies').scrollIntoView({block:'center'});$('po-option-studies').querySelector('button')?.focus();return}if(index===3){try{const rows=declaredPaymentRows();if(rows&&(!rows.length||rows.length>20))throw Error('Este calendario necesita entre 1 y 20 cuotas. Genera las cuotas o desmarca su declaración.')}catch(error){$('notice').textContent=error.message;$('payment-split-generate').focus();return}}const invalid=invalidFields(box)[0];if(invalid){openField(invalid);invalid.reportValidity();return}navigate(steps[index+1][0],true)};footer.append(next)}
   if(index<4){
    const editable=document.createElement('div');editable.className='po-guide-editable';
    for(const child of Array.from(box.children))if(child!==h&&child!==help)editable.append(child);
@@ -105,7 +105,7 @@ JS = r'''
   saveFields.hidden=historical;analysis.hidden=historical;
   if(historical){$('po-save').hidden=active!=='po-save';$('review-panel').hidden=active!=='po-save'}else $('review-panel').hidden=true;
   const picked=!!($('supplier').value&&$('article').value),quantity=form.elements.quantity.value.trim(),date=form.elements.order_date.value.trim();
-  const complete=[picked,!!(picked&&quantity&&date&&!invalidFields(refs).length),!!commercialQuote,!!commercialQuote&&!invalidFields($('po-payments')).length,historical,report?.purchase_agreement?.status==='DECLARED_UNVERIFIED'];
+  const complete=[picked,!!(picked&&quantity&&date&&!invalidFields(refs).length),!!commercialQuote&&!!window.purchasePaymentChoice,!!commercialQuote&&!!window.purchasePaymentChoice&&!invalidFields($('po-payments')).length,historical,report?.purchase_agreement?.status==='DECLARED_UNVERIFIED'];
   for(const [index,[id]] of steps.entries()){
    if(historical&&index<4){setStatus(id,id===active?'current':'complete','Consulta · solo lectura');continue}
    const bad=!historical&&invalidFields($(id)).length>0,kind=complete[index]?'complete':id===active?'current':'pending';
@@ -131,7 +131,7 @@ JS = r'''
  function openField(field){if(saved())return;for(let parent=field.parentElement;parent&&parent!==page;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;const step=steps.find(([id])=>$(id).contains(field));if(step)navigate(step[0]);field.focus({preventScroll:true});field.scrollIntoView({block:'center'})}
  window.purchaseGuideOpenField=openField;
  form.addEventListener('invalid',event=>{event.preventDefault();showError(event.target);if(invalidQueued)return;invalidQueued=true;queueMicrotask(()=>{invalidQueued=false;const field=invalidFields(form)[0];if(field){lastField=field;openField(field)}})},true);
- for(const type of ['input','change'])form.addEventListener(type,event=>{lastField=event.target;const error=$(event.target.id+'-guide-error');if(error){error.textContent=event.target.validity.valid?'':validationText(event.target);event.target.setAttribute('aria-invalid',event.target.validity.valid?'false':'true')}update()});
+ for(const type of ['input','change','purchasechoice'])form.addEventListener(type,event=>{lastField=event.target;const error=$(event.target.id+'-guide-error');if(error&&event.target.validity){error.textContent=event.target.validity.valid?'':validationText(event.target);event.target.setAttribute('aria-invalid',event.target.validity.valid?'false':'true')}update()});
  form.addEventListener('reset',()=>queueMicrotask(()=>{lastField=null;active='po-selection';update()}));
  $('dataset').addEventListener('change',()=>{lastField=null;active='po-selection';report=null;content.replaceChildren();update()});
  new MutationObserver(update).observe(document.body,{attributes:true,attributeFilter:['data-purchase-mode']});
