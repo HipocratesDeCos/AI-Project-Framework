@@ -32,3 +32,7 @@ JS=r'''
  addEventListener('resize',position);addEventListener('scroll',position,{capture:true,passive:true});new MutationObserver(position).observe(summary,{childList:true,subtree:true,characterData:true});
 })();
 '''
+
+from eios.company_purchase_topbar_ui import CSS as TOPBAR_CSS, JS as TOPBAR_JS
+CSS += TOPBAR_CSS
+JS += TOPBAR_JS

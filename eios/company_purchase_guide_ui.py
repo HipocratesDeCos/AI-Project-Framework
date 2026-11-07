@@ -76,7 +76,7 @@ JS = r'''
   if(index!==2)h.querySelector('h2').textContent=index===1?title:title.toUpperCase();h.querySelector('p').textContent=step[2];
   const help=document.createElement('p');help.className='po-guide-help';help.textContent=instruction;h.after(help);
   const status=document.createElement('span');status.className='po-guide-state';h.querySelector('div').append(status);states.set(id,status);
-  const link=document.createElement('a'),caption=document.createElement('strong'),small=document.createElement('small');link.href='#'+id;caption.textContent=(index+1)+' · '+title;link.append(caption,small);link.onclick=e=>{e.preventDefault();navigate(id,true)};nav.append(link);links.set(id,link);
+  const link=document.createElement('a'),caption=document.createElement('strong'),small=document.createElement('small');link.href='#'+id;caption.textContent=title;link.dataset.number=String(index+1);link.append(caption,small);link.onclick=e=>{e.preventDefault();navigate(id,true)};nav.append(link);links.set(id,link);
   const footer=document.createElement('div');footer.className='po-guide-result';const result=document.createElement('p');footer.append(result);results.set(id,result);
   if(nextLabels[index]){const next=document.createElement('button');next.dataset.guideNext=String(index);next.type='button';next.textContent=nextLabels[index];next.onclick=()=>{if(saved()){navigate(steps[index+1][0],true);return}const invalid=invalidFields(box)[0];if(invalid){openField(invalid);invalid.reportValidity();return}navigate(steps[index+1][0],true)};footer.append(next)}
   if(index<4){
@@ -89,7 +89,7 @@ JS = r'''
  }
  function saved(){return document.body.dataset.purchaseMode==='saved'}
  function invalidFields(box){return Array.from(box.querySelectorAll('input,select,textarea')).filter(n=>n.willValidate&&!n.validity.valid)}
- function setStatus(id,kind,text){const badge=states.get(id);badge.dataset.status=kind;badge.textContent=({complete:'✓ ',attention:'! ',current:'● ',pending:'○ '}[kind]||'')+text;links.get(id).querySelector('small').textContent=text}
+ function setStatus(id,kind,text){const badge=states.get(id);badge.dataset.status=kind;badge.textContent=({complete:'✓ ',attention:'! ',current:'● ',pending:'○ '}[kind]||'')+text;links.get(id).dataset.progress=kind;links.get(id).querySelector('small').textContent=id==='po-selection'&&kind==='complete'?$('article').value:text}
  function update(){
   const historical=saved(),mode=historical?'saved':'draft';
   for(const error of form.querySelectorAll('.po-guide-error')){const field=$(error.dataset.field);if(!field||!field.willValidate||field.validity.valid){error.textContent='';field?.removeAttribute('aria-invalid')}}
@@ -112,7 +112,7 @@ JS = r'''
    if(index===1&&!historical&&$('po-stock-enabled')?.checked&&!$('po-stock-ack').checked){setStatus(id,'attention','Confirma los supuestos');continue}
    setStatus(id,lastField&&$(id).contains(lastField)&&bad?'attention':kind,complete[index]?(index===4?'Estudio guardado':index===5?'Declarado, sin verificar':historical?'Referencia del borrador':'Datos disponibles'):id===active?'En curso':'Pendiente');
   }
-  if(!historical&&picked)links.get('po-selection').querySelector('small').textContent='✓ '+$('article').value;
+  if(!historical&&picked)links.get('po-selection').querySelector('small').textContent=$('article').value;
   if(!historical&&complete[1])links.get('po-references').querySelector('small').textContent='✓ '+quantity+' · '+date;
   results.get('po-selection').textContent=picked?'Proveedor y artículo elegidos. Puedes revisar la cantidad.':'Selecciona proveedor y artículo para identificar la compra.';
   results.get('po-references').textContent=complete[1]?'Cantidad y fecha introducidas. Los supuestos de stock son una hipótesis que debes revisar.':'Completa cantidad y fecha. No se supone que el inventario histórico siga intacto.';

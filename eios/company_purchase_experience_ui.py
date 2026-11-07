@@ -83,7 +83,7 @@ function purchaseContextRibbons(id){
   // Display only the existing engine output, never derive demand from the current stock.
   const coverage=planning?.status==='FINITE'&&defined(planning.coverage_days)&&inventory?.as_of_date===planning.as_of_date&&inventory?.unit===planning.unit;
   ids.coverage.textContent=coverage?stockNumber(Math.floor(Number(planning.coverage_days))):'—';ids.coverageUnit.classList.toggle('po-ribbon-consumption-pending',!coverage&&planning?.status!=='UNBOUNDED');ids.coverageUnit.textContent=coverage?'días · según planificación':planning?.status==='UNBOUNDED'?'Sin consumo previsto':'Consumo por validar';
-  source.textContent='Inventario '+stockDate(inventory?.as_of_date)+' · Corte: '+stockDate(cutoff)+' · Fuente documental · Disponible = físico − reservado';for(const value of root.querySelectorAll('.po-metric-value'))value.dataset.empty=String(value.textContent==='—');
+  source.textContent='Inventario '+stockDate(inventory?.as_of_date)+' · Corte: '+stockDate(cutoff)+' · '+(filename||'Fuente documental')+' · Disponible = físico − reservado';for(const value of root.querySelectorAll('.po-metric-value'))value.dataset.empty=String(value.textContent==='—');
  }
  return {root,update,explain};
 }
