@@ -19,6 +19,16 @@ VERSION = "SYNTHETIC-PLANNING-01"
 
 def read_planning(db, dataset):
     with sqlite3.connect(db) as c:
+        if c.execute("SELECT 1 FROM sqlite_master WHERE name='documentary_company_snapshot'").fetchone():
+            row=c.execute('SELECT manifest_json FROM documentary_company_snapshot WHERE dataset_id=?',(dataset,)).fetchone()
+            manifest=json.loads(row[0]) if row else {}
+            if manifest.get('exclusive_workbook'):
+                plan=manifest.get('workbook_stock_planning')
+                if not plan:return {}
+                binding=manifest['exclusive_workbook']
+                if plan['source_sha256']!=binding['source_sha256'] or plan['as_of_date']!=manifest['as_of_date']:
+                    raise ValueError('La planificación no corresponde a la versión del libro activo.')
+                return {key:dict(value,dataset_id=dataset,material_nature='SYNTHETIC',source='RECEIVED-WORKBOOK-PLANNING-01',source_sha256=plan['source_sha256'],decision_authority=False,operational_path='FORBIDDEN') for key,value in plan['plans'].items()}
         if not c.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='synthetic_article_planning'").fetchone():
             return {}
         return {key: json.loads(raw) for key,raw in c.execute("SELECT article_id,payload FROM synthetic_article_planning WHERE dataset_id=?", (dataset,))}
@@ -61,19 +71,22 @@ def coverage_for_article(company, dataset, inventory, planning):
             raise ValueError("Inventario y planificación incompatibles: "+field)
     if inventory["dataset_id"] != dataset or inventory["material_nature"] != "SYNTHETIC" or planning["material_nature"] != "SYNTHETIC":
         raise ValueError("Contexto sintético incompatible.")
-    if inventory["source"] != "SYNTHETIC-INVENTORY-01" or planning["source"] != VERSION:
+    received=(inventory['source']=='EXCLUSIVE_RECEIVED_WORKBOOK' and planning['source']=='RECEIVED-WORKBOOK-PLANNING-01'
+              and bool(planning.get('source_sha256')) and inventory.get('source_ref',{}).get('source_sha256')==planning.get('source_sha256'))
+    if not received and (inventory["source"] != "SYNTHETIC-INVENTORY-01" or planning["source"] != VERSION):
         raise ValueError("Versión de supuestos no soportada.")
+    source_version=planning["source"]
     when=date.fromisoformat(planning["as_of_date"])
     scope=StockScope(company_id=company,operational_scope_id="SYNTHETIC-PLANNING")
     article=planning["article_id"]
-    ref=VERSION+":"+dataset+":"+article
+    ref=source_version+":"+dataset+":"+article
     inventory_ref=inventory["source"]+":"+dataset+":"+article
-    selection=DemandMethodSelection(method="AUTHORIZED_FORECAST",state="KNOWN",policy_ref=VERSION,policy_version="1",applicable_reference_date=when,source_ref=ref)
+    selection=DemandMethodSelection(method="AUTHORIZED_FORECAST",state="KNOWN",policy_ref=source_version,policy_version="1",applicable_reference_date=when,source_ref=ref)
     context=StockComputationContext(
         decision_context=DecisionContext(decision_id="SYNTHETIC-COVERAGE",scenario_id="DOCUMENTARY-PLANNING",
-            rules_version="STK-v0.1",parameters_version=VERSION,data_snapshot_id=dataset),
+            rules_version="STK-v0.1",parameters_version=source_version,data_snapshot_id=dataset),
         scope=scope,article_id=article,evaluation_date=when,base_unit=planning["unit"],
-        methodology_version="STK-v0.1",demand_selection=selection,forecast_version=VERSION)
+        methodology_version="STK-v0.1",demand_selection=selection,forecast_version=source_version)
     def quantity(value):
         return NormalizedQuantity(scope=scope,article_id=article,value=Decimal(str(value)),unit=planning["unit"],
             source_unit=planning["unit"],state="KNOWN",source_ref=inventory_ref,effective_date=when)
@@ -85,11 +98,12 @@ def coverage_for_article(company, dataset, inventory, planning):
         stock_on_hand=quantity(inventory["physical"]),stock_committed=quantity(committed),
         committed_components=CollectionEnvelope[StockCommitmentComponent](state="KNOWN",items=components,source_ref=inventory_ref)))
     forecast=AuthorizedForecastRate(scope=scope,article_id=article,daily_demand=Decimal(planning["daily_demand"]),
-        unit=planning["unit"],state="KNOWN",forecast_version=VERSION,reference_date=when,
+        unit=planning["unit"],state="KNOWN",forecast_version=source_version,reference_date=when,
         applicable_from=when,applicable_to=date.fromisoformat(planning["valid_to"]),horizon_ref=ref,source_ref=ref)
     coverage=calculate_coverage(availability,use_authorized_forecast(context,forecast))
     # Coverage only: no parallel purchasing rule, QTG admission or final purchase authority.
-    return dict(status=coverage.state,coverage_days=str(coverage.coverage_days) if coverage.coverage_days is not None else None,
+    return dict(workbook_assumptions=dict(planning) if received else None,
+                status=coverage.state,coverage_days=str(coverage.coverage_days) if coverage.coverage_days is not None else None,
                 stock_available=str(availability.stock_available),daily_demand=planning["daily_demand"],
                 lead_time_days=planning["lead_time_days"],safety_stock=planning["safety_stock"],
                 unit=planning["unit"],as_of_date=planning["as_of_date"],valid_to=planning["valid_to"],
@@ -103,7 +117,7 @@ def planning_context(db,dataset,company,articles):
     result={}
     for r in articles:
         key=r['data']['article_id'];stock=inventory.get(key)
-        if stock and stock.get('source')!="SYNTHETIC-INVENTORY-01":
+        if stock and stock.get('source')!="SYNTHETIC-INVENTORY-01" and not (stock.get('source')=='EXCLUSIVE_RECEIVED_WORKBOOK' and plans.get(key,{}).get('source')=='RECEIVED-WORKBOOK-PLANNING-01'):
             result[key]=dict(status='MISSING_DATA',message='Inventario recibido seleccionado; la planificación anterior no se reutiliza automáticamente para calcular cobertura.')
         else:result[key]=coverage_for_article(company,dataset,stock,plans.get(key))
     return result
