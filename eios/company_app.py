@@ -263,6 +263,21 @@ class PurchaseDesk:
         result['source_status']=source_status(self.db,dataset)
         return result
 
+    def purchase_stock_preview(self, data):
+        from eios.company_exclusive_workbook import require_active
+        from eios.company_purchase_stock_scenario import calculate
+        from eios.company_purchase_need_explanation import explain
+        dataset=str(data['dataset_id']);require_active(self.db,dataset)
+        state=self.state(dataset)
+        if data.get('documentary_context_fingerprint')!=state['documentary_context']['fingerprint']:
+            raise ValueError('La versión documental ha cambiado. Recarga antes de simular.')
+        with sqlite3.connect(self.db) as c:
+            manifest=json.loads(c.execute('SELECT manifest_json FROM documentary_company_snapshot WHERE dataset_id=?',(dataset,)).fetchone()[0])
+        if manifest.get('material_nature')!='SYNTHETIC':raise ValueError('La planificación admite solo datos ficticios.')
+        result=calculate(state,data)
+        if result is None:raise ValueError('Declara y confirma los supuestos de stock.')
+        return dict(stock_planning=result,explanation=explain(result),decision_authority=False,operational_path='FORBIDDEN')
+
     def purchase_cash_preview(self, data):
         from eios.company_exclusive_workbook import require_active
         from eios.company_purchase_cash_preview import preview
@@ -886,6 +901,9 @@ PAGE=PAGE.replace('</style>',OPTION_STUDIES_CSS+'</style>',1).replace('</script>
 from eios.company_purchase_ribbon_ui import CSS as PURCHASE_RIBBON_CSS
 PAGE=PAGE.replace('</style>',PURCHASE_RIBBON_CSS+'</style>',1)
 
+from eios.company_purchase_need_ui import CSS as PURCHASE_NEED_CSS, JS as PURCHASE_NEED_JS
+PAGE=PAGE.replace('</style>',PURCHASE_NEED_CSS+'</style>',1).replace('</script>',PURCHASE_NEED_JS+'</script>',1)
+
 def main():
     parser = argparse.ArgumentParser(description='EIOS: empresa y entrada local de propuestas de compra')
     parser.add_argument('--db', type=Path, required=True)
@@ -960,7 +978,7 @@ def main():
                 return self.send(403, dict(error='Host no permitido'))
             if self.headers.get('X-EIOS-Token') != token:
                 return self.send(403, dict(error='Sesión no válida. Recarga la pantalla.'))
-            if self.path not in {'/api/workbook-source/options','/api/workbook-source/activate','/api/sales-proposals/quality/read','/api/sales-proposals/quality/save','/api/sales-proposals/treasury/options','/api/sales-proposals/treasury/select','/api/reception/workbook/preview','/api/reception/workbook/commit','/api/reception/issues/export','/api/sales-history/preview','/api/sales-history/commit','/api/sales-history/clear','/api/reception/sales-reconcile','/api/reception/sales-collections/export','/api/purchase-history/preview','/api/purchase-history/commit','/api/purchase-history/clear','/api/inventory/preview','/api/inventory/commit','/api/inventory/clear','/api/catalogue/preview','/api/catalogue/commit','/api/catalogue/clear','/api/sales-proposals/tariff/template', '/api/sales-proposals/tariff', '/api/sales-proposals/link', '/api/sales-proposals/cash-plan', '/api/sales-proposals/cash-plan/read', '/api/sales-proposals', '/api/sales-proposals/preview', '/api/sales-proposals/context', '/api/sales-proposals/report', '/api/purchases/reviewer-designation/observation', '/api/purchases/reviewer-designation', '/api/purchases/treasury/observation', '/api/purchases/treasury/context', '/api/purchases/treasury/support', '/api/purchases/finance-quality/prepare', '/api/purchases/payments/calendar', '/api/purchases/payments/review', '/api/purchases/payments/document', '/api/purchases/payments/associate', '/api/parameters/finance/activate', '/api/parameters', '/api/stock/minimums', '/api/purchases', '/api/purchases/quote', '/api/purchases/comparisons', '/api/purchases/comparisons/read', '/api/purchases/cash-preview', '/api/purchases/draft', '/api/purchases/agreement', '/api/purchases/review', '/api/purchases/report', '/api/purchases/commercial-draft', '/api/import/preview', '/api/import/commit', '/api/reception/read', '/api/reception/preview', '/api/reception/commit', '/api/reception/check', '/api/reception/original', '/api/reception/articles', '/api/reception/financials', '/api/reception/versions/save', '/api/reception/version', '/api/reception/version/export', '/api/reception/versions/compare', '/api/reception/records', '/api/reception/purchase/options', '/api/reception/purchase/prepare'}:
+            if self.path not in {'/api/workbook-source/options','/api/workbook-source/activate','/api/sales-proposals/quality/read','/api/sales-proposals/quality/save','/api/sales-proposals/treasury/options','/api/sales-proposals/treasury/select','/api/reception/workbook/preview','/api/reception/workbook/commit','/api/reception/issues/export','/api/sales-history/preview','/api/sales-history/commit','/api/sales-history/clear','/api/reception/sales-reconcile','/api/reception/sales-collections/export','/api/purchase-history/preview','/api/purchase-history/commit','/api/purchase-history/clear','/api/inventory/preview','/api/inventory/commit','/api/inventory/clear','/api/catalogue/preview','/api/catalogue/commit','/api/catalogue/clear','/api/sales-proposals/tariff/template', '/api/sales-proposals/tariff', '/api/sales-proposals/link', '/api/sales-proposals/cash-plan', '/api/sales-proposals/cash-plan/read', '/api/sales-proposals', '/api/sales-proposals/preview', '/api/sales-proposals/context', '/api/sales-proposals/report', '/api/purchases/reviewer-designation/observation', '/api/purchases/reviewer-designation', '/api/purchases/treasury/observation', '/api/purchases/treasury/context', '/api/purchases/treasury/support', '/api/purchases/finance-quality/prepare', '/api/purchases/payments/calendar', '/api/purchases/payments/review', '/api/purchases/payments/document', '/api/purchases/payments/associate', '/api/parameters/finance/activate', '/api/parameters', '/api/stock/minimums', '/api/purchases', '/api/purchases/quote', '/api/purchases/comparisons', '/api/purchases/comparisons/read', '/api/purchases/stock-preview', '/api/purchases/cash-preview', '/api/purchases/draft', '/api/purchases/agreement', '/api/purchases/review', '/api/purchases/report', '/api/purchases/commercial-draft', '/api/import/preview', '/api/import/commit', '/api/reception/read', '/api/reception/preview', '/api/reception/commit', '/api/reception/check', '/api/reception/original', '/api/reception/articles', '/api/reception/financials', '/api/reception/versions/save', '/api/reception/version', '/api/reception/version/export', '/api/reception/versions/compare', '/api/reception/records', '/api/reception/purchase/options', '/api/reception/purchase/prepare'}:
                 return self.send(404, dict(error='No encontrado'))
             try:
                 size = int(self.headers.get('Content-Length', '0'))
@@ -1099,6 +1117,7 @@ def main():
                 if self.path == '/api/purchases/draft':
                     from eios.company_purchase_draft import prepare
                     return self.send(200, prepare(desk,data))
+                if self.path == '/api/purchases/stock-preview':return self.send(200,desk.purchase_stock_preview(data))
                 if self.path == '/api/purchases/cash-preview':
                     return self.send(200, desk.purchase_cash_preview(data))
                 if self.path == '/api/purchases/quote':

@@ -73,7 +73,7 @@ JS = r'''
  const nextLabels=['Continuar con este artículo','Revisar las condiciones','Preparar los pagos','Revisar antes de guardar',null,null];
  for(const [index,step] of steps.entries()){
   const [id,title,,instruction]=step,box=$(id),h=box.querySelector('.po-heading');h.querySelector('span').textContent=index+1;
-  if(index!==2)h.querySelector('h2').textContent=title.toUpperCase();h.querySelector('p').textContent=step[2];
+  if(index!==2)h.querySelector('h2').textContent=index===1?title:title.toUpperCase();h.querySelector('p').textContent=step[2];
   const help=document.createElement('p');help.className='po-guide-help';help.textContent=instruction;h.after(help);
   const status=document.createElement('span');status.className='po-guide-state';h.querySelector('div').append(status);states.set(id,status);
   const link=document.createElement('a'),caption=document.createElement('strong'),small=document.createElement('small');link.href='#'+id;caption.textContent=(index+1)+' · '+title;link.append(caption,small);link.onclick=e=>{e.preventDefault();navigate(id,true)};nav.append(link);links.set(id,link);
@@ -125,7 +125,7 @@ JS = r'''
  }
  function navigate(id,focus=false){if(!steps.some(s=>s[0]===id))return;active=id;update();if(focus){const box=$(id);box.tabIndex=-1;box.focus({preventScroll:true});box.scrollIntoView({block:'start',behavior:'instant'})}}
  window.purchaseGuideNavigate=navigate;
- $('po-draft-ribbons').querySelector('.po-ribbon-meta button').onclick=()=>{navigate('po-references',true);for(const detail of refs.querySelectorAll(':scope>details'))if(detail!==assumptions)detail.open=true};
+ $('po-draft-ribbons').querySelector('.po-ribbon-meta button').onclick=()=>{navigate('po-references',true);for(const detail of refs.querySelectorAll(':scope>details,.po-need-inputs>details'))if(detail!==assumptions)detail.open=true};
  function validationText(field){const v=field.validity;return v.valueMissing?(field.type==='checkbox'?'Marca esta confirmación para continuar.':'Completa este campo.'):v.rangeUnderflow?'Introduce un valor igual o superior a '+field.min+'.':v.rangeOverflow?'Introduce un valor igual o inferior a '+field.max+'.':v.customError?field.validationMessage:'Revisa el valor y el formato de este campo.'}
  function showError(field){if(!field.id)field.id='po-guide-field-'+Array.from(form.elements).indexOf(field);const id=field.id+'-guide-error';let error=$(id);if(!error){error=document.createElement('small');error.id=id;error.className='po-guide-error';error.dataset.field=field.id;field.closest('label')?.append(error);const described=field.getAttribute('aria-describedby')||'';field.setAttribute('aria-describedby',(described+' '+id).trim())}error.textContent=validationText(field);field.setAttribute('aria-invalid','true')}
  function openField(field){if(saved())return;for(let parent=field.parentElement;parent&&parent!==page;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;const step=steps.find(([id])=>$(id).contains(field));if(step)navigate(step[0]);field.focus({preventScroll:true});field.scrollIntoView({block:'center'})}
