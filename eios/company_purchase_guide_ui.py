@@ -37,7 +37,7 @@ CSS = '''
 [data-view=propuestas].po-guided #po-references .po-shared-conditions{margin:16px 0}
 [data-view=propuestas].po-guided #po-guide-agreement{border:1px solid var(--guide-border);background:var(--guide-surface);color:var(--guide-ink);padding:22px;border-radius:18px;margin-top:20px}
 [data-view=propuestas].po-guided #po-guide-agreement button{min-height:44px;font:inherit;padding:10px 16px;cursor:pointer}
-[data-view=propuestas].po-guided #po-guide-live{padding:12px 16px;border:1px solid var(--guide-border);border-radius:10px;background:var(--guide-surface);font-size:14px;margin:12px 0}
+[data-view=propuestas].po-guided #po-guide-live{position:absolute;width:1px;height:1px;padding:0;border:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 [data-view=propuestas].po-guided :is(a,button,input,select,textarea):focus-visible{outline:3px solid var(--guide-accent);outline-offset:3px}
 [data-view=propuestas].po-guided #po-guide-agreement[hidden]{display:none}
 @media(max-width:1100px){[data-view=propuestas].po-guided .po-workspace{grid-template-columns:minmax(0,1fr)}[data-view=propuestas].po-guided .po-context{position:static;max-height:none}}

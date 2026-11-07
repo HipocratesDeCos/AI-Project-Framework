@@ -904,6 +904,9 @@ PAGE=PAGE.replace('</style>',PURCHASE_RIBBON_CSS+'</style>',1)
 from eios.company_purchase_need_ui import CSS as PURCHASE_NEED_CSS, JS as PURCHASE_NEED_JS
 PAGE=PAGE.replace('</style>',PURCHASE_NEED_CSS+'</style>',1).replace('</script>',PURCHASE_NEED_JS+'</script>',1)
 
+from eios.company_compact_header_ui import CSS as COMPACT_HEADER_CSS, JS as COMPACT_HEADER_JS
+PAGE=PAGE.replace('</style>',COMPACT_HEADER_CSS+'</style>',1).replace('</script>',COMPACT_HEADER_JS+'</script>',1)
+
 def main():
     parser = argparse.ArgumentParser(description='EIOS: empresa y entrada local de propuestas de compra')
     parser.add_argument('--db', type=Path, required=True)
