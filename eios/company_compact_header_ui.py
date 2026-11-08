@@ -44,3 +44,7 @@ JS += REVIEW_GATE_JS
 from eios.company_purchase_lifecycle_ui import CSS as LIFECYCLE_CSS, JS as LIFECYCLE_JS
 CSS += LIFECYCLE_CSS
 JS += LIFECYCLE_JS
+
+from eios.company_sidebar_ui import CSS as SIDEBAR_CSS, JS as SIDEBAR_JS
+CSS += SIDEBAR_CSS
+JS += SIDEBAR_JS
