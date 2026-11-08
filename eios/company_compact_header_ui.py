@@ -48,3 +48,7 @@ JS += LIFECYCLE_JS
 from eios.company_sidebar_ui import CSS as SIDEBAR_CSS, JS as SIDEBAR_JS
 CSS += SIDEBAR_CSS
 JS += SIDEBAR_JS
+
+from eios.company_purchase_conditions_layout_ui import CSS as CONDITIONS_LAYOUT_CSS, JS as CONDITIONS_LAYOUT_JS
+CSS += CONDITIONS_LAYOUT_CSS
+JS += CONDITIONS_LAYOUT_JS
