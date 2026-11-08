@@ -18,7 +18,7 @@ JS=r'''
   try{form.dispatchEvent(new Event('input',{bubbles:true}));clearPurchaseSummary();clearPurchaseAlternativesTable();form.reset();await Promise.resolve();
    for(const name of ['reference','quantity','order_date','delivery_location'])form.elements[name].value=name==='order_date'?today():'';
    $('payment-plan-enabled').checked=false;$('payment-plan-rows').replaceChildren();paymentRowsEnabled();$('supplier').value='';articles();$('article').value='';
-   printableReview=null;report=null;$('notice').textContent='';form.dispatchEvent(new Event('change',{bubbles:true}));await Promise.resolve();dirty=false;purchaseGuideNavigate('po-selection',true);render();$('supplier').focus();
+   printableReview=null;report=null;$('notice').textContent='';form.dispatchEvent(new Event('change',{bubbles:true}));await Promise.resolve();dirty=false;purchaseGuideNavigate('po-selection',true);render();$('po-draft-ribbons').querySelector('.po-ribbon-supplier-picker:not([data-field])').focus();
   }finally{starting=false;render()}
  });
  const resume=button('po-resume-purchase','Retomar borrador',()=>{const back=$('po-return-draft');if(back?.onclick){back.onclick();queueMicrotask(()=>{purchaseGuideNavigate('po-selection',true);render()})}});
