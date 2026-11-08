@@ -49,10 +49,10 @@ CSS='''
 '''
 
 CSS += """
-[data-view=propuestas] .po-identity .po-ribbon-supplier-picker{display:block;width:100%;min-width:0;max-width:100%;border:0!important;box-shadow:none!important;background:transparent;color:var(--ribbon-ink,#102748);padding:0 20px 0 0;margin-top:3px;font-family:var(--eios-display);font-size:20px;line-height:1.4;font-weight:700;cursor:pointer;border-radius:0}
+[data-view=propuestas] .po-identity .po-ribbon-supplier-picker{display:block;width:100%;min-width:0;max-width:100%;border:0!important;box-shadow:none!important;background:transparent;color:var(--ribbon-ink,#102748);padding:0 20px 0 0;margin-top:3px;font-family:var(--eios-display);font-size:18px;line-height:1.4;font-weight:400;cursor:pointer;border-radius:0}
 [data-view=propuestas] .po-identity .po-ribbon-supplier-picker[hidden],[data-view=propuestas] .po-identity strong[hidden]{display:none!important}
 [data-view=propuestas] .po-identity .po-ribbon-supplier-picker:focus-visible{outline:2px solid #1553f0;outline-offset:4px}
 [data-view=propuestas] .po-ribbon-supplier-picker option{background:var(--ribbon-surface,#fff);color:var(--ribbon-ink,#102748)}
 """
 
-CSS += "@media(max-width:900px){[data-view=propuestas] .po-identity .po-ribbon-supplier-picker{font-size:14px}}"
+CSS += "@media(max-width:900px){[data-view=propuestas] .po-identity .po-ribbon-supplier-picker{font-size:12px}}"
