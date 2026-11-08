@@ -11,7 +11,7 @@ CSS='''
 #po-negotiation-review-row #po-option-studies>p{margin:0 12px 12px;font-size:12px}
 #po-negotiation-review-row .po-option-card{margin:0 12px;min-width:0}
 #po-negotiation-review-row .po-option-detail{margin:16px 12px 0;min-width:0}
-@media(max-width:1100px){#po-negotiation-review-row{grid-template-columns:minmax(0,1fr);gap:16px}#po-negotiation-review-row>.po-context{grid-column:1;grid-row:1;padding-right:0}#po-negotiation-review-row #po-option-studies{grid-column:1;grid-row:2}}
+@media(max-width:1200px){#po-negotiation-review-row{grid-template-columns:minmax(0,1fr);gap:16px}#po-negotiation-review-row>.po-context{grid-column:1;grid-row:1;padding-right:0}#po-negotiation-review-row #po-option-studies{grid-column:1;grid-row:2}}
 @media(max-width:650px){#po-negotiation-review-row{margin-inline:0}#po-negotiation-review-row .po-option-cards{grid-template-columns:minmax(0,1fr);gap:12px}#po-negotiation-review-row .po-option-card,#po-negotiation-review-row .po-option-detail{margin-inline:0}}
 '''
 JS=r'''
