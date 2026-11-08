@@ -52,3 +52,7 @@ JS += SIDEBAR_JS
 from eios.company_purchase_conditions_layout_ui import CSS as CONDITIONS_LAYOUT_CSS, JS as CONDITIONS_LAYOUT_JS
 CSS += CONDITIONS_LAYOUT_CSS
 JS += CONDITIONS_LAYOUT_JS
+
+from eios.company_purchase_stock_digest_ui import CSS as STOCK_DIGEST_CSS, JS as STOCK_DIGEST_JS
+CSS += STOCK_DIGEST_CSS
+JS += STOCK_DIGEST_JS
