@@ -78,7 +78,7 @@ JS = r'''
   const status=document.createElement('span');status.className='po-guide-state';h.querySelector('div').append(status);states.set(id,status);
   const link=document.createElement('a'),caption=document.createElement('strong'),small=document.createElement('small');link.href='#'+id;caption.textContent=title;link.dataset.number=String(index+1);link.append(caption,small);link.onclick=e=>{e.preventDefault();navigate(id,true)};nav.append(link);links.set(id,link);
   const footer=document.createElement('div');footer.className='po-guide-result';const result=document.createElement('p');footer.append(result);results.set(id,result);
-  if(nextLabels[index]){const next=document.createElement('button');next.dataset.guideNext=String(index);next.type='button';next.textContent=nextLabels[index];next.onclick=()=>{if(saved()){navigate(steps[index+1][0],true);return}if(index===2){$('po-option-studies').scrollIntoView({block:'center'});$('po-option-studies').querySelector('button')?.focus();return}if(index===3){try{const rows=declaredPaymentRows();if(rows&&(!rows.length||rows.length>20))throw Error('Este calendario necesita entre 1 y 20 cuotas. Genera las cuotas o desmarca su declaración.')}catch(error){$('notice').textContent=error.message;$('payment-split-generate').focus();return}}const invalid=invalidFields(box)[0];if(invalid){openField(invalid);invalid.reportValidity();return}navigate(steps[index+1][0],true)};footer.append(next)}
+  if(nextLabels[index]){const next=document.createElement('button');next.dataset.guideNext=String(index);next.type='button';next.textContent=nextLabels[index];next.onclick=()=>{if(saved()){navigate(steps[index+1][0],true);return}if(index===2){$('po-option-studies').scrollIntoView({block:'center'});$('po-option-studies').querySelector('button')?.focus();return}if(index===3){try{const rows=declaredPaymentRows();if(rows&&(!rows.length||rows.length>20))throw Error('Este calendario necesita entre 1 y 20 cuotas. Genera las cuotas o desmarca su declaración.')}catch(error){$('payment-split-notice').textContent=error.message;$('payment-split-notice').setAttribute('role','alert');$('payment-split-generate').focus();return}}const invalid=invalidFields(box)[0];if(invalid){openField(invalid);invalid.reportValidity();return}navigate(steps[index+1][0],true)};footer.append(next)}
   if(index<4){
    const editable=document.createElement('div');editable.className='po-guide-editable';
    for(const child of Array.from(box.children))if(child!==h&&child!==help)editable.append(child);
@@ -105,12 +105,12 @@ JS = r'''
   saveFields.hidden=historical;analysis.hidden=historical;
   if(historical){$('po-save').hidden=active!=='po-save';$('review-panel').hidden=active!=='po-save'}else $('review-panel').hidden=true;
   const picked=!!($('supplier').value&&$('article').value),quantity=form.elements.quantity.value.trim(),date=form.elements.order_date.value.trim();
-  const complete=[picked,!!(picked&&quantity&&date&&!invalidFields(refs).length),!!commercialQuote&&!!window.purchasePaymentChoice,!!commercialQuote&&!!window.purchasePaymentChoice&&!invalidFields($('po-payments')).length,historical,report?.purchase_agreement?.status==='DECLARED_UNVERIFIED'];
+  const complete=[picked,!!(picked&&quantity&&date&&!invalidFields(refs).length),!!commercialQuote&&!!window.purchaseChoiceIsCurrent?.(),!!commercialQuote&&!!window.purchaseChoiceIsCurrent?.()&&!invalidFields($('po-payments')).length,historical,report?.purchase_agreement?.status==='DECLARED_UNVERIFIED'];
   for(const [index,[id]] of steps.entries()){
    if(historical&&index<4){setStatus(id,id===active?'current':'complete','Consulta · solo lectura');continue}
    const bad=!historical&&invalidFields($(id)).length>0,kind=complete[index]?'complete':id===active?'current':'pending';
    if(index===1&&!historical&&$('po-stock-enabled')?.checked&&!$('po-stock-ack').checked){setStatus(id,'attention','Confirma los supuestos');continue}
-   setStatus(id,lastField&&$(id).contains(lastField)&&bad?'attention':kind,complete[index]?(index===4?'Estudio guardado':index===5?'Declarado, sin verificar':historical?'Referencia del borrador':'Datos disponibles'):id===active?'En curso':'Pendiente');
+   setStatus(id,lastField&&$(id).contains(lastField)&&bad?'attention':kind,complete[index]?(index===4?'Estudio guardado':index===5?'Acuerdo registrado':historical?'Referencia del borrador':'Datos disponibles'):id===active?'En curso':'Pendiente');
   }
   if(!historical&&picked)links.get('po-selection').querySelector('small').textContent=$('article').value;
   if(!historical&&complete[1])links.get('po-references').querySelector('small').textContent='✓ '+quantity+' · '+date;
@@ -119,7 +119,7 @@ JS = r'''
   results.get('po-conditions').textContent=commercialQuote?'Importes calculados según las condiciones introducidas. Revisa los pagos antes de guardar.':'Completa las condiciones y consulta los mensajes de cálculo. No se ha guardado ningún estudio.';
   results.get('po-payments').textContent='Continuar no confirma las cuotas. El guardado comprobará importes, fechas y coherencia del calendario.';
   results.get('po-save').textContent=historical?'Resultado conservado. Para cambiar sus condiciones, crea un borrador desde este estudio.':'Guardar conserva y abre el estudio; no confirma un pedido ni autoriza la compra.';
-  results.get('po-guide-agreement').textContent=report?.purchase_agreement?.status==='DECLARED_UNVERIFIED'?'Declaración registrada, sin aceptación verificada. Puedes consultar su historial o dejarla sin efecto.':'Primero guarda y revisa las condiciones que correspondan al acuerdo.';
+  results.get('po-guide-agreement').textContent=report?.purchase_agreement?.status==='DECLARED_UNVERIFIED'?'Acuerdo registrado por el usuario. EIOS conserva la declaración; no verifica automáticamente la aceptación del proveedor.':'Primero guarda y revisa las condiciones que correspondan al acuerdo.';
   if(historical)for(const [id] of steps.slice(0,4))results.get(id).textContent='Estudio '+(report?.proposal?.reference||'guardado')+' · Datos conservados. Consultar no modifica el estudio ni tu borrador.';
   live.textContent=(historical?'ESTUDIO GUARDADO · ':'BORRADOR · ')+(steps.findIndex(s=>s[0]===active)+1)+' de 6 · '+steps.find(s=>s[0]===active)[1]+(historical?' · Consulta de resultados conservados.':' · Los cambios no se guardan automáticamente.');
  }

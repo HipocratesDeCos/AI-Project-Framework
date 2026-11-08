@@ -40,3 +40,7 @@ JS += TOPBAR_JS
 from eios.company_purchase_review_gate_ui import CSS as REVIEW_GATE_CSS, JS as REVIEW_GATE_JS
 CSS += REVIEW_GATE_CSS
 JS += REVIEW_GATE_JS
+
+from eios.company_purchase_lifecycle_ui import CSS as LIFECYCLE_CSS, JS as LIFECYCLE_JS
+CSS += LIFECYCLE_CSS
+JS += LIFECYCLE_JS
