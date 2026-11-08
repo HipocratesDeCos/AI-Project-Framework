@@ -4,8 +4,10 @@ CSS='''
 '''
 JS=r'''
 (function(){
+ function today(){const d=new Date();return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()}
  const form=$('form'),page=form.closest('[data-view=propuestas]'),bar=document.createElement('section');bar.id='po-lifecycle';bar.setAttribute('aria-label','Acciones de la propuesta');
  const labels=document.createElement('div'),status=document.createElement('p'),help=document.createElement('p');status.setAttribute('role','status');help.id='po-lifecycle-help';labels.append(status,help);const actions=document.createElement('div');actions.id='po-lifecycle-actions';bar.append(labels,actions);page.querySelector('.po-intro').after(bar);
+ if(!form.elements.order_date.value)form.elements.order_date.value=today();
  let dirty=false,report=null,starting=false;
  window.purchaseWorkflowState=()=>Object.freeze({mode:document.body.dataset.purchaseMode==='saved'?'saved':'draft',hasWorkingDraft:dirty,reference:report?.proposal?.reference||null,agreement:report?.purchase_agreement?.status||'NOT_DECLARED',choiceCurrent:!!window.purchaseChoiceIsCurrent?.()});
  function button(id,label,action){const b=document.createElement('button');b.id=id;b.type='button';b.textContent=label;b.onclick=action;actions.append(b);return b}
@@ -14,7 +16,7 @@ JS=r'''
   if(dirty&&!window.confirm('Hay un borrador sin guardar. ¿Quieres descartarlo y empezar una propuesta nueva? Los estudios guardados se conservan.'))return;
   starting=true;fresh.disabled=true;
   try{form.dispatchEvent(new Event('input',{bubbles:true}));clearPurchaseSummary();clearPurchaseAlternativesTable();form.reset();await Promise.resolve();
-   for(const name of ['reference','quantity','order_date','delivery_location'])form.elements[name].value='';
+   for(const name of ['reference','quantity','order_date','delivery_location'])form.elements[name].value=name==='order_date'?today():'';
    $('payment-plan-enabled').checked=false;$('payment-plan-rows').replaceChildren();paymentRowsEnabled();$('supplier').value='';articles();$('article').value='';
    printableReview=null;report=null;$('notice').textContent='';form.dispatchEvent(new Event('change',{bubbles:true}));await Promise.resolve();dirty=false;purchaseGuideNavigate('po-selection',true);render();$('supplier').focus();
   }finally{starting=false;render()}
