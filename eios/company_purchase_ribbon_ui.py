@@ -47,3 +47,12 @@ CSS='''
 @media(max-width:1100px){[data-view=propuestas].po-guided .po-context{position:static;max-height:none}}
 @media(max-width:900px){[data-view=propuestas] .po-ribbon-body>summary{display:block;padding:10px 16px;font-size:13px}[data-view=propuestas] .po-ribbon-body[open]{max-height:48vh;overflow:auto}[data-view=propuestas] .po-ribbon-title{min-width:0}[data-view=propuestas] .po-ribbon-header-meta{font-size:11px;gap:8px 16px}[data-view=propuestas] .po-ribbon-header{padding:12px 16px;gap:10px}[data-view=propuestas] .po-identity{grid-template-columns:1fr;gap:12px;padding:12px 16px}[data-view=propuestas] .po-identity>div:last-child{grid-column:auto}[data-view=propuestas] .po-identity strong{font-size:18px}[data-view=propuestas] .po-metric-ribbon{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:12px 16px}[data-view=propuestas] .po-metric{border:0;padding:8px 0}[data-view=propuestas] .po-metric[data-metric=price]{padding:10px;grid-column:span 2}[data-view=propuestas] .po-metric[data-metric=discount]{padding-left:0}[data-view=propuestas] .po-metric-label{font-size:12px;min-height:26px}[data-view=propuestas] .po-metric-unit{font-size:11px}[data-view=propuestas] .po-ribbon-meta{padding:10px 16px;gap:8px}[data-view=propuestas] .po-ribbon-source{font-size:10px;min-width:150px}[data-view=propuestas].po-guided .po-context{position:static;max-height:none}}
 '''
+
+CSS += """
+[data-view=propuestas] .po-identity .po-ribbon-supplier-picker{display:block;width:100%;min-width:0;max-width:100%;border:0!important;box-shadow:none!important;background:transparent;color:var(--ribbon-ink,#102748);padding:0 20px 0 0;margin-top:3px;font-family:var(--eios-display);font-size:24px;line-height:1.4;font-weight:700;cursor:pointer;border-radius:0}
+[data-view=propuestas] .po-identity .po-ribbon-supplier-picker[hidden],[data-view=propuestas] .po-identity strong[hidden]{display:none!important}
+[data-view=propuestas] .po-identity .po-ribbon-supplier-picker:focus-visible{outline:2px solid #1553f0;outline-offset:4px}
+[data-view=propuestas] .po-ribbon-supplier-picker option{background:var(--ribbon-surface,#fff);color:var(--ribbon-ink,#102748)}
+"""
+
+CSS += "@media(max-width:900px){[data-view=propuestas] .po-identity .po-ribbon-supplier-picker{font-size:18px}}"
