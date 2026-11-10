@@ -27,6 +27,17 @@ function renderPurchaseTimeline(host,result){
   const data=result&&result.timeline;if(!data||!Array.isArray(data.rows)||!data.rows.length)return;
   const root=document.createElement('section');root.className='eios-timeline';root.setAttribute('aria-label','Línea de tiempo financiera de la propuesta');
   const head=document.createElement('h3');head.textContent='LÍNEA DE TIEMPO FINANCIERA';
+  const timing=result&&result.timing_assessment;
+  const timingCard=document.createElement('section');timingCard.className='etl-result';timingCard.setAttribute('aria-label','Conclusión de vencimiento');
+  if(timing){
+    timingCard.append(elemTimelineHeading());
+    function elemTimelineHeading(){const e=document.createElement('h3');e.textContent=timing.status==='NEGOTIATE_DEFERMENT'?'FECHA PROPUESTA PARA NEGOCIAR':timing.status==='KEEP_DECLARED_DATES'?'MANTENER VENCIMIENTO DECLARADO':'NO SE HA ENCONTRADO FECHA ADECUADA';return e}
+    const dateLine=document.createElement('p');dateLine.className='etl-description';dateLine.textContent=timing.suggested_last_due_date?'Último vencimiento: '+timing.suggested_last_due_date.split('-').reverse().join('/'):'No hay nueva fecha';
+    const reason=document.createElement('p');reason.className='etl-description';reason.textContent=timing.reason;
+    const provenance=document.createElement('span');provenance.className='etl-source';provenance.textContent='Calculado desde previsión declarada';provenance.title='Se utilizan los flujos y parámetros financieros activos, sin confirmar cobros o aceptación de condiciones.';provenance.tabIndex=0;
+    timingCard.append(dateLine,reason,provenance);
+  }
+
   const lead=document.createElement('p');lead.className='etl-lead';lead.textContent='Cobros y pagos del archivo activo, más el pago hipotético de esta compra · Cifras al cierre de cada día';
   const scroller=document.createElement('div');scroller.className='etl-scroll';scroller.setAttribute('role','group');scroller.setAttribute('aria-label','Fechas con movimientos');
   const details=document.createElement('div');details.className='etl-result';details.setAttribute('aria-live','polite');
@@ -64,7 +75,7 @@ function renderPurchaseTimeline(host,result){
     b.append(elem('b','',dateFmt(row.date)),elem('span','etl-dot'),elem('small','',row.movements.length+' mov.'),elem('small','',euros(row.balance_after)));
     b.onclick=()=>select(i);buttons.push(b);scroller.append(b);
   }
-  root.append(head,lead,scroller,details,elem('p','etl-lead','Escenario orientativo ficticio. No acredita conciliación, aceptación del proveedor ni autoridad de compra.'));
+  root.append(head,lead);if(timing)root.append(timingCard);root.append(scroller,details,elem('p','etl-lead','Escenario orientativo ficticio. No acredita conciliación, aceptación del proveedor ni autoridad de compra.'));
   host.append(root);select(data.rows.findIndex(x=>x.below_minimum)>=0?data.rows.findIndex(x=>x.below_minimum):data.rows.length-1);
 }
 // Integrate without replacing existing risk assessment, options or save behavior.
