@@ -31,7 +31,7 @@ function renderPurchaseTimeline(host,result){
   const timingCard=document.createElement('section');timingCard.className='etl-result';timingCard.setAttribute('aria-label','Conclusión de vencimiento');
   if(timing){
     timingCard.append(elemTimelineHeading());
-    function elemTimelineHeading(){const e=document.createElement('h3');e.textContent=timing.status==='NEGOTIATE_DEFERMENT'?'FECHA PROPUESTA PARA NEGOCIAR':timing.status==='KEEP_DECLARED_DATES'?'MANTENER VENCIMIENTO DECLARADO':'NO SE HA ENCONTRADO FECHA ADECUADA';return e}
+    function elemTimelineHeading(){const e=document.createElement('h3');e.textContent=timing.status==='NEGOTIATE_DEFERMENT'?'FECHA PROPUESTA PARA NEGOCIAR':timing.status==='KEEP_DECLARED_DATES'?'MANTENER VENCIMIENTO DECLARADO':timing.status==='SEARCH_NOT_REQUESTED'?'BÚSQUEDA DE FECHAS NO REALIZADA':'NO SE HA ENCONTRADO FECHA ADECUADA';return e}
     const dateLine=document.createElement('p');dateLine.className='etl-description';dateLine.textContent=timing.suggested_last_due_date?'Último vencimiento: '+timing.suggested_last_due_date.split('-').reverse().join('/'):'No hay nueva fecha';
     const reason=document.createElement('p');reason.className='etl-description';reason.textContent=timing.reason;
     const provenance=document.createElement('span');provenance.className='etl-source';provenance.textContent='Calculado desde previsión declarada';provenance.title='Se utilizan los flujos y parámetros financieros activos, sin confirmar cobros o aceptación de condiciones.';provenance.tabIndex=0;
