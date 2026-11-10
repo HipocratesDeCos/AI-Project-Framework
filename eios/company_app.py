@@ -821,6 +821,8 @@ PAGE=PAGE.replace('</style>',PURCHASE_WORKSPACE_CSS+'</style>',1).replace('</scr
 from eios.company_purchase_cash_ui import CSS as PURCHASE_CASH_CSS, JS as PURCHASE_CASH_JS
 from eios.company_purchase_comparison_ui import JS as PURCHASE_COMPARISON_JS, CSS as PURCHASE_COMPARISON_CSS
 PAGE=PAGE.replace('</style>',PURCHASE_CASH_CSS+PURCHASE_COMPARISON_CSS+'</style>',1).replace('</script>',PURCHASE_CASH_JS+PURCHASE_COMPARISON_JS+'</script>',1)
+from eios.company_purchase_timeline_ui import CSS as PURCHASE_TIMELINE_CSS, JS as PURCHASE_TIMELINE_JS
+PAGE=PAGE.replace('</style>',PURCHASE_TIMELINE_CSS+'</style>',1).replace('</script>',PURCHASE_TIMELINE_JS+'</script>',1)
 
 
 def main():
