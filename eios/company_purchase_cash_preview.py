@@ -139,6 +139,11 @@ def preview(db,state,data,*,alternatives=True):
                     suggested_last_due_date=suggested,
                     reason='Es el primer desplazamiento completo de pagos encontrado dentro del horizonte que mantiene la tesorería mínima con los cobros y pagos declarados. No garantiza cobros puntuales ni aceptación del proveedor.',
                     source='CALCULATED_FROM_DECLARED_FORECAST',requires_supplier_acceptance=True)
+            if not alternatives:
+                return dict(status='SEARCH_NOT_REQUESTED',first_due_date=first,last_due_date=last,
+                    suggested_last_due_date=None,
+                    reason='Esta comparación evalúa las condiciones indicadas, pero no ejecuta una nueva búsqueda de vencimientos. El déficit mostrado no demuestra que sea imposible negociar otra fecha.',
+                    source='NOT_CALCULATED',requires_supplier_acceptance=None)
             return dict(status='NO_FEASIBLE_DEFERMENT_FOUND',first_due_date=first,last_due_date=last,
                 suggested_last_due_date=None,
                 reason='No se ha encontrado un desplazamiento completo que elimine el déficit dentro del horizonte autorizado. No se propone una fecha sin cobertura calculada.',
