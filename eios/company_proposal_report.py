@@ -1,4 +1,5 @@
 """Printable internal report from a persisted descriptive review only."""
+from eios.company_font_assets import CSS as FONT_ASSET_CSS
 from html import escape
 import json
 from eios.company_presentation import number_text, date_text
@@ -6,6 +7,44 @@ from eios.company_presentation import number_text, date_text
 
 def _text(value):
     return escape('Sin datos' if value is None else str(value), quote=True)
+
+
+def _purchase_summary(study):
+    summary=(study or {}).get('purchase_summary')
+    if not summary:return '<p>Este estudio anterior no conserva una síntesis de compra; no se reconstruye con datos actuales.</p>'
+    parts=['<h3>SÍNTESIS DE LA COMPRA GUARDADA</h3><p><strong>'+_text(summary['title'])+'</strong></p><p>'+_text(summary['explanation'])+'</p>']
+    parts.append(_rows([(f['label']+' (EUR)',number_text(f['value'],2)) for f in summary['facts']]))
+    stock=summary['stock'];parts.append('<p>Stock: '+_text(stock['message'])+' '+_text(stock['limitation'])+'</p>')
+    stress=summary.get('sensitivity')
+    if stress:parts.append('<p>Prueba sin el cobro '+_text(stress['flow_id'])+': falta para reserva '+_text(number_text(stress['deficit'],2))+' EUR. Hipótesis, no previsión de impago.</p>')
+    parts.append('<p><strong>SIGUIENTE ACCIÓN AL GUARDAR:</strong> '+_text(summary['next_action'])+'</p>')
+    parts.append('<ul>'+''.join('<li>'+_text(text)+'</li>' for text in summary['pending'])+'</ul>')
+    parts.append('<p>'+_text(summary['scope'])+'</p>')
+    return ''.join(parts)
+
+
+def _scenario_comparison(study):
+    if not study or not study.get('current_terms'):return ''
+    parts=['<h3>COMBINACIONES Y SENSIBILIDAD CONSERVADAS</h3><p>Comparación parcial de coste y saldo mínimo a igual cantidad. No es una clasificación de calidad, fiabilidad ni preferencia empresarial. Ninguna hipótesis acredita aceptación del proveedor.</p>']
+    sensitivity=study.get('collection_sensitivity') or {};excluded=sensitivity.get('excluded_collection')
+    if excluded:parts.append('<p>Prueba de tensión: sin el mayor cobro individual previsto, '+_text(excluded['flow_id'])+' · '+_text(number_text(excluded['amount'],2))+' EUR · '+_text(date_text(excluded['due_date']))+'. No es una previsión de impago ni cubre todos los riesgos.</p>')
+    for item in [dict(study['current_terms'],title='Propuesta activa',savings='0')]+study.get('alternatives',[]):
+        parts.append('<h4>'+_text(item.get('comparison_id',''))+' '+_text(item['title'])+'</h4>')
+        parts.append(_rows([('Cantidad',item.get('quantity')),('Total operación con IVA y portes (EUR)',number_text(item.get('total'),2)),('Ahorro frente a propuesta activa (EUR)',number_text(item.get('savings'),2)),('Saldo mínimo (EUR)',number_text(item.get('minimum_balance'),2)),('Vencimiento mercancía',item.get('due_date'))]))
+        stress=item.get('collection_sensitivity')
+        if stress:parts.append('<p>Sin el cobro indicado: saldo mínimo '+_text(number_text(stress['minimum_balance'],2))+' EUR; falta para reserva '+_text(number_text(stress['deficit'],2))+' EUR.</p>')
+        if item.get('basis'):parts.append('<p>'+_text(item['basis'])+'</p>')
+        if item.get('source'):parts.append('<details><summary>Fuentes conservadas</summary>'+_detail(item['source'])+'</details>')
+        comparison=item.get('metric_comparison') or {}
+        if comparison.get('dominated_by'):parts.append('<p>Otra opción mejora coste o caja sin empeorar la otra métrica, a igual cantidad: '+_text(', '.join(comparison['dominated_by']))+'.</p>')
+    search=study.get('combination_analysis')
+    if search:
+        parts.append('<p>Búsqueda combinada: '+str(search['evaluated'])+' comprobaciones; '+str(search['retained'])+' alternativas conservadas. Límite: '+str(search['limit'])+(' · Exploración limitada, no exhaustiva.' if search['truncated'] else '.')+'</p>')
+        reasons={}
+        for entry in search.get('rejected',[]):reasons[entry['reason']]=reasons.get(entry['reason'],0)+1
+        parts.extend('<p>'+str(count)+' descartes: '+_text(reason)+'</p>' for reason,count in reasons.items())
+    parts.append('<p>Huella del estudio: '+_text(study.get('analysis_fingerprint'))+'</p>')
+    return ''.join(parts)
 
 
 def _rows(items):
@@ -287,7 +326,7 @@ def render_report(report):
     pieces = ['<!doctype html><html lang="es"><head><meta charset="utf-8">',
               '<meta name="viewport" content="width=device-width,initial-scale=1">',
               '<title>EIOS · Informe de propuesta · ' + _text(report['reference']) + '</title>',
-              '<style>body{font:14px system-ui,sans-serif;color:#15213c;background:#edf3fa;margin:0}main{max-width:950px;margin:24px auto;padding:32px;background:white}h1{font-size:25px;color:#13346f}h2{font-size:17px;color:#13346f;margin-top:26px}p,li{line-height:1.5}.status{padding:16px;background:#fff5df;border-left:5px solid #ad790f}.status strong{display:block}dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}dl>div{padding:10px;background:#f1f6fc;break-inside:avoid}dt{font-size:12px;color:#52647a}dd{margin:4px 0 0;font-weight:600}pre,dd,td{overflow-wrap:anywhere;white-space:pre-wrap}pre{font-size:11px}table{border-collapse:collapse;width:100%;table-layout:fixed}td,th{padding:8px;border:1px solid #ccd7e4;text-align:left;vertical-align:top}thead{display:table-header-group}button{padding:12px 20px;background:#0a369d;color:white;border:0;border-radius:5px;cursor:pointer}footer{border-top:1px solid #ccd7e4;padding-top:12px;font-size:11px;overflow-wrap:anywhere}@page{size:A4;margin:16mm}@media print{body{background:white}main{margin:0;padding:0;max-width:none}.toolbar{display:none}h2,h3{break-after:avoid}tr{break-inside:avoid}pre{white-space:pre-wrap}.status{border:1px solid #ad790f;border-left:5px solid #ad790f}a{color:inherit}}</style></head><body><main>',
+              '<style>'+FONT_ASSET_CSS+'h1,h2,h3,h4{font-family: Bricolage Grotesque,sans-serif}body{font:14px "IBM Plex Sans",system-ui,sans-serif;color:#15213c;background:#edf3fa;margin:0}main{max-width:950px;margin:24px auto;padding:32px;background:white}h1{font-size:25px;color:#13346f}h2{font-size:17px;color:#13346f;margin-top:26px}p,li{line-height:1.5}.status{padding:16px;background:#fff5df;border-left:5px solid #ad790f}.status strong{display:block}dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}dl>div{padding:10px;background:#f1f6fc;break-inside:avoid}dt{font-size:12px;color:#52647a}dd{margin:4px 0 0;font-weight:600}pre,dd,td{overflow-wrap:anywhere;white-space:pre-wrap}pre{font-size:11px}table{border-collapse:collapse;width:100%;table-layout:fixed}td,th{padding:8px;border:1px solid #ccd7e4;text-align:left;vertical-align:top}thead{display:table-header-group}button{padding:12px 20px;background:#0a369d;color:white;border:0;border-radius:5px;cursor:pointer}footer{border-top:1px solid #ccd7e4;padding-top:12px;font-size:11px;overflow-wrap:anywhere}@page{size:A4;margin:16mm}@media print{body{background:white}main{margin:0;padding:0;max-width:none}.toolbar{display:none}h2,h3{break-after:avoid}tr{break-inside:avoid}pre{white-space:pre-wrap}.status{border:1px solid #ad790f;border-left:5px solid #ad790f}a{color:inherit}}</style></head><body><main>',
               '<div class="toolbar"><button type="button" onclick="window.print()">Imprimir / Guardar como PDF</button><p>Para descargarlo, selecciona «Guardar como PDF» en el diálogo de impresión.</p></div>',
               '<h1>EIOS · INFORME INTERNO DE PROPUESTA</h1>',
               '<div class="status"><strong>' + _text(report['title']) + '</strong><p>' + _text(report['reason']) + '</p><p>Material sintético de prueba. No constituye aceptación al proveedor ni autorización de compra.</p></div>',
@@ -303,6 +342,23 @@ def render_report(report):
                      ('Precio neto unitario', amount('unit_price')), ('Mercancía neta', amount('net')),
                      ('IVA de mercancía', amount('tax')), ('Tipo de IVA declarado (%)', p.get('vat_percent')), ('Total mercancía', amount('total')),
                      ('Total operación', amount('operation_total')), ('Vencimiento mercancía', p.get('due_date'))])]
+    negotiation=p.get('negotiation_at_save') or {}
+    if negotiation.get('alternatives'):
+        pieces.append('<h3>ESTUDIOS INDEPENDIENTES DE NEGOCIACIÓN</h3><p>Opción principal guardada: '+_text({'mine':'Mi propuesta','response':'Propuesta del proveedor'}.get(negotiation.get('selected_slot'),'No identificada en este estudio anterior'))+'. La selección no acredita aceptación ni autoriza la compra.</p>')
+        for entry in negotiation['alternatives']:
+            pieces.append('<h4>'+_text(entry['label'])+'</h4>')
+            pieces.append(_rows([('Total operación (EUR)',number_text(entry['quote'].get('operation_total'),2)),('Vencimiento',entry['quote'].get('due_date'))]))
+            pieces.append(_payment_plan(entry.get('payment_plan')))
+            pieces.append(_purchase_summary(entry.get('cash_orientation')))
+            pieces.append(_scenario_comparison(entry.get('cash_orientation')))
+    agreement=report.get('purchase_agreement')
+    if agreement:
+        pieces.append('<h3>ACUERDO DECLARADO</h3><p>'+_text({'DECLARED_UNVERIFIED':'Acuerdo anotado, sin verificar','RETRACTED':'Declaración dejada sin efecto','NOT_DECLARED':'Sin acuerdo declarado'}[agreement['status']])+'</p>')
+        for event in agreement['events']:
+            pieces.append(_rows([('Acción','Declarar acuerdo' if event['action']=='DECLARE' else 'Dejar sin efecto'),('Responsable declarado',event['actor']),('Fecha declarada',date_text(event['agreement_date'])),('Referencia del soporte',event['source_reference']),('Motivo',event.get('reason'))]))
+        pieces.append('<p>'+_text(agreement['scope'])+'</p>')
+    if p.get('draft_source'):
+        pieces.append(_rows([('Borrador creado desde el estudio',p['draft_source']['reference']),('Identificador del estudio original',p['draft_source']['proposal_id'])]))
     if terms:
         labels = {'pricing_mode': 'Modalidad de precio', 'gross_line': 'Línea antes de descuentos',
                   'discount_mode': 'Modalidad de descuento', 'discount_amount': 'Descuento de línea',
@@ -327,6 +383,8 @@ def render_report(report):
             pieces.append(_rows([('Tesorería al corte (EUR)',number_text(draft_cash['opening_balance'],2)),('Mínimo configurado (EUR)',number_text(draft_cash['treasury_minimum'],2)),('Saldo mínimo del escenario (EUR)',number_text(scenario['minimum_balance'],2)),('Déficit del escenario (EUR)',number_text(scenario['deficit'],2)),('Primera fecha de déficit',date_text(scenario['first_shortfall_date'])),('Fin del horizonte',date_text(draft_cash['horizon_end']))]))
             for alternative in draft_cash.get('alternatives',[]):
                 pieces.append('<h4>'+_text(alternative['title'])+'</h4><p>'+_text(alternative['negotiation_text'])+'</p>')
+        pieces.append(_purchase_summary(draft_cash))
+        pieces.append(_scenario_comparison(draft_cash))
         pieces.append('<p>No acredita conciliación, disponibilidad actual ni viabilidad final. Los datos e hipótesis son los conservados al guardar.</p>')
 
     pieces.extend(['<h2>3. COMPARACIÓN CON LA ÚLTIMA COMPRA</h2>', '<p>' + _text(price.get('message')) + '</p>'])

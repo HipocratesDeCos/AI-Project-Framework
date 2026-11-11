@@ -37,7 +37,7 @@ def purchase_history(store, dataset, article, as_of):
         result.append(dict(invoice_id=line["invoice_id"], invoice_number=header.get("invoice_number", line["invoice_id"]),
                            issue_date=issued.isoformat(), quantity=line.get("quantity"),
                            unit=line.get("unit_as_documented"), unit_price=line.get("unit_price"),
-                           net_amount=line.get("net_amount"), currency=line.get("currency"),
+                           net_amount=line.get("net_amount"), discount_percent=line.get("discount_percent"), vat_percent=line.get("vat_percent"), currency=line.get("currency"),
                            effective_net_unit_price=effective, comparable=comparable,
                            source_refs=record.get("source_refs", [])))
     return sorted(result, key=lambda r: (r["issue_date"], r["invoice_id"]), reverse=True)
