@@ -258,3 +258,10 @@ def test_same_unit_currency_legacy_paths_still_work_without_instructions():
     result = evaluated(payload(unit="EA", currency="EUR", price="7.2"))
     assert result.normalization_status == "NORMALIZED"
     assert result.normalized_unit_price == Decimal("7.2000")
+
+
+def test_no_conversion_keeps_exact_decimal_representation():
+    result = evaluated(payload(unit="EA", currency="EUR", price="20.25"))
+    assert result.normalized_unit_price == Decimal("20.25")
+    assert str(result.normalized_unit_price) == "20.25"
+    assert result.normalization == ()
