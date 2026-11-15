@@ -122,7 +122,13 @@ def assess_economic_basis(
 
         if proof.status not in {"EQUIVALENT", "NOT_APPLICABLE"}:
             limitations.append("ECONOMIC_DIMENSION_UNRESOLVED:" + dimension)
-        if proof.status == "NOT_APPLICABLE" and dimension in declared_targets:
+        if proof.status == "NOT_APPLICABLE" and (
+            dimension in declared_targets
+            or (
+                dimension == "QUANTITY"
+                and reference.quantity != payload.purchase_operation.quantity
+            )
+        ):
             limitations.append("ECONOMIC_DIMENSION_INAPPLICABLE_CONFLICT:" + dimension)
 
         expected_evidence_state = (
