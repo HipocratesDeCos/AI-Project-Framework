@@ -45,6 +45,40 @@ class EconomicBasisAssessment(BaseModel):
 class NormalizationRecord(BaseModel):
     model_config=ConfigDict(extra="forbid")
     field:str=Field(min_length=1,max_length=64);original_value:str;normalized_value:str;rule_reference:str=Field(min_length=1,max_length=128);trace_reference:str=Field(min_length=1,max_length=128)
+class PriceConversionInstruction(BaseModel):
+    """Explicit price multiplication: target price = source price * factor.
+
+    This contract records a proposed conversion and its documentary links.
+    External source authentication remains the responsibility of intake/QTG.
+    For UNIT, factor is target-price-per-unit / source-price-per-unit.
+    For CURRENCY, factor is target-currency per one source-currency.
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True, str_strip_whitespace=True)
+    reference_id: str = Field(min_length=1, max_length=128)
+    dimension: Literal["UNIT", "CURRENCY"]
+    source_code: str = Field(min_length=1, max_length=32)
+    target_code: str = Field(min_length=1, max_length=32)
+    factor: Decimal = Field(gt=0, max_digits=22, decimal_places=16)
+    effective_date: date
+    source_ref: str = Field(min_length=1, max_length=256)
+    evidence_refs: tuple[str, ...] = Field(min_length=1)
+    rule_reference: str = Field(min_length=1, max_length=128)
+    trace_reference: str = Field(min_length=1, max_length=128)
+
+    @model_validator(mode="after")
+    def check_conversion(self) -> "PriceConversionInstruction":
+        if self.source_code == self.target_code:
+            raise ValueError("La conversión exige códigos de origen y destino distintos")
+        if not self.factor.is_finite():
+            raise ValueError("El factor de conversión debe ser finito")
+        if len(set(self.evidence_refs)) != len(self.evidence_refs):
+            raise ValueError("La conversión tiene evidencias duplicadas")
+        if any(not value.strip() for value in self.evidence_refs):
+            raise ValueError("La conversión requiere referencias de evidencia no vacías")
+        return self
+
+
 class PriceReferenceAssessment(BaseModel):
     model_config=ConfigDict(extra="forbid")
     reference_id:str=Field(min_length=1,max_length=128);comparability:ComparabilityStatus;normalization_status:NormalizationStatus="PENDING";temporal_status:TemporalStatus="INDETERMINATE";temporal_rule_reference:str|None=None;representativeness:RepresentativenessStatus="INDETERMINATE";normalized_unit_price:Decimal|None=Field(default=None,ge=0,decimal_places=4);normalization:tuple[NormalizationRecord,...]=();economic_basis:EconomicBasisAssessment|None=None;limitation_refs:tuple[str,...]=()
@@ -55,7 +89,7 @@ class PriceReferenceAssessment(BaseModel):
         return self
 class PriceIntelligenceInput(BaseModel):
     model_config=ConfigDict(extra="forbid")
-    decision_context:DecisionContext;purchase_operation:PurchaseOperation;references:tuple[PriceReference,...]=();evidence_validations:tuple[EvidenceValidation,...]=();normalization_basis:NormalizationBasis|None=None;economic_basis_evidence:tuple[EconomicBasisEvidence,...]=();methodology_version:str=Field(min_length=1,max_length=64)
+    decision_context:DecisionContext;purchase_operation:PurchaseOperation;references:tuple[PriceReference,...]=();evidence_validations:tuple[EvidenceValidation,...]=();normalization_basis:NormalizationBasis|None=None;economic_basis_evidence:tuple[EconomicBasisEvidence,...]=();price_conversion_instructions:tuple[PriceConversionInstruction,...]=();methodology_version:str=Field(min_length=1,max_length=64)
     @model_validator(mode="after")
     def context_matches_purchase(self)->"PriceIntelligenceInput":
         if self.decision_context.decision_id!=self.purchase_operation.decision_id:raise ValueError("decision_id no coincide entre contexto y operación")
@@ -69,6 +103,13 @@ class PriceIntelligenceInput(BaseModel):
         if unknown_economic:raise ValueError("Existen economic evidence_refs sin EvidenceValidation correspondiente")
         reference_ids={r.source_transaction_id for r in self.references};unknown_references={e.reference_id for e in self.economic_basis_evidence}-reference_ids
         if unknown_references:raise ValueError("EconomicBasisEvidence referencia una PriceReference inexistente")
+        conversions=self.price_conversion_instructions
+        if len({(c.reference_id,c.dimension) for c in conversions})!=len(conversions):
+            raise ValueError("Conversiones duplicadas por referencia y dimensión")
+        if {c.reference_id for c in conversions}-reference_ids:
+            raise ValueError("Una conversión referencia una PriceReference inexistente")
+        if {e for c in conversions for e in c.evidence_refs}-known:
+            raise ValueError("Una conversión referencia evidencia desconocida")
         return self
 class PriceIntelligenceAssessmentContext(BaseModel):
     model_config=ConfigDict(extra="forbid",frozen=True)
@@ -97,4 +138,4 @@ class PriceIntelligenceResult(BaseModel):
         if self.counts.n_selected==0 and self.pr_status!="PR_NOT_JUSTIFIABLE":raise ValueError("N_SELECTED=0 requiere PR_NOT_JUSTIFIABLE")
         if self.counts.n_selected==1 and self.pr_status=="PR_AVAILABLE":raise ValueError("N_SELECTED=1 no puede producir PR_AVAILABLE")
         return self
-__all__=["AggregationMethod","ComparabilityStatus","EconomicBasisAssessment","EconomicBasisEvidence","EconomicBasisStatus","EconomicDimension","NormalizationBasis","NormalizationRecord","NormalizationStatus","PRStatus","PriceCounts","PriceIntelligenceAssessmentContext","PriceIntelligenceInput","PriceIntelligenceResult","PriceReference","PriceReferenceAssessment","RepresentativenessStatus","SufficiencyStatus","TemporalStatus"]
+__all__=["AggregationMethod","ComparabilityStatus","EconomicBasisAssessment","EconomicBasisEvidence","EconomicBasisStatus","EconomicDimension","NormalizationBasis","NormalizationRecord","PriceConversionInstruction","NormalizationStatus","PRStatus","PriceCounts","PriceIntelligenceAssessmentContext","PriceIntelligenceInput","PriceIntelligenceResult","PriceReference","PriceReferenceAssessment","RepresentativenessStatus","SufficiencyStatus","TemporalStatus"]
