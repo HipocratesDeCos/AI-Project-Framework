@@ -6,8 +6,6 @@ to buy. Each domain is evaluated using its own producer/contract.
 """
 from __future__ import annotations
 
-from hashlib import sha256
-from json import dumps
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -58,13 +56,6 @@ class PriceHistoryReconciliation(BaseModel):
     historical_references: tuple[RecomputedHistoricalReference, ...]
     qtg_status: Literal["NOT_ASSESSED"] = "NOT_ASSESSED"
     decision_authority: Literal[False] = False
-
-
-def _fingerprint(value: BaseModel) -> str:
-    payload = value.model_dump(mode="json")
-    return sha256(
-        dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()
-    ).hexdigest()
 
 
 def reconcile_price_and_his003(
@@ -120,15 +111,6 @@ def reconcile_price_and_his003(
     if set(source_by_id) != set(reference_by_id):
         raise ValueError("PRICE/HIS003 historical reference set mismatch")
 
-    # Reexecute PRICE from the complete strict company documentary input.
-    # No detached normalized price, QualityTrustResult, or HIS003 result is accepted.
-    price_result = run_price_intelligence_for_company(
-        payload.model_copy(deep=True),
-        assessment_context.model_copy(deep=True),
-        profile.model_copy(deep=True),
-        expected_company_id=expected_company_id,
-    )
-
     histories: list[RecomputedHistoricalReference] = []
     for reference_id, reference in reference_by_id.items():
         if reference.article_identity != purchase.article_id:
@@ -157,6 +139,15 @@ def reconcile_price_and_his003(
                 for trace in item.trace_refs
             )),
         ))
+
+    # Complete HIS003 source validation before computing PRICE. An invalid
+    # or forged history cannot trigger an otherwise valid price calculation.
+    price_result = run_price_intelligence_for_company(
+        payload.model_copy(deep=True),
+        assessment_context.model_copy(deep=True),
+        profile.model_copy(deep=True),
+        expected_company_id=expected_company_id,
+    )
 
     return PriceHistoryReconciliation(
         price_result=price_result,
