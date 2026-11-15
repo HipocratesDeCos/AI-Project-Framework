@@ -24,6 +24,13 @@ from eios.pricing.models import (
 )
 from eios.pricing.representativeness import RepresentativenessObservation
 from eios.pricing.sufficiency import SufficiencyObservation
+from eios.pricing.historical_comparability import (
+    HIS003_REQUIRED_DIMENSIONS,
+    HistoricalComparabilityDimensionAuthority,
+    HistoricalComparabilityDimensionDetermination,
+    aggregate_historical_comparability,
+)
+from eios.quality.gate import QualityCheck, evaluate_quality
 
 
 FIELDS = {
@@ -263,3 +270,39 @@ def test_price_unit_mismatch_without_authorized_conversion_fails():
     report = validate(payload, profile)
     assert not report.complete
     assert "PRICE_NOT_NORMALIZED:H1" in report.issues
+
+
+def test_qtg_apto_does_not_replace_price_economic_coverage():
+    payload, profile, _ = fixtures()
+    qtg = evaluate_quality([QualityCheck("existencia", True, critical=True)])
+    assert qtg.status == "APTO"
+    payload.economic_basis_comparisons = tuple(
+        proof for proof in payload.economic_basis_comparisons
+        if proof.dimension != "TAX"
+    )
+    report = validate(payload, profile)
+    assert not report.complete
+    assert "MATERIAL_COMPARISON_MISSING:H1:TAX" in report.issues
+
+
+def test_his003_comparable_does_not_replace_price_economic_coverage():
+    determinations = tuple(
+        HistoricalComparabilityDimensionDetermination(
+            dimension=dimension,
+            state="EQUIVALENT",
+            authority=HistoricalComparabilityDimensionAuthority(
+                dimension=dimension, authority_ref="AUTH-HIS",
+                methodology_ref="METHOD-HIS", version="v0.1",
+            ),
+            evidence_ids=("E-HIS",), trace_refs=("TRACE-HIS",),
+        ) for dimension in HIS003_REQUIRED_DIMENSIONS
+    )
+    assert aggregate_historical_comparability(determinations) == "COMPARABLE"
+    payload, profile, _ = fixtures()
+    payload.economic_basis_comparisons = tuple(
+        proof for proof in payload.economic_basis_comparisons
+        if proof.dimension != "TRANSPORT"
+    )
+    report = validate(payload, profile)
+    assert not report.complete
+    assert "MATERIAL_COMPARISON_MISSING:H1:TRANSPORT" in report.issues
