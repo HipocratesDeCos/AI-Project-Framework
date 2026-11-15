@@ -69,6 +69,76 @@ def assess_economic_basis(
         item.evidence_id: item.status for item in payload.evidence_validations
     }
 
+    # Material commercial dimensions require explicit documentary equivalence.
+    # Numeric adjustments for these dimensions are NOT implemented by this gate.
+    target_fields = {
+        "TAX": "target_tax_basis",
+        "TRANSPORT": "target_transport_basis",
+        "DISCOUNT": "target_discount_basis",
+        "SURCHARGE": "target_surcharge_basis",
+        "COMMERCIAL": "target_commercial_basis",
+    }
+    declared_targets = {
+        dimension: getattr(basis, field)
+        for dimension, field in target_fields.items()
+        if basis is not None and getattr(basis, field) is not None
+    }
+    material_dimensions = {"QUANTITY", *target_fields.keys()}
+    comparisons = {
+        item.dimension: item
+        for item in payload.economic_basis_comparisons
+        if item.reference_id == reference.source_transaction_id
+    }
+    material_required = (
+        set(declared_targets)
+        | set(comparisons)
+        | {item.dimension for item in records if item.dimension in material_dimensions}
+    )
+    if reference.commercial_conditions is not None:
+        material_required.add("COMMERCIAL")
+
+    for dimension in sorted(material_required):
+        proof = comparisons.get(dimension)
+        evidence = dimension_records.get(dimension)
+        if proof is None:
+            limitations.append("ECONOMIC_DIMENSION_UNVERIFIED:" + dimension)
+            continue
+        if dimension == "QUANTITY":
+            if (
+                proof.source_basis != format(reference.quantity, "f")
+                or proof.target_basis != format(payload.purchase_operation.quantity, "f")
+            ):
+                limitations.append("ECONOMIC_DIMENSION_CONTEXT_MISMATCH:QUANTITY")
+        elif dimension in declared_targets:
+            if proof.target_basis != declared_targets[dimension]:
+                limitations.append("ECONOMIC_DIMENSION_CONTEXT_MISMATCH:" + dimension)
+        else:
+            # A comparison lacking an operation target is not independently
+            # anchored to the intended economic price basis.
+            limitations.append("ECONOMIC_DIMENSION_TARGET_MISSING:" + dimension)
+        if dimension == "COMMERCIAL" and reference.commercial_conditions is not None:
+            if proof.source_basis != reference.commercial_conditions:
+                limitations.append("ECONOMIC_DIMENSION_CONTEXT_MISMATCH:COMMERCIAL")
+
+        if proof.status not in {"EQUIVALENT", "NOT_APPLICABLE"}:
+            limitations.append("ECONOMIC_DIMENSION_UNRESOLVED:" + dimension)
+        if proof.status == "NOT_APPLICABLE" and dimension in declared_targets:
+            limitations.append("ECONOMIC_DIMENSION_INAPPLICABLE_CONFLICT:" + dimension)
+
+        expected_evidence_state = (
+            "RESOLVED" if proof.status == "EQUIVALENT" else "NOT_APPLICABLE"
+        )
+        if (
+            evidence is None
+            or evidence.status != expected_evidence_state
+            or proof.rule_reference != evidence.rule_reference
+            or proof.trace_reference != evidence.trace_reference
+            or not set(proof.evidence_refs).issubset(evidence.evidence_refs)
+            or any(validation_status[ref] != "VALID" for ref in proof.evidence_refs)
+            or any(validation_status[ref] != "VALID" for ref in evidence.evidence_refs)
+        ):
+            limitations.append("ECONOMIC_DIMENSION_EVIDENCE_MISMATCH:" + dimension)
+
     if set(instructions) - set(required):
         limitations.append("UNNECESSARY_CONVERSION_INSTRUCTION")
     if required and not set(required).issubset(dimension_records):
@@ -115,6 +185,7 @@ def assess_economic_basis(
         or "CONVERSION_CONTEXT_MISMATCH" in limitations
         or "CONVERSION_EVIDENCE_MISMATCH" in limitations
         or "NORMALIZATION_TRANSFORMATION_NOT_EXECUTED" in limitations
+        or any(value.startswith("ECONOMIC_DIMENSION_") for value in limitations)
     )
     normalization = []
     normalized_price = None
@@ -189,6 +260,12 @@ def run_price_intelligence(payload:PriceIntelligenceInput,context:PriceIntellige
         if instruction.reference_id not in selected:
             continue
         for ref in (instruction.source_ref,) + instruction.evidence_refs:
+            if ref not in traces:
+                traces.append(ref)
+    for proof in payload.economic_basis_comparisons:
+        if proof.reference_id not in selected:
+            continue
+        for ref in (proof.source_ref, proof.rule_reference, proof.trace_reference) + proof.evidence_refs:
             if ref not in traces:
                 traces.append(ref)
     return PriceIntelligenceResult(decision_id=payload.decision_context.decision_id,scenario_id=payload.decision_context.scenario_id,data_snapshot_id=payload.decision_context.data_snapshot_id,methodology_version=payload.methodology_version,pr_value=pr_value,currency=payload.purchase_operation.currency if pr_value is not None else None,sufficiency_status=status,pr_status={"SUFFICIENT":"PR_AVAILABLE","LIMITED":"PR_LIMITED","NOT_JUSTIFIABLE":"PR_NOT_JUSTIFIABLE"}[status],pr_limitations=tuple(limitations),reference_set=selected,counts=PriceCounts(n_raw=len(identified),n_unique=len(unique),n_comparable=sum(a.comparability=="COMPARABLE" for a in ordered),n_representative=sum(a.comparability=="COMPARABLE" and a.representativeness=="REPRESENTATIVE" for a in ordered),n_selected=len(selected)),aggregation_method=method,trace_references=tuple(traces))
