@@ -6,6 +6,9 @@ from decimal import Decimal
 import pytest
 
 from eios.core.models import DecisionContext, EvidenceValidation, PurchaseOperation
+from eios.core.price_integration import build_provenanced_company_price_invoker
+from eios.core.orchestration import O1ExecutionStatus
+from eios.core.mvp_execution import run_mvp_execution
 from eios.pricing.company_coverage import (
     MATERIAL_DIMENSIONS,
     PriceCompanyCoverageProfile,
@@ -306,3 +309,138 @@ def test_his003_comparable_does_not_replace_price_economic_coverage():
     report = validate(payload, profile)
     assert not report.complete
     assert "MATERIAL_COMPARISON_MISSING:H1:TRANSPORT" in report.issues
+
+
+def _strict_invoker(payload=None, profile=None, assessment_context=None,
+                    company="COMPANY-1"):
+    default_payload, default_profile, default_assessment = fixtures()
+    return build_provenanced_company_price_invoker(
+        payload=payload if payload is not None else default_payload,
+        assessment_context=assessment_context if assessment_context is not None
+                           else default_assessment,
+        profile=profile if profile is not None else default_profile,
+        expected_company_id=company,
+    )
+
+
+def test_strict_o1_invoker_returns_price_capability_with_profile_trace():
+    payload, profile, context = fixtures()
+    result = _strict_invoker(payload, profile, context)(
+        payload.purchase_operation, payload.decision_context
+    )
+    assert result.capability == "PRICE"
+    assert result.status == O1ExecutionStatus.COMPLETED
+    assert result.result_available is True
+    assert "PROFILE-1" in result.trace_references
+    assert "DOC-PROFILE" in result.trace_references
+
+
+def test_strict_invoker_connects_to_existing_mvp_execution_without_new_authority():
+    payload, profile, context = fixtures()
+    execution = run_mvp_execution(
+        purchase=payload.purchase_operation,
+        context=payload.decision_context,
+        policy_version="COMPANY-PRICE-SYNTHETIC-1",
+        price_invoker=_strict_invoker(payload, profile, context),
+    )
+    result = execution.capability_results[0]
+    assert result.capability == "PRICE"
+    assert result.status == O1ExecutionStatus.COMPLETED
+    assert "TRACE-PROFILE" in result.trace_references
+
+
+@pytest.mark.parametrize("field,foreign", [
+    ("decision_id", "FOREIGN-D"),
+    ("scenario_id", "FOREIGN-S"),
+    ("rules_version", "FOREIGN-R"),
+    ("parameters_version", "FOREIGN-P"),
+    ("data_snapshot_id", "FOREIGN-SNAPSHOT"),
+])
+def test_strict_invoker_rejects_foreign_execution_context(field, foreign):
+    payload, profile, context = fixtures()
+    invoker = _strict_invoker(payload, profile, context)
+    tampered = payload.decision_context.model_copy(update={field: foreign})
+    with pytest.raises(ValueError, match=field):
+        invoker(payload.purchase_operation, tampered)
+
+
+@pytest.mark.parametrize("field,foreign", [
+    ("article_id", "FOREIGN-SKU"),
+    ("supplier_id", "FOREIGN-SUPPLIER"),
+    ("quantity", Decimal("11")),
+    ("unit_price", Decimal("999")),
+    ("operation_date", date(2026, 8, 3)),
+])
+def test_strict_invoker_rejects_altered_purchase(field, foreign):
+    payload, profile, context = fixtures()
+    invoker = _strict_invoker(payload, profile, context)
+    tampered = payload.purchase_operation.model_copy(update={field: foreign})
+    with pytest.raises(ValueError, match=field):
+        invoker(tampered, payload.decision_context)
+
+
+def test_strict_invoker_blocks_foreign_company_before_calculating():
+    payload, profile, context = fixtures()
+    invoker = _strict_invoker(payload, profile, context, company="COMPANY-2")
+    with pytest.raises(PriceCoverageError) as exc:
+        invoker(payload.purchase_operation, payload.decision_context)
+    assert "COMPANY_SCOPE_MISMATCH" in exc.value.report.issues
+
+
+def test_strict_invoker_blocks_missing_material_without_legacy_fallback(monkeypatch):
+    import eios.pricing.company_coverage as strict_boundary
+
+    payload, profile, context = fixtures()
+    payload.economic_basis_comparisons = tuple(
+        item for item in payload.economic_basis_comparisons
+        if item.dimension != "DISCOUNT"
+    )
+    invoker = _strict_invoker(payload, profile, context)
+
+    def unexpected_legacy_run(*args, **kwargs):
+        raise AssertionError("C1 no debe ejecutarse sin cobertura estricta")
+
+    monkeypatch.setattr(strict_boundary, "run_price_intelligence", unexpected_legacy_run)
+    with pytest.raises(PriceCoverageError) as exc:
+        invoker(payload.purchase_operation, payload.decision_context)
+    assert "MATERIAL_COMPARISON_MISSING:H1:DISCOUNT" in exc.value.report.issues
+
+
+def test_strict_invoker_freezes_inputs_before_late_mutation():
+    payload, profile, context = fixtures()
+    original_purchase = payload.purchase_operation.model_copy(deep=True)
+    original_context = payload.decision_context.model_copy(deep=True)
+    invoker = _strict_invoker(payload, profile, context)
+
+    payload.references = ()
+    payload.economic_basis_comparisons = ()
+    payload.purchase_operation.article_id = "MUTATED-ARTICLE"
+    payload.decision_context.rules_version = "MUTATED-RULES"
+
+    result = invoker(original_purchase, original_context)
+    assert result.status == O1ExecutionStatus.COMPLETED
+    assert result.result_available is True
+
+
+def test_strict_invoker_cannot_be_repaired_after_construction_by_mutating_caller():
+    payload, profile, context = fixtures()
+    incomplete = tuple(
+        item for item in payload.economic_basis_comparisons
+        if item.dimension != "TAX"
+    )
+    complete = payload.economic_basis_comparisons
+    payload.economic_basis_comparisons = incomplete
+    invoker = _strict_invoker(payload, profile, context)
+    payload.economic_basis_comparisons = complete
+    with pytest.raises(PriceCoverageError):
+        invoker(payload.purchase_operation, payload.decision_context)
+
+
+def test_strict_invoker_rejects_untyped_or_untrusted_builder_context():
+    payload, profile, context = fixtures()
+    with pytest.raises(TypeError, match="PriceCompanyCoverageProfile"):
+        _strict_invoker(payload, object(), context)
+    with pytest.raises(ValueError, match="expected_company_id"):
+        _strict_invoker(payload, profile, context, company="  ")
+    with pytest.raises(TypeError, match="PriceIntelligenceInput"):
+        _strict_invoker(object(), profile, context)
