@@ -215,6 +215,16 @@ def test_quantity_difference_without_justification_is_rejected_by_contract():
         proof("QUANTITY", "8", "10")
 
 
+def test_quantity_difference_cannot_be_called_not_applicable():
+    result = assess(price_data(
+        quantity="8",
+        comparisons=(proof("QUANTITY", "8", "10", status="NOT_APPLICABLE"),),
+        economic_records=(evidence("QUANTITY", status="NOT_APPLICABLE"),),
+    ))
+    assert result.normalized_unit_price is None
+    assert "ECONOMIC_DIMENSION_INAPPLICABLE_CONFLICT:QUANTITY" in result.limitation_refs
+
+
 def test_duplicate_material_proofs_rejected():
     with pytest.raises(ValidationError, match="duplicadas"):
         price_data(
