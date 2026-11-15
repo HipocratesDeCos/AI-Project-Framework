@@ -332,3 +332,43 @@ def test_reconciliation_does_not_mutate_source_payload():
     before = data["payload"].model_dump(mode="json")
     run(data)
     assert data["payload"].model_dump(mode="json") == before
+
+
+def test_forged_his003_source_never_triggers_price_calculation(monkeypatch):
+    import eios.core.price_his003_reconciliation as reconciliation
+
+    data = fixture()
+    source = data["historical_sources"][0]
+    fake_evidence = source.dimension_evidences[0].model_copy(
+        update={"demonstration_ref": "his003_dimension:forged"}
+    )
+    data["historical_sources"] = (
+        source.model_copy(update={
+            "dimension_evidences": (fake_evidence, *source.dimension_evidences[1:]),
+        }),
+    )
+
+    def price_must_not_run(*args, **kwargs):
+        raise AssertionError("PRICE executed before HIS003 provenance validation")
+
+    monkeypatch.setattr(
+        reconciliation, "run_price_intelligence_for_company", price_must_not_run
+    )
+    with pytest.raises(ValueError, match="determinación exacta"):
+        run(data)
+
+
+def test_valid_his003_history_still_reaches_strict_price_gate(monkeypatch):
+    import eios.core.price_his003_reconciliation as reconciliation
+
+    data = fixture()
+    called = []
+    original = reconciliation.run_price_intelligence_for_company
+
+    def counted(*args, **kwargs):
+        called.append(1)
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(reconciliation, "run_price_intelligence_for_company", counted)
+    run(data)
+    assert called == [1]
