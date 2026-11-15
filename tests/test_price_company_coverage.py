@@ -243,3 +243,23 @@ def test_conflicting_duplicate_documentary_reference_is_rejected():
     report = validate(payload, profile)
     assert not report.complete
     assert "CONFLICTING_REFERENCE_ID:H1" in report.issues
+
+
+def test_reference_without_evidence_does_not_count_as_validated():
+    payload, profile, _ = fixtures()
+    payload.references = (
+        payload.references[0].model_copy(update={"evidence_refs": ()}),
+    )
+    report = validate(payload, profile)
+    assert not report.complete
+    assert "REFERENCE_EVIDENCE_UNVALIDATED:H1" in report.issues
+
+
+def test_price_unit_mismatch_without_authorized_conversion_fails():
+    payload, profile, _ = fixtures()
+    payload.references = (
+        payload.references[0].model_copy(update={"unit": "BOX"}),
+    )
+    report = validate(payload, profile)
+    assert not report.complete
+    assert "PRICE_NOT_NORMALIZED:H1" in report.issues
