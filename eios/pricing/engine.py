@@ -138,8 +138,12 @@ def assess_economic_basis(
                         )
                     )
                     value = converted
-                normalized_price = value.quantize(
-                    Decimal("0.0001"), rounding=ROUND_HALF_EVEN
+                # Unchanged, already-comparable prices preserve their exact
+                # numeric representation for reference-demo reproducibility.
+                # Only performed conversions need a new four-decimal result.
+                normalized_price = (
+                    value.quantize(Decimal("0.0001"), rounding=ROUND_HALF_EVEN)
+                    if normalization else value
                 )
         except InvalidOperation:
             normalization = []
