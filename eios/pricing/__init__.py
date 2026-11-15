@@ -84,3 +84,22 @@ __all__ += [
     "historical_comparability_dimension_ref",
     "historical_comparability_reference_ref",
 ]
+
+
+from .company_coverage import (
+    MATERIAL_DIMENSIONS as PRICE_REQUIRED_MATERIAL_DIMENSIONS,
+    PriceCompanyCoverageProfile,
+    PriceCoverageReport,
+    PriceCoverageError,
+    assess_price_company_coverage,
+    run_price_intelligence_for_company,
+)
+
+__all__ += [
+    "PRICE_REQUIRED_MATERIAL_DIMENSIONS",
+    "PriceCompanyCoverageProfile",
+    "PriceCoverageReport",
+    "PriceCoverageError",
+    "assess_price_company_coverage",
+    "run_price_intelligence_for_company",
+]
