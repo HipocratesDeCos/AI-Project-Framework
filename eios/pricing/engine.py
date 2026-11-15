@@ -1,8 +1,9 @@
 """Deterministic C1 pipeline for EIOS Price Intelligence."""
 from __future__ import annotations
 from collections.abc import Sequence
+from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext
 from .aggregation import aggregate_selected_prices
-from .models import (ComparabilityStatus,EconomicBasisAssessment,EconomicBasisEvidence,PriceCounts,PriceIntelligenceAssessmentContext,PriceIntelligenceInput,PriceIntelligenceResult,PriceReference,PriceReferenceAssessment)
+from .models import (ComparabilityStatus,EconomicBasisAssessment,EconomicBasisEvidence,NormalizationRecord,PriceCounts,PriceIntelligenceAssessmentContext,PriceIntelligenceInput,PriceIntelligenceResult,PriceReference,PriceReferenceAssessment)
 from .representativeness import RepresentativenessObservation, assess_representativeness
 from .sufficiency import assess_sufficiency
 
@@ -36,52 +37,121 @@ def assess_economic_basis(
     basis = payload.normalization_basis
     records = _economic_records(payload, reference.source_transaction_id)
     economic_basis = EconomicBasisAssessment(records=records)
-    limitations = assessment.limitation_refs
+    limitations = list(assessment.limitation_refs)
 
     target_unit = basis.target_unit if basis is not None else reference.unit
-    unit_mismatch = reference.unit != target_unit
-    currency_mismatch = reference.currency != payload.purchase_operation.currency
-    transformation_required = unit_mismatch or currency_mismatch
+    required = {}
+    if reference.unit != target_unit:
+        required["UNIT"] = (reference.unit, target_unit)
+        limitations.append("UNIT_CONVERSION_REQUIRED")
+    if reference.currency != payload.purchase_operation.currency:
+        required["CURRENCY"] = (
+            reference.currency, payload.purchase_operation.currency
+        )
+        limitations.append("CURRENCY_CONVERSION_REQUIRED")
+    if required and basis is None:
+        limitations.append("NORMALIZATION_BASIS_MISSING")
 
-    if transformation_required and basis is None:
-        limitations += ("NORMALIZATION_BASIS_MISSING",)
-    if unit_mismatch:
-        limitations += ("UNIT_CONVERSION_REQUIRED",)
-    if currency_mismatch:
-        limitations += ("CURRENCY_CONVERSION_REQUIRED",)
+    # Evidence declarations never perform a numeric conversion by themselves.
+    # The underlying records may document additional economic dimensions.
+    if records and not economic_basis.all_resolved:
+        limitations.append("ECONOMIC_BASIS_INCOMPLETE")
 
-    required_dimensions = set()
-    if unit_mismatch:
-        required_dimensions.add("UNIT")
-    if currency_mismatch:
-        required_dimensions.add("CURRENCY")
-    resolved_dimensions = {
-        record.dimension for record in records if record.status == "RESOLVED"
+    dimension_records = {
+        item.dimension: item for item in records
     }
-    incomplete_basis = bool(records) and not economic_basis.all_resolved
-    if transformation_required and (
-        not required_dimensions.issubset(resolved_dimensions) or not economic_basis.all_resolved
-    ):
-        incomplete_basis = True
-    if incomplete_basis:
-        limitations += ("ECONOMIC_BASIS_INCOMPLETE",)
+    instructions = {
+        item.dimension: item
+        for item in payload.price_conversion_instructions
+        if item.reference_id == reference.source_transaction_id
+    }
+    validation_status = {
+        item.evidence_id: item.status for item in payload.evidence_validations
+    }
 
-    # Evidence of a transformation is not its numeric execution. Until an
-    # authorized conversion produces a converted amount, do not publish the
-    # original value as if it were normalized in the target currency/unit.
-    if transformation_required:
-        limitations += ("NORMALIZATION_TRANSFORMATION_NOT_EXECUTED",)
+    if set(instructions) - set(required):
+        limitations.append("UNNECESSARY_CONVERSION_INSTRUCTION")
+    if required and not set(required).issubset(dimension_records):
+        limitations.append("ECONOMIC_BASIS_INCOMPLETE")
+    if required and not set(required).issubset(instructions):
+        limitations.append("NORMALIZATION_TRANSFORMATION_NOT_EXECUTED")
 
-    status = (
-        "NORMALIZED"
-        if not transformation_required and not incomplete_basis
-        else "PENDING"
+    # Each numerical instruction must match its source, target, historical date
+    # and the same RESOLVED economic evidence that authorizes its dimension.
+    accepted = {}
+    for dimension, (source_code, target_code) in required.items():
+        instruction = instructions.get(dimension)
+        evidence = dimension_records.get(dimension)
+        if instruction is None:
+            continue
+        if (
+            instruction.source_code != source_code
+            or instruction.target_code != target_code
+            or instruction.effective_date != reference.operation_date
+        ):
+            limitations.append("CONVERSION_CONTEXT_MISMATCH")
+            continue
+        if evidence is None or evidence.status != "RESOLVED":
+            limitations.append("ECONOMIC_BASIS_INCOMPLETE")
+            continue
+        if (
+            instruction.rule_reference != evidence.rule_reference
+            or instruction.trace_reference != evidence.trace_reference
+            or not set(instruction.evidence_refs).issubset(evidence.evidence_refs)
+            or any(validation_status[ref] != "VALID" for ref in instruction.evidence_refs)
+            or any(validation_status[ref] != "VALID" for ref in evidence.evidence_refs)
+        ):
+            limitations.append("CONVERSION_EVIDENCE_MISMATCH")
+            continue
+        accepted[dimension] = instruction
+
+    if required and set(accepted) != set(required):
+        limitations.append("NORMALIZATION_TRANSFORMATION_NOT_EXECUTED")
+
+    blocking = (
+        (required and basis is None)
+        or "ECONOMIC_BASIS_INCOMPLETE" in limitations
+        or "UNNECESSARY_CONVERSION_INSTRUCTION" in limitations
+        or "CONVERSION_CONTEXT_MISMATCH" in limitations
+        or "CONVERSION_EVIDENCE_MISMATCH" in limitations
+        or "NORMALIZATION_TRANSFORMATION_NOT_EXECUTED" in limitations
     )
+    normalization = []
+    normalized_price = None
+    if not blocking:
+        try:
+            with localcontext() as decimal_context:
+                decimal_context.prec = 50
+                value = reference.unit_price
+                for dimension in ("UNIT", "CURRENCY"):
+                    instruction = accepted.get(dimension)
+                    if instruction is None:
+                        continue
+                    converted = value * instruction.factor
+                    normalization.append(
+                        NormalizationRecord(
+                            field=dimension,
+                            original_value=format(value, "f"),
+                            normalized_value=format(converted, "f"),
+                            rule_reference=instruction.rule_reference,
+                            trace_reference=instruction.trace_reference,
+                        )
+                    )
+                    value = converted
+                normalized_price = value.quantize(
+                    Decimal("0.0001"), rounding=ROUND_HALF_EVEN
+                )
+        except InvalidOperation:
+            normalization = []
+            limitations.append("CONVERSION_NUMERIC_LIMIT")
+
+    status = "NORMALIZED" if normalized_price is not None else "PENDING"
     return assessment.model_copy(
         update={
             "economic_basis": economic_basis,
             "normalization_status": status,
-            "normalized_unit_price": reference.unit_price if status == "NORMALIZED" else None,
+            "normalized_unit_price": normalized_price,
+            "normalization": tuple(normalization),
             "limitation_refs": tuple(dict.fromkeys(limitations)),
         }
     )
@@ -105,5 +175,17 @@ def run_price_intelligence(payload:PriceIntelligenceInput,context:PriceIntellige
     ordered=tuple(assessments[rid] for rid,_ in unique);selected=select_references(ordered);obs_ids=tuple(context.sufficiency.selected_reference_ids)
     if set(obs_ids)!=set(selected):raise ValueError("SufficiencyObservation no corresponde al conjunto seleccionado")
     values=tuple(assessments[rid].normalized_unit_price for rid in selected if assessments[rid].normalized_unit_price is not None);status=assess_sufficiency(len(selected),context.sufficiency);pr_value,method=aggregate_selected_prices(values) if selected else (None,"MEDIAN_UNWEIGHTED");limitations=list(dict.fromkeys(x for a in ordered for x in a.limitation_refs));limitations.extend(x for x in context.sufficiency.methodological_limitations if x not in limitations);traces=list(dict.fromkeys(x for a in ordered for x in (a.temporal_rule_reference,) if x));traces.extend(x for x in context.sufficiency.evidence_refs+(context.sufficiency.rule_reference,context.sufficiency.trace_reference) if x and x not in traces)
+    # Preserve the exact authority and source trail of executed conversions.
+    for item in ordered:
+        for record in item.normalization:
+            for ref in (record.rule_reference, record.trace_reference):
+                if ref not in traces:
+                    traces.append(ref)
+    for instruction in payload.price_conversion_instructions:
+        if instruction.reference_id not in selected:
+            continue
+        for ref in (instruction.source_ref,) + instruction.evidence_refs:
+            if ref not in traces:
+                traces.append(ref)
     return PriceIntelligenceResult(decision_id=payload.decision_context.decision_id,scenario_id=payload.decision_context.scenario_id,data_snapshot_id=payload.decision_context.data_snapshot_id,methodology_version=payload.methodology_version,pr_value=pr_value,currency=payload.purchase_operation.currency if pr_value is not None else None,sufficiency_status=status,pr_status={"SUFFICIENT":"PR_AVAILABLE","LIMITED":"PR_LIMITED","NOT_JUSTIFIABLE":"PR_NOT_JUSTIFIABLE"}[status],pr_limitations=tuple(limitations),reference_set=selected,counts=PriceCounts(n_raw=len(identified),n_unique=len(unique),n_comparable=sum(a.comparability=="COMPARABLE" for a in ordered),n_representative=sum(a.comparability=="COMPARABLE" and a.representativeness=="REPRESENTATIVE" for a in ordered),n_selected=len(selected)),aggregation_method=method,trace_references=tuple(traces))
 __all__=["assess_comparability","assess_economic_basis","assess_representativeness_for_reference","assess_temporality","deduplicate_references","identify_references","normalize_reference","run_price_intelligence","select_references"]
