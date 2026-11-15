@@ -171,7 +171,7 @@ def assess_price_company_coverage(
             ):
                 issues.append("MATERIAL_EVIDENCE_INVALID:" + marker)
 
-        if status_by_id and all(
+        if reference.evidence_refs and all(
             status_by_id.get(ref) == "VALID" for ref in reference.evidence_refs
         ):
             assessment = assess_economic_basis(
