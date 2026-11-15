@@ -23,9 +23,9 @@ Antes de ejecutar:
 1. Se coteja la compra íntegra y el `DecisionContext` completo del PRICE con la ejecución presentada.
 2. Se comprueba identidad de regla R-HIS-003, versión y exigencia de evidencias.
 3. Cada referencia PRICE debe tener una única fuente HIS003 con el mismo `source_transaction_id`; no se permiten ausencias ni fuentes externas/duplicadas.
-4. PRICE se reejecuta mediante `run_price_intelligence_for_company`, con cobertura estricta y empresa esperada.
-5. HIS003 se reejecuta mediante `evaluate_r_his_003` con la referencia **tomada del mismo payload PRICE** y las determinaciones/evidencias suministradas.
-6. Las huellas provienen de `historical_comparability_reference_ref`; las evidencias HIS003 verifican su `demonstration_ref`, fecha, tipo y dimensión con el productor existente.
+4. HIS003 se reejecuta **antes de PRICE**, mediante `evaluate_r_his_003`, con la referencia **tomada del mismo payload PRICE** y las determinaciones/evidencias suministradas. Una identidad o evidencia histórica incorrecta detiene la ejecución.
+5. Las huellas provienen de `historical_comparability_reference_ref`; las evidencias HIS003 verifican su `demonstration_ref`, fecha, tipo y dimensión con el productor existente.
+6. Solo si la cadena HIS003 se ha podido reconstruir sin errores de integridad, PRICE se reejecuta mediante `run_price_intelligence_for_company`, con cobertura estricta y empresa esperada. El estado HIS003 `NOT_EVALUABLE` es un resultado independiente, no un error técnico por sí mismo.
 
 ## 3. Semántica preservada
 
