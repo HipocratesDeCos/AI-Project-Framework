@@ -22,7 +22,7 @@ Por tanto, el estado `PENDING_ENGINE_BINDING` de todo el catálogo empresarial n
 
 ## 2. Contrato materializado
 
-`eios/parameters/company_binding_report.py` ofrece:
+`eios/company_parameter_bindings.py` ofrece:
 
 `describe_company_parameter_bindings(catalogue, activation, company_id, dataset_id, as_of_date, current_revision)`
 
