@@ -13,8 +13,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+security = [
+    "cryptography>=43.0,<50.0",
+]
 test = [
     "pytest>=8.0,<9.0",
+    "cryptography>=43.0,<50.0",
 ]
 
 [tool.pytest.ini_options]
