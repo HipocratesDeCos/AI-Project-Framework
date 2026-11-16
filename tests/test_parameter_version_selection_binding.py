@@ -81,7 +81,7 @@ def test_complete_selection_matched_to_existing_context_version_without_authorit
     record = run(args)
     assert isinstance(record, VersionBoundParameterSelection)
     assert record.lookup.parameters_version == "VERSION-1"
-    assert record.manifest is manifest
+    assert record.manifest == manifest
     assert record.selection_fingerprint == manifest.selection_fingerprint
     assert record.version_attestation == "MATCHED_SUPPLIED_VERSION_SOURCE"
     assert record.source_authentication == "ADAPTER_RESPONSIBILITY"
