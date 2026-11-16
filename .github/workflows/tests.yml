@@ -94,3 +94,9 @@ jobs:
         run: python tools/build_eios_tco_distribution.py --output dist/tco
       - name: F5.3 verify TCO alone and jointly with the neutral kernel
         run: python tools/verify_f5_3_optional_tco.py --tco-dir dist/tco --kernel-dir dist/kernel
+
+      - name: F5.4 build audited optional procurement PRICE distribution
+        run: python tools/build_eios_price_distribution.py --output dist/price
+      - name: F5.4 verify standalone PRICE, kernel coexistence and TCO conflict gate
+        run: python tools/verify_f5_4_optional_price.py --price-dir dist/price --kernel-dir dist/kernel --tco-dir dist/tco
+
