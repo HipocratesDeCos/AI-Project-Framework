@@ -262,15 +262,15 @@ def test_wrong_company_configuration_from_repository_is_rejected():
     assert raised.value.code == "CONFIGURATION_SCOPE_MISMATCH"
 
 
-@pytest.mark.parametrize("change,expected", [
-    ({"unit": "days"}, "CONFIGURATION_UNIT_MISMATCH"),
-    ({"value_type": "DECIMAL"}, "CONFIGURATION_TYPE_MISMATCH"),
-    ({"value": "Maybe"}, "CONFIGURATION_VALUE_INVALID"),
+@pytest.mark.parametrize("pid,change,expected", [
+    (OTHER, {"unit": "days"}, "CONFIGURATION_UNIT_MISMATCH"),
+    (PID, {"value_type": "DECIMAL"}, "CONFIGURATION_TYPE_MISMATCH"),
+    (PID, {"value": "Maybe"}, "CONFIGURATION_VALUE_INVALID"),
 ])
-def test_catalogue_invariants_remain_authoritative_for_canonical_read(change, expected):
-    center, repo = make_center(replace(configuration(), **change))
+def test_catalogue_invariants_remain_authoritative_for_canonical_read(pid, change, expected):
+    center, repo = make_center(replace(configuration(pid=pid, value="20" if pid == OTHER else "Sí"), **change))
     with pytest.raises(ParameterLookupError) as raised:
-        query(center)
+        query(center, ids=(pid,))
     assert raised.value.code == expected
 
 
@@ -334,3 +334,23 @@ def test_invalid_datetime_and_unknown_parameter_rejected():
     with pytest.raises(ParameterConfigurationError) as err:
         query(center, ids=("P-UNKNOWN",))
     assert err.value.code == "PARAMETER_NOT_FOUND"
+
+
+def test_caller_context_mutation_during_repository_read_does_not_relabel_response():
+    config = configuration()
+    center, repository = make_center(config)
+    original_context = context()
+    original_get = repository.get_at
+
+    def mutate_context(*args):
+        original_context.parameters_version = "MODIFIED-AFTER-REQUEST"
+        return original_get(*args)
+
+    repository.get_at = mutate_context
+    result = query(
+        center, ctx=original_context,
+        evidence={PID: proof(config)},
+    )
+    assert original_context.parameters_version == "MODIFIED-AFTER-REQUEST"
+    assert result.parameters_version == "VERSION-1"
+    assert result.entries[0].resolution.parameters_version == "VERSION-1"
