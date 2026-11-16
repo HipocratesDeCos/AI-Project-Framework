@@ -290,9 +290,8 @@ def test_boolean_success_does_not_create_operational_authority_or_persistence():
     source = args["version_source"]
     assert source.decision_authority is False
     assert source.operational_path == "FORBIDDEN"
-    assert source.source_authentication == (
-        "SIGNATURE_VERIFIED_AGAINST_SUPPLIED_TRUST_ANCHOR"
-    )
+    assert source.source_authentication == "UNATTESTED_UNTIL_MANIFEST_RETURNED"
+    assert source.verification_method == "ED25519_PUBLIC_KEY_SIGNATURE"
     assert not hasattr(source, "apply_change")
     assert not hasattr(source, "save_version")
     assert read_version_bound_parameter_selection(**args).decision_authority is False
