@@ -139,9 +139,9 @@ class GovernedParameterVersionSource:
             or len(governance_key.public_key_bytes) != 32
         ):
             _fail("INVALID_GOVERNANCE_TRUST", "Governance Ed25519 public key must be 32 bytes")
-        if _stamp(governance_key.valid_from, "valid_from") >= _stamp(
-            governance_key.valid_to, "valid_to"
-        ):
+        _stamp(governance_key.valid_from, "valid_from")
+        _stamp(governance_key.valid_to, "valid_to")
+        if governance_key.valid_from >= governance_key.valid_to:
             _fail("INVALID_GOVERNANCE_TRUST", "Governance validity interval invalid")
         _stamp(verification_at, "verification_at")
         if not callable(getattr(history_repository, "get_signed_history", None)):
@@ -253,7 +253,7 @@ class GovernedParameterVersionSource:
             if type(event["sequence"]) is not int or event["sequence"] != index:
                 _fail("INVALID_LIFECYCLE_EVENT", "Events must have consecutive sequence numbers")
             action = event["action"]
-            if action not in _ACTIONS or not isinstance(action, str):
+            if not isinstance(action, str) or action not in _ACTIONS:
                 _fail("INVALID_LIFECYCLE_EVENT", "Unknown lifecycle action")
             key_id = _id(event["key_id"], "key_id")
             at = _signed_stamp(event["at"], "event.at")
