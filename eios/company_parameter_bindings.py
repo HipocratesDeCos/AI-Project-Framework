@@ -39,12 +39,15 @@ def _verified_local_activation(
     if not isinstance(fingerprint, str) or len(fingerprint) != 64:
         return False
     original = {k: v for k, v in activation.items() if k != "fingerprint"}
-    digest = sha256(
-        json.dumps(
-            original, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
-            allow_nan=False,
-        ).encode("utf-8")
-    ).hexdigest()
+    try:
+        digest = sha256(
+            json.dumps(
+                original, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+                allow_nan=False,
+            ).encode("utf-8")
+        ).hexdigest()
+    except (TypeError, ValueError, OverflowError):
+        return False
     if digest != fingerprint:
         return False
 
@@ -53,7 +56,10 @@ def _verified_local_activation(
         return False
     if not isinstance(configs, list) or len(configs) != len(LOCAL_FINANCE_CONSUMERS):
         return False
-    if type(activation.get("request_revision")) is not int:
+    if (
+        type(activation.get("request_revision")) is not int
+        or activation["request_revision"] < 1
+    ):
         return False
 
     try:
