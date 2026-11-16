@@ -19,7 +19,10 @@ import tempfile
 import venv
 import zipfile
 
-from build_eios_kernel_distribution import SOURCE_FILES, audit_wheel
+if __package__:
+    from .build_eios_kernel_distribution import SOURCE_FILES, audit_wheel
+else:  # Run directly as python tools/verify_f4_4_two_consumers.py
+    from build_eios_kernel_distribution import SOURCE_FILES, audit_wheel
 
 ROOT = Path(__file__).resolve().parents[1]
 CONSUMERS = {
