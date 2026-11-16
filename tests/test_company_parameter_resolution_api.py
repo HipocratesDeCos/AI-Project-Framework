@@ -354,3 +354,14 @@ def test_caller_context_mutation_during_repository_read_does_not_relabel_respons
     assert original_context.parameters_version == "MODIFIED-AFTER-REQUEST"
     assert result.parameters_version == "VERSION-1"
     assert result.entries[0].resolution.parameters_version == "VERSION-1"
+
+
+def test_a_downstream_mutation_of_returned_evidence_cannot_rewrite_report():
+    config = configuration()
+    center, _ = make_center(config)
+    result = query(center, evidence={PID: proof(config)})
+    first_copy = result.entries[0].evidence
+    original_ref = first_copy.source_ref
+    first_copy.source_ref = "tampered-by-an-external-consumer"
+    assert result.entries[0].evidence.source_ref == original_ref
+    assert result.entries[0].ready_for_consumer_checks
