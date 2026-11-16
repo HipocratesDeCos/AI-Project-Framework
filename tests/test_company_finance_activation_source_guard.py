@@ -15,16 +15,17 @@ from eios.company_finance_parameters import (
     Authorization, Catalogue, IDS, Repository,
 )
 from eios.parameters.center import ParameterConfigurationCenter
-from tests.test_company_finance_activation import FinanceActivationTest
+from tests.test_company_finance_activation import FinanceActivationTest as _FinanceActivationTest
 
 
 class LocalFinanceActivationSourceGuardTest(unittest.TestCase):
-    setUp = FinanceActivationTest.setUp
-    tearDown = FinanceActivationTest.tearDown
-    prepare = FinanceActivationTest.prepare
-    activate = FinanceActivationTest.activate
-    financial_data = FinanceActivationTest.financial_data
-    context = FinanceActivationTest.context
+    setUp = _FinanceActivationTest.setUp
+    tearDown = _FinanceActivationTest.tearDown
+    add = _FinanceActivationTest.add
+    prepare = _FinanceActivationTest.prepare
+    activate = _FinanceActivationTest.activate
+    financial_data = _FinanceActivationTest.financial_data
+    context = _FinanceActivationTest.context
 
     def exercise(self):
         self.financial_data()
