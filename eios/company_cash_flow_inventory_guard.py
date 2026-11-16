@@ -61,9 +61,9 @@ def verify_local_cash_flow_inventory(
 ) -> tuple[tuple[CashFlow, ...], LocalCashFlowInventoryReceipt]:
     """Compare the *whole* captured selection to one stored dataset.
 
-    The caller must already have authenticated its synthetic dataset scope and
-    opened a SQLite read transaction (F3.1). The returned order equals the
-    captured order; the receipt's content fingerprint covers the source
+    The caller must already have checked its synthetic dataset scope and
+    opened a SQLite read transaction (F3.1). The returned movement order is
+    canonical by flow_id, not the UI input order; the content hash covers source
     record IDs, canonical flow data AND declared source references.
     """
     if not isinstance(connection, sqlite3.Connection) or not connection.in_transaction:
@@ -124,7 +124,6 @@ def verify_local_cash_flow_inventory(
             "source_refs": refs,
         })
 
-    selected: list[CashFlow] = []
     seen: set[str] = set()
     for captured in captured_flows:
         if not isinstance(captured, dict):
@@ -151,7 +150,6 @@ def verify_local_cash_flow_inventory(
                 "CASH_FLOW_CONTENT_MISMATCH",
                 "El movimiento recibido difiere del importe, vencimiento, evidencia u origen conservados.",
             )
-        selected.append(flow)
     if set(persisted) != seen:
         _fail("INVENTORY_SELECTION_INCOMPLETE", "El inventario omite movimientos conservados.")
     material = [
@@ -161,7 +159,10 @@ def verify_local_cash_flow_inventory(
         material, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
         allow_nan=False,
     ).encode("utf-8")).hexdigest()
-    return tuple(selected), LocalCashFlowInventoryReceipt(
+    # Finance Basic diagnostics may otherwise depend on arbitrary UI ordering.
+    # A stable canonical order preserves finance output and error-list fingerprints.
+    canonical_flows = tuple(persisted[flow_id][0] for flow_id in sorted(persisted))
+    return canonical_flows, LocalCashFlowInventoryReceipt(
         company_dataset_id=dataset_id,
         flow_ids=tuple(sorted(persisted)),
         recorded_count=len(persisted),
