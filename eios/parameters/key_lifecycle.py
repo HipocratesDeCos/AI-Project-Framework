@@ -213,6 +213,9 @@ class GovernedParameterVersionSource:
                 ).encode("utf-8") != signed.payload
             ):
                 _fail("INVALID_LIFECYCLE_HISTORY", "Lifecycle JSON must be canonical")
+        except ParameterVersionBindingError:
+            # Preserve precise fail-closed codes (e.g. duplicate JSON keys).
+            raise
         except (UnicodeDecodeError, ValueError, TypeError, OverflowError) as exc:
             raise ParameterVersionBindingError(
                 "INVALID_LIFECYCLE_HISTORY", "Canonical signed JSON invalid",
