@@ -12,6 +12,9 @@ from eios.finance.models import FinanceBasicInput, FinancialSnapshot, CashFlow, 
 from eios.finance.provenance import run_provenanced_finance_basic
 from eios.parameters.center import ParameterConfigurationCenter
 from eios.company_finance_parameters import Catalogue,Authorization,Repository,SCHEMA,IDS
+from eios.company_finance_activation_guard import (
+    LocalFinanceActivationError, verify_local_finance_activation,
+)
 
 
 def execute_documentary_finance(db,proposal,documentary,associations=None):
@@ -20,6 +23,7 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
         message='Activa el horizonte y la tesorería mínima para este corte desde Parámetros.',
         documentary_capture=dict(status='NOT_CAPTURED',message='Faltan los requisitos de ejecución financiera o las asociaciones declaradas.'),
         limitations=[],finance_result=None,parameter_configurations=[],
+        parameter_source_status='NOT_VERIFIED',parameter_activation_ref=None,
         purchase_effect_status='NOT_EVALUATED',viability_status='NOT_EVALUATED',
         decision_authority=False,operational_path='FORBIDDEN')
     def finish():
@@ -45,6 +49,14 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
             configs=[center.get_configuration_at(snapshot.company_scope,key,effective) for key in IDS]
             if any(item is None for item in configs):
                 return finish()
+            admission=verify_local_finance_activation(
+                connection=c,company_id=snapshot.company_scope,
+                dataset_id=documentary['dataset_id'],
+                as_of_date=documentary['as_of_date'],effective_at=effective,
+                configurations=tuple(configs),
+            )
+            result['parameter_source_status']=admission.status
+            result['parameter_activation_ref']=admission.activation_fingerprint
             selected=[{key:value.isoformat() if isinstance(value,datetime) else value for key,value in item.__dict__.items()} for item in configs]
             result['parameter_configurations']=selected
             version=sha256(json.dumps(selected,sort_keys=True,separators=(',',':')).encode()).hexdigest()
@@ -80,6 +92,11 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
         result['limitations']=['No se ha comprobado conciliación ni completitud del inventario de flujos.',
             'No se ha establecido qué flujos corresponden a esta propuesta ni incorporado sus pagos y cuotas.',
             'No se ha ejecutado QTG, Rules ni el decisor: esta salida no acredita viabilidad de compra.']
+    except LocalFinanceActivationError as error:
+        result['parameter_source_status']='REJECTED'
+        result['parameter_source_issue']=error.code
+        result['message']='No se utilizan los parámetros financieros: '+str(error)
+        result['limitations']=['La selección no coincide con la activación local sintética registrada. No se publica un cálculo parcial.']
     except (ValueError,TypeError,KeyError,ArithmeticError) as error:
         result['message']='No se ha podido ejecutar la proyección financiera: '+str(error)
         result['limitations']=['Revisar el contrato de datos o parámetros indicado; no se publica un cálculo parcial.']
