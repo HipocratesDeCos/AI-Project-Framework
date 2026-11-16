@@ -115,7 +115,10 @@ class Ed25519VerifiedParameterVersionSource:
 
     decision_authority = False
     operational_path = "FORBIDDEN"
-    source_authentication = "SIGNATURE_VERIFIED_AGAINST_SUPPLIED_TRUST_ANCHOR"
+    verification_method = "ED25519_PUBLIC_KEY_SIGNATURE"
+    # Construction alone is NOT proof; only a returned manifest has passed
+    # signature verification and the company/key/time checks.
+    source_authentication = "UNATTESTED_UNTIL_MANIFEST_RETURNED"
 
     def __init__(
         self, *,
