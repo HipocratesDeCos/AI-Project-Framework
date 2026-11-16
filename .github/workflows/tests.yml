@@ -90,3 +90,7 @@ jobs:
       - name: F4.4 test two independent consumers on one exact kernel wheel
         run: python tools/verify_f4_4_two_consumers.py --wheel-dir dist/kernel
 
+      - name: F5.3 build canonical optional TCO procurement distribution
+        run: python tools/build_eios_tco_distribution.py --output dist/tco
+      - name: F5.3 verify TCO alone and jointly with the neutral kernel
+        run: python tools/verify_f5_3_optional_tco.py --tco-dir dist/tco --kernel-dir dist/kernel
