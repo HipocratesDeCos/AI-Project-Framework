@@ -21,6 +21,9 @@ from eios.company_cash_flow_inventory_guard import (
 from eios.company_flow_documentary_coverage import (
     audit_local_flow_documentary_coverage,
 )
+from eios.company_invoice_flow_links import (
+    audit_local_invoice_installment_links,
+)
 
 
 def execute_documentary_finance(db,proposal,documentary,associations=None):
@@ -31,6 +34,10 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
         limitations=[],finance_result=None,parameter_configurations=[],
         parameter_source_status='NOT_VERIFIED',parameter_activation_ref=None,
         cash_flow_inventory_status='NOT_VERIFIED',
+        invoice_installment_flow_links=dict(status='NOT_AUDITED',
+            invoice_totals_reconciled='NOT_PERFORMED',
+            bank_payment_reconciliation='NOT_PERFORMED',
+            decision_authority=False,operational_path='FORBIDDEN'),
         flow_documentary_coverage=dict(status='NOT_AUDITED',
             documentary_content_review='NOT_PERFORMED',
             invoice_and_bank_reconciliation='NOT_PERFORMED',
@@ -88,6 +95,14 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
             result['flow_documentary_coverage']=audit_local_flow_documentary_coverage(
                 connection=c, dataset_id=documentary['dataset_id'],
                 flows=flows, captured_flows=documentary['cash_flows'],
+                proposal_context=proposal.get('documentary_context_at_save'),
+            )
+            # Existing payment-association and sales-quality workflows retain
+            # their authority. This only checks explicitly stated links among
+            # saved invoice, installment and already verified flow records.
+            result['invoice_installment_flow_links']=audit_local_invoice_installment_links(
+                connection=c, dataset_id=documentary['dataset_id'],
+                flows=flows,
                 proposal_context=proposal.get('documentary_context_at_save'),
             )
             capital=WorkingCapitalInput.model_validate(documentary['working_capital_input']) if documentary['working_capital_input'] else None
