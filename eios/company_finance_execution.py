@@ -24,6 +24,9 @@ from eios.company_flow_documentary_coverage import (
 from eios.company_invoice_flow_links import (
     audit_local_invoice_installment_links,
 )
+from eios.company_opening_treasury_guard import (
+    OpeningTreasuryScopeError, verify_local_opening_treasury,
+)
 
 
 def execute_documentary_finance(db,proposal,documentary,associations=None):
@@ -33,6 +36,9 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
         documentary_capture=dict(status='NOT_CAPTURED',message='Faltan los requisitos de ejecución financiera o las asociaciones declaradas.'),
         limitations=[],finance_result=None,parameter_configurations=[],
         parameter_source_status='NOT_VERIFIED',parameter_activation_ref=None,
+        opening_treasury_status='NOT_VERIFIED',
+        opening_treasury_reconciled=None,
+        opening_treasury_source_authentication='NOT_EXTERNALLY_AUTHENTICATED',
         cash_flow_inventory_status='NOT_VERIFIED',
         invoice_installment_flow_links=dict(status='NOT_AUDITED',
             invoice_totals_reconciled='NOT_PERFORMED',
@@ -75,6 +81,17 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
             )
             result['parameter_source_status']=admission.status
             result['parameter_activation_ref']=admission.activation_fingerprint
+            opening = verify_local_opening_treasury(
+                connection=c, dataset_id=documentary['dataset_id'],
+                expected_company_id=snapshot.company_scope,
+                snapshot=snapshot,
+                proposal_context=proposal.get('documentary_context_at_save'),
+            )
+            result['opening_treasury_status']=opening.status
+            result['opening_treasury_source_fingerprint']=opening.source_record_fingerprint
+            result['opening_treasury_source_ref']=opening.snapshot_source_ref
+            result['opening_treasury_support_issues']=list(opening.support_issues)
+            result['opening_treasury_support_count']=opening.support_record_count
             selected=[{key:value.isoformat() if isinstance(value,datetime) else value for key,value in item.__dict__.items()} for item in configs]
             version=sha256(json.dumps(selected,sort_keys=True,separators=(',',':')).encode()).hexdigest()
             context=DecisionContext(decision_id=proposal['proposal_id'],scenario_id='DOCUMENTARY-CASH-FLOWS',
@@ -135,6 +152,11 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
         result['limitations']=['No se ha comprobado conciliación ni completitud del inventario de flujos.',
             'No se ha establecido qué flujos corresponden a esta propuesta ni incorporado sus pagos y cuotas.',
             'No se ha ejecutado QTG, Rules ni el decisor: esta salida no acredita viabilidad de compra.']
+    except OpeningTreasuryScopeError as error:
+        result['opening_treasury_status']='REJECTED'
+        result['opening_treasury_issue']=error.code
+        result['message']='El saldo inicial no coincide con la situación financiera conservada: '+str(error)
+        result['limitations']=['No se publica una proyección con un saldo inicial modificado o no atribuible al expediente. La conciliación bancaria sigue pendiente.']
     except CashFlowInventoryError as error:
         result['cash_flow_inventory_status']='REJECTED'
         result['cash_flow_inventory_issue']=error.code
