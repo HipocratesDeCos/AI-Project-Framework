@@ -86,3 +86,7 @@ jobs:
           python tools/build_eios_kernel_distribution.py --output dist/kernel
       - name: Verify independent kernel installation in fresh venv
         run: python tools/verify_eios_kernel_distribution.py --wheel-dir dist/kernel
+
+      - name: F4.4 test two independent consumers on one exact kernel wheel
+        run: python tools/verify_f4_4_two_consumers.py --wheel-dir dist/kernel
+
