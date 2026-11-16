@@ -21,6 +21,7 @@ from .version_binding import (
     ParameterVersionSource,
     VersionBoundParameterSelection,
     fingerprint_parameter_selection,
+    fingerprint_historical_parameter_configurations,
     read_version_bound_parameter_selection,
 )
 
