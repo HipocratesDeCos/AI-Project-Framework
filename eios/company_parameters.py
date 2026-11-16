@@ -119,8 +119,15 @@ def read_parameters(db,store,dataset):
     current=json.loads(rows[0][0]) if rows else dict(company_id=company,revision=0,profile={},values={},references={})
     history=[json.loads(row[0]) for row in rows]
     from eios.company_finance_parameters import read_finance_activation
+    from eios.parameters.company_binding_report import describe_company_parameter_bindings
     activation=read_finance_activation(db,company,info['as_of_date'])
-    return dict(finance_activation=activation,company_id=company,company_name=info['company'].get('legal_name',company),dataset_id=dataset,
+    binding_report=describe_company_parameter_bindings(
+        catalogue=CATALOGUE,activation=activation,company_id=company,
+        dataset_id=dataset,as_of_date=info['as_of_date'],
+        current_revision=current['revision'],
+    )
+    return dict(finance_activation=activation,parameter_binding_report=binding_report,
+                company_id=company,company_name=info['company'].get('legal_name',company),dataset_id=dataset,
                 as_of_date=info['as_of_date'],catalogue=CATALOGUE,current=current,history=history,
                 status='COMPANY_CONFIGURATION_REQUEST_ONLY',
                 message='Configuración preparada. Horizonte y mínimo pueden activarse para este corte; el resto sigue pendiente de conexión. Guardar no evalúa compras.',
