@@ -79,3 +79,10 @@ jobs:
           docker exec -i "$SQL_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
             -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -d eios_ci \
             -i /tmp/validate_parameter_configuration_schema.sql -b
+
+      - name: Build audited standalone EIOS kernel distribution
+        run: |
+          python -m pip install "setuptools>=64" "wheel>=0.42"
+          python tools/build_eios_kernel_distribution.py --output dist/kernel
+      - name: Verify independent kernel installation in fresh venv
+        run: python tools/verify_eios_kernel_distribution.py --wheel-dir dist/kernel
