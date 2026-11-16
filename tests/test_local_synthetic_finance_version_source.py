@@ -14,7 +14,7 @@ import unittest
 from eios.company_finance_parameters import Catalogue, Authorization, Repository, IDS
 from eios.core.models import DecisionContext, Evidence
 from eios.parameters.center import ParameterConfigurationCenter
-from eios.parameters.local_finance_version_source import LocalSyntheticFinanceVersionSource
+from eios.company_local_finance_version_source import LocalSyntheticFinanceVersionSource
 from eios.parameters import (
     ParameterVersionBindingError,
     configuration_evidence_source_ref,
