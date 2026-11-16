@@ -101,5 +101,56 @@ def build_provenanced_tco_invoker(*, payload: TCOInput) -> TCOInvoker:
     return invoke
 
 
+def build_context_checked_tco_invoker(
+    *, payload: TCOInput, expected_context: DecisionContext,
+) -> TCOInvoker:
+    """Bind an existing TCO input to ALL supplied DecisionContext fields.
+
+    This opt-in factory does not change the legacy TCO invoker, persist the
+    expected context, authenticate its source or authorize a business action.
+    The caller still owns provenance and company identity verification.
+    """
+    if not isinstance(expected_context, DecisionContext):
+        raise TypeError("expected_context debe ser DecisionContext")
+    payload_snapshot = _frozen_source(payload)
+    context_snapshot = expected_context.model_copy(deep=True)
+
+    # Fail even at construction if the candidate source context and purchase
+    # disagree on the identity that TCO already carries.
+    for field in ("decision_id", "scenario_id"):
+        if getattr(payload_snapshot.purchase_operation, field) != getattr(
+            context_snapshot, field
+        ):
+            raise ValueError(
+                "TCOInput no coincide con expected_context: " + field
+            )
+
+    def invoke(
+        purchase: PurchaseOperation,
+        context: DecisionContext,
+    ) -> CapabilityExecution:
+        if not isinstance(context, DecisionContext):
+            raise TypeError("context debe ser DecisionContext")
+        mismatches = tuple(
+            field
+            for field in DecisionContext.model_fields
+            if getattr(context, field) != getattr(context_snapshot, field)
+        )
+        if mismatches:
+            raise ValueError(
+                "DecisionContext TCO no coincide con expected_context: "
+                + ", ".join(mismatches)
+            )
+        # Keep the original producer, rules, calculations and result adapter.
+        return adapt_tco(_produce_bound_tco(
+            payload_snapshot,
+            purchase.model_copy(deep=True),
+            context.model_copy(deep=True),
+        ))
+
+    return invoke
+
+
 __all__ = ["TCOInvoker", "TCOInvocationCapture", "ObservedTCOInvoker",
-           "build_provenanced_tco_invoker", "build_reference_observed_tco_invoker"]
+           "build_provenanced_tco_invoker", "build_reference_observed_tco_invoker",
+           "build_context_checked_tco_invoker"]
