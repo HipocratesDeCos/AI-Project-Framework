@@ -148,7 +148,7 @@ class HistoricalFinanceVersionTest(unittest.TestCase):
                 source.get_version_manifest("two",self.saved_version(),self.WHEN)
             self.assertEqual(error.exception.code,"COMPANY_SCOPE_MISMATCH")
             connection.rollback()
-        self.assert_refused("DATASET_SCOPE_MISMATCH", dataset="two")
+        self.assert_refused("DATASET_SCOPE_MISMATCH", dataset="two", version=self.saved_version())
 
     def test_separate_company_activation_yields_distinct_version(self):
         self.prepare(); self.activate()
