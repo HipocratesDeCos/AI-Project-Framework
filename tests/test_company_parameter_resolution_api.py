@@ -365,3 +365,15 @@ def test_a_downstream_mutation_of_returned_evidence_cannot_rewrite_report():
     first_copy.source_ref = "tampered-by-an-external-consumer"
     assert result.entries[0].evidence.source_ref == original_ref
     assert result.entries[0].ready_for_consumer_checks
+
+
+def test_hash_evidence_reference_is_unambiguous_with_identifier_separators():
+    first = configuration_evidence_source_ref(
+        company_id="A:B", parameter_id="C", configuration_id=7
+    )
+    second = configuration_evidence_source_ref(
+        company_id="A", parameter_id="B:C", configuration_id=7
+    )
+    assert first != second
+    assert first.startswith("company_parameter:")
+    assert len(first) == len(second)
