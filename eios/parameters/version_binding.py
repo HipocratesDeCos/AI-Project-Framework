@@ -16,7 +16,7 @@ from typing import Literal, Mapping, Protocol
 
 from eios.core.models import DecisionContext, Evidence
 
-from .center import ParameterConfigurationCenter
+from .center import Configuration, ParameterConfigurationCenter
 from .company_resolution_api import (
     CompanyParameterLookup,
     ParameterLookupError,
@@ -147,6 +147,96 @@ def _manifest_check(
     return manifest
 
 
+def _fingerprint_configuration_records(
+    *, company_id: str, parameters_version: str, effective_at: datetime,
+    records: list[dict],
+) -> str:
+    """One canonical content checksum used by live and saved configurations.
+
+    The digest is only a correspondence checksum, NOT an authenticated
+    parameters_version or a signature of its source.
+    """
+    _identifier(company_id, "company_id")
+    _identifier(parameters_version, "parameters_version")
+    effective = _timestamp(effective_at)
+    if not records or any(not isinstance(r, dict) for r in records):
+        raise ParameterVersionBindingError(
+            "INVALID_SELECTION", "Canonical records are required",
+        )
+    ordered = sorted(records, key=lambda r: r["parameter_id"])
+    if len({r["parameter_id"] for r in ordered}) != len(ordered):
+        raise ParameterVersionBindingError(
+            "DUPLICATE_PARAMETER", "Duplicate configuration in selection",
+        )
+    payload = {
+        "schema": SELECTION_SCHEMA,
+        "company_id": company_id,
+        "parameters_version": parameters_version,
+        "effective_at": effective,
+        "parameter_ids": [r["parameter_id"] for r in ordered],
+        "configurations": ordered,
+    }
+    return sha256(json.dumps(
+        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")).hexdigest()
+
+
+def fingerprint_historical_parameter_configurations(
+    *, company_id: str, parameters_version: str, effective_at: datetime,
+    configurations: tuple[Configuration, ...],
+) -> str:
+    """Checksum of an *already saved* configuration selection.
+
+    This function has no Centre or evidence inputs. A version-source adapter
+    must read these configurations from its original historical record,
+    never from the Centre whose live selection is being checked.
+    """
+    _identifier(company_id, "company_id")
+    _identifier(parameters_version, "parameters_version")
+    _timestamp(effective_at)
+    if not isinstance(configurations, tuple) or not configurations:
+        raise ParameterVersionBindingError(
+            "INVALID_SELECTION", "An explicit historical selection is required",
+        )
+    records: list[dict] = []
+    for item in configurations:
+        if not isinstance(item, Configuration):
+            raise ParameterVersionBindingError(
+                "INVALID_VERSION_CONFIGURATION", "Historical record is not Configuration",
+            )
+        if (
+            item.company_id != company_id
+            or type(item.configuration_id) is not int or item.configuration_id < 0
+            or not isinstance(item.parameter_id, str) or not item.parameter_id
+            or item.parameter_id != item.parameter_id.strip()
+            or not isinstance(item.value, str)
+            or item.value_type is not None and not isinstance(item.value_type, str)
+            or item.unit is not None and not isinstance(item.unit, str)
+        ):
+            raise ParameterVersionBindingError(
+                "INVALID_VERSION_CONFIGURATION", "Historical configuration identity or type is invalid",
+            )
+        raw = asdict(item)
+        for field in ("valid_from", "valid_to", "created_at", "updated_at"):
+            stamp = raw[field]
+            raw[field] = _timestamp(stamp) if stamp is not None else None
+        if (
+            item.valid_to is not None and item.valid_from >= item.valid_to
+            or not (item.valid_from <= effective_at and (
+                item.valid_to is None or effective_at < item.valid_to
+            ))
+        ):
+            raise ParameterVersionBindingError(
+                "INVALID_VERSION_CONFIGURATION", "Historical configuration is not valid at cutoff",
+            )
+        records.append(raw)
+    return _fingerprint_configuration_records(
+        company_id=company_id, parameters_version=parameters_version,
+        effective_at=effective_at, records=records,
+    )
+
+
 def fingerprint_parameter_selection(lookup: CompanyParameterLookup) -> str:
     """Hash *exact selected configuration contents*, not C0 or DIP identities.
 
@@ -200,18 +290,12 @@ def fingerprint_parameter_selection(lookup: CompanyParameterLookup) -> str:
                 _timestamp(record[field]) if record[field] is not None else None
             )
         selected.append(record)
-    payload = {
-        "schema": SELECTION_SCHEMA,
-        "company_id": lookup.company_id,
-        "parameters_version": lookup.parameters_version,
-        "effective_at": effective,
-        "parameter_ids": [r["parameter_id"] for r in selected],
-        "configurations": selected,
-    }
-    return sha256(json.dumps(
-        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
-        allow_nan=False,
-    ).encode("utf-8")).hexdigest()
+    return _fingerprint_configuration_records(
+        company_id=lookup.company_id,
+        parameters_version=lookup.parameters_version,
+        effective_at=lookup.effective_at,
+        records=selected,
+    )
 
 
 def read_version_bound_parameter_selection(
@@ -308,5 +392,6 @@ __all__ = [
     "SELECTION_SCHEMA", "ParameterVersionBindingError",
     "ParameterVersionManifest", "ParameterVersionSource",
     "VersionBoundParameterSelection", "fingerprint_parameter_selection",
+    "fingerprint_historical_parameter_configurations",
     "read_version_bound_parameter_selection",
 ]
