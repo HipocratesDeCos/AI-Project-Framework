@@ -43,9 +43,9 @@ El servicio rechaza:
 - evidencias de otro corte, tipo distinto, sin demostración o sin coincidencia exacta con la configuración seleccionada.
 
 Se define un **formato de referencia local**, mediante `configuration_evidence_source_ref`:
-`company_parameter:{company_id}:{parameter_id}:{configuration_id}`.
+`company_parameter:{sha256(JSON_array(company_id, parameter_id, configuration_id))}`.
 
-Este formato vincula la evidencia suministrada al ámbito empresarial y al código de parámetro, incluso si dos empresas utilizan el mismo identificador numérico de configuración. Complementa `demonstration_ref=ResolvedConfiguration.configuration_ref`, cuyo formato heredado **no incorpora la empresa**.
+Se utiliza una matriz JSON canónica de tres campos antes de la huella, de modo que dos combinaciones distintas no se confundan aunque sus identificadores contengan separadores como dos puntos. La referencia vincula la evidencia suministrada al ámbito empresarial y al código de parámetro, incluso si dos empresas utilizan el mismo identificador numérico de configuración. Complementa `demonstration_ref=ResolvedConfiguration.configuration_ref`, cuyo formato heredado **no incorpora la empresa**.
 
 **Advertencia de confianza:** un atacante capaz de crear objetos `Evidence` puede producir esa cadena correctamente. La API no firma, autentica ni demuestra la procedencia del documento. El adaptador debe conservar su verificación independiente de fuentes y permisos.
 
