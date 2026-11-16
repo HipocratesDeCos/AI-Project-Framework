@@ -8,9 +8,16 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from enum import Enum
-from types import MappingProxyType
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from eios.kernel.execution import (
+    KernelCapabilityResult,
+    KernelContext,
+    KernelOperation,
+    KernelPlan,
+    execute_kernel,
+)
 
 from .models import DecisionContext, PurchaseOperation
 from .orchestration import CapabilityExecution, O1ExecutionStatus
@@ -94,114 +101,73 @@ def execute_plan(
     plan: ExecutionPlan,
     invokers: Mapping[str, Callable[[PurchaseOperation, DecisionContext], CapabilityExecution]],
 ) -> ExecutionOutcome:
-    """Execute only explicitly declared invokers after complete preflight validation."""
+    """Compatibility adapter for EIOS purchases over the SINGLE neutral runtime.
+
+    Keep the original PurchaseOperation/DecisionContext public API and legacy
+    result types. Only the generic technical iteration is delegated; no new
+    purchase, price, evidence or decision semantics are introduced here.
+    """
     if purchase_operation.decision_id != context.decision_id:
         raise ExecutionBoundaryError("decision_id inconsistente")
     if purchase_operation.scenario_id != context.scenario_id:
         raise ExecutionBoundaryError("scenario_id inconsistente")
 
-    # Freeze the catalog view used by this execution so external mutation cannot
-    # alter which invoker is selected after preflight.
-    catalog = MappingProxyType(dict(invokers))
-
-    # O1 builds the support package after analytical execution and is explicitly
-    # outside the analytical invoker catalog of this boundary.
-    forbidden = tuple(name for name in plan.capabilities if name == "O1")
-    if forbidden:
-        return ExecutionOutcome(
-            status=BoundaryStatus.BLOCKED,
-            policy_version=plan.policy_version,
-            unresolved_items=("O1:FORBIDDEN_BOUNDARY_CAPABILITY",),
-        )
-
-    # Complete preflight: every declared capability must exist and be callable
-    # before the first capability is invoked.
-    missing = tuple(name for name in plan.capabilities if name not in catalog)
-    if missing:
-        return ExecutionOutcome(
-            status=BoundaryStatus.BLOCKED,
-            policy_version=plan.policy_version,
-            unresolved_items=missing,
-        )
-
-    invalid = tuple(name for name in plan.capabilities if not callable(catalog[name]))
-    if invalid:
-        return ExecutionOutcome(
-            status=BoundaryStatus.BLOCKED,
-            policy_version=plan.policy_version,
-            unresolved_items=tuple(f"{name}:INVALID_INVOKER" for name in invalid),
-        )
-
-    # Keep canonical snapshots owned by the boundary. Each invoker receives a
-    # fresh deep copy so one capability cannot mutate the input seen by another
-    # capability or the caller's original objects.
-    canonical_purchase = purchase_operation.model_copy(deep=True)
-    canonical_context = context.model_copy(deep=True)
-
-    results: list[CapabilityExecution] = []
-    for name in plan.capabilities:
-        try:
-            result = catalog[name](
-                canonical_purchase.model_copy(deep=True),
-                canonical_context.model_copy(deep=True),
-            )
-            if not isinstance(result, CapabilityExecution):
-                raise ExecutionBoundaryError(
-                    f"capacidad {name} no devolvió CapabilityExecution"
-                )
-            if result.capability != name:
-                raise ExecutionBoundaryError(
-                    f"capacidad {name} devolvió identidad {result.capability}"
-                )
-            if (
-                result.status == O1ExecutionStatus.COMPLETED
-                and not result.result_available
-            ):
-                raise ExecutionBoundaryError(
-                    f"capacidad {name} declaró COMPLETED sin resultado disponible"
-                )
-            results.append(result)
-        except Exception as exc:
-            reason = str(exc).strip() or exc.__class__.__name__
-            return ExecutionOutcome(
-                status=BoundaryStatus.FAILED,
-                policy_version=plan.policy_version,
-                capability_results=tuple(results),
-                failure_reason=f"{name}: {reason}"[:512],
-            )
-
-    unresolved = tuple(
-        sorted({item for result in results for item in result.unresolved_items})
+    neutral_context = KernelContext(
+        project_id="EIOS_PURCHASES",
+        decision_id=context.decision_id,
+        scenario_id=context.scenario_id,
+        rules_version=context.rules_version,
+        parameters_version=context.parameters_version,
+        data_snapshot_id=context.data_snapshot_id,
     )
-    failed = next(
-        (result for result in results if result.status == O1ExecutionStatus.FAILED),
-        None,
+    neutral_operation = KernelOperation(
+        decision_id=purchase_operation.decision_id,
+        scenario_id=purchase_operation.scenario_id,
+        payload=purchase_operation,
     )
-    if failed is not None:
-        status = BoundaryStatus.FAILED
-        failure_reason = f"{failed.capability}: {failed.failure_reason}"[:512]
-    elif any(
-        result.status in {
-            O1ExecutionStatus.READY,
-            O1ExecutionStatus.RUNNING,
-            O1ExecutionStatus.BLOCKED,
-            O1ExecutionStatus.NOT_EVALUABLE,
-            O1ExecutionStatus.PARTIALLY_COMPLETED,
-        }
-        for result in results
-    ):
-        status = BoundaryStatus.PARTIALLY_COMPLETED
-        failure_reason = None
-    else:
-        status = BoundaryStatus.COMPLETED
-        failure_reason = None
+    neutral_plan = KernelPlan(
+        capabilities=plan.capabilities, policy_version=plan.policy_version,
+    )
 
+    def adapt(invoker):
+        def invoke(operation, execution_context):
+            # Each caller receives independently copied original canonical
+            # contracts. The generic kernel owns both copy and call order.
+            legacy_context = DecisionContext(
+                decision_id=execution_context.decision_id,
+                scenario_id=execution_context.scenario_id,
+                rules_version=execution_context.rules_version,
+                parameters_version=execution_context.parameters_version,
+                data_snapshot_id=execution_context.data_snapshot_id,
+            )
+            original = invoker(operation, legacy_context)
+            if not isinstance(original, CapabilityExecution):
+                raise ExecutionBoundaryError(
+                    "capacidad no devolvió CapabilityExecution"
+                )
+            return KernelCapabilityResult.model_validate(
+                original.model_dump(mode="python")
+            )
+        return invoke
+
+    # Preserve the invoker references used at preflight (no dynamic imports,
+    # no arbitrary adapter-specific capability authority).
+    adapted_invokers = {
+        name: adapt(invoker) if callable(invoker) else invoker
+        for name, invoker in dict(invokers).items()
+    }
+    technical = execute_kernel(
+        neutral_operation, neutral_context, neutral_plan, adapted_invokers,
+    )
     return ExecutionOutcome(
-        status=status,
-        policy_version=plan.policy_version,
-        capability_results=tuple(results),
-        unresolved_items=unresolved,
-        failure_reason=failure_reason,
+        status=BoundaryStatus(technical.status.value),
+        policy_version=technical.policy_version,
+        capability_results=tuple(
+            CapabilityExecution.model_validate(item.model_dump(mode="python"))
+            for item in technical.capability_results
+        ),
+        unresolved_items=technical.unresolved_items,
+        failure_reason=technical.failure_reason,
     )
 
 
