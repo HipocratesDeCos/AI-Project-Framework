@@ -14,3 +14,18 @@ __all__ = [
     "CompanyParameterLookup", "ParameterLookupEntry", "ParameterLookupError",
     "configuration_evidence_source_ref", "read_company_parameters_for_context",
 ]
+
+from .version_binding import (
+    ParameterVersionBindingError,
+    ParameterVersionManifest,
+    ParameterVersionSource,
+    VersionBoundParameterSelection,
+    fingerprint_parameter_selection,
+    read_version_bound_parameter_selection,
+)
+
+__all__ += [
+    "ParameterVersionBindingError", "ParameterVersionManifest",
+    "ParameterVersionSource", "VersionBoundParameterSelection",
+    "fingerprint_parameter_selection", "read_version_bound_parameter_selection",
+]
