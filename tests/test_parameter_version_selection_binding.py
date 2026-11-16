@@ -157,6 +157,9 @@ def test_change_of_parameter_value_after_manifest_creation_is_detected():
 def test_change_of_configuration_id_after_manifest_is_detected():
     args, source, repo, _ = samples()
     repo.configs[0] = replace(repo.configs[0], configuration_id=99)
+    # Even a newly consistent documentary proof cannot make the historical
+    # manifest describe this changed configuration.
+    args["evidence_by_parameter"][PID] = proof(repo.configs[0])
     raises_code(args, "VERSION_CONTENT_MISMATCH")
 
 
