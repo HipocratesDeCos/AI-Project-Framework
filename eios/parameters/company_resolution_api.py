@@ -9,6 +9,8 @@ from __future__ import annotations
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime
+from hashlib import sha256
+import json
 from typing import Literal, Mapping
 
 from eios.core.models import DecisionContext, Evidence
@@ -87,7 +89,13 @@ def configuration_evidence_source_ref(
             raise ParameterLookupError("INVALID_SCOPE", field + " is not canonical")
     if type(configuration_id) is not int or configuration_id < 0:
         raise ParameterLookupError("INVALID_CONFIGURATION", "Invalid configuration_id")
-    return f"company_parameter:{company_id}:{parameter_id}:{configuration_id}"
+    # JSON array preserves field boundaries even when identifiers contain
+    # separators. SHA-256 is a content reference, NOT source authentication.
+    material = json.dumps(
+        [company_id, parameter_id, configuration_id],
+        ensure_ascii=False, separators=(",", ":"), allow_nan=False,
+    ).encode("utf-8")
+    return "company_parameter:" + sha256(material).hexdigest()
 
 
 def _scope(value: str, field: str) -> None:
