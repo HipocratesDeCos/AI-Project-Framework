@@ -317,5 +317,176 @@ class LocalFinanceActivationSourceGuardTest(unittest.TestCase):
         self.assertEqual(output["operational_path"], "FORBIDDEN")
 
 
+    def test_complete_stored_inventory_matches_without_promoting_accounting_completeness(self):
+        self.prepare()
+        self.activate()
+        self.financial_data()
+        proposal = self.desk.save(self.data)
+        supplied = self.context()
+        result = execute_documentary_finance(self.path, proposal, supplied)
+        self.assertEqual(result["status"], "EXECUTED")
+        self.assertEqual(
+            result["cash_flow_inventory_status"],
+            "MATCHED_RECORDED_LOCAL_FLOWS_NOT_RECONCILED",
+        )
+        self.assertEqual(len(result["cash_flow_inventory_fingerprint"]), 64)
+        self.assertEqual(
+            result["finance_result"]["projection"]["status"],
+            "NOT_EVIDENCED",
+        )
+        self.assertEqual(result["purchase_effect_status"], "NOT_EVALUATED")
+        self.assertEqual(result["viability_status"], "NOT_EVALUATED")
+        self.assertFalse(result["decision_authority"])
+        self.assertEqual(result["operational_path"], "FORBIDDEN")
+
+    def test_same_number_and_ids_with_changed_cash_flow_fields_rejected(self):
+        self.prepare()
+        self.activate()
+        self.financial_data()
+        proposal = self.desk.save(self.data)
+        captured = self.context()
+        for field, unexpected in (
+            ("amount", "900000"),
+            ("due_date", "2026-10-16"),
+            ("currency", "USD"),
+            ("flow_type", "PAYMENT"),
+            ("source_ref", "OTHER-DOCUMENT"),
+            ("evidence_state", "DEMONSTRATED"),
+        ):
+            with self.subTest(field=field):
+                altered = json.loads(json.dumps(captured))
+                altered["cash_flows"][0]["canonical"][field] = unexpected
+                result = execute_documentary_finance(
+                    self.path, proposal, altered,
+                )
+                self.assertEqual(result["status"], "NOT_EXECUTED")
+                self.assertEqual(result["cash_flow_inventory_status"], "REJECTED")
+                self.assertEqual(
+                    result["cash_flow_inventory_issue"],
+                    "CASH_FLOW_CONTENT_MISMATCH",
+                )
+                self.assertIsNone(result["finance_result"])
+                self.assertEqual(result["parameter_configurations"], [])
+                self.assertNotIn("finance_input", result)
+                self.assertNotIn("finance_package_fingerprint", result)
+                self.assertEqual(result["operational_path"], "FORBIDDEN")
+
+        valid = execute_documentary_finance(self.path, proposal, captured)
+        self.assertEqual(valid["status"], "EXECUTED")
+        self.assertEqual(len(valid["finance_input"]["cash_flows"]), 2)
+
+    def test_changed_documentary_source_references_rejected(self):
+        self.prepare()
+        self.activate()
+        self.financial_data()
+        proposal = self.desk.save(self.data)
+        captured = self.context()
+        captured["cash_flows"][0]["source_refs"] = [{"document_ref": "OTHER-DOC"}]
+        result = execute_documentary_finance(self.path, proposal, captured)
+        self.assertEqual(result["status"], "NOT_EXECUTED")
+        self.assertEqual(
+            result["cash_flow_inventory_issue"], "CASH_FLOW_CONTENT_MISMATCH",
+        )
+        self.assertIsNone(result["finance_result"])
+
+    def test_replaced_or_missing_stored_cash_flow_rejected_after_capture(self):
+        self.prepare()
+        self.activate()
+        self.financial_data()
+        proposal = self.desk.save(self.data)
+        captured = self.context()
+
+        with sqlite3.connect(self.path) as c:
+            original = c.execute(
+                "SELECT record_json FROM documentary_company_record "
+                "WHERE dataset_id='one' AND kind='cash_flow' AND record_id='C-1'"
+            ).fetchone()[0]
+            modified = json.loads(original)
+            modified["data"]["canonical"]["amount"] = "9999"
+            c.execute(
+                "UPDATE documentary_company_record SET record_json=? "
+                "WHERE dataset_id='one' AND kind='cash_flow' AND record_id='C-1'",
+                (json.dumps(modified, ensure_ascii=False),),
+            )
+        output = execute_documentary_finance(self.path, proposal, captured)
+        self.assertEqual(output["status"], "NOT_EXECUTED")
+        self.assertEqual(
+            output["cash_flow_inventory_issue"], "CASH_FLOW_CONTENT_MISMATCH",
+        )
+        self.assertIsNone(output["finance_result"])
+        with sqlite3.connect(self.path) as c:
+            c.execute(
+                "DELETE FROM documentary_company_record "
+                "WHERE dataset_id='one' AND kind='cash_flow' AND record_id='P-1'"
+            )
+        output = execute_documentary_finance(self.path, proposal, captured)
+        self.assertEqual(output["status"], "NOT_EXECUTED")
+        self.assertEqual(
+            output["cash_flow_inventory_issue"], "INVENTORY_COUNT_MISMATCH",
+        )
+        self.assertIsNone(output["finance_result"])
+
+    def test_unseen_new_stored_cash_flow_blocks_old_captured_selection(self):
+        self.prepare()
+        self.activate()
+        self.financial_data()
+        proposal = self.desk.save(self.data)
+        captured = self.context()
+        with sqlite3.connect(self.path) as c:
+            row = json.loads(c.execute(
+                "SELECT record_json FROM documentary_company_record "
+                "WHERE dataset_id='one' AND kind='cash_flow' AND record_id='P-1'"
+            ).fetchone()[0])
+            row["record_id"] = "P-NEW"
+            row["data"]["canonical"]["flow_id"] = "P-NEW"
+            c.execute(
+                "INSERT INTO documentary_company_record VALUES(?,?,?,?)",
+                ("one", "cash_flow", "P-NEW", json.dumps(row, ensure_ascii=False)),
+            )
+        output = execute_documentary_finance(self.path, proposal, captured)
+        self.assertEqual(output["status"], "NOT_EXECUTED")
+        self.assertEqual(
+            output["cash_flow_inventory_issue"], "INVENTORY_COUNT_MISMATCH",
+        )
+        self.assertIsNone(output["finance_result"])
+
+    def test_reordered_valid_cash_flow_capture_is_not_a_false_mismatch(self):
+        self.prepare()
+        self.activate()
+        self.financial_data()
+        proposal = self.desk.save(self.data)
+        captured = self.context()
+        baseline = execute_documentary_finance(self.path, proposal, captured)
+        captured["cash_flows"].reverse()
+        output = execute_documentary_finance(self.path, proposal, captured)
+        self.assertEqual(output["status"], "EXECUTED")
+        self.assertEqual(
+            output["cash_flow_inventory_fingerprint"],
+            baseline["cash_flow_inventory_fingerprint"],
+        )
+        self.assertEqual(
+            output["finance_result"]["projection"],
+            baseline["finance_result"]["projection"],
+        )
+
+    def test_duplicate_or_unrecorded_flow_with_matching_list_length_is_rejected(self):
+        self.prepare()
+        self.activate()
+        self.financial_data()
+        proposal = self.desk.save(self.data)
+        original = self.context()
+        duplicate = json.loads(json.dumps(original))
+        duplicate["cash_flows"][1] = duplicate["cash_flows"][0]
+        output = execute_documentary_finance(self.path, proposal, duplicate)
+        self.assertEqual(output["cash_flow_inventory_issue"], "DUPLICATE_CAPTURED_FLOW")
+        self.assertIsNone(output["finance_result"])
+        foreign = json.loads(json.dumps(original))
+        foreign["cash_flows"][1]["record_id"] = "FOREIGN-FLOW"
+        foreign["cash_flows"][1]["canonical"]["flow_id"] = "FOREIGN-FLOW"
+        output = execute_documentary_finance(self.path, proposal, foreign)
+        self.assertEqual(output["cash_flow_inventory_issue"], "FOREIGN_OR_UNRECORDED_FLOW")
+        self.assertIsNone(output["finance_result"])
+
+
 if __name__ == "__main__":
     unittest.main()
