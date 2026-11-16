@@ -55,6 +55,23 @@ def evaluate_quality(checks: list[QualityCheck] | tuple[QualityCheck, ...]) -> Q
     """
     applicable = tuple(check for check in checks if check.applicable)
 
+    # A lack of controls cannot demonstrate high confidence. Create an
+    # explicit critical finding so the failed gate remains explainable.
+    if not applicable:
+        return QualityTrustResult(
+            "NO_APTO",
+            "BAJA",
+            (
+                QualityCheck(
+                    control="APPLICABLE_CONTROLS_MISSING",
+                    satisfied=None,
+                    critical=True,
+                    material=True,
+                    reason="No hay controles de calidad aplicables que sustenten APTO.",
+                ),
+            ),
+        )
+
     if any(check.satisfied is not True and check.critical for check in applicable):
         return QualityTrustResult("NO_APTO", "BAJA", applicable)
 
