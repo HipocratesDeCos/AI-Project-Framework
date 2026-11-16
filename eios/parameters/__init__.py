@@ -30,10 +30,6 @@ __all__ += [
     "fingerprint_parameter_selection", "read_version_bound_parameter_selection",
 ]
 
-# F3.2: local synthetic historical adapter. Its source is NOT authenticated.
-from .local_finance_version_source import LocalSyntheticFinanceVersionSource
-
-__all__ += [
-    "fingerprint_historical_parameter_configurations",
-    "LocalSyntheticFinanceVersionSource",
-]
+# The local SQLite adapter is deliberately imported from its module, not here.
+# Eager imports create a cycle with company_finance_parameters and app startup.
+__all__ += ["fingerprint_historical_parameter_configurations"]
