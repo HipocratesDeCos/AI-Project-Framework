@@ -18,6 +18,7 @@ class LocalFlowDocumentaryCoverageTest(unittest.TestCase):
     tearDown = Fixture.tearDown
     prepare = Fixture.prepare
     activate = Fixture.activate
+    add = Fixture.add
     financial_data = Fixture.financial_data
     context = Fixture.context
 
