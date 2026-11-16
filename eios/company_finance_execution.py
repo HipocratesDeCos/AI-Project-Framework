@@ -58,7 +58,6 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
             result['parameter_source_status']=admission.status
             result['parameter_activation_ref']=admission.activation_fingerprint
             selected=[{key:value.isoformat() if isinstance(value,datetime) else value for key,value in item.__dict__.items()} for item in configs]
-            result['parameter_configurations']=selected
             version=sha256(json.dumps(selected,sort_keys=True,separators=(',',':')).encode()).hexdigest()
             context=DecisionContext(decision_id=proposal['proposal_id'],scenario_id='DOCUMENTARY-CASH-FLOWS',
                 rules_version='NOT_EXECUTED',parameters_version=version,data_snapshot_id=snapshot.data_snapshot_id)
@@ -73,6 +72,15 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
             if any(flow.flow_id!=item['record_id'] for flow,item in zip(flows,documentary['cash_flows'])):
                 raise ValueError('La identidad del movimiento no coincide con el registro.')
             capital=WorkingCapitalInput.model_validate(documentary['working_capital_input']) if documentary['working_capital_input'] else None
+            # The low-level engine can label a foreign balance NOT_EVALUABLE,
+            # but this company documentary consumer must not publish an
+            # EXECUTED package assembled from another company/cutoff/currency.
+            if capital is not None and (
+                capital.company_scope != snapshot.company_scope
+                or capital.as_of_date != snapshot.as_of_date
+                or capital.currency != snapshot.currency
+            ):
+                raise ValueError('Las magnitudes del balance no corresponden a la empresa, fecha o moneda de la situación financiera.')
             finance=FinanceBasicInput(context=context,snapshot=snapshot,cash_flows=flows,
                 horizon_days=int(Decimal(configs[0].value)),treasury_minimum=configs[1].value,working_capital_input=capital)
             package=build_finance_decision_input_package(purchase=purchase,context=context,evidence=(),
@@ -83,6 +91,7 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
         execution=run_provenanced_finance_basic(package.finance_input,package.horizon_resolution)
         output=execution.finance_result.model_dump(mode='json')
         result.update(status='EXECUTED',finance_result=output,
+                      parameter_configurations=selected,
                       finance_package_fingerprint=package.fingerprint,
                       parameter_version=context.parameters_version,
                       finance_input=package.finance_input.model_dump(mode='json'))

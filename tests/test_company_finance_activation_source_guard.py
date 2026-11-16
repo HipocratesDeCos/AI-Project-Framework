@@ -245,5 +245,77 @@ class LocalFinanceActivationSourceGuardTest(unittest.TestCase):
             c.rollback()
 
 
+    def test_foreign_balance_company_cutoff_or_currency_is_not_published_as_executed(self):
+        self.prepare()
+        self.activate()
+        self.financial_data()
+        proposal = self.desk.save(self.data)
+        original = self.context()
+        for field, foreign_value in (
+            ("company_scope", "two"),
+            ("as_of_date", "2026-09-29"),
+            ("currency", "USD"),
+        ):
+            with self.subTest(field=field):
+                documentary = json.loads(json.dumps(original))
+                documentary["working_capital_input"][field] = foreign_value
+                output = execute_documentary_finance(
+                    self.path, proposal, documentary,
+                )
+                self.assertEqual(output["status"], "NOT_EXECUTED")
+                self.assertIsNone(output["finance_result"])
+                self.assertEqual(output["parameter_configurations"], [])
+                self.assertNotIn("finance_input", output)
+                self.assertNotIn("finance_package_fingerprint", output)
+                self.assertNotIn("parameter_version", output)
+                self.assertIn("balance", output["message"])
+                self.assertEqual(
+                    output["parameter_source_status"],
+                    "MATCHED_LOCAL_SYNTHETIC_ACTIVATION",
+                )
+                self.assertEqual(output["purchase_effect_status"], "NOT_EVALUATED")
+                self.assertEqual(output["viability_status"], "NOT_EVALUATED")
+                self.assertFalse(output["decision_authority"])
+                self.assertEqual(output["operational_path"], "FORBIDDEN")
+
+        # Rejecting foreign documentary capital does not alter canonical
+        # company configuration, source activation or later valid execution.
+        valid = execute_documentary_finance(self.path, proposal, original)
+        self.assertEqual(valid["status"], "EXECUTED")
+        self.assertEqual(len(valid["parameter_configurations"]), 2)
+        self.assertEqual(valid["finance_result"]["working_capital"]["status"], "DETERMINED")
+        self.assertEqual(valid["finance_result"]["working_capital"]["value"], "8000")
+
+    def test_incomplete_cash_flow_contract_does_not_publish_partial_configurations(self):
+        self.prepare()
+        self.activate()
+        self.financial_data()
+        proposal = self.desk.save(self.data)
+        documentary = self.context()
+        documentary["cash_flows"][1]["canonical"]["flow_id"] = documentary["cash_flows"][0]["record_id"]
+        output = execute_documentary_finance(self.path, proposal, documentary)
+        self.assertEqual(output["status"], "NOT_EXECUTED")
+        self.assertIsNone(output["finance_result"])
+        self.assertEqual(output["parameter_configurations"], [])
+        self.assertNotIn("finance_package_fingerprint", output)
+        self.assertNotIn("finance_input", output)
+        self.assertFalse(output["decision_authority"])
+        self.assertEqual(output["operational_path"], "FORBIDDEN")
+
+    def test_missing_balance_still_reports_not_evidenced_without_inventing_current_assets(self):
+        self.prepare()
+        self.activate()
+        self.financial_data()
+        proposal = self.desk.save(self.data)
+        documentary = self.context()
+        documentary["working_capital_input"] = None
+        output = execute_documentary_finance(self.path, proposal, documentary)
+        self.assertEqual(output["status"], "EXECUTED")
+        self.assertEqual(output["finance_result"]["working_capital"]["status"], "NOT_EVIDENCED")
+        self.assertIsNone(output["finance_result"]["working_capital"]["value"])
+        self.assertFalse(output["decision_authority"])
+        self.assertEqual(output["operational_path"], "FORBIDDEN")
+
+
 if __name__ == "__main__":
     unittest.main()
