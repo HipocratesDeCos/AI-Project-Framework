@@ -21,6 +21,7 @@ from .version_binding import (
     ParameterVersionSource,
     VersionBoundParameterSelection,
     fingerprint_parameter_selection,
+    fingerprint_historical_parameter_configurations,
     read_version_bound_parameter_selection,
 )
 
@@ -29,3 +30,7 @@ __all__ += [
     "ParameterVersionSource", "VersionBoundParameterSelection",
     "fingerprint_parameter_selection", "read_version_bound_parameter_selection",
 ]
+
+# The local SQLite adapter is deliberately imported from its module, not here.
+# Eager imports create a cycle with company_finance_parameters and app startup.
+__all__ += ["fingerprint_historical_parameter_configurations"]
