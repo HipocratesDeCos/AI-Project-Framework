@@ -18,6 +18,9 @@ from eios.company_finance_activation_guard import (
 from eios.company_cash_flow_inventory_guard import (
     CashFlowInventoryError, verify_local_cash_flow_inventory,
 )
+from eios.company_flow_documentary_coverage import (
+    audit_local_flow_documentary_coverage,
+)
 
 
 def execute_documentary_finance(db,proposal,documentary,associations=None):
@@ -28,6 +31,10 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
         limitations=[],finance_result=None,parameter_configurations=[],
         parameter_source_status='NOT_VERIFIED',parameter_activation_ref=None,
         cash_flow_inventory_status='NOT_VERIFIED',
+        flow_documentary_coverage=dict(status='NOT_AUDITED',
+            documentary_content_review='NOT_PERFORMED',
+            invoice_and_bank_reconciliation='NOT_PERFORMED',
+            decision_authority=False,operational_path='FORBIDDEN'),
         purchase_effect_status='NOT_EVALUATED',viability_status='NOT_EVALUATED',
         decision_authority=False,operational_path='FORBIDDEN')
     def finish():
@@ -75,6 +82,14 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
             )
             result['cash_flow_inventory_status']=inventory_receipt.status
             result['cash_flow_inventory_fingerprint']=inventory_receipt.recorded_fingerprint
+            # Check evidence coverage only after F3.8 confirms the full source
+            # inventory. A byte match never confirms the content of invoices
+            # or promotes the declared evidence state.
+            result['flow_documentary_coverage']=audit_local_flow_documentary_coverage(
+                connection=c, dataset_id=documentary['dataset_id'],
+                flows=flows, captured_flows=documentary['cash_flows'],
+                proposal_context=proposal.get('documentary_context_at_save'),
+            )
             capital=WorkingCapitalInput.model_validate(documentary['working_capital_input']) if documentary['working_capital_input'] else None
             # The low-level engine can label a foreign balance NOT_EVALUABLE,
             # but this company documentary consumer must not publish an
