@@ -4,7 +4,7 @@ import sqlite3
 import unittest
 
 from eios.company_parameters import read_parameters
-from eios.parameters.company_binding_report import (
+from eios.company_parameter_bindings import (
     LOCAL_FINANCE_CONSUMERS,
     describe_company_parameter_bindings,
 )
