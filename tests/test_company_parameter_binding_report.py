@@ -169,5 +169,48 @@ class CompanyBindingReportTest(unittest.TestCase):
         self.assertIsNone(state["parameter_binding_report"]["entries"]["P-FIN-001"]["effective_value"])
 
 
+    def test_nonfinite_activation_record_does_not_break_parameter_readout(self):
+        self.prepare()
+        activated = self.activate()
+        corrupt = dict(activated["finance_activation"])
+        corrupt["unknown_nonfinite_field"] = float("nan")
+        report = describe_company_parameter_bindings(
+            catalogue=activated["catalogue"], activation=corrupt,
+            company_id=activated["company_id"], dataset_id=activated["dataset_id"],
+            as_of_date=activated["as_of_date"],
+            current_revision=activated["current"]["revision"],
+        )
+        self.assertEqual(
+            report["entries"]["P-FIN-001"]["status"],
+            "ACTIVATION_RECORD_UNVERIFIED",
+        )
+        self.assertIsNone(report["entries"]["P-FIN-001"]["effective_value"])
+
+
+    def test_invalid_persisted_revision_is_not_treated_as_active(self):
+        from hashlib import sha256
+
+        self.prepare()
+        activated = self.activate()
+        corrupt = dict(activated["finance_activation"])
+        corrupt["request_revision"] = -1
+        unsigned = {key: value for key, value in corrupt.items() if key != "fingerprint"}
+        corrupt["fingerprint"] = sha256(
+            json.dumps(
+                unsigned, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+            ).encode()
+        ).hexdigest()
+        report = describe_company_parameter_bindings(
+            catalogue=activated["catalogue"], activation=corrupt,
+            company_id=activated["company_id"], dataset_id=activated["dataset_id"],
+            as_of_date=activated["as_of_date"],
+            current_revision=activated["current"]["revision"],
+        )
+        self.assertEqual(
+            report["entries"]["P-FIN-002"]["status"],
+            "ACTIVATION_RECORD_UNVERIFIED",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
