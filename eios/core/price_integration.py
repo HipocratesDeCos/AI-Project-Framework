@@ -10,6 +10,10 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from eios.pricing.engine import run_price_intelligence
+from eios.pricing.company_coverage import (
+    PriceCompanyCoverageProfile,
+    run_price_intelligence_for_company,
+)
 from eios.pricing.models import (
     PriceIntelligenceAssessmentContext, PriceIntelligenceInput,
     PriceIntelligenceResult,
@@ -134,7 +138,57 @@ def build_provenanced_price_invoker(
     return invoke
 
 
+def build_provenanced_company_price_invoker(
+    *,
+    payload: PriceIntelligenceInput,
+    assessment_context: PriceIntelligenceAssessmentContext,
+    profile: PriceCompanyCoverageProfile,
+    expected_company_id: str,
+) -> PriceInvoker:
+    """Create an O1 PRICE invoker that mandates economic company coverage.
+
+    The caller is responsible for authenticating expected_company_id and
+    validating the origin of evidence marked VALID. This factory never
+    switches to the legacy C1 entrypoint on missing or invalid material.
+    """
+    if not isinstance(profile, PriceCompanyCoverageProfile):
+        raise TypeError("profile debe ser PriceCompanyCoverageProfile")
+    if (
+        not isinstance(expected_company_id, str)
+        or not expected_company_id.strip()
+        or expected_company_id != expected_company_id.strip()
+    ):
+        raise ValueError("expected_company_id requiere una identidad no vacía")
+
+    payload_snapshot, assessment_snapshot = _frozen_sources(
+        payload, assessment_context,
+    )
+    profile_snapshot = profile.model_copy(deep=True)
+
+    def invoke(
+        purchase: PurchaseOperation,
+        context: DecisionContext,
+    ) -> CapabilityExecution:
+        purchase_snapshot = purchase.model_copy(deep=True)
+        context_snapshot = context.model_copy(deep=True)
+        # Reuse the existing provenance-safe boundary: full purchase equality
+        # and every DecisionContext field, including rules_version.
+        _validate_execution_identity(
+            payload_snapshot, purchase_snapshot, context_snapshot,
+        )
+        result = run_price_intelligence_for_company(
+            payload_snapshot.model_copy(deep=True),
+            assessment_snapshot.model_copy(deep=True),
+            profile_snapshot.model_copy(deep=True),
+            expected_company_id=expected_company_id,
+        )
+        return adapt_price(result)
+
+    return invoke
+
+
 __all__ = [
     "PriceInvoker", "PriceInvocationCapture", "ObservedPriceInvoker",
     "build_provenanced_price_invoker", "build_reference_observed_price_invoker",
+    "build_provenanced_company_price_invoker",
 ]
