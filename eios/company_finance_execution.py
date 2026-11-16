@@ -15,6 +15,9 @@ from eios.company_finance_parameters import Catalogue,Authorization,Repository,S
 from eios.company_finance_activation_guard import (
     LocalFinanceActivationError, verify_local_finance_activation,
 )
+from eios.company_cash_flow_inventory_guard import (
+    CashFlowInventoryError, verify_local_cash_flow_inventory,
+)
 
 
 def execute_documentary_finance(db,proposal,documentary,associations=None):
@@ -24,6 +27,7 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
         documentary_capture=dict(status='NOT_CAPTURED',message='Faltan los requisitos de ejecución financiera o las asociaciones declaradas.'),
         limitations=[],finance_result=None,parameter_configurations=[],
         parameter_source_status='NOT_VERIFIED',parameter_activation_ref=None,
+        cash_flow_inventory_status='NOT_VERIFIED',
         purchase_effect_status='NOT_EVALUATED',viability_status='NOT_EVALUATED',
         decision_authority=False,operational_path='FORBIDDEN')
     def finish():
@@ -64,13 +68,13 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
             purchase=PurchaseOperation(decision_id=context.decision_id,scenario_id=context.scenario_id,
                 article_id=proposal['article_id'],supplier_id=proposal['supplier_id'],quantity=proposal['quantity'],
                 unit_price=proposal['unit_price'],currency=proposal['currency'],operation_date=proposal['order_date'])
-            flows=tuple(CashFlow.model_validate(item['canonical']) for item in documentary['cash_flows'])
-            if not flows:
-                raise ValueError('No se ha vinculado un inventario explícito de cobros y pagos.')
-            if len(flows)!=documentary['record_counts']['cash_flow'] or len({f.flow_id for f in flows})!=len(flows):
-                raise ValueError('Hay movimientos inválidos o repetidos; no se ejecuta una lista parcial.')
-            if any(flow.flow_id!=item['record_id'] for flow,item in zip(flows,documentary['cash_flows'])):
-                raise ValueError('La identidad del movimiento no coincide con el registro.')
+            flows, inventory_receipt = verify_local_cash_flow_inventory(
+                connection=c, dataset_id=documentary['dataset_id'],
+                recorded_count=documentary['record_counts']['cash_flow'],
+                captured_flows=documentary['cash_flows'],
+            )
+            result['cash_flow_inventory_status']=inventory_receipt.status
+            result['cash_flow_inventory_fingerprint']=inventory_receipt.recorded_fingerprint
             capital=WorkingCapitalInput.model_validate(documentary['working_capital_input']) if documentary['working_capital_input'] else None
             # The low-level engine can label a foreign balance NOT_EVALUABLE,
             # but this company documentary consumer must not publish an
@@ -101,6 +105,11 @@ def execute_documentary_finance(db,proposal,documentary,associations=None):
         result['limitations']=['No se ha comprobado conciliación ni completitud del inventario de flujos.',
             'No se ha establecido qué flujos corresponden a esta propuesta ni incorporado sus pagos y cuotas.',
             'No se ha ejecutado QTG, Rules ni el decisor: esta salida no acredita viabilidad de compra.']
+    except CashFlowInventoryError as error:
+        result['cash_flow_inventory_status']='REJECTED'
+        result['cash_flow_inventory_issue']=error.code
+        result['message']='El inventario de cobros y pagos no coincide con los registros conservados: '+str(error)
+        result['limitations']=['No se publica un cálculo basado en un inventario incompleto o modificado. La conciliación contable sigue pendiente.']
     except LocalFinanceActivationError as error:
         result['parameter_source_status']='REJECTED'
         result['parameter_source_issue']=error.code
