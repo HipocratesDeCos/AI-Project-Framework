@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=64", "wheel>=0.42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eios-kernel"
+version = "0.1.0"
+description = "EIOS domain-neutral execution kernel and parameter centre contracts"
+requires-python = ">=3.11"
+dependencies = ["pydantic>=2.0,<3.0"]
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["eios", "eios.kernel", "eios.parameters"]
+namespaces = true
