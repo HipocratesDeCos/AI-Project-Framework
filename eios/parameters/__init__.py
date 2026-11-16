@@ -29,3 +29,11 @@ __all__ += [
     "ParameterVersionSource", "VersionBoundParameterSelection",
     "fingerprint_parameter_selection", "read_version_bound_parameter_selection",
 ]
+
+# F3.2: local synthetic historical adapter. Its source is NOT authenticated.
+from .local_finance_version_source import LocalSyntheticFinanceVersionSource
+
+__all__ += [
+    "fingerprint_historical_parameter_configurations",
+    "LocalSyntheticFinanceVersionSource",
+]
