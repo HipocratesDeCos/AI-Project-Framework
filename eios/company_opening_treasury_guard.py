@@ -60,6 +60,7 @@ def verify_local_opening_treasury(
     *,
     connection: sqlite3.Connection,
     dataset_id: str,
+    expected_company_id: str,
     snapshot: FinancialSnapshot,
     proposal_context: dict | None,
 ) -> LocalOpeningTreasuryReceipt:
@@ -72,6 +73,8 @@ def verify_local_opening_treasury(
         _fail("READ_TRANSACTION_REQUIRED", "La lectura del saldo requiere una transacción SQLite abierta.")
     if not isinstance(dataset_id, str) or not dataset_id or dataset_id != dataset_id.strip():
         _fail("INVALID_DATASET_SCOPE", "El conjunto documental no está identificado.")
+    if not isinstance(expected_company_id, str) or not expected_company_id:
+        _fail("INVALID_COMPANY_SCOPE", "No se ha identificado la empresa de la situación.")
     if not isinstance(snapshot, FinancialSnapshot):
         _fail("INVALID_OPENING_SNAPSHOT", "Se requiere la situación financiera canónica.")
     try:
@@ -106,7 +109,7 @@ def verify_local_opening_treasury(
             "INVALID_SAVED_OPENING", "La situación financiera conservada es inválida."
         ) from exc
 
-    if stored_snapshot != snapshot or stored_snapshot.company_scope != dataset_id:
+    if stored_snapshot != snapshot or stored_snapshot.company_scope != expected_company_id:
         _fail(
             "OPENING_SNAPSHOT_CONTENT_MISMATCH",
             "El saldo inicial recibido no coincide con la situación financiera conservada.",
