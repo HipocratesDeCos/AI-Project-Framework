@@ -38,8 +38,17 @@ class ParameterLookupEntry:
     parameter_id: str
     status: EvidenceStatus
     resolution: ResolvedConfiguration | None
-    evidence: Evidence | None
+    _evidence_json: str | None
     reason: str
+
+    @property
+    def evidence(self) -> Evidence | None:
+        # Return a fresh object on each access. A mutable Evidence provided
+        # to a downstream rule cannot rewrite this previously checked report.
+        return (
+            Evidence.model_validate_json(self._evidence_json)
+            if self._evidence_json is not None else None
+        )
 
     @property
     def ready_for_consumer_checks(self) -> bool:
@@ -222,7 +231,7 @@ def read_company_parameters_for_context(
         else:
             proof = original_evidence.model_copy(deep=True)
             if _evidence_matches(proof, resolved, company_id):
-                entries.append(ParameterLookupEntry(pid, "DOCUMENTARY_CHECK_PASSED", resolved, proof, "Rule checks still required"))
+                entries.append(ParameterLookupEntry(pid, "DOCUMENTARY_CHECK_PASSED", resolved, proof.model_dump_json(), "Rule checks still required"))
             else:
                 entries.append(ParameterLookupEntry(pid, "EVIDENCE_INVALID", None, None, "Evidence does not bind to this configuration"))
     return CompanyParameterLookup(
