@@ -119,7 +119,7 @@ def read_parameters(db,store,dataset):
     current=json.loads(rows[0][0]) if rows else dict(company_id=company,revision=0,profile={},values={},references={})
     history=[json.loads(row[0]) for row in rows]
     from eios.company_finance_parameters import read_finance_activation
-    from eios.parameters.company_binding_report import describe_company_parameter_bindings
+    from eios.company_parameter_bindings import describe_company_parameter_bindings
     activation=read_finance_activation(db,company,info['as_of_date'])
     binding_report=describe_company_parameter_bindings(
         catalogue=CATALOGUE,activation=activation,company_id=company,
