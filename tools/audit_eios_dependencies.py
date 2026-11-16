@@ -40,12 +40,12 @@ def family(module: str) -> str:
     return "external"
 
 
-def _resolve_import_from(node: ast.ImportFrom, current_module: str) -> str:
+def _resolve_import_from(node: ast.ImportFrom, current_module: str, is_package: bool = False) -> str:
     if not node.level:
         return node.module or ""
     # A source eios.core.foo has package eios.core; '.' stays there,
     # '..' goes to eios. A package initializer is passed as its own module.
-    package = current_module.split(".")[:-1]
+    package = current_module.split(".") if is_package else current_module.split(".")[:-1]
     if node.level > len(package):
         return ""
     base = package[: len(package) - node.level + 1]
@@ -54,7 +54,7 @@ def _resolve_import_from(node: ast.ImportFrom, current_module: str) -> str:
     return ".".join(base)
 
 
-def static_imports(source: str, current_module: str, known: set[str]) -> set[str]:
+def static_imports(source: str, current_module: str, known: set[str], is_package: bool = False) -> set[str]:
     """Return resolved import *modules*, not guessed symbols or invocations."""
     parsed = ast.parse(source, filename=current_module + ".py")
     imported: set[str] = set()
@@ -64,7 +64,7 @@ def static_imports(source: str, current_module: str, known: set[str]) -> set[str
                 if alias.name.startswith("eios."):
                     imported.add(alias.name)
         elif isinstance(node, ast.ImportFrom):
-            parent = _resolve_import_from(node, current_module)
+            parent = _resolve_import_from(node, current_module, is_package=is_package)
             if not parent.startswith("eios"):
                 continue
             for alias in node.names:
@@ -87,7 +87,7 @@ def audit(root: Path) -> dict:
         groups[family(source)] += 1
         try:
             content = path.read_text(encoding="utf-8")
-            imports = static_imports(content, source, known)
+            imports = static_imports(content, source, known, is_package=path.name == "__init__.py")
         except (OSError, UnicodeDecodeError, SyntaxError) as exc:
             parse_failures.append({"file": str(path.relative_to(root)), "error": str(exc)})
             continue
