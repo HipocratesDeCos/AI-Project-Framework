@@ -184,6 +184,14 @@ def read_company_parameters_for_context(
     if len(source_evidence_ids) != len(set(source_evidence_ids)):
         raise ParameterLookupError("EVIDENCE_REUSED", "One evidence_id cannot support multiple parameters")
 
+    # Capture a single version/context and evidence view before Centre reads.
+    # No late caller mutations can silently relabel the same configuration.
+    context_snapshot = DecisionContext.model_validate(context.model_dump(mode="python"))
+    evidence_snapshot = {
+        pid: item.model_copy(deep=True)
+        for pid, item in evidence_by_parameter.items()
+    }
+
     entries: list[ParameterLookupEntry] = []
     configuration_ids: set[int] = set()
     for pid in parameter_ids:
@@ -204,11 +212,11 @@ def read_company_parameters_for_context(
             raise ParameterLookupError("CONFIGURATION_TYPE_MISMATCH", "Configuration type differs from catalogue")
         if definition.validate_value is not None and definition.validate_value(config.value) is not None:
             raise ParameterLookupError("CONFIGURATION_VALUE_INVALID", "Configuration violates catalogue validation")
-        resolved = resolve_configuration_for_context(config, context, effective_at)
+        resolved = resolve_configuration_for_context(config, context_snapshot, effective_at)
         if not isinstance(resolved, ResolvedConfiguration):
             raise ParameterLookupError("INVALID_CONFIGURATION", "Resolution unexpectedly absent")
 
-        original_evidence = evidence_by_parameter.get(pid)
+        original_evidence = evidence_snapshot.get(pid)
         if original_evidence is None:
             entries.append(ParameterLookupEntry(pid, "EVIDENCE_MISSING", None, None, "No documentary evidence"))
         else:
@@ -219,10 +227,10 @@ def read_company_parameters_for_context(
                 entries.append(ParameterLookupEntry(pid, "EVIDENCE_INVALID", None, None, "Evidence does not bind to this configuration"))
     return CompanyParameterLookup(
         company_id=company_id,
-        decision_id=context.decision_id,
-        scenario_id=context.scenario_id,
-        data_snapshot_id=context.data_snapshot_id,
-        parameters_version=context.parameters_version,
+        decision_id=context_snapshot.decision_id,
+        scenario_id=context_snapshot.scenario_id,
+        data_snapshot_id=context_snapshot.data_snapshot_id,
+        parameters_version=context_snapshot.parameters_version,
         effective_at=effective_at,
         entries=tuple(entries),
     )
