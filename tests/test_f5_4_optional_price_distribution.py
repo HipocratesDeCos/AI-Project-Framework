@@ -140,7 +140,8 @@ def test_wheel_rejects_an_injected_import_even_when_module_list_is_unchanged(tmp
         archive.writestr(
             "eios_price_procurement-0.2.0.dist-info/METADATA",
             "Name: eios-price-procurement\nVersion: 0.2.0\n"
-            "Requires-Dist: pydantic>=2,<3\n",
+            "Requires-Dist: pydantic>=2,<3\n"
+            "Requires-Dist: eios-contracts-procurement==0.1.0\n",
         )
     with pytest.raises(ValueError, match="Forbidden"):
         audit_wheel(wheel)
