@@ -93,15 +93,11 @@ def test_provider_revocation_after_prior_success_invalidates_stale_result(tmp_pa
 
 def test_provider_expiry_after_prior_success_invalidates_stale_result(tmp_path):
     items = ready(tmp_path)
-    source = items[3]
-    rows = tuple(
-        replace(row, valid_to=items[1].reviewed_at - timedelta(seconds=1))
-        if row.role == "DOCUMENT" else row
-        for row in source.snapshot.registrations
-    )
-    source.snapshot = replace(source.snapshot, registrations=rows)
+    later = items[1].reviewed_at + timedelta(days=2)
+    items[1] = items[1].model_copy(update={"reviewed_at": later})
+    items[5] = replace(items[5], reviewed_at=later)
     result = revalidate(items)
-    assert_stopped(result, "ONBOARDING_REGISTRY_DIGEST_CHANGED")
+    assert_stopped(result, "ONBOARDING_PROVIDER_EXPIRED")
 
 
 def test_document_tampering_after_prior_success_is_safe_stopped(tmp_path):
@@ -141,7 +137,7 @@ def test_permission_revocation_between_fresh_checks_is_propagated_to_safe_stop(t
     original = permission.resolve_permission
     def revoked(*args, **kwargs):
         value = original(*args, **kwargs)
-        if permission.calls >= 2:
+        if permission.calls >= 4:
             return replace(value, grant_ref="REVOKED_GRANT")
         return value
     permission.resolve_permission = revoked
