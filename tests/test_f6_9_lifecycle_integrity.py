@@ -240,3 +240,13 @@ def test_baseline_requires_exact_snapshot_manifest(tmp_path):
             vault=vault, request=request, source=baseline,
             baseline_manifest=wrong_manifest,
         )
+
+
+def test_recovery_with_wrong_baseline_is_rejected_before_write(tmp_path):
+    request, vault, receipts, sources = complete_case(tmp_path)
+    forged_recovery = replace(sources[2], stale_result_fingerprint="0" * 64)
+    with pytest.raises(LifecycleError, match="INVALID_F6_8_RECOVERY_LINK"):
+        record_lifecycle_event(
+            vault=vault, request=request, source=forged_recovery,
+            previous=receipts[1],
+        )
