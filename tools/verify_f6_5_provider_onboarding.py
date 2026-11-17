@@ -39,6 +39,8 @@ FILES = frozenset({
     "eios_onboarding_example/demo.py",
     "eios_onboarding_example/pilot.py",
     "eios_onboarding_example/pilot_demo.py",
+    "eios_onboarding_example/safe_stop.py",
+    "eios_onboarding_example/safe_stop_demo.py",
 })
 DEPENDENCIES = frozenset({
     "pydantic", "eios-kernel", "eios-input-contracts",
@@ -249,6 +251,48 @@ def verify(bundle: Path) -> dict:
             pilot_outcomes.append(pilot)
         if pilot_outcomes[0] != pilot_outcomes[1]:
             raise ValueError("Independent F6.6 rehearsals differed across installations")
+        safe_stop_outcomes = []
+        for number in (1, 2):
+            outside = root / f"external-consumer-{number}"
+            safe_process = subprocess.run(
+                [str(python), "-I", "-m", "eios_onboarding_example.safe_stop_demo"],
+                cwd=outside, env=env, capture_output=True, text=True, timeout=80,
+            )
+            if safe_process.returncode:
+                raise RuntimeError("F6.7 safe-stop demonstration failed: " + safe_process.stderr[-3500:])
+            try:
+                safe = json.loads(safe_process.stdout)
+            except ValueError as exc:
+                raise ValueError("F6.7 output is not valid JSON") from exc
+            if (
+                safe.get("verification") != "F6_7_INTEGRAL_SAFE_STOP_SYNTHETIC_PASS"
+                or safe.get("healthy_revalidated") != 1
+                or safe.get("safe_stopped") != 1
+                or safe.get("previous_results_invalidated") != 1
+                or safe.get("real_pilot_admitted") is not False
+                or safe.get("production_authorized") is not False
+                or safe.get("decision_authority") is not False
+                or safe.get("operational_path") != "FORBIDDEN"
+                or len(safe.get("receipts", ())) != 2
+                or len(list((outside / "f67-safe-stop-synthetic-custody").glob("*.json"))) != 2
+                or any(
+                    row.get("production_authorized") is not False
+                    or row.get("decision_authority") is not False
+                    or row.get("real_pilot_admitted") is not False
+                    or row.get("operational_path") != "FORBIDDEN"
+                    for row in safe["receipts"]
+                )
+                or not any(
+                    row.get("status") == "SAFE_STOPPED"
+                    and row.get("previous_result_invalidated") is True
+                    and row.get("fresh_revalidation_passed") is False
+                    for row in safe["receipts"]
+                )
+            ):
+                raise ValueError("F6.7 failed to preserve fail-closed external boundary")
+            safe_stop_outcomes.append(safe)
+        if safe_stop_outcomes[0] != safe_stop_outcomes[1]:
+            raise ValueError("Independent F6.7 safe-stop rehearsals differed")
         return {
             "verification": "F6_5_EXTERNAL_ONBOARDING_OFFLINE_CERTIFICATION_PASS",
             "platform_manifest_sha256": checked["manifest_sha256"],
@@ -263,6 +307,9 @@ def verify(bundle: Path) -> dict:
             "f6_6_supervised_rehearsal": "SYNTHETIC_ONLY_PASS",
             "f6_6_rehearsals": len(pilot_outcomes),
             "f6_6_real_pilot_admitted": False,
+            "f6_7_integral_safe_stop": "SYNTHETIC_ONLY_PASS",
+            "f6_7_rehearsals": len(safe_stop_outcomes),
+            "f6_7_previous_results_invalidated": 1,
             "real_identity_or_documents": "NOT_TESTED",
             "production_authorized": False,
             "operational_path": "FORBIDDEN",
