@@ -121,3 +121,6 @@ jobs:
       - name: F5.8 verify externally authorized configuration and two isolated consumers
         run: python tools/verify_f5_8_governance_two_domains.py --kernel-dir dist/kernel --inputs-dir dist/inputs --catalog-dir dist/catalog --governance-dir dist/governance --contracts-dir dist/contracts --price-dir dist/price --tco-dir dist/tco
 
+      - name: F5.9 audit external maintenance consumer and prove third-domain portability
+        run: python tools/verify_f5_9_third_domain.py --kernel-dir dist/kernel --inputs-dir dist/inputs --catalog-dir dist/catalog --governance-dir dist/governance
+
