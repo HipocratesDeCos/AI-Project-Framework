@@ -45,6 +45,8 @@ FILES = frozenset({
     "eios_onboarding_example/recovery_demo.py",
     "eios_onboarding_example/lifecycle.py",
     "eios_onboarding_example/lifecycle_demo.py",
+    "eios_onboarding_example/resilience.py",
+    "eios_onboarding_example/retry_demo.py",
 })
 DEPENDENCIES = frozenset({
     "pydantic", "eios-kernel", "eios-input-contracts",
@@ -376,6 +378,38 @@ def verify(bundle: Path) -> dict:
             lifecycle_outcomes.append(lifecycle)
         if lifecycle_outcomes[0] != lifecycle_outcomes[1]:
             raise ValueError("Independent F6.9 lifecycle journal executions differed")
+        retry_outcomes = []
+        for number in (1, 2):
+            outside = root / f"external-consumer-{number}"
+            retry_process = subprocess.run(
+                [str(python), "-I", "-m", "eios_onboarding_example.retry_demo"],
+                cwd=outside, env=env, capture_output=True, text=True, timeout=80,
+            )
+            if retry_process.returncode:
+                raise RuntimeError("F6.10 retry safety demonstration failed: " + retry_process.stderr[-3500:])
+            try:
+                retry = json.loads(retry_process.stdout)
+            except ValueError as exc:
+                raise ValueError("F6.10 output is not valid JSON") from exc
+            rows = retry.get("retry_receipts", ())
+            if (
+                retry.get("verification") != "F6_10_IDEMPOTENT_RETRY_SYNTHETIC_PASS"
+                or retry.get("created") != 3
+                or retry.get("reused_identical") != 3
+                or retry.get("event_count") != 3
+                or retry.get("history_status") != "SYNTHETIC_LIFECYCLE_HISTORY_VERIFIED"
+                or retry.get("production_authorized") is not False
+                or retry.get("decision_authority") is not False
+                or retry.get("real_pilot_admitted") is not False
+                or retry.get("operational_path") != "FORBIDDEN"
+                or len(rows) != 3
+                or any(row.get("disposition") != "REUSED_IDENTICAL" for row in rows)
+                or len(list((outside / "f610-retry-demo" / "journal").glob("*.json"))) != 3
+            ):
+                raise ValueError("F6.10 retry safety failed idempotency or authority checks")
+            retry_outcomes.append(retry)
+        if retry_outcomes[0] != retry_outcomes[1]:
+            raise ValueError("Independent F6.10 retry safety executions differed")
         return {
             "verification": "F6_5_EXTERNAL_ONBOARDING_OFFLINE_CERTIFICATION_PASS",
             "platform_manifest_sha256": checked["manifest_sha256"],
@@ -399,6 +433,9 @@ def verify(bundle: Path) -> dict:
             "f6_9_lifecycle_integrity": "SYNTHETIC_ONLY_PASS",
             "f6_9_journal_runs": len(lifecycle_outcomes),
             "f6_9_event_count": 3,
+            "f6_10_idempotent_retry": "SYNTHETIC_ONLY_PASS",
+            "f6_10_retry_runs": len(retry_outcomes),
+            "f6_10_reused_identical": 3,
             "real_identity_or_documents": "NOT_TESTED",
             "production_authorized": False,
             "operational_path": "FORBIDDEN",

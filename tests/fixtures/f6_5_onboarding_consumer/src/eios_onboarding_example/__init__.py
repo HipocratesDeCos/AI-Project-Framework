@@ -1,4 +1,4 @@
-"""F6.5–F6.9 independent synthetic external onboarding (no real trust)."""
+"""F6.5–F6.10 independent synthetic external onboarding (no real trust)."""
 from .onboarding import (
     OnboardingError, ProviderRegistration, OnboardingSnapshot,
     PinnedOnboarding, ProviderEndpoint, OnboardingReceipt,
@@ -18,6 +18,10 @@ from .lifecycle import (
     LifecycleError, LifecycleEventReceipt, LifecycleVerification,
     record_lifecycle_event, verify_lifecycle_history,
 )
+from .resilience import (
+    RetrySafetyError, RetrySafeLifecycleResult,
+    record_lifecycle_event_retry_safe,
+)
 
 __all__ = (
     "OnboardingError", "ProviderRegistration", "OnboardingSnapshot",
@@ -29,4 +33,6 @@ __all__ = (
     "RecoveryError", "RecoveryResult", "recover_after_safe_stop",
     "LifecycleError", "LifecycleEventReceipt", "LifecycleVerification",
     "record_lifecycle_event", "verify_lifecycle_history",
+    "RetrySafetyError", "RetrySafeLifecycleResult",
+    "record_lifecycle_event_retry_safe",
 )
