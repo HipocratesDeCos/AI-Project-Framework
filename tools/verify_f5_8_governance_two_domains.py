@@ -159,8 +159,9 @@ def _program(domain: str) -> str:
         raise ValueError(f"Changed F5.7 {domain} consumer requires explicit re-audit")
     governed = GOVERNED_BINDING.replace("bindings=existing", f"bindings={existing}")
     updated = source.replace(original_binding, governed, 1)
+    adversarial = GOVERNANCE_ADVERSARIAL.replace("bindings=existing", f"bindings={existing}")
     return updated.replace(
-        "print(json.dumps({", GOVERNANCE_ADVERSARIAL + "\nprint(json.dumps({", 1,
+        "print(json.dumps({", adversarial + "\nprint(json.dumps({", 1,
     )
 
 
