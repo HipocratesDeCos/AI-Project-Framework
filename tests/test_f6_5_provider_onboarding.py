@@ -81,7 +81,9 @@ def test_missing_registry_or_missing_role_fails_before_provider_use(tmp_path):
         review(items)
     assert all(ep.client.calls == 0 for role, ep in items[4].items()
                if role != "DOCUMENT")
-    items = case(tmp_path / "new")
+    other = tmp_path / "new"
+    other.mkdir()
+    items = case(other)
     items[4] = {key: ep for key, ep in items[4].items() if key != "DOCUMENT"}
     with pytest.raises(OnboardingError, match="MISSING_OR_UNDECLARED_PROVIDER_ENDPOINT"):
         review(items)
