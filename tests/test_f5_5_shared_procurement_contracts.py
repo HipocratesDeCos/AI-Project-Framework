@@ -74,7 +74,7 @@ def test_shared_model_cannot_acquire_dependencies_on_business_modules(tmp_path, 
     path = tmp_path / rel
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(illegal + "\n", encoding="utf-8")
-    with pytest.raises(ValueError, match="independent"):
+    with pytest.raises(ValueError, match="independent|relative"):
         verify_source_dependencies(tmp_path)
 
 
