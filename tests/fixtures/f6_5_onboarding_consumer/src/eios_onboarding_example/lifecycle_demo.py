@@ -77,6 +77,7 @@ def run() -> dict:
     vault = SyntheticCustodyVault(journal_root)
     first = record_lifecycle_event(
         vault=vault, request=request, source=baseline,
+        baseline_manifest=old_manifest,
     )
     second = record_lifecycle_event(
         vault=vault, request=request, source=stopped, previous=first,
