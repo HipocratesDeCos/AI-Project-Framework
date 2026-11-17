@@ -99,7 +99,7 @@ class SyntheticCustodyVault:
     """
 
     def __init__(self, root: Path):
-        if type(root) is not Path:
+        if not isinstance(root, Path):
             raise CustodyError("EXPLICIT_EXISTING_CUSTODY_ROOT_REQUIRED")
         if root.is_symlink() or not root.is_dir():
             raise CustodyError("UNTRUSTED_CUSTODY_ROOT")
