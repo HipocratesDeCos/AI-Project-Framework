@@ -69,7 +69,10 @@ def complete_case(tmp_path, company="EXTERNAL_COMPANY_A"):
         registry_source=registry, endpoints=endpoints,
     )
     vault = SyntheticCustodyVault(journal)
-    first = record_lifecycle_event(vault=vault, request=request, source=baseline)
+    first = record_lifecycle_event(
+        vault=vault, request=request, source=baseline,
+        baseline_manifest=old_manifest,
+    )
     second = record_lifecycle_event(
         vault=vault, request=request, source=stopped, previous=first,
     )
@@ -184,7 +187,18 @@ def test_forged_authority_receipt_is_rejected(tmp_path):
 def test_duplicate_stage_write_is_rejected_by_existing_f6_4_write_once_vault(tmp_path):
     request, vault, _, sources = complete_case(tmp_path)
     with pytest.raises(Exception, match="CUSTODY_RECORD_ALREADY_EXISTS"):
-        record_lifecycle_event(vault=vault, request=request, source=sources[0])
+        record_lifecycle_event(
+            vault=vault, request=request, source=sources[0],
+            baseline_manifest=manifest_for(
+                PinnedOnboarding(
+                    project_id=request.project_id,
+                    company_id=request.company_id,
+                    expected_revision=1,
+                    expected_digest=sources[0].registry_digest,
+                ),
+                request,
+            ),
+        )
 
 
 def test_safe_stop_must_link_exact_baseline(tmp_path):
@@ -202,4 +216,27 @@ def test_recovery_must_link_exact_safe_stop(tmp_path):
     with pytest.raises(LifecycleError, match="INVALID_F6_8_RECOVERY_LINK"):
         record_lifecycle_event(
             vault=vault, request=request, source=sources[2], previous=wrong_stop,
+        )
+
+
+def test_baseline_requires_exact_snapshot_manifest(tmp_path):
+    evidence = tmp_path / "evidence-snapshot"
+    journal = tmp_path / "journal-snapshot"
+    evidence.mkdir()
+    journal.mkdir()
+    prepared, request, pin, registry, endpoints = fixture("EXTERNAL_COMPANY_A", evidence)
+    technical = review_with_onboarded_providers(
+        prepared=prepared, request=request, pin=pin,
+        registry_source=registry, endpoints=endpoints,
+    )
+    manifest = manifest_for(pin, request)
+    baseline = assess_read_only_rehearsal(
+        manifest=manifest, pin=pin, request=request, technical_review=technical,
+    )
+    wrong_manifest = replace(manifest, data_snapshot_id="FOREIGN_SNAPSHOT")
+    vault = SyntheticCustodyVault(journal)
+    with pytest.raises(LifecycleError, match="INVALID_F6_6_BASELINE"):
+        record_lifecycle_event(
+            vault=vault, request=request, source=baseline,
+            baseline_manifest=wrong_manifest,
         )
