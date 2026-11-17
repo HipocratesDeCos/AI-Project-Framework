@@ -24,7 +24,7 @@ from eios_custody_example.custody import (
     DocumentBinding, SyntheticCustodyVault,
 )
 from eios_evidence_boundary_example.review import ReviewRequest
-from .pilot import PilotRehearsalResult
+from .pilot import PilotRehearsalResult, RehearsalManifest
 from .safe_stop import SafeStopResult
 from .recovery import RecoveryResult
 
@@ -114,6 +114,7 @@ def _stage_payload(
     request: ReviewRequest,
     source: object,
     previous: LifecycleEventReceipt | None,
+    baseline_manifest: RehearsalManifest | None,
 ) -> tuple[dict, str]:
     if type(request) is not ReviewRequest:
         raise LifecycleError("F6_3_REVIEW_SCOPE_REQUIRED")
@@ -122,7 +123,12 @@ def _stage_payload(
         if previous is not None:
             raise LifecycleError("BASELINE_MUST_BE_FIRST")
         if (
-            source.status != status
+            type(baseline_manifest) is not RehearsalManifest
+            or baseline_manifest.project_id != request.project_id
+            or baseline_manifest.company_id != request.company_id
+            or baseline_manifest.data_snapshot_id != request.data_snapshot_id
+            or baseline_manifest.registry_digest != source.registry_digest
+            or source.status != status
             or source.synthetic_rehearsal_complete is not True
             or source.project_id != request.project_id
             or source.company_id != request.company_id
@@ -134,6 +140,8 @@ def _stage_payload(
         fresh_fp = None
         previous_sha = None
     elif source.__class__ is SafeStopResult:
+        if baseline_manifest is not None:
+            raise LifecycleError("BASELINE_MANIFEST_ONLY_ALLOWED_FOR_STAGE_1")
         stage, event_type, status = _STAGES[1]
         if (
             type(previous) is not LifecycleEventReceipt
@@ -154,6 +162,8 @@ def _stage_payload(
         fresh_fp = None
         previous_sha = previous.event_sha256
     elif source.__class__ is RecoveryResult:
+        if baseline_manifest is not None:
+            raise LifecycleError("BASELINE_MANIFEST_ONLY_ALLOWED_FOR_STAGE_1")
         stage, event_type, status = _STAGES[2]
         if (
             type(previous) is not LifecycleEventReceipt
@@ -207,12 +217,14 @@ def record_lifecycle_event(
     request: ReviewRequest,
     source: object,
     previous: LifecycleEventReceipt | None = None,
+    baseline_manifest: RehearsalManifest | None = None,
 ) -> LifecycleEventReceipt:
     """Write one deterministic lifecycle event via the existing F6.4 vault."""
     if type(vault) is not SyntheticCustodyVault:
         raise LifecycleError("F6_4_SYNTHETIC_CUSTODY_REQUIRED")
     payload, document_ref = _stage_payload(
         request=request, source=source, previous=previous,
+        baseline_manifest=baseline_manifest,
     )
     content = _canonical(payload)
     digest = sha256(content).hexdigest()
