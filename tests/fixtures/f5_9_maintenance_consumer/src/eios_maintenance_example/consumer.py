@@ -206,7 +206,7 @@ def run() -> dict[str, object]:
                 ledger,
                 CatalogChange(
                     project_id=PROJECT_ID, catalog=catalog,
-                    desired_releases=tuple((name, "1.0.0") for name in CAPABILITIES),
+                    desired_releases=tuple(sorted((name, "1.0.0") for name in CAPABILITIES)),
                     expected_revision=0, expected_head_hash=None,
                     reason="Synthetic third-domain bootstrap test",
                 ),
@@ -218,7 +218,7 @@ def run() -> dict[str, object]:
             raise AssertionError("Missing or foreign authorization created a ledger")
         assert not ledger.exists()
 
-    desired = tuple((name, "1.0.0") for name in CAPABILITIES)
+    desired = tuple(sorted((name, "1.0.0") for name in CAPABILITIES))
     approved = commit_catalog_change(
         ledger,
         CatalogChange(
