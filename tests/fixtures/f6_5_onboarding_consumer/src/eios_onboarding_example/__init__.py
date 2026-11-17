@@ -1,4 +1,4 @@
-"""F6.5–F6.7 independent synthetic external onboarding (no real trust)."""
+"""F6.5–F6.8 independent synthetic external onboarding (no real trust)."""
 from .onboarding import (
     OnboardingError, ProviderRegistration, OnboardingSnapshot,
     PinnedOnboarding, ProviderEndpoint, OnboardingReceipt,
@@ -11,6 +11,9 @@ from .pilot import (
 from .safe_stop import (
     SafeStopError, SafeStopResult, revalidate_before_rehearsal_reuse,
 )
+from .recovery import (
+    RecoveryError, RecoveryResult, recover_after_safe_stop,
+)
 
 __all__ = (
     "OnboardingError", "ProviderRegistration", "OnboardingSnapshot",
@@ -19,4 +22,5 @@ __all__ = (
     "REQUIREMENTS", "RehearsalChecklistItem", "RehearsalManifest",
     "PilotReadinessError", "PilotRehearsalResult", "assess_read_only_rehearsal",
     "SafeStopError", "SafeStopResult", "revalidate_before_rehearsal_reuse",
+    "RecoveryError", "RecoveryResult", "recover_after_safe_stop",
 )
