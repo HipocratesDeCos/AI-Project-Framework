@@ -148,7 +148,7 @@ def test_fresh_registry_pin_and_manifest_are_mandatory(tmp_path):
     fresh_pin, fresh_manifest = recovered_inputs(items)
     result = recover(items, items[2], items[5])
     assert result.status == "RECOVERY_BLOCKED"
-    assert result.failure_code == "F6_8_FRESH_CONTEXT_MISMATCH"
+    assert "ONBOARDING_STALE_OR_REVOKED_REVISION" in result.failure_code
     assert_forbidden(result)
     result = recover(items, fresh_pin, items[5])
     assert result.status == "RECOVERY_BLOCKED"
@@ -191,3 +191,35 @@ def test_recovery_receipt_is_deterministic_for_same_fresh_state(tmp_path):
     assert first.status == second.status == "SYNTHETIC_RECOVERY_REVALIDATED"
     assert first.result_fingerprint == second.result_fingerprint
     assert first.fresh_result_fingerprint == second.fresh_result_fingerprint
+
+
+@pytest.mark.parametrize("field", (
+    "real_pilot_admitted", "real_company_authenticated",
+    "real_document_authenticated", "real_human_authorized",
+    "production_authorized", "decision_authority",
+))
+def test_forged_safe_stop_authority_cannot_enter_recovery(tmp_path, field):
+    items = stopped_case(tmp_path)
+    pin, manifest = recovered_inputs(items)
+    forged = replace(items[7], **{field: True})
+    with pytest.raises(RecoveryError, match="SAFE_STOP_HISTORY_MISMATCH_OR_PROMOTION"):
+        recover_after_safe_stop(
+            stopped=forged, stale=items[6], manifest=manifest,
+            prepared=items[0], request=items[1], pin=pin,
+            registry_source=items[3], endpoints=items[4],
+        )
+
+
+def test_safe_stop_from_another_scope_cannot_be_recovered(tmp_path):
+    items = stopped_case(tmp_path)
+    pin, manifest = recovered_inputs(items)
+    forged = replace(items[7], company_id="EXTERNAL_COMPANY_B")
+    result = recover_after_safe_stop(
+        stopped=forged, stale=items[6], manifest=manifest,
+        prepared=items[0], request=items[1], pin=pin,
+        registry_source=items[3], endpoints=items[4],
+    )
+    assert result.status == "RECOVERY_BLOCKED"
+    assert result.failure_code == "F6_8_SAFE_STOP_SCOPE_MISMATCH"
+    assert result.supersedes_safe_stop is False
+    assert_forbidden(result)
