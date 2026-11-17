@@ -19,9 +19,11 @@ import zipfile
 if __package__:
     from .build_eios_tco_distribution import SOURCE_FILES, audit_wheel
     from .build_eios_kernel_distribution import audit_wheel as audit_kernel
+    from .build_eios_contracts_distribution import audit_wheel as audit_contracts
 else:
     from build_eios_tco_distribution import SOURCE_FILES, audit_wheel
     from build_eios_kernel_distribution import audit_wheel as audit_kernel
+    from build_eios_contracts_distribution import audit_wheel as audit_contracts
 
 
 SMOKE = r"""
@@ -38,7 +40,8 @@ import sys
 
 mode, expected_json = sys.argv[1], sys.argv[2]
 expected_hashes = json.loads(expected_json)
-assert metadata.version("eios-tco-procurement") == "0.1.0"
+assert metadata.version("eios-tco-procurement") == "0.2.0"
+assert metadata.version("eios-contracts-procurement") == "0.1.0"
 try:
     metadata.version("eios-mvp")
 except metadata.PackageNotFoundError:
@@ -193,17 +196,29 @@ def wheel_hashes(wheel: Path) -> dict[str, str]:
         }
 
 
-def check(tco_wheel: Path, kernel_wheel: Path) -> dict:
+def check(tco_wheel: Path, kernel_wheel: Path, contracts_wheel: Path) -> dict:
     """Check two isolated installations; no use of repository source modules."""
     tco_wheel = tco_wheel.resolve()
     kernel_wheel = kernel_wheel.resolve()
+    contracts_wheel = contracts_wheel.resolve()
     hashes = wheel_hashes(tco_wheel)
+    audit_contracts(contracts_wheel)
+    with zipfile.ZipFile(contracts_wheel) as archive:
+        contracts_bytes = archive.read("eios/core/models.py")
+    if hashlib.sha256(contracts_bytes).hexdigest() != hashlib.sha256(
+        (Path(__file__).resolve().parents[1] / "eios/core/models.py").read_bytes()
+    ).hexdigest():
+        raise ValueError("Contracts wheel differs from canonical C0 model")
+    hashes["eios/core/models.py"] = hashlib.sha256(contracts_bytes).hexdigest()
     audit_kernel(kernel_wheel)
-    with zipfile.ZipFile(tco_wheel) as tco_archive, zipfile.ZipFile(kernel_wheel) as kernel_archive:
-        paths_tco = set(tco_archive.namelist())
-        paths_kernel = set(kernel_archive.namelist())
-        if paths_tco & paths_kernel:
-            raise ValueError("EIOS kernel and TCO wheels share installed paths")
+    installed = []
+    for wheel in (tco_wheel, kernel_wheel, contracts_wheel):
+        with zipfile.ZipFile(wheel) as archive:
+            installed.append({x for x in archive.namelist() if x.startswith("eios/")})
+    for i in range(len(installed)):
+        for j in range(i + 1, len(installed)):
+            if installed[i] & installed[j]:
+                raise ValueError("Overlapping installed EIOS paths detected")
     reports = []
     with tempfile.TemporaryDirectory(prefix="eios-f5-3-tco-") as temporary:
         root = Path(temporary)
@@ -217,7 +232,7 @@ def check(tco_wheel: Path, kernel_wheel: Path) -> dict:
             environment.pop("PYTHONPATH", None)
             environment["PYTHONNOUSERSITE"] = "1"
             environment["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-            wheels = [str(tco_wheel)]
+            wheels = [str(tco_wheel), str(contracts_wheel)]
             if mode == "tco-and-kernel":
                 wheels.append(str(kernel_wheel))
             installed = subprocess.run(
@@ -256,12 +271,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tco-dir", type=Path, default=Path("dist/tco"))
     parser.add_argument("--kernel-dir", type=Path, default=Path("dist/kernel"))
+    parser.add_argument("--contracts-dir", type=Path, default=Path("dist/contracts"))
     args = parser.parse_args()
     tco_wheels = list(args.tco_dir.resolve().glob("eios_tco_procurement-*.whl"))
     kernel_wheels = list(args.kernel_dir.resolve().glob("eios_kernel-*.whl"))
-    if len(tco_wheels) != 1 or len(kernel_wheels) != 1:
+    contracts_wheels = list(args.contracts_dir.resolve().glob("eios_contracts_procurement-*.whl"))
+    if len(tco_wheels) != 1 or len(kernel_wheels) != 1 or len(contracts_wheels) != 1:
         raise SystemExit("Expected exactly one wheel for each distribution")
-    print(json.dumps(check(tco_wheels[0], kernel_wheels[0]), indent=2, sort_keys=True))
+    print(json.dumps(check(tco_wheels[0], kernel_wheels[0], contracts_wheels[0]), indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":
