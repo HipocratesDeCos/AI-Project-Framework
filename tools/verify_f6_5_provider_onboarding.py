@@ -43,6 +43,8 @@ FILES = frozenset({
     "eios_onboarding_example/safe_stop_demo.py",
     "eios_onboarding_example/recovery.py",
     "eios_onboarding_example/recovery_demo.py",
+    "eios_onboarding_example/lifecycle.py",
+    "eios_onboarding_example/lifecycle_demo.py",
 })
 DEPENDENCIES = frozenset({
     "pydantic", "eios-kernel", "eios-input-contracts",
@@ -331,6 +333,49 @@ def verify(bundle: Path) -> dict:
             recovery_outcomes.append(recovery)
         if recovery_outcomes[0] != recovery_outcomes[1]:
             raise ValueError("Independent F6.8 recovery rehearsals differed")
+        lifecycle_outcomes = []
+        for number in (1, 2):
+            outside = root / f"external-consumer-{number}"
+            lifecycle_process = subprocess.run(
+                [str(python), "-I", "-m", "eios_onboarding_example.lifecycle_demo"],
+                cwd=outside, env=env, capture_output=True, text=True, timeout=80,
+            )
+            if lifecycle_process.returncode:
+                raise RuntimeError("F6.9 lifecycle journal demonstration failed: " + lifecycle_process.stderr[-3500:])
+            try:
+                lifecycle = json.loads(lifecycle_process.stdout)
+            except ValueError as exc:
+                raise ValueError("F6.9 output is not valid JSON") from exc
+            receipts = lifecycle.get("receipts", ())
+            if (
+                lifecycle.get("verification") != "F6_9_LIFECYCLE_INTEGRITY_SYNTHETIC_PASS"
+                or lifecycle.get("event_count") != 3
+                or lifecycle.get("history_status") != "SYNTHETIC_LIFECYCLE_HISTORY_VERIFIED"
+                or lifecycle.get("production_authorized") is not False
+                or lifecycle.get("decision_authority") is not False
+                or lifecycle.get("real_pilot_admitted") is not False
+                or lifecycle.get("operational_path") != "FORBIDDEN"
+                or len(receipts) != 3
+                or [row.get("stage") for row in receipts] != [1, 2, 3]
+                or [row.get("event_type") for row in receipts] != [
+                    "F6_6_BASELINE", "F6_7_SAFE_STOP", "F6_8_RECOVERY",
+                ]
+                or any(
+                    row.get("production_authorized") is not False
+                    or row.get("decision_authority") is not False
+                    or row.get("real_pilot_admitted") is not False
+                    or row.get("operational_path") != "FORBIDDEN"
+                    for row in receipts
+                )
+                or receipts[1].get("previous_event_sha256") != receipts[0].get("event_sha256")
+                or receipts[2].get("previous_event_sha256") != receipts[1].get("event_sha256")
+                or lifecycle.get("head_sha256") != receipts[2].get("event_sha256")
+                or len(list((outside / "f69-lifecycle-demo" / "journal").glob("*.json"))) != 3
+            ):
+                raise ValueError("F6.9 lifecycle journal failed lineage or authority checks")
+            lifecycle_outcomes.append(lifecycle)
+        if lifecycle_outcomes[0] != lifecycle_outcomes[1]:
+            raise ValueError("Independent F6.9 lifecycle journal executions differed")
         return {
             "verification": "F6_5_EXTERNAL_ONBOARDING_OFFLINE_CERTIFICATION_PASS",
             "platform_manifest_sha256": checked["manifest_sha256"],
@@ -351,6 +396,9 @@ def verify(bundle: Path) -> dict:
             "f6_8_safe_recovery": "SYNTHETIC_ONLY_PASS",
             "f6_8_recoveries": len(recovery_outcomes),
             "f6_8_stale_result_reusable": False,
+            "f6_9_lifecycle_integrity": "SYNTHETIC_ONLY_PASS",
+            "f6_9_journal_runs": len(lifecycle_outcomes),
+            "f6_9_event_count": 3,
             "real_identity_or_documents": "NOT_TESTED",
             "production_authorized": False,
             "operational_path": "FORBIDDEN",
