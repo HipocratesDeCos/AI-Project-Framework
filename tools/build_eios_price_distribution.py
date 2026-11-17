@@ -19,7 +19,6 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 METADATA_FILE = Path("packaging/eios-price-procurement/pyproject.toml")
 SOURCE_FILES = (
-    Path("eios/core/models.py"),
     Path("eios/core/validation.py"),
     Path("eios/pricing/__init__.py"),
     Path("eios/pricing/aggregation.py"),
@@ -35,8 +34,8 @@ SOURCE_FILES = (
     Path("eios/pricing/sufficiency.py"),
 )
 DISTRIBUTION = "eios-price-procurement"
-PACKAGE_VERSION = "0.1.0"
-ALLOWED_INTERNAL_MODULES = frozenset(
+PACKAGE_VERSION = "0.2.0"
+ALLOWED_INTERNAL_MODULES = frozenset({"eios.core.models"}) | frozenset(
     str(relative.with_suffix("")).replace("/", ".").removesuffix(".__init__")
     for relative in SOURCE_FILES
 )
@@ -102,20 +101,19 @@ def audit_wheel(wheel: Path) -> None:
         if any(".data/" in name for name in names):
             raise ValueError("PRICE wheel includes unapproved wheel data")
         info = [name for name in names if name.endswith(".dist-info/METADATA")]
-        if len(info) != 1 or not info[0].startswith("eios_price_procurement-0.1.0.dist-info/"):
+        if len(info) != 1 or not info[0].startswith("eios_price_procurement-0.2.0.dist-info/"):
             raise ValueError("Expected one PRICE distribution METADATA")
         lines = archive.read(info[0]).decode("utf-8").splitlines()
         if "Name: eios-price-procurement" not in lines:
             raise ValueError("Wrong PRICE distribution name")
-        if "Version: 0.1.0" not in lines:
+        if "Version: 0.2.0" not in lines:
             raise ValueError("Wrong PRICE distribution version")
         deps = [line for line in lines if line.startswith("Requires-Dist:")]
-        if len(deps) != 1 or not re.fullmatch(
-            r"Requires-Dist:\s*pydantic\s*(?:\([^)]*\)|[<>=!~,0-9. ]+)(?:\s*;.*)?",
-            deps[0],
-            re.IGNORECASE,
-        ):
-            raise ValueError("PRICE wheel must depend on Pydantic only")
+        names = [item.split(":", 1)[1].strip().split(" ", 1)[0].split("=", 1)[0].split("<", 1)[0].lower() for item in deps]
+        if sorted(names) != ["eios-contracts-procurement", "pydantic"]:
+            raise ValueError("PRICE wheel must depend on Pydantic and shared C0 contracts only")
+        if not any("eios-contracts-procurement==0.1.0" in item.replace(" ", "") for item in deps):
+            raise ValueError("PRICE wheel must pin exact shared C0 contract version")
         # Confirm the staged module graph, not only the repository imports.
         with tempfile.TemporaryDirectory(prefix="eios-price-wheel-audit-") as audit_dir:
             audit_root = Path(audit_dir)
