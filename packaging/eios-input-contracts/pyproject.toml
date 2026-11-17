@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=64", "wheel>=0.42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eios-input-contracts"
+version = "0.1.0"
+description = "Domain-neutral typed capability input binding for the EIOS technical kernel"
+requires-python = ">=3.11"
+dependencies = ["pydantic>=2.0,<3.0", "eios-kernel==0.1.0"]
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["eios", "eios.input_contracts"]
+namespaces = true
