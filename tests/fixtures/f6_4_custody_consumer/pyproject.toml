@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=64", "wheel>=0.42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eios-custody-example"
+version = "0.1.0"
+description = "External, synthetic-only, write-once local documentary custody provider"
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.0,<3.0",
+  "eios-kernel==0.1.0",
+  "eios-input-contracts==0.1.0",
+  "eios-capability-catalog==0.1.0",
+  "eios-catalog-governance==0.1.0",
+  "eios-company-adapter-example==0.1.0",
+  "eios-evidence-boundary-example==0.1.0",
+]
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["eios_custody_example"]
