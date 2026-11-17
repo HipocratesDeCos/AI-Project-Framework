@@ -111,3 +111,8 @@ jobs:
       - name: F5.6 verify two isolated projects with one neutral input contract
         run: python tools/verify_f5_6_two_domains.py --kernel-dir dist/kernel --inputs-dir dist/inputs --contracts-dir dist/contracts --price-dir dist/price --tco-dir dist/tco
 
+      - name: F5.7 build audited optional capability catalog wheel
+        run: python tools/build_eios_capability_catalog_distribution.py --output dist/catalog
+      - name: F5.7 verify explicit release catalog in isolated Sales and real Procurement
+        run: python tools/verify_f5_7_capability_catalog.py --kernel-dir dist/kernel --inputs-dir dist/inputs --catalog-dir dist/catalog --contracts-dir dist/contracts --price-dir dist/price --tco-dir dist/tco
+
