@@ -20,10 +20,12 @@ if __package__:
     from .build_eios_price_distribution import SOURCE_FILES, ROOT, audit_wheel
     from .build_eios_kernel_distribution import audit_wheel as audit_kernel
     from .build_eios_tco_distribution import audit_wheel as audit_tco
+    from .build_eios_contracts_distribution import audit_wheel as audit_contracts
 else:
     from build_eios_price_distribution import SOURCE_FILES, ROOT, audit_wheel
     from build_eios_kernel_distribution import audit_wheel as audit_kernel
     from build_eios_tco_distribution import audit_wheel as audit_tco
+    from build_eios_contracts_distribution import audit_wheel as audit_contracts
 
 
 SMOKE = r"""
@@ -41,7 +43,8 @@ from pydantic import ValidationError
 
 mode, hashes_json = sys.argv[1:3]
 hashes = json.loads(hashes_json)
-assert metadata.version("eios-price-procurement") == "0.1.0"
+assert metadata.version("eios-price-procurement") == "0.2.0"
+assert metadata.version("eios-contracts-procurement") == "0.1.0"
 for missing in ("eios-mvp", "eios-tco-procurement"):
     try:
         metadata.version(missing)
@@ -268,34 +271,35 @@ def ensure_no_shared_paths(first: Path, second: Path) -> None:
         raise ValueError("Wheel path collision: " + ", ".join(sorted(shared)))
 
 
-def verify_existing_tco_conflict(price_wheel: Path, tco_wheel: Path) -> str:
-    """Fail-closed detection: F5.3 and F5.4 share a canonical C0 module."""
+def verify_shared_contracts(price_wheel: Path, tco_wheel: Path, contracts_wheel: Path) -> str:
+    """New wheels must have no duplicate installed paths."""
     audit_tco(tco_wheel)
-    shared = installed_paths(price_wheel) & installed_paths(tco_wheel)
-    if shared != {"eios/core/models.py"}:
-        raise ValueError("Unexpected PRICE/TCO overlap; requires design audit")
-    with zipfile.ZipFile(price_wheel) as a, zipfile.ZipFile(tco_wheel) as b:
-        if a.read("eios/core/models.py") != b.read("eios/core/models.py"):
-            raise ValueError("PRICE/TCO canonical core models diverged")
-    # Do NOT co-install them despite their currently identical bytes:
-    # installing/removing one distribution can affect the other's files.
-    try:
-        ensure_no_shared_paths(price_wheel, tco_wheel)
-    except ValueError as exc:
-        assert "eios/core/models.py" in str(exc)
-    else:
-        raise AssertionError("Overlapping PRICE and TCO wheels were not blocked")
-    return "REQUIRES_SHARED_CONTRACTS_REFACTOR"
+    audit_contracts(contracts_wheel)
+    for a, b in (
+        (price_wheel, tco_wheel),
+        (price_wheel, contracts_wheel),
+        (tco_wheel, contracts_wheel),
+    ):
+        ensure_no_shared_paths(a, b)
+    if installed_paths(contracts_wheel) != {"eios/core/models.py"}:
+        raise ValueError("Unexpected shared contracts module ownership")
+    return "SINGLE_C0_OWNER_VERIFIED"
 
-
-def check(price_wheel: Path, kernel_wheel: Path, tco_wheel: Path) -> dict:
-    price_wheel, kernel_wheel, tco_wheel = (
-        path.resolve() for path in (price_wheel, kernel_wheel, tco_wheel)
+def check(price_wheel: Path, kernel_wheel: Path, tco_wheel: Path, contracts_wheel: Path) -> dict:
+    price_wheel, kernel_wheel, tco_wheel, contracts_wheel = (
+        path.resolve() for path in (price_wheel, kernel_wheel, tco_wheel, contracts_wheel)
     )
     hashes = content_hashes(price_wheel)
     audit_kernel(kernel_wheel)
     ensure_no_shared_paths(price_wheel, kernel_wheel)
-    tco_relation = verify_existing_tco_conflict(price_wheel, tco_wheel)
+    ensure_no_shared_paths(kernel_wheel, contracts_wheel)
+    tco_relation = verify_shared_contracts(price_wheel, tco_wheel, contracts_wheel)
+    with zipfile.ZipFile(contracts_wheel) as archive:
+        canonical = archive.read("eios/core/models.py")
+    canonical_digest = hashlib.sha256((ROOT / "eios/core/models.py").read_bytes()).hexdigest()
+    if hashlib.sha256(canonical).hexdigest() != canonical_digest:
+        raise ValueError("Shared contracts wheel is not canonical")
+    hashes["eios/core/models.py"] = canonical_digest
     reports = []
     with tempfile.TemporaryDirectory(prefix="eios-f5-4-price-") as temporary:
         root = Path(temporary)
@@ -309,7 +313,7 @@ def check(price_wheel: Path, kernel_wheel: Path, tco_wheel: Path) -> dict:
             environment.pop("PYTHONPATH", None)
             environment["PYTHONNOUSERSITE"] = "1"
             environment["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-            wheels = [str(price_wheel)]
+            wheels = [str(price_wheel), str(contracts_wheel)]
             if mode == "price-and-kernel":
                 wheels.append(str(kernel_wheel))
             installed = subprocess.run(
@@ -330,7 +334,7 @@ def check(price_wheel: Path, kernel_wheel: Path, tco_wheel: Path) -> dict:
             if report.get("mode") != mode or report.get("module_hashes") != hashes:
                 raise ValueError("PRICE installation failed SHA256 contract")
             for key, expected in {
-                "price_version": "0.1.0",
+                "price_version": "0.2.0",
                 "synthetic_reference_price": "11.00",
                 "synthetic_reference_status": "PR_AVAILABLE",
                 "company_documentary_coverage": "INCOMPLETE",
@@ -357,13 +361,15 @@ def main() -> None:
     parser.add_argument("--price-dir", type=Path, default=Path("dist/price"))
     parser.add_argument("--kernel-dir", type=Path, default=Path("dist/kernel"))
     parser.add_argument("--tco-dir", type=Path, default=Path("dist/tco"))
+    parser.add_argument("--contracts-dir", type=Path, default=Path("dist/contracts"))
     args = parser.parse_args()
     price = list(args.price_dir.resolve().glob("eios_price_procurement-*.whl"))
     kernel = list(args.kernel_dir.resolve().glob("eios_kernel-*.whl"))
     tco = list(args.tco_dir.resolve().glob("eios_tco_procurement-*.whl"))
-    if len(price) != 1 or len(kernel) != 1 or len(tco) != 1:
-        raise SystemExit("Expected one PRICE, one neutral kernel and one TCO wheel")
-    print(json.dumps(check(price[0], kernel[0], tco[0]), indent=2, sort_keys=True))
+    contracts = list(args.contracts_dir.resolve().glob("eios_contracts_procurement-*.whl"))
+    if len(price) != 1 or len(kernel) != 1 or len(tco) != 1 or len(contracts) != 1:
+        raise SystemExit("Expected PRICE, neutral kernel, TCO and shared contracts wheels")
+    print(json.dumps(check(price[0], kernel[0], tco[0], contracts[0]), indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":
