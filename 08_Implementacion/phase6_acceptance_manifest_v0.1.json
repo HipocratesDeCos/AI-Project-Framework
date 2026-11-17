@@ -1,0 +1,43 @@
+{
+  "schema": "EIOS_PHASE6_ACCEPTANCE/v0.1",
+  "phase": "F6",
+  "status": "CLOSURE_CANDIDATE",
+  "baseline_main_sha": "85697d8d1268b874261d1fa5f0bcd69a291aef3b",
+  "synthetic_only": true,
+  "production_authorized": false,
+  "decision_authority": false,
+  "real_pilot_admitted": false,
+  "operational_path": "FORBIDDEN",
+  "units": [
+    {"id":"F6.1","artifact":"08_Implementacion/Core_Phase6_1_Windows_Offline_Portability_Certification_v0.1.md"},
+    {"id":"F6.2","artifact":"08_Implementacion/Core_Phase6_2_External_Company_Adapter_Input_Gate_v0.1.md","test":"tests/test_f6_2_external_company_adapter.py","verifier":"tools/verify_f6_2_external_company_adapter.py"},
+    {"id":"F6.3","artifact":"08_Implementacion/Core_Phase6_3_External_Documentary_Identity_Review_Trust_Boundary_v0.1.md","test":"tests/test_f6_3_external_documentary_boundary.py","verifier":"tools/verify_f6_3_documentary_boundary.py"},
+    {"id":"F6.4","artifact":"08_Implementacion/Core_Phase6_4_External_Provider_Wiring_Immutable_Custody_Contract_v0.1.md","test":"tests/test_f6_4_custody_provider.py","verifier":"tools/verify_f6_4_custody_portability.py"},
+    {"id":"F6.5","artifact":"08_Implementacion/Core_Phase6_5_External_Provider_Onboarding_Registry_Gate_v0.1.md","test":"tests/test_f6_5_provider_onboarding.py","verifier":"tools/verify_f6_5_provider_onboarding.py"},
+    {"id":"F6.6","artifact":"08_Implementacion/Core_Phase6_6_Supervised_Read_Only_Rehearsal_Preflight_v0.1.md","test":"tests/test_f6_6_supervised_readonly_rehearsal.py"},
+    {"id":"F6.7","artifact":"08_Implementacion/Core_Phase6_7_Integral_Failure_Revocation_Safe_Stop_v0.1.md","test":"tests/test_f6_7_integral_safe_stop.py"},
+    {"id":"F6.8","artifact":"08_Implementacion/Core_Phase6_8_Safe_Recovery_After_Stop_v0.1.md","test":"tests/test_f6_8_safe_recovery.py"},
+    {"id":"F6.9","artifact":"08_Implementacion/Core_Phase6_9_Lifecycle_Integrity_Journal_v0.1.md","test":"tests/test_f6_9_lifecycle_integrity.py"},
+    {"id":"F6.10","artifact":"08_Implementacion/Core_Phase6_10_Idempotent_Retry_Safety_v0.1.md","test":"tests/test_f6_10_idempotent_retry.py"}
+  ],
+  "external_modules": [
+    "tests/fixtures/f6_2_external_company_adapter/src/eios_company_adapter_example/adapter.py",
+    "tests/fixtures/f6_3_documentary_boundary_consumer/src/eios_evidence_boundary_example/review.py",
+    "tests/fixtures/f6_4_custody_consumer/src/eios_custody_example/custody.py",
+    "tests/fixtures/f6_5_onboarding_consumer/src/eios_onboarding_example/onboarding.py",
+    "tests/fixtures/f6_5_onboarding_consumer/src/eios_onboarding_example/pilot.py",
+    "tests/fixtures/f6_5_onboarding_consumer/src/eios_onboarding_example/safe_stop.py",
+    "tests/fixtures/f6_5_onboarding_consumer/src/eios_onboarding_example/recovery.py",
+    "tests/fixtures/f6_5_onboarding_consumer/src/eios_onboarding_example/lifecycle.py",
+    "tests/fixtures/f6_5_onboarding_consumer/src/eios_onboarding_example/resilience.py"
+  ],
+  "required_ci_markers": [
+    "Run Python tests",
+    "Validate SQL Server C0, Decision Versioning, and Parameter Configuration schemas",
+    "F6.4 certify synthetic custody on Linux",
+    "F6.5–F6.10 certify onboarding through retry safety on Linux",
+    "F6.4 certify synthetic custody on Windows",
+    "F6.5–F6.10 certify onboarding through retry safety on Windows"
+  ],
+  "closure_statement": "F6 external synthetic deployment, trust, custody, supervised rehearsal, safe-stop, recovery, lifecycle integrity and retry-safety boundaries are complete for this phase. This does not authorize production or operational execution."
+}
