@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from pathlib import Path
 import shutil
+import subprocess
+import sys
 import tomllib
 import zipfile
 
@@ -137,3 +139,17 @@ def test_five_five_verifier_rejects_any_duplicate_physical_module(tmp_path):
         wheels[name] = file
     with pytest.raises(ValueError):
         verify_payloads(wheels)
+
+
+def test_f5_5_command_line_uses_the_real_dir_destinations(tmp_path):
+    """Guard CLI plumbing before any expensive wheel installations."""
+    runner = ROOT / "tools/verify_f5_5_shared_contracts.py"
+    result = subprocess.run(
+        [sys.executable, str(runner), "--kernel-dir", str(tmp_path),
+         "--contracts-dir", str(tmp_path), "--price-dir", str(tmp_path),
+         "--tco-dir", str(tmp_path)],
+        cwd=tmp_path, capture_output=True, text=True, timeout=15,
+    )
+    assert result.returncode != 0
+    assert "Expected one wheel for eios-kernel" in (result.stdout + result.stderr)
+    assert "AttributeError" not in (result.stdout + result.stderr)
