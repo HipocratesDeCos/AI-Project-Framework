@@ -131,7 +131,7 @@ def test_all_six_identity_and_version_dimensions_are_checked_before_execution(fi
     operation, ctx, plan, binding = _build()
     value = "FOREIGN-PROJECT" if field == "project_id" else "FOREIGN-" + field
     forged = binding.envelope.model_copy(update={field: value})
-    with pytest.raises(InputContractError, match="PROJECT_SCOPE_MISMATCH|ENVELOPE_CONTEXT_MISMATCH"):
+    with pytest.raises(InputContractError, match="SPEC_ENVELOPE_MISMATCH|PROJECT_SCOPE_MISMATCH|ENVELOPE_CONTEXT_MISMATCH"):
         bind_capability_inputs(
             operation=operation, context=ctx, plan=plan,
             bindings={plan.capabilities[0]: CapabilityInputBinding(
@@ -283,7 +283,7 @@ def test_missing_unregistered_and_reserved_capabilities_fail_closed():
 
 def test_forged_authority_and_provenance_do_not_pass_envelope_schema():
     _, _, _, entry = _build()
-    data = entry.envelope.model_dump()
+    data = {name: getattr(entry.envelope, name) for name in CapabilityInputEnvelope.model_fields}
     with pytest.raises(ValidationError):
         CapabilityInputEnvelope(**{**data, "decision_authority": True})
     with pytest.raises(ValidationError):
