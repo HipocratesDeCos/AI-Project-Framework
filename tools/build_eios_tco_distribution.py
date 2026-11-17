@@ -1,8 +1,8 @@
 """Build optional procurement TCO wheel exclusively from existing canonical code.
 
-This deliberately packages eios.core.models because the current TCOInput owns
-PurchaseOperation. It is a procurement capability, NOT a domain-neutral TCO
-engine. Never pretend that the core models are a generic shared contract.
+The current TCOInput still owns PurchaseOperation from eios.core.models, now
+supplied ONLY by the shared eios-contracts-procurement distribution. It is
+procurement-specific, not a general-purpose business engine.
 """
 from __future__ import annotations
 
@@ -19,13 +19,12 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 METADATA_FILE = Path("packaging/eios-tco-procurement/pyproject.toml")
 SOURCE_FILES = (
-    Path("eios/core/models.py"),
     Path("eios/tco/__init__.py"),
     Path("eios/tco/models.py"),
     Path("eios/tco/engine.py"),
 )
 DISTRIBUTION = "eios-tco-procurement"
-PACKAGE_VERSION = "0.1.0"
+PACKAGE_VERSION = "0.2.0"
 
 ALLOWED_INTERNAL_IMPORTS = frozenset({
     "eios.core.models",
@@ -92,14 +91,17 @@ def audit_wheel(wheel: Path) -> None:
         lines = archive.read(metadata_files[0]).decode("utf-8").splitlines()
         if "Name: eios-tco-procurement" not in lines:
             raise ValueError("Invalid TCO distribution identity")
-        if "Version: 0.1.0" not in lines:
+        if "Version: 0.2.0" not in lines:
             raise ValueError("Invalid TCO distribution version")
         deps = [line for line in lines if line.startswith("Requires-Dist:")]
-        if len(deps) != 1 or not re.fullmatch(
-            r"Requires-Dist:\s*pydantic\s*(?:\([^)]*\)|[<>=!~,0-9. ]+)(?:\s*;.*)?",
-            deps[0], re.IGNORECASE,
-        ):
-            raise ValueError("TCO wheel must depend on Pydantic only")
+        names = [
+            re.match(r"Requires-Dist:\s*([A-Za-z0-9_-]+)", item).group(1).lower()
+            for item in deps
+        ]
+        if sorted(names) != ["eios-contracts-procurement", "pydantic"]:
+            raise ValueError("TCO wheel must depend on Pydantic and shared C0 contracts only")
+        if not any("eios-contracts-procurement==0.1.0" in item.replace(" ", "") for item in deps):
+            raise ValueError("TCO wheel must pin exact shared C0 contract version")
 
 
 def build(output: Path, root: Path = ROOT) -> Path:

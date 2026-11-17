@@ -26,7 +26,7 @@ PRICING_FILES = {
     )
 }
 CANONICAL = PRICING_FILES | {
-    Path("eios/core/models.py"), Path("eios/core/validation.py"),
+    Path("eios/core/validation.py"),
 }
 
 
@@ -39,8 +39,8 @@ def test_manifest_and_transitive_dependencies_are_fully_audited():
     assert "eios.pricing.historical_comparability" in ALLOWED_INTERNAL_MODULES
     cfg = tomllib.loads((ROOT / METADATA_FILE).read_text(encoding="utf-8"))
     assert cfg["project"]["name"] == "eios-price-procurement"
-    assert cfg["project"]["version"] == "0.1.0"
-    assert cfg["project"]["dependencies"] == ["pydantic>=2.0,<3.0"]
+    assert cfg["project"]["version"] == "0.2.0"
+    assert cfg["project"]["dependencies"] == ["pydantic>=2.0,<3.0", "eios-contracts-procurement==0.1.0"]
     assert cfg["tool"]["setuptools"]["packages"]["find"]["namespaces"] is True
     legacy = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     assert legacy["project"]["name"] == "eios-mvp"
@@ -80,13 +80,16 @@ def test_new_unbundled_business_dependency_is_rejected(tmp_path, injected):
         verify_source_dependencies(tmp_path)
 
 
-def _synthetic_wheel(path, sources, *, dependencies=("Requires-Dist: pydantic>=2,<3",)):
+def _synthetic_wheel(path, sources, *, dependencies=(
+    "Requires-Dist: pydantic>=2,<3",
+    "Requires-Dist: eios-contracts-procurement==0.1.0",
+)):
     with zipfile.ZipFile(path, "w") as archive:
         for relative in sources:
             archive.writestr(relative, "# synthetic module\n")
         archive.writestr(
-            "eios_price_procurement-0.1.0.dist-info/METADATA",
-            "Metadata-Version: 2.3\nName: eios-price-procurement\nVersion: 0.1.0\n"
+            "eios_price_procurement-0.2.0.dist-info/METADATA",
+            "Metadata-Version: 2.3\nName: eios-price-procurement\nVersion: 0.2.0\n"
             + "\n".join(dependencies) + "\n",
         )
 
@@ -122,7 +125,7 @@ def test_wheel_rejects_missing_modules_extra_dependencies_or_wrong_metadata(tmp_
             "Requires-Dist: openpyxl>=3",
         ),
     )
-    with pytest.raises(ValueError, match="Pydantic only"):
+    with pytest.raises(ValueError, match="Pydantic and shared C0"):
         audit_wheel(wheel)
 
 
@@ -135,15 +138,16 @@ def test_wheel_rejects_an_injected_import_even_when_module_list_is_unchanged(tmp
                 contents = "import eios.company_app\n"
             archive.writestr(file.as_posix(), contents)
         archive.writestr(
-            "eios_price_procurement-0.1.0.dist-info/METADATA",
-            "Name: eios-price-procurement\nVersion: 0.1.0\n"
-            "Requires-Dist: pydantic>=2,<3\n",
+            "eios_price_procurement-0.2.0.dist-info/METADATA",
+            "Name: eios-price-procurement\nVersion: 0.2.0\n"
+            "Requires-Dist: pydantic>=2,<3\n"
+            "Requires-Dist: eios-contracts-procurement==0.1.0\n",
         )
     with pytest.raises(ValueError, match="Forbidden"):
         audit_wheel(wheel)
 
 
-def test_price_and_tco_share_core_models_and_must_not_coinstall(tmp_path):
+def test_old_duplicate_ownership_is_still_rejected_by_collision_checker(tmp_path):
     price = tmp_path / "price.whl"
     tco = tmp_path / "tco.whl"
     kernel = tmp_path / "kernel.whl"

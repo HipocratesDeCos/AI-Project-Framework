@@ -15,7 +15,6 @@ from tools.verify_f5_3_optional_tco import wheel_hashes
 
 ROOT = Path(__file__).resolve().parents[1]
 APPROVED = {
-    Path("eios/core/models.py"),
     Path("eios/tco/__init__.py"),
     Path("eios/tco/models.py"),
     Path("eios/tco/engine.py"),
@@ -27,8 +26,8 @@ def test_manifest_does_not_replace_or_install_general_eios_application():
     verify_source_dependencies()
     manifest = tomllib.loads((ROOT / METADATA_FILE).read_text(encoding="utf-8"))
     assert manifest["project"]["name"] == "eios-tco-procurement"
-    assert manifest["project"]["version"] == "0.1.0"
-    assert manifest["project"]["dependencies"] == ["pydantic>=2.0,<3.0"]
+    assert manifest["project"]["version"] == "0.2.0"
+    assert manifest["project"]["dependencies"] == ["pydantic>=2.0,<3.0", "eios-contracts-procurement==0.1.0"]
     assert manifest["tool"]["setuptools"]["packages"]["find"]["namespaces"] is True
     old = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     assert old["project"]["name"] == "eios-mvp"
@@ -68,13 +67,16 @@ def test_unbundled_dependency_fails_closed(tmp_path, illegal):
         verify_source_dependencies(tmp_path)
 
 
-def _fake_wheel(output, source_files, *, requirements=("Requires-Dist: pydantic>=2,<3",)):
+def _fake_wheel(output, source_files, *, requirements=(
+    "Requires-Dist: pydantic>=2,<3",
+    "Requires-Dist: eios-contracts-procurement==0.1.0",
+)):
     with zipfile.ZipFile(output, "w") as archive:
         for source in source_files:
             archive.writestr(source, "# synthetic test code\n")
         archive.writestr(
-            "eios_tco_procurement-0.1.0.dist-info/METADATA",
-            "Metadata-Version: 2.2\nName: eios-tco-procurement\nVersion: 0.1.0\n"
+            "eios_tco_procurement-0.2.0.dist-info/METADATA",
+            "Metadata-Version: 2.2\nName: eios-tco-procurement\nVersion: 0.2.0\n"
             + "\n".join(requirements) + "\n",
         )
 
@@ -101,10 +103,10 @@ def test_audit_rejects_unapproved_package_content(tmp_path, extra):
         audit_wheel(wheel)
 
 
-def test_audit_rejects_missing_models_or_additional_excel_dependency(tmp_path):
+def test_audit_rejects_missing_engine_or_additional_excel_dependency(tmp_path):
     wheel = tmp_path / "synthetic.whl"
     paths = {p.as_posix() for p in APPROVED}
-    _fake_wheel(wheel, paths - {"eios/core/models.py"})
+    _fake_wheel(wheel, paths - {"eios/tco/engine.py"})
     with pytest.raises(ValueError, match="Unexpected"):
         audit_wheel(wheel)
     _fake_wheel(
@@ -112,7 +114,7 @@ def test_audit_rejects_missing_models_or_additional_excel_dependency(tmp_path):
             "Requires-Dist: pydantic>=2,<3", "Requires-Dist: openpyxl>=3",
         ),
     )
-    with pytest.raises(ValueError, match="Pydantic only"):
+    with pytest.raises(ValueError, match="Pydantic and shared C0"):
         audit_wheel(wheel)
 
 
