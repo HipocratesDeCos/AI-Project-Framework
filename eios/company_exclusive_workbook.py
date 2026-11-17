@@ -161,6 +161,8 @@ def activate(db,dataset,batch_id,from_received=False):
         doc=dict(document_ref='WORKBOOK',path='documents/workbook.xlsx',filename=meta['filename'],bytes=len(content),sha256=sha256(content).hexdigest())
         raw=json.dumps(records,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
         manifest=dict(schema_version=SCHEMA,company=dict(company_id=meta['company_id'],legal_name=meta['legal_name']),as_of_date=meta['as_of_date'],material_nature='SYNTHETIC',operational_path='FORBIDDEN',decision_authority=False,records=dict(path='records.json',sha256=sha256(raw).hexdigest()),record_counts=dict(Counter(r['kind'] for r in records)),documents=[doc],exclusive_workbook=dict({k:meta[k] for k in ('company_id','as_of_date','source_sha256','filename')},batch_ids=sorted(bid for bid,_,_ in staged),linked_company_ids=sorted(related_companies|{meta['company_id']})))
+        if preview.get('stock_planning'):
+            manifest['workbook_stock_planning'] = preview['stock_planning']
         package=Path(folder)/'isolated.zip'
         with zipfile.ZipFile(package,'w',zipfile.ZIP_DEFLATED) as z:
             z.writestr('company_manifest.json',json.dumps(manifest,ensure_ascii=False));z.writestr('records.json',raw);z.writestr(doc['path'],content)

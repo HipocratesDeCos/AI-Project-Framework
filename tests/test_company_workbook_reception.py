@@ -127,3 +127,21 @@ class WorkbookReceptionTest(unittest.TestCase):
               BEGIN SELECT RAISE(ABORT,'injected write failure'); END;''')
         with self.assertRaises(sqlite3.IntegrityError):service.commit(ticket)
         assert count(db)==0
+
+    def test_revision_keeps_original_bytes_and_requires_explicit_preservation(self):
+        db = self.tmp_path/'revisions.db'
+        service = CompanyWorkbookReception(db)
+        original = workbook()
+        first = service.commit(service.preview(original,'original.xlsx',OPTIONS)['ticket'])
+        revised = workbook(description='Revised article')
+        blocked = service.preview(revised,'revision.xlsx',OPTIONS)
+        self.assertEqual(blocked['status'],'CONFLICT')
+        self.assertTrue(all(s['error_count']==0 for s in blocked['sheets']))
+        allowed = service.preview(revised,'revision.xlsx',dict(OPTIONS,preserve_revision=True))
+        self.assertEqual(allowed['status'],'READY')
+        self.assertTrue(any(c['status']=='NEW_REVISION' for c in allowed['comparison']))
+        service.commit(allowed['ticket'])
+        with sqlite3.connect(db) as connection:
+            for bid in first['batch_ids']:
+                self.assertEqual(connection.execute('SELECT content FROM received_company_batch WHERE batch_id=?',(bid,)).fetchone()[0],original)
+        self.assertEqual(count(db),6)

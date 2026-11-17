@@ -249,6 +249,10 @@ def normalize(table, kind, mapping, cutoff, convention):
                 seen.add(fingerprint)
                 if output['issue_date']>cutoff: problems.append('La factura es posterior a la fecha de corte.')
                 if Decimal(output['quantity'])<=0 or Decimal(output['net_amount'])<0: problems.append('Las líneas de compra o venta deben tener cantidad positiva e importe neto no negativo; separa los abonos.')
+            if kind=='purchase_line' and output.get('vat_percent') is not None and not 0<=Decimal(output['vat_percent'])<=100:
+                problems.append('El IVA de compra debe estar entre 0 y 100 %.')
+            if kind=='purchase_line' and output.get('discount_percent') is not None and not 0<=Decimal(output['discount_percent'])<=100:
+                problems.append('El descuento de compra debe estar entre 0 y 100 %.')
             if kind=='purchase_line' and output.get('unit_price') is not None and Decimal(output['quantity'])>0:
                 if Decimal(output['unit_price'])<0 or abs(Decimal(output['unit_price'])-Decimal(output['net_amount'])/Decimal(output['quantity']))>Decimal('.005'):
                     problems.append('Precio unitario incompatible con el importe neto y la cantidad.')

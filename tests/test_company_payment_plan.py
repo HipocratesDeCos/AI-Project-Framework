@@ -108,5 +108,5 @@ class PaymentPlanPersistenceTest(unittest.TestCase):
 
     def test_optional_editor_and_submission_are_wired(self):
         for item in ('payment-plan-enabled','payment-plan-add','declaredPaymentRows()',
-                     'd.payment_installments=declaredPaymentRows()','renderPaymentPlan(container,proposal.payment_plan)'):
+                     'd.payment_installments=declaredPaymentRows()','renderPaymentPlan(container,proposal.payment_plan,report)'):
             self.assertIn(item,PAGE)

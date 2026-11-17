@@ -98,6 +98,13 @@ class CompanyWorkbookReception:
             plans['08_Referencias_Precios']=dict(kind='price_reference',headers=explicit)
         if not 1 <= len(plans) <= 20:
             raise ValueError('Selecciona entre 1 y 20 hojas en la guía.')
+        stock_planning = None
+        supplemental = {'013_Planificacion_Stock', '014_Recepciones_Pendientes'}
+        if supplemental.intersection(guide['sheets']):
+            if not supplemental.issubset(guide['sheets']) or options.get('material_nature') != 'SYNTHETIC':
+                raise ValueError('La planificación requiere ambas hojas y un expediente ficticio.')
+            from eios.company_workbook_stock_planning import preview as stock_preview
+            stock_planning = stock_preview(content, filename, options['as_of_date'])
         reports = []; staged = []
         with tempfile.TemporaryDirectory(prefix='eios-workbook-') as folder:
             temporary = folder + '/review.sqlite3'
@@ -139,9 +146,15 @@ class CompanyWorkbookReception:
         if revision:
             for item in comparison:
                 if item['status']=='CONFLICT':item['status']='NEW_REVISION'
+        if stock_planning:
+            reports.append(dict(sheet='013_Planificacion_Stock',kind='stock_policy',rows=len(stock_planning['plans']),error_count=0,errors=[],warnings=['Planificación ficticia comprobada. Se utilizará al activar este libro.']))
+            reports.append(dict(sheet='014_Recepciones_Pendientes',kind='stock_policy',rows=sum(len(p['receipts']) for p in stock_planning['plans'].values()),error_count=0,errors=[],warnings=[]))
+        if stock_planning:
+            comparison.extend(dict(sheet=sheet,status='VALIDATED',new_source_version=False) for sheet in sorted(supplemental))
         return dict(ticket=ticket, status='CONFLICT' if blocked else 'READY', sheets=reports,
+                    stock_planning=stock_planning,
                     comparison=comparison, reference_issues=dossier['issues'],
-                    ignored_sheets=[s for s in guide['sheets'] if s not in plans],
+                    ignored_sheets=[s for s in guide['sheets'] if s not in plans and not (stock_planning and s in supplemental)],
                     financial_reconciliation='NOT_PERFORMED', admission_status='PENDING',
                     decision_authority=False, operational_path='FORBIDDEN')
 

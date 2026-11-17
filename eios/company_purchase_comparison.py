@@ -11,7 +11,8 @@ from eios.company_purchase_cash_preview import preview
 from eios.company_proposal_context import capture_context
 
 FIELDS = {'unit_price', 'pricing_mode', 'discount_mode', 'discount_value', 'due_date',
-          'shipping_due_date', 'payment_installments'}
+          'shipping_due_date', 'payment_installments', 'vat_percent', 'shipping_mode',
+          'shipping_net', 'shipping_vat_percent', 'shipping_billed_by'}
 TABLE = '''CREATE TABLE IF NOT EXISTS purchase_condition_comparison (
  comparison_id TEXT PRIMARY KEY, dataset_id TEXT NOT NULL, proposal_id TEXT NOT NULL,
  created_at TEXT NOT NULL, payload TEXT NOT NULL,
@@ -77,7 +78,7 @@ def compare(desk,data):
         if not isinstance(variant,dict) or set(variant)!={'label','patch','conditions'}: raise ValueError('Cada alternativa requiere nombre, cambios y condiciones.')
         label=variant['label']; patch=variant['patch']; metadata=variant['conditions']
         if not isinstance(label,str) or not label.strip() or len(label)>100: raise ValueError('Nombre de alternativa no válido.')
-        if not isinstance(patch,dict) or not patch or set(patch)-FIELDS: raise ValueError('Solo se comparan precio, descuento y calendario; cantidad y proveedor permanecen fijos.')
+        if not isinstance(patch,dict) or not patch or set(patch)-FIELDS: raise ValueError('Solo se comparan coste, descuento, IVA, portes y calendario; cantidad y proveedor permanecen fijos.')
         if not isinstance(metadata,dict) or set(metadata)!=set(patch): raise ValueError('Identifica el origen de cada condición modificada.')
         conditions={k:condition(v) for k,v in metadata.items()}
         values=deepcopy(base);values.update(patch)

@@ -24,6 +24,15 @@ def main():
     case.setUp()
     case.receive()
     server = None
+    revision_file = case.path.with_name('Revision.xlsx')
+    if os.environ.get('EIOS_UPLOAD_SCRIPT'):
+        from io import BytesIO
+        from openpyxl import load_workbook
+        from tests.test_company_exclusive_workbook import book
+        changed = load_workbook(BytesIO(book()))
+        changed['Inventario']['C2'] = 20
+        changed['Balance']['B2'] = 120999
+        changed.save(revision_file)
     try:
         server = subprocess.Popen(
             [sys.executable, '-m', 'eios.company_app', '--db', str(case.path), '--port', str(port)],
@@ -41,8 +50,8 @@ def main():
         else:
             raise RuntimeError('The isolated test server did not start.')
         subprocess.run(
-            ['node', str(Path(__file__).with_name('upload_journey.cjs'))],
-            cwd=ROOT, env={**os.environ, 'EIOS_TEST_URL': url}, check=True, timeout=120,
+            ['node', os.environ.get('EIOS_UPLOAD_SCRIPT', str(Path(__file__).with_name('upload_journey.cjs')))],
+            cwd=ROOT, env={**os.environ, 'EIOS_TEST_URL': url, 'EIOS_REVISION_FILE': str(revision_file)}, check=True, timeout=120,
         )
     finally:
         if server:

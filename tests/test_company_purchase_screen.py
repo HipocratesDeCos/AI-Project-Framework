@@ -3,6 +3,7 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from eios.company_app import PurchaseDesk
 
@@ -51,3 +52,23 @@ class PurchaseScreenTest(unittest.TestCase):
                          [dict(customer_id='C', legal_name='Customer one')])
         self.assertEqual(self.desk.state('two')['customers'],
                          [dict(customer_id='C', legal_name='Customer two')])
+
+    def test_saved_identity_and_reference_do_not_follow_later_catalog_changes(self):
+        state = self.desk.state('one')
+        state['articles'][0]['description'] = 'Descripción original'
+        state['history']['A'] = [dict(issue_date='2026-09-01', comparable=True,
+                                    effective_net_unit_price='80.00', unit='palets', currency='EUR')]
+        with patch.object(self.desk, 'state', return_value=state):
+            self.desk.save(self.data)
+        state['articles'][0]['description'] = 'Descripción posterior'
+        state['history']['A'][0]['effective_net_unit_price'] = '999.00'
+        saved = PurchaseDesk(self.path).state('one')['purchases'][0]
+        self.assertEqual(saved['article_description_at_save'], 'Descripción original')
+        self.assertEqual(saved['price_reference_at_save']['unit_price'], '80.00')
+
+    def test_ambiguous_latest_prices_are_not_presented_as_a_unique_reference(self):
+        state = self.desk.state('one')
+        state['history']['A'] = [dict(issue_date='2026-09-01', comparable=True)] * 2
+        with patch.object(self.desk, 'state', return_value=state):
+            saved = self.desk.save(self.data)
+        self.assertIsNone(saved['price_reference_at_save'])
