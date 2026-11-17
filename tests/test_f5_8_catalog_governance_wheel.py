@@ -182,3 +182,14 @@ def test_cli_parses_all_directory_flags_before_attempting_install(tmp_path):
     assert result.returncode != 0
     assert "Expected exactly one wheel for eios-kernel" in (result.stdout + result.stderr)
     assert "AttributeError" not in (result.stdout + result.stderr)
+
+
+def test_both_generated_domain_programs_use_real_binding_names():
+    """Guard against unresolved placeholder names in nested adversarial tests."""
+    from tools.verify_f5_8_governance_two_domains import _program
+    for domain, name in (("sales", "entries"), ("procurement", "bindings")):
+        source = _program(domain)
+        assert "bindings=existing" not in source
+        assert "bindings=" + name in source
+        assert source.count("bind_governed_plan(") >= 2
+        assert "GOVERNED_CONFIGURATION_CHANGED_DURING_EXECUTION" in source
