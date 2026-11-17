@@ -37,6 +37,8 @@ FILES = frozenset({
     "eios_onboarding_example/__init__.py",
     "eios_onboarding_example/onboarding.py",
     "eios_onboarding_example/demo.py",
+    "eios_onboarding_example/pilot.py",
+    "eios_onboarding_example/pilot_demo.py",
 })
 DEPENDENCIES = frozenset({
     "pydantic", "eios-kernel", "eios-input-contracts",
@@ -203,6 +205,50 @@ def verify(bundle: Path) -> dict:
             outcomes.append(result)
         if outcomes[0] != outcomes[1]:
             raise ValueError("Two external F6.5 executions diverged")
+        pilot_outcomes = []
+        for number in (1, 2):
+            outside = root / f"external-consumer-{number}"
+            pilot_process = subprocess.run(
+                [str(python), "-I", "-m", "eios_onboarding_example.pilot_demo"],
+                cwd=outside, env=env, capture_output=True, text=True, timeout=80,
+            )
+            if pilot_process.returncode:
+                raise RuntimeError("F6.6 rehearsal demonstration failed: " + pilot_process.stderr[-3500:])
+            try:
+                pilot = json.loads(pilot_process.stdout)
+            except ValueError as exc:
+                raise ValueError("F6.6 output is not valid JSON") from exc
+            if (
+                pilot.get("verification") != "F6_6_SUPERVISED_SYNTHETIC_REHEARSAL_CONFORMANCE_PASS"
+                or pilot.get("companies") != 2
+                or pilot.get("complete_synthetic_rehearsals") != 1
+                or pilot.get("blocked_incomplete_rehearsals") != 1
+                or pilot.get("required_checks") != 12
+                or pilot.get("real_provider_connection") != "NOT_TESTED"
+                or pilot.get("real_company_identity") != "NOT_TESTED"
+                or pilot.get("real_documentary_support") != "NOT_TESTED"
+                or pilot.get("real_human_supervision") != "NOT_TESTED"
+                or pilot.get("real_pilot_admitted") is not False
+                or pilot.get("production_authorized") is not False
+                or pilot.get("decision_authority") is not False
+                or pilot.get("operational_path") != "FORBIDDEN"
+                or len(pilot.get("receipts", ())) != 2
+                or len(list((outside / "f66-readonly-synthetic-custody").glob("*.json"))) != 2
+                or any(
+                    row.get("real_pilot_admitted") is not False
+                    or row.get("production_authorized") is not False
+                    or row.get("decision_authority") is not False
+                    or row.get("operational_path") != "FORBIDDEN"
+                    or row.get("real_company_authenticated") is not False
+                    or row.get("real_document_authenticated") is not False
+                    or row.get("real_human_authorized") is not False
+                    for row in pilot["receipts"]
+                )
+            ):
+                raise ValueError("F6.6 generated unauthorized real-pilot claims or incomplete demo")
+            pilot_outcomes.append(pilot)
+        if pilot_outcomes[0] != pilot_outcomes[1]:
+            raise ValueError("Independent F6.6 rehearsals differed across installations")
         return {
             "verification": "F6_5_EXTERNAL_ONBOARDING_OFFLINE_CERTIFICATION_PASS",
             "platform_manifest_sha256": checked["manifest_sha256"],
@@ -214,6 +260,9 @@ def verify(bundle: Path) -> dict:
             "offline": True,
             "independent_runs": 2,
             "synthetic_companies": 2,
+            "f6_6_supervised_rehearsal": "SYNTHETIC_ONLY_PASS",
+            "f6_6_rehearsals": len(pilot_outcomes),
+            "f6_6_real_pilot_admitted": False,
             "real_identity_or_documents": "NOT_TESTED",
             "production_authorized": False,
             "operational_path": "FORBIDDEN",
