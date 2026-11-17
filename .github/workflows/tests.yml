@@ -106,3 +106,8 @@ jobs:
       - name: F5.5 co-install four canonical wheels and execute real PRICE/TCO
         run: python tools/verify_f5_5_shared_contracts.py --contracts-dir dist/contracts --kernel-dir dist/kernel --price-dir dist/price --tco-dir dist/tco
 
+      - name: F5.6 build neutral project input-contracts wheel
+        run: python tools/build_eios_input_contracts_distribution.py --output dist/inputs
+      - name: F5.6 verify two isolated projects with one neutral input contract
+        run: python tools/verify_f5_6_two_domains.py --kernel-dir dist/kernel --inputs-dir dist/inputs --contracts-dir dist/contracts --price-dir dist/price --tco-dir dist/tco
+
