@@ -352,7 +352,7 @@ def main() -> None:
     }
     wheels = {}
     for dist, (directory, pattern) in mapping.items():
-        found = list(getattr(opts, directory).resolve().glob(pattern))
+        found = list(getattr(opts, directory + "_dir").resolve().glob(pattern))
         if len(found) != 1:
             raise SystemExit(f"Expected one wheel for {dist}, found {len(found)}")
         wheels[dist] = found[0]
