@@ -18,7 +18,7 @@ from types import MappingProxyType
 from pydantic import BaseModel
 
 from eios.input_contracts import (
-    CapabilityInputBinding, InputContractError, bind_capability_inputs,
+    CapabilityInputBinding, CapabilityInputSpec, InputContractError, bind_capability_inputs,
 )
 from eios.kernel.execution import (
     KernelContext, KernelInvoker, KernelOperation, KernelPlan,
@@ -79,14 +79,12 @@ class CapabilityRelease:
         _version(self.required_input_contract_api, "required_input_contract_api")
         if self.capability in _RESERVED:
             raise CapabilityCatalogError("FORBIDDEN_BOUNDARY_CAPABILITY")
-        if (
-            type(self.compatible_schema_versions) is not tuple
-            or not self.compatible_schema_versions
-            or len(self.compatible_schema_versions) != len(set(self.compatible_schema_versions))
-        ):
+        if type(self.compatible_schema_versions) is not tuple or not self.compatible_schema_versions:
             raise CapabilityCatalogError("INVALID_COMPATIBLE_SCHEMA_VERSIONS")
         for schema_version in self.compatible_schema_versions:
             _identifier(schema_version, "schema_version", 64)
+        if len(self.compatible_schema_versions) != len(set(self.compatible_schema_versions)):
+            raise CapabilityCatalogError("DUPLICATE_COMPATIBLE_SCHEMA_VERSION")
         if not isinstance(self.payload_type, type) or not issubclass(self.payload_type, BaseModel):
             raise CapabilityCatalogError("INVALID_CATALOG_PAYLOAD_TYPE")
         if type(self.enabled) is not bool:
@@ -169,6 +167,8 @@ def bind_catalog_plan(
         if type(binding) is not CapabilityInputBinding:
             raise CapabilityCatalogError(f"INVALID_CATALOG_BINDING:{name}")
         spec = binding.spec
+        if type(spec) is not CapabilityInputSpec:
+            raise CapabilityCatalogError(f"INVALID_CAPABILITY_SPEC:{name}")
         if (
             spec.project_id != catalog.project_id or spec.capability != name
             or spec.schema_id != release.schema_id
