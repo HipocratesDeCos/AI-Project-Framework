@@ -124,3 +124,15 @@ jobs:
       - name: F5.9 audit external maintenance consumer and prove third-domain portability
         run: python tools/verify_f5_9_third_domain.py --kernel-dir dist/kernel --inputs-dir dist/inputs --catalog-dir dist/catalog --governance-dir dist/governance
 
+      - name: F5.10 build hash-locked neutral onboarding ZIP for current CI platform
+        run: python tools/build_f5_10_release_kit.py --kernel-dir dist/kernel --inputs-dir dist/inputs --catalog-dir dist/catalog --governance-dir dist/governance --output dist/release-kit
+      - name: F5.10 certify extracted ZIP twice with fully offline installs and tamper probes
+        run: python tools/verify_f5_10_release_kit.py --kit-dir dist/release-kit
+      - name: F5.10 retain independently installable onboarding kit
+        uses: actions/upload-artifact@v4
+        with:
+          name: EIOS-F5-10-Neutral-Onboarding-Kit
+          path: dist/release-kit/EIOS_F5_10_Neutral_Onboarding_Kit.zip
+          if-no-files-found: error
+          retention-days: 14
+
