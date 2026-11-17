@@ -94,7 +94,10 @@ def audit_wheel(wheel: Path) -> None:
         if "Version: 0.2.0" not in lines:
             raise ValueError("Invalid TCO distribution version")
         deps = [line for line in lines if line.startswith("Requires-Dist:")]
-        names = [item.split(":", 1)[1].strip().split(" ", 1)[0].split("=", 1)[0].split("<", 1)[0].lower() for item in deps]
+        names = [
+            re.match(r"Requires-Dist:\s*([A-Za-z0-9_-]+)", item).group(1).lower()
+            for item in deps
+        ]
         if sorted(names) != ["eios-contracts-procurement", "pydantic"]:
             raise ValueError("TCO wheel must depend on Pydantic and shared C0 contracts only")
         if not any("eios-contracts-procurement==0.1.0" in item.replace(" ", "") for item in deps):
