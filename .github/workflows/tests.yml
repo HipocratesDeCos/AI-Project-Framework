@@ -116,3 +116,8 @@ jobs:
       - name: F5.7 verify explicit release catalog in isolated Sales and real Procurement
         run: python tools/verify_f5_7_capability_catalog.py --kernel-dir dist/kernel --inputs-dir dist/inputs --catalog-dir dist/catalog --contracts-dir dist/contracts --price-dir dist/price --tco-dir dist/tco
 
+      - name: F5.8 build independently audited catalog governance wheel
+        run: python tools/build_eios_catalog_governance_distribution.py --output dist/governance
+      - name: F5.8 verify externally authorized configuration and two isolated consumers
+        run: python tools/verify_f5_8_governance_two_domains.py --kernel-dir dist/kernel --inputs-dir dist/inputs --catalog-dir dist/catalog --governance-dir dist/governance --contracts-dir dist/contracts --price-dir dist/price --tco-dir dist/tco
+
