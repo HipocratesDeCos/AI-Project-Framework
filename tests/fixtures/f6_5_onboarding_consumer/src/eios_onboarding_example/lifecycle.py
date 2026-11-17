@@ -74,6 +74,7 @@ class LifecycleEventReceipt:
     event_sha256: str
     previous_event_sha256: str | None
     source_result_fingerprint: str
+    baseline_result_fingerprint: str
     project_id: str
     company_id: str
     data_snapshot_id: str
@@ -177,7 +178,7 @@ def _stage_payload(
             or source.company_id != request.company_id
             or source.data_snapshot_id != request.data_snapshot_id
             or source.safe_stop_fingerprint != previous.source_result_fingerprint
-            or source.stale_result_fingerprint is None
+            or source.stale_result_fingerprint != previous.baseline_result_fingerprint
             or source.fresh_result_fingerprint is None
             or not _authority_forbidden(source)
         ):
@@ -244,6 +245,7 @@ def record_lifecycle_event(
         event_sha256=digest,
         previous_event_sha256=payload["previous_event_sha256"],
         source_result_fingerprint=payload["source_result_fingerprint"],
+        baseline_result_fingerprint=payload["baseline_result_fingerprint"],
         project_id=request.project_id,
         company_id=request.company_id,
         data_snapshot_id=request.data_snapshot_id,
@@ -317,6 +319,7 @@ def verify_lifecycle_history(
             or payload["event_type"] != event_type
             or payload["status"] != status
             or payload["source_result_fingerprint"] != receipt.source_result_fingerprint
+            or payload["baseline_result_fingerprint"] != receipt.baseline_result_fingerprint
             or payload["project_id"] != request.project_id
             or payload["company_id"] != request.company_id
             or payload["data_snapshot_id"] != request.data_snapshot_id
