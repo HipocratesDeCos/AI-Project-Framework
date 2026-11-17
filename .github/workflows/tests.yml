@@ -134,7 +134,7 @@ jobs:
         run: python tools/verify_f6_3_documentary_boundary.py --kit-dir dist/release-kit
       - name: F6.4 certify synthetic custody on Linux
         run: python tools/verify_f6_4_custody_portability.py --kit-dir dist/release-kit
-      - name: F6.5/F6.6/F6.7 certify onboarding, rehearsal and integral safe-stop on Linux
+      - name: F6.5–F6.8 certify onboarding, rehearsal, safe-stop and recovery on Linux
         run: python tools/verify_f6_5_provider_onboarding.py --kit-dir dist/release-kit
       - name: F5.10 retain independently installable onboarding kit
         uses: actions/upload-artifact@v4
@@ -188,7 +188,7 @@ jobs:
       - name: F6.4 certify synthetic custody on Windows
         shell: pwsh
         run: python tools/verify_f6_4_custody_portability.py --kit-dir dist/release-kit
-      - name: F6.5/F6.6/F6.7 certify onboarding, rehearsal and safe-stop on Windows
+      - name: F6.5–F6.8 certify onboarding, rehearsal, safe-stop and recovery on Windows
         shell: pwsh
         run: python tools/verify_f6_5_provider_onboarding.py --kit-dir dist/release-kit
       - name: Upload Windows-specific certified ZIP

@@ -41,6 +41,8 @@ FILES = frozenset({
     "eios_onboarding_example/pilot_demo.py",
     "eios_onboarding_example/safe_stop.py",
     "eios_onboarding_example/safe_stop_demo.py",
+    "eios_onboarding_example/recovery.py",
+    "eios_onboarding_example/recovery_demo.py",
 })
 DEPENDENCIES = frozenset({
     "pydantic", "eios-kernel", "eios-input-contracts",
@@ -293,6 +295,42 @@ def verify(bundle: Path) -> dict:
             safe_stop_outcomes.append(safe)
         if safe_stop_outcomes[0] != safe_stop_outcomes[1]:
             raise ValueError("Independent F6.7 safe-stop rehearsals differed")
+        recovery_outcomes = []
+        for number in (1, 2):
+            outside = root / f"external-consumer-{number}"
+            recovery_process = subprocess.run(
+                [str(python), "-I", "-m", "eios_onboarding_example.recovery_demo"],
+                cwd=outside, env=env, capture_output=True, text=True, timeout=80,
+            )
+            if recovery_process.returncode:
+                raise RuntimeError("F6.8 recovery demonstration failed: " + recovery_process.stderr[-3500:])
+            try:
+                recovery = json.loads(recovery_process.stdout)
+            except ValueError as exc:
+                raise ValueError("F6.8 output is not valid JSON") from exc
+            receipt = recovery.get("receipt", {})
+            if (
+                recovery.get("verification") != "F6_8_SAFE_RECOVERY_SYNTHETIC_PASS"
+                or recovery.get("recovered") != 1
+                or recovery.get("stale_result_reusable") is not False
+                or recovery.get("fresh_chain_revalidated") is not True
+                or recovery.get("real_pilot_admitted") is not False
+                or recovery.get("production_authorized") is not False
+                or recovery.get("decision_authority") is not False
+                or recovery.get("operational_path") != "FORBIDDEN"
+                or receipt.get("status") != "SYNTHETIC_RECOVERY_REVALIDATED"
+                or receipt.get("stale_result_reusable") is not False
+                or receipt.get("fresh_chain_revalidated") is not True
+                or receipt.get("supersedes_safe_stop") is not True
+                or receipt.get("production_authorized") is not False
+                or receipt.get("decision_authority") is not False
+                or receipt.get("operational_path") != "FORBIDDEN"
+                or len(list((outside / "f68-recovery-synthetic-custody").glob("*.json"))) != 1
+            ):
+                raise ValueError("F6.8 recovery reused stale state or promoted authority")
+            recovery_outcomes.append(recovery)
+        if recovery_outcomes[0] != recovery_outcomes[1]:
+            raise ValueError("Independent F6.8 recovery rehearsals differed")
         return {
             "verification": "F6_5_EXTERNAL_ONBOARDING_OFFLINE_CERTIFICATION_PASS",
             "platform_manifest_sha256": checked["manifest_sha256"],
@@ -310,6 +348,9 @@ def verify(bundle: Path) -> dict:
             "f6_7_integral_safe_stop": "SYNTHETIC_ONLY_PASS",
             "f6_7_rehearsals": len(safe_stop_outcomes),
             "f6_7_previous_results_invalidated": 1,
+            "f6_8_safe_recovery": "SYNTHETIC_ONLY_PASS",
+            "f6_8_recoveries": len(recovery_outcomes),
+            "f6_8_stale_result_reusable": False,
             "real_identity_or_documents": "NOT_TESTED",
             "production_authorized": False,
             "operational_path": "FORBIDDEN",
