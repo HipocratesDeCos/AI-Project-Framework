@@ -188,6 +188,9 @@ class SyntheticCustodyVault:
             raise CustodyError("CUSTODY_RECORD_SIZE_INVALID")
         try:
             record = json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_pairs)
+        except CustodyError:
+            # Preserve the precise duplicate-key rejection for auditability.
+            raise
         except (ValueError, UnicodeError) as exc:
             raise CustodyError("CUSTODY_INVALID_RECORD") from exc
         if type(record) is not dict or set(record) != _FIELDS:
