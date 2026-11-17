@@ -82,7 +82,7 @@ def _result(
     invalidated: bool,
     fresh_passed: bool,
 ) -> SafeStopResult:
-    payload = {
+    canonical_payload = {
         "status": status,
         "project_id": request.project_id,
         "company_id": request.company_id,
@@ -102,8 +102,17 @@ def _result(
         "operational_path": "FORBIDDEN",
     }
     return SafeStopResult(
-        **payload,
-        result_fingerprint=sha256(_canonical(payload)).hexdigest(),
+        status=status,
+        project_id=request.project_id,
+        company_id=request.company_id,
+        data_snapshot_id=request.data_snapshot_id,
+        previous_result_fingerprint=previous.result_fingerprint,
+        failure_stage=failure_stage,
+        failure_code=failure_code,
+        reasons=reasons,
+        previous_result_invalidated=invalidated,
+        fresh_revalidation_passed=fresh_passed,
+        result_fingerprint=sha256(_canonical(canonical_payload)).hexdigest(),
     )
 
 
