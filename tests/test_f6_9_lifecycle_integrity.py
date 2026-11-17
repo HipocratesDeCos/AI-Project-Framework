@@ -250,3 +250,27 @@ def test_recovery_with_wrong_baseline_is_rejected_before_write(tmp_path):
             vault=vault, request=request, source=forged_recovery,
             previous=receipts[1],
         )
+
+
+def test_baseline_rejects_manifest_with_same_scope_but_changed_checklist(tmp_path):
+    evidence = tmp_path / "evidence-checklist"
+    journal = tmp_path / "journal-checklist"
+    evidence.mkdir()
+    journal.mkdir()
+    prepared, request, pin, registry, endpoints = fixture("EXTERNAL_COMPANY_A", evidence)
+    technical = review_with_onboarded_providers(
+        prepared=prepared, request=request, pin=pin,
+        registry_source=registry, endpoints=endpoints,
+    )
+    manifest = manifest_for(pin, request)
+    baseline = assess_read_only_rehearsal(
+        manifest=manifest, pin=pin, request=request, technical_review=technical,
+    )
+    changed_first = replace(manifest.checks[0], support_ref="SYNTHETIC_CHANGED_SUPPORT")
+    altered = replace(manifest, checks=(changed_first,) + manifest.checks[1:])
+    vault = SyntheticCustodyVault(journal)
+    with pytest.raises(LifecycleError, match="INVALID_F6_6_BASELINE"):
+        record_lifecycle_event(
+            vault=vault, request=request, source=baseline,
+            baseline_manifest=altered,
+        )
