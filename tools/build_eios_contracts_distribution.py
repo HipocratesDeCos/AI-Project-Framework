@@ -41,6 +41,7 @@ def verify_source_dependencies(root: Path = ROOT) -> None:
 
 def stage_distribution(destination: Path, root: Path = ROOT) -> None:
     verify_source_dependencies(root)
+    destination.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(root / METADATA_FILE, destination / "pyproject.toml")
     for rel in SOURCE_FILES:
         target = destination / "src" / rel
