@@ -153,7 +153,7 @@ def audit_project_wheel(wheel: Path, root: Path = FIXTURE_ROOT) -> dict[str, str
             value = dependencies[name]
             if value.startswith("(") and value.endswith(")"):
                 value = value[1:-1]
-            if value != required:
+            if set(value.split(",")) != set(required.split(",")):
                 raise ValueError(f"Third-party wheel dependency not exact: {name}")
         for name, original in _source_files(root).items():
             zipped = _module_bytes_from_wheel(archive, name)
@@ -193,7 +193,7 @@ def _installed_hash_check(
     versions: dict[str, str],
     environment: dict[str, str],
 ) -> None:
-    source = String.raw if False else r"""
+    source = r"""
 from importlib import import_module, metadata, util
 import hashlib, json, sys
 from pathlib import Path
