@@ -167,17 +167,20 @@ def test_context_drift_stop_requires_new_chain_not_recovery(tmp_path):
     )
     assert context_stop.status == "SAFE_STOPPED"
     assert context_stop.failure_stage == "CONTEXT_REBIND"
-    with pytest.raises(RecoveryError, match="SAFE_STOP_HISTORY_MISMATCH_OR_PROMOTION"):
-        recover_after_safe_stop(
-            stopped=context_stop,
-            stale=items[6],
-            manifest=items[5],
-            prepared=items[0],
-            request=items[1],
-            pin=items[2],
-            registry_source=items[3],
-            endpoints=items[4],
-        )
+    result = recover_after_safe_stop(
+        stopped=context_stop,
+        stale=items[6],
+        manifest=items[5],
+        prepared=items[0],
+        request=items[1],
+        pin=items[2],
+        registry_source=items[3],
+        endpoints=items[4],
+    )
+    assert result.status == "RECOVERY_BLOCKED_NEW_CHAIN_REQUIRED"
+    assert result.failure_code == "F6_8_CONTEXT_DRIFT_REQUIRES_NEW_CHAIN"
+    assert result.supersedes_safe_stop is False
+    assert_forbidden(result)
 
 
 def test_recovery_receipt_is_deterministic_for_same_fresh_state(tmp_path):
