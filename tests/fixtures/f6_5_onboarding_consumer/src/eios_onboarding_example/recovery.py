@@ -147,6 +147,10 @@ def recover_after_safe_stop(
         stopped.previous_result_fingerprint != stale.result_fingerprint
         or stopped.previous_result_invalidated is not True
         or stopped.fresh_revalidation_passed is not False
+        or stopped.real_pilot_admitted is not False
+        or stopped.real_company_authenticated is not False
+        or stopped.real_document_authenticated is not False
+        or stopped.real_human_authorized is not False
         or stopped.production_authorized is not False
         or stopped.decision_authority is not False
         or stopped.operational_path != "FORBIDDEN"
@@ -160,6 +164,21 @@ def recover_after_safe_stop(
             failure_stage="RECOVERY_SCOPE",
             failure_code="F6_8_CONTEXT_DRIFT_REQUIRES_NEW_CHAIN",
             reasons=("SAFE_STOP_CONTEXT_CHANGED",),
+            fresh_chain_revalidated=False,
+            supersedes_safe_stop=False,
+        )
+    if (
+        stopped.project_id != request.project_id
+        or stopped.company_id != request.company_id
+        or stopped.data_snapshot_id != request.data_snapshot_id
+    ):
+        return _result(
+            stopped=stopped, stale=stale, request=request,
+            status="RECOVERY_BLOCKED",
+            fresh_result_fingerprint=None,
+            failure_stage="RECOVERY_SCOPE",
+            failure_code="F6_8_SAFE_STOP_SCOPE_MISMATCH",
+            reasons=("SAFE_STOP_NOT_BOUND_TO_FRESH_CONTEXT",),
             fresh_chain_revalidated=False,
             supersedes_safe_stop=False,
         )
