@@ -17,6 +17,7 @@ F6.4 custody against host-held expected digests.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import timezone
 from hashlib import sha256
 import json
 
@@ -101,6 +102,27 @@ class LifecycleVerification:
     operational_path: str = "FORBIDDEN"
 
 
+def _manifest_digest(manifest: RehearsalManifest, request: ReviewRequest) -> str:
+    record = {
+        "schema": "F6_6_READ_ONLY_REHEARSAL_01/v0.1",
+        "project_id": manifest.project_id,
+        "company_id": manifest.company_id,
+        "data_snapshot_id": manifest.data_snapshot_id,
+        "rehearsal_ref": manifest.rehearsal_ref,
+        "observer_ref": manifest.observer_ref,
+        "reviewed_at": manifest.reviewed_at.astimezone(timezone.utc).isoformat(),
+        "registry_digest": manifest.registry_digest,
+        "registry_revision": manifest.registry_revision,
+        "checklist": [
+            (x.requirement_id, x.status, x.support_ref) for x in manifest.checks
+        ],
+        "source_sha256": request.expected_source_sha256,
+        "document_sha256": request.expected_document_sha256,
+        "document_ref": request.document_ref,
+    }
+    return sha256(_canonical(record)).hexdigest()
+
+
 def _authority_forbidden(value: object) -> bool:
     return (
         getattr(value, "production_authorized", None) is False
@@ -129,6 +151,7 @@ def _stage_payload(
             or baseline_manifest.company_id != request.company_id
             or baseline_manifest.data_snapshot_id != request.data_snapshot_id
             or baseline_manifest.registry_digest != source.registry_digest
+            or _manifest_digest(baseline_manifest, request) != source.manifest_digest
             or source.status != status
             or source.synthetic_rehearsal_complete is not True
             or source.project_id != request.project_id
