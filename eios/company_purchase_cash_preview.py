@@ -82,6 +82,8 @@ def preview(db,state,data,*,alternatives=True):
         baseline=project([]);scenario=project(payments)
         result.update(status='SHORTFALL' if Decimal(scenario['deficit'])>0 else 'WITHIN_DECLARED_SCENARIO',message='Déficit en el escenario de pagos propuesto.' if Decimal(scenario['deficit'])>0 else 'El escenario respeta el mínimo de tesorería con las previsiones declaradas; no acredita viabilidad final.',baseline=baseline,scenario=scenario,opening_balance=str(opening),treasury_minimum=str(minimum),horizon_end=end.isoformat(),cutoff=cut.isoformat(),total=quote['operation_total'],payment_basis='DECLARED_INSTALLMENTS' if plan['status']!='NOT_DECLARED' else 'HYPOTHETICAL_SINGLE_PAYMENT_PER_COMPONENT',payments=[dict(due_date=d.isoformat(),amount=str(a)) for d,a in payments],documentary_context=deepcopy(state['documentary_context']),financial_source_fingerprint=finance.get('fingerprint'),parameter_activation=activation,
             assumptions=['Se usan los importes y fechas del archivo financiero activo sin acreditar cobro, pago ni conciliación.','Los movimientos de cada día se compensan al cierre; no se garantiza liquidez dentro del día.','Sin cuotas declaradas se simula un pago único de mercancía y otro de portes, si existen, en sus fechas indicadas. No se registra ese calendario.','No se suman otras propuestas guardadas ni financiación hipotética. El saldo corresponde al corte, no al día actual.'],evidence_pending_count=finance.get('evidence_pending_count'),data_quality_status='NOT_VERIFIED')
+        from eios.company_purchase_timeline import build_timeline
+        result['timeline'] = build_timeline(source, payments, opening, minimum, cut.isoformat(), end.isoformat())
         from eios.company_sales_cash_plan import _execute
         with sqlite3.connect(db) as c:
             if c.execute("SELECT 1 FROM sqlite_master WHERE name='company_finance_parameter_configuration'").fetchone():
@@ -117,6 +119,36 @@ def preview(db,state,data,*,alternatives=True):
                 tested=check(dict(data,**patch))
                 if tested:add('DEFER','Aplazar el calendario de pagos',patch,tested,'Solicitamos desplazar el calendario '+str(shift)+' días. Último vencimiento de mercancía: '+patch['due_date']+'. Sujeto a aceptación del proveedor.');break
             result['capital_measure']=dict(amount=scenario['deficit'],needed_by=scenario['first_shortfall_date'],status='PENDING_APPROVAL_AND_DISBURSEMENT',message='Aportación mínima teórica para cubrir el déficit del escenario si estuviera disponible antes de la primera falta. No se incorpora como liquidez ni acredita que una ampliación de capital sea adecuada.')
+        # Each proposal receives its own date conclusion. No negotiation is accepted here.
+        def timing_assessment():
+            payment_dates=sorted(d for d,a in payments)
+            first=payment_dates[0].isoformat()
+            last=payment_dates[-1].isoformat()
+            defer=next((a for a in result['alternatives'] if a['kind']=='DEFER'),None)
+            if result['status']=='WITHIN_DECLARED_SCENARIO':
+                return dict(status='KEEP_DECLARED_DATES',first_due_date=first,last_due_date=last,
+                    suggested_last_due_date=last,
+                    reason='Los pagos declarados respetan el mínimo durante el horizonte evaluado. No se necesita desplazar el vencimiento para resolver un déficit en este escenario.',
+                    source='DECLARED_PAYMENT_PLAN_AND_ACTIVATED_FORECAST',requires_supplier_acceptance=False)
+            if defer:
+                patched=defer['patch']
+                suggested=patched.get('due_date',last)
+                if patched.get('payment_installments'):
+                    suggested=max(x['due_date'] for x in patched['payment_installments'])
+                return dict(status='NEGOTIATE_DEFERMENT',first_due_date=first,last_due_date=last,
+                    suggested_last_due_date=suggested,
+                    reason='Es el primer desplazamiento completo de pagos encontrado dentro del horizonte que mantiene la tesorería mínima con los cobros y pagos declarados. No garantiza cobros puntuales ni aceptación del proveedor.',
+                    source='CALCULATED_FROM_DECLARED_FORECAST',requires_supplier_acceptance=True)
+            if not alternatives:
+                return dict(status='SEARCH_NOT_REQUESTED',first_due_date=first,last_due_date=last,
+                    suggested_last_due_date=None,
+                    reason='Esta comparación evalúa las condiciones indicadas, pero no ejecuta una nueva búsqueda de vencimientos. El déficit mostrado no demuestra que sea imposible negociar otra fecha.',
+                    source='NOT_CALCULATED',requires_supplier_acceptance=None)
+            return dict(status='NO_FEASIBLE_DEFERMENT_FOUND',first_due_date=first,last_due_date=last,
+                suggested_last_due_date=None,
+                reason='No se ha encontrado un desplazamiento completo que elimine el déficit dentro del horizonte autorizado. No se propone una fecha sin cobertura calculada.',
+                source='CALCULATED_FROM_DECLARED_FORECAST',requires_supplier_acceptance=None)
+        result['timing_assessment']=timing_assessment()
         result['analysis_fingerprint']=sha256(json.dumps(result,sort_keys=True,default=str).encode()).hexdigest()
         return result
     except (ValueError,TypeError,KeyError,ArithmeticError) as error:return pending(str(error))
