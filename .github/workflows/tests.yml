@@ -136,3 +136,45 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+
+  f6_1_windows_portability:
+    name: F6.1 Windows offline certification (Python 3.12)
+    needs: test
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - name: Checkout exact tested revision
+        uses: actions/checkout@v4
+      - name: Set up Windows Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build four canonical neutral wheels on Windows
+        shell: pwsh
+        run: |
+          python -m pip install "setuptools>=64" "wheel>=0.42"
+          python tools/build_eios_kernel_distribution.py --output dist/kernel
+          python tools/build_eios_input_contracts_distribution.py --output dist/inputs
+          python tools/build_eios_capability_catalog_distribution.py --output dist/catalog
+          python tools/build_eios_catalog_governance_distribution.py --output dist/governance
+      - name: Build separate hash-locked Windows onboarding ZIP
+        shell: pwsh
+        run: |
+          python tools/build_f5_10_release_kit.py --kernel-dir dist/kernel --inputs-dir dist/inputs --catalog-dir dist/catalog --governance-dir dist/governance --output dist/release-kit
+      - name: Certify two independent offline Windows deployments and corruption rejections
+        shell: pwsh
+        run: python tools/verify_f5_10_release_kit.py --kit-dir dist/release-kit
+      - name: Verify Windows and Python identity in packaged manifest
+        shell: pwsh
+        run: |
+          python -c "import json,platform; from pathlib import Path; from zipfile import ZipFile; z=ZipFile(Path('dist/release-kit/EIOS_F5_10_Neutral_Onboarding_Kit.zip')); m=json.loads(z.read('manifest.json')); assert m['platform']=='win32' and m['python_minor']=='3.12' and m['machine']==platform.machine(); assert m['purpose']=='SYNTHETIC_TECHNICAL_ONBOARDING_ONLY'; print('Windows 3.12 only; synthetic; manifest verified')"
+      - name: Upload Windows-specific certified ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: EIOS-F6-1-Windows-Onboarding-Kit-Python312
+          path: dist/release-kit/EIOS_F5_10_Neutral_Onboarding_Kit.zip
+          if-no-files-found: error
+          retention-days: 14
