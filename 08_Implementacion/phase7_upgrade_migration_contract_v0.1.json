@@ -1,0 +1,60 @@
+{
+  "schema": "EIOS_UPGRADE_MIGRATION_CONTRACT/v0.1",
+  "phase": "F7.3",
+  "baseline_main_sha": "de7d8c046fb58f2727bf0c40a405c22a3a6621d7",
+  "policy": {
+    "in_place_upgrade_forbidden": true,
+    "mixed_release_runtime_forbidden": true,
+    "candidate_environment_must_be_new": true,
+    "switch_before_certification_forbidden": true,
+    "rollback_anchor_required": true,
+    "partial_migration_is_failure": true,
+    "production_authorized": false,
+    "decision_authority": false,
+    "operational_path": "FORBIDDEN"
+  },
+  "source_stack": {
+    "eios-kernel": "0.1.0",
+    "eios-input-contracts": "0.1.0",
+    "eios-capability-catalog": "0.1.0",
+    "eios-catalog-governance": "0.1.0"
+  },
+  "candidate_stack_policy": "MUST_BE_F7_2_CERTIFIED_BEFORE_SWITCH",
+  "states": [
+    "SOURCE_ACTIVE",
+    "CANDIDATE_PREPARED",
+    "CANDIDATE_CERTIFIED",
+    "SWITCH_COMMITTED",
+    "ROLLBACK_COMMITTED",
+    "MIGRATION_REJECTED"
+  ],
+  "allowed_transitions": [
+    ["SOURCE_ACTIVE", "CANDIDATE_PREPARED"],
+    ["CANDIDATE_PREPARED", "CANDIDATE_CERTIFIED"],
+    ["CANDIDATE_CERTIFIED", "SWITCH_COMMITTED"],
+    ["SWITCH_COMMITTED", "ROLLBACK_COMMITTED"]
+  ],
+  "failure_transitions": [
+    ["SOURCE_ACTIVE", "MIGRATION_REJECTED"],
+    ["CANDIDATE_PREPARED", "MIGRATION_REJECTED"],
+    ["CANDIDATE_CERTIFIED", "MIGRATION_REJECTED"]
+  ],
+  "required_artifacts_before_switch": [
+    "SOURCE_STACK_FINGERPRINT",
+    "SOURCE_CERTIFICATION_RECEIPT",
+    "CANDIDATE_STACK_FINGERPRINT",
+    "CANDIDATE_F7_2_CERTIFICATION",
+    "CANDIDATE_FRESH_INSTALL_RECEIPT",
+    "EXISTING_CONSUMER_REGRESSION_RECEIPT",
+    "THIRD_DOMAIN_REGRESSION_RECEIPT",
+    "LINUX_CERTIFICATION_RECEIPT",
+    "WINDOWS_PYTHON_3_12_CERTIFICATION_RECEIPT",
+    "ROLLBACK_ANCHOR"
+  ],
+  "rollback_requirements": [
+    "SOURCE_ENVIRONMENT_UNMODIFIED",
+    "SOURCE_STACK_FINGERPRINT_MATCH",
+    "SOURCE_CERTIFICATION_RECEIPT_MATCH",
+    "NO_DATA_OR_SCHEMA_DESTRUCTIVE_STEP_WITHOUT_SEPARATE_MIGRATION_EVIDENCE"
+  ]
+}
