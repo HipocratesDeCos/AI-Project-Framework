@@ -1,8 +1,8 @@
 # EIOS — ACTA DE CIERRE TÉCNICO DEL MOTOR NEUTRAL 0.1.0
 
 **Fecha:** 18/11/2026  
-**Estado:** CANDIDATO DE ACEPTACIÓN; **NO CERRADO** hasta CI pre-merge y post-merge del SHA exacto.  
-**Baseline de desarrollo auditada:** `main @ 80b0c368bd3da8b4c369a0f9ae9a6c85258d8167`  
+**Estado:** **CERRADO TÉCNICAMENTE — EIOS Motor neutral 0.1.0**, alcance sintético y sin autoridad operacional; aceptación sobre `main @ 0e5a98b64a99d837c8ae94f0763cc9c80133c314`.  
+**Baseline técnica aceptada:** `main @ 0e5a98b64a99d837c8ae94f0763cc9c80133c314`  
 **Alcance:** núcleo técnico neutro, distribuciones públicas 0.1.0, contratos, release/governance y portabilidad sintética. **No** implica disponibilidad o seguridad operativa empresarial.
 
 ## 1. Objeto
@@ -30,7 +30,7 @@ Políticas: `REJECT_UNLISTED` para combinaciones no registradas; migraciones en 
 | F7.1–F7.6 | API pública, matriz de compatibilidad, política de migración, lifecycle, identidad, cierre formal |
 | F8.1 | Cuarto dominio externo `eios-energy-example==0.1.0`, con dos capacidades, bindings, ledger y escenarios adversarios |
 
-Prueba EIOS cuarto dominio: PR [#629](https://github.com/HipocratesDeCos/AI-Project-Framework/pull/629), candidato `e3ced473d998f744250d98dd3bb7c5db462f8f6a`, CI PR `#44273502407` **SUCCESS** en Linux y Windows Python 3.12; merged `main @ 80b0c368bd3da8b4c369a0f9ae9a6c85258d8167`. La CI post-merge sobre el SHA de main **no estaba disponible para lectura en esta auditoría**: no inferir SUCCESS de una consulta vacía.
+Prueba EIOS cuarto dominio: PR [#629](https://github.com/HipocratesDeCos/AI-Project-Framework/pull/629), candidato `e3ced473d998f744250d98dd3bb7c5db462f8f6a`, CI PR `#44273502407` **SUCCESS** en Linux y Windows Python 3.12; merged `main @ 80b0c368bd3da8b4c369a0f9ae9a6c85258d8167`. CI post-merge (evento `push` sobre SHA exacto) **#44274718566 SUCCESS** en Linux (`test`) y Windows Python 3.12 (`F6.1 Windows offline certification (Python 3.12)`). Evidencia: https://github.com/HipocratesDeCos/AI-Project-Framework/actions/runs/44274718566.
 
 ## 4. Fronteras que siguen expresamente prohibidas
 
@@ -49,13 +49,13 @@ Ni la certificación offline ni la aprobación de un ledger con un *test double*
 - [x] Sin cambios en `eios/` derivados de F8.1 (comparación `a4bfbd0...80b0c368`).
 - [x] Workflows conservan gates F7.6, F8.1, Linux y Windows.
 - [x] Identificados los cuatro contratos y políticas públicas sin ampliar versión.
-- [ ] Confirmar `SUCCESS` de **push/CI post-merge** sobre `80b0c368bd3da8b4c369a0f9ae9a6c85258d8167` con URL e ID del run.
-- [ ] Confirmar CI pre-merge de **esta PR de cierre** en su candidato SHA exacto.
-- [ ] Integrar PR de cierre solo tras CI satisfactoria, revisión del diff y sin modificar `eios/`.
-- [ ] Confirmar CI de **push post-merge** sobre el nuevo HEAD exacto `main` de esta PR.
-- [ ] Registrar SHA final y URL del run postmerge en el acta/hilo de PR y declarar aceptación formal del Motor.
+- [x] `SUCCESS` de **push/CI post-merge F8.1** sobre `80b0c368bd3da8b4c369a0f9ae9a6c85258d8167`, run #44274718566, Linux y Windows.
+- [x] CI pre-merge de **PR #630 (acta original)**: run #44277408267, SHA `594e284b320b2c8b27ef3b1d29ce96988b9ee576`, Linux y Windows SUCCESS.
+- [x] PR #630 integrada; solo dos documentos, sin modificar `eios/`; merge SHA `0e5a98b64a99d837c8ae94f0763cc9c80133c314`.
+- [x] CI de **push post-merge PR #630** sobre SHA exacto `0e5a98b64a99d837c8ae94f0763cc9c80133c314`: run #44278571355, Linux y Windows SUCCESS.
+- [x] SHA técnico aceptado y enlaces registrados: https://github.com/HipocratesDeCos/AI-Project-Framework/actions/runs/44274718566 y https://github.com/HipocratesDeCos/AI-Project-Framework/actions/runs/44278571355.
 
-**REGLA DE BLOQUEO:** no cambiar este estado a CERRADO ni presentar EIOS 0.1.0 como finalizado en ausencia de esos dos gates post-merge verificables. No inventar IDs de runs.
+**GATES DE CIERRE SUPERADOS:** consulta autenticada de GitHub Actions desde workflow temporal de auditoría PR #631; ambas ejecuciones `push` sobre sus SHA exactos tienen `status=completed`, `conclusion=success` y ambos jobs Linux/Windows `success`. El workflow temporal es solo comprobación de evidencia, no una dependencia del Motor ni cambio productivo. Este documento registra un cierre anterior y no cambia el contenido del Motor.
 
 ## 6. Decisión funcional y congelación
 
@@ -68,3 +68,14 @@ El harness de F8.1 es una verificación **de ejemplo**, no un certificador gené
 Iniciar **un proyecto consumidor externo** sobre EIOS 0.1.0, fuera de `eios/`, eligiendo un caso empresarial acotado (por ejemplo, Compras o Tesorería). El primer entregable del consumidor será un **contrato de entrada, un caso de datos sintéticos realista y una validación completa de un flujo con resultados comprensibles**. Este trabajo no es una nueva fase del Motor.
 
 La habilitación de pilotos reales y producción requiere un programa de admisión y seguridad empresarial separado. No deben confundirse el cierre técnico del Motor, la funcionalidad de una app y la aceptación productiva.
+
+## 8. Evidencia autenticada de la aceptación
+
+La auditoría de GitHub Actions confirmó de forma independiente los metadatos del evento `push`, el SHA exacto, `run_status=completed`, `run_conclusion=success` y los dos jobs terminados con `success`:
+
+| Cierre | SHA en `main` | Run post-merge | Linux | Windows |
+|---|---|---|---|---|
+| F8.1 | `80b0c368bd3da8b4c369a0f9ae9a6c85258d8167` | [#44274718566](https://github.com/HipocratesDeCos/AI-Project-Framework/actions/runs/44274718566) | SUCCESS | SUCCESS |
+| Motor neutral 0.1.0 | `0e5a98b64a99d837c8ae94f0763cc9c80133c314` | [#44278571355](https://github.com/HipocratesDeCos/AI-Project-Framework/actions/runs/44278571355) | SUCCESS | SUCCESS |
+
+**Decisión:** se declara **CERRADO TÉCNICAMENTE EIOS Motor neutral 0.1.0** sobre la combinación exacta de cuatro distribuciones neutrales y la baseline de código certificada. El documento de constatación no altera `eios/`, el código de las distribuciones ni su versión. Esta aceptación técnica **no** concede autoridad productiva, no acredita datos reales y no sustituye una futura certificación operacional por empresa.
