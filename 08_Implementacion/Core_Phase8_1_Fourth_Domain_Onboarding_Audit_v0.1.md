@@ -71,3 +71,29 @@ Queda excluido crear un gestor dinámico de plugins, API nueva, SDK invasivo, in
 - `REFERENCE_OPERATIONAL_SIMULATION` sigue siendo sintético.
 
 **No declarar F8.1 cerrada sin PR integrada, CI premerge en SHA exacto y CI postmerge de main en SHA exacto**. La integración de este documento no acredita por sí sola P1–P5. Mantener una única prioridad: evitar duplicar las barreras ya certificadas, documentar el problema y comprobarlo de forma externa.
+
+
+## 7. AUDITAR 2 — CONTRASTE DE VERIFICADORES REALES
+
+La auditoría de segunda pasada comprueba directamente la implementación de los verificadores existentes:
+
+- `tools/verify_f5_9_third_domain.py` fija `PROJECT_NAME = "eios-maintenance-example"`, `PROJECT_MODULES` y `FIXTURE_ROOT`; su función `check()` exige `consumer == "maintenance"`, un ledger de nombre concreto y estados predeterminados. **No es una CLI genérica de certificación**, aunque algunas funciones auxiliares puedan ser reutilizables tras una adaptación externa auditada.
+- `tools/verify_f6_2_external_company_adapter.py` fabrica y ejecuta el adaptador de referencia `eios_company_adapter_example.demo`, espera dos empresas sintéticas, dos ledgers y una firma de resultado específica. **No valida paquetes empresariales arbitrarios**.
+- `tools/f5_10_certify_deployment.py` fija `SAMPLE`, `MODULES` y la ejecución de mantenimiento, rechazando wheels adicionales o inventarios no listados. Mantener intacto este certificador es necesario para que F5.10 conserve su identidad de release.
+- `.github/workflows/tests.yml` conserva pruebas Linux y Windows de esas fronteras previas; una CI verde no prueba automáticamente las nuevas pruebas P1–P5.
+
+**AUDITAR 2 (documental): PASS con hallazgo acotado F8.1-H01; NO acredita todavía el ejercicio P1–P5.**
+
+### Decisión de mínimo cambio
+
+Existe una justificación delimitada para **estudiar** un verificador externo del consumidor, reutilizando los auditores de wheels y el mecanismo de instalación hash-locked, sin tocar `eios/` ni modificar el kit F5.10. Su eventual materialización sigue condicionada a probar primero que un cuarto dominio realmente necesita ese verificador. Evitar un SDK nuevo, loader dinámico o generador de proyectos antes de esa evidencia.
+
+### Gate actual de cierre
+
+- Auditoría documental 1: completada.
+- Auditoría documental 2: completada, con resultado condicionado.
+- P1–P5 sobre un cuarto dominio: **NO EJECUTADAS**.
+- CI premerge del documento: ejecución #44264440227 SUCCESS sobre `d2a7bcfe4a6e87f12945308281f18fef540a0f08` (SHA anterior a este apéndice; requiere nueva CI).
+- Estado de F8.1: **ABIERTA — NO CERRAR**.
+
+No afirmar que una prueba de mantenimiento o de adaptador equivale a un cuarto dominio ni promover ninguna autorización operacional.
