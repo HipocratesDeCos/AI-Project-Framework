@@ -1,0 +1,60 @@
+{
+  "schema": "EIOS_DEPRECATION_SUPPORT_LIFECYCLE/v0.1",
+  "phase": "F7.4",
+  "baseline_main_sha": "afbcf7d9a4d1bf3e9657148b8549ff0b4b172f15",
+  "policy": {
+    "silent_public_api_removal_forbidden": true,
+    "deprecation_record_required_before_removal": true,
+    "at_least_one_certified_successor_release_required": true,
+    "replacement_or_explicit_rationale_required": true,
+    "migration_guidance_required": true,
+    "existing_consumer_regression_required": true,
+    "third_domain_regression_required": true,
+    "f7_2_compatibility_evidence_required": true,
+    "f7_3_migration_contract_required": true,
+    "removal_without_successor_evidence_forbidden": true,
+    "production_authorized": false,
+    "decision_authority": false,
+    "operational_path": "FORBIDDEN"
+  },
+  "states": [
+    "ACTIVE",
+    "DEPRECATED",
+    "REMOVAL_ELIGIBLE",
+    "REMOVED"
+  ],
+  "allowed_transitions": [
+    ["ACTIVE", "DEPRECATED"],
+    ["DEPRECATED", "REMOVAL_ELIGIBLE"],
+    ["REMOVAL_ELIGIBLE", "REMOVED"]
+  ],
+  "current_public_api_status": "ACTIVE",
+  "deprecations": [],
+  "required_deprecation_record_fields": [
+    "distribution",
+    "module",
+    "symbol",
+    "deprecated_in_release",
+    "status",
+    "replacement",
+    "rationale",
+    "migration_guide",
+    "certified_successor_releases",
+    "compatibility_evidence",
+    "consumer_regression_evidence",
+    "third_domain_regression_evidence",
+    "migration_contract_evidence"
+  ],
+  "removal_eligibility_requirements": [
+    "SYMBOL_WAS_PUBLIC_IN_F7_1",
+    "DEPRECATION_RECORD_EXISTS",
+    "STATUS_IS_DEPRECATED",
+    "AT_LEAST_ONE_CERTIFIED_SUCCESSOR_RELEASE",
+    "REPLACEMENT_OR_RATIONALE_PRESENT",
+    "MIGRATION_GUIDE_PRESENT",
+    "F7_2_COMPATIBILITY_EVIDENCE",
+    "EXISTING_CONSUMER_REGRESSION",
+    "THIRD_DOMAIN_REGRESSION",
+    "F7_3_MIGRATION_CONTRACT_EVIDENCE"
+  ]
+}
