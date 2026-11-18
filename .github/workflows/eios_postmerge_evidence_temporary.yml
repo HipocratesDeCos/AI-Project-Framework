@@ -31,6 +31,7 @@ jobs:
           shas = (
               "80b0c368bd3da8b4c369a0f9ae9a6c85258d8167",
               "0e5a98b64a99d837c8ae94f0763cc9c80133c314",
+              "0913ff8bb04493d308e2263350cb374ab9603c7b",
           )
           expected_jobs = (
               "test",
