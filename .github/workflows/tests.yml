@@ -142,6 +142,8 @@ jobs:
         run: python tools/verify_f7_1_public_api_baseline.py
       - name: F7.2 verify exact neutral release compatibility matrix
         run: python tools/verify_f7_2_release_compatibility.py
+      - name: F7.3 verify upgrade and migration contract
+        run: python tools/verify_f7_3_upgrade_migration.py
       - name: F5.10 retain independently installable onboarding kit
         uses: actions/upload-artifact@v4
         with:
