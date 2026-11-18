@@ -73,6 +73,24 @@ Queda excluido crear un gestor dinámico de plugins, API nueva, SDK invasivo, in
 **No declarar F8.1 cerrada sin PR integrada, CI premerge en SHA exacto y CI postmerge de main en SHA exacto**. La integración de este documento no acredita por sí sola P1–P5. Mantener una única prioridad: evitar duplicar las barreras ya certificadas, documentar el problema y comprobarlo de forma externa.
 
 
+
+## 8. EXPERIMENTO EXTERNO DEL CUARTO DOMINIO (CANDIDATO)
+
+Se materializa un cuarto consumidor sintético, **gestión energética**, con dos capacidades propias (observación de demanda máxima y comprobación de soporte documental del contador). No contiene reglas de Compras, Ventas ni Mantenimiento.
+
+Artefactos del candidato:
+- `tests/fixtures/f8_1_energy_consumer/pyproject.toml`, `src/eios_energy_example/{__init__,consumer}.py`: distribución independiente `eios-energy-example==0.1.0`.
+- `tools/verify_f8_1_fourth_domain.py`: **harness experimental específico de F8.1**, NO certificador general.
+- `.github/workflows/tests.yml`: ejecuciones Linux y Windows sobre el ZIP F5.10 **sin modificar su contenido**, montando un lock externo para la nueva distribución.
+
+El experimento verifica SHA del wheel frente a fuente, imports públicos por AST, instalación `pip --no-index --require-hashes`, `pip check`, ejecución `python -I` en dos entornos separados, invariantes `decision_authority=false` / `operational_path=FORBIDDEN`, entradas no documentadas, autorización sintética falsa, ledger cruzado, cambio de esquema sin gobernar, capacidad no registrada, binding ausente y ledger alterado.
+
+El **ejemplo de mantenimiento no se instala** en los entornos del cuarto dominio: se extraen los wheels del kit intacto y se utiliza un lock nuevo (externo al kit) que fija solo el motor neutral, dependencias y consumidor energético. No se reemite `technical_certification.json` de F5.10 como certificación del cuarto dominio.
+
+**Limitación experimental importante:** rechazar un wheel alterado se comprueba mediante divergencia SHA-256 del binario; la validación no acredita autenticidad de un distribuidor independiente. La ejecución repetida prueba aislamiento técnico del consumidor, no concurrencia ni producción multiusuario.
+
+El experimento requiere CI premerge completa; los resultados de la prueba deben obtenerse de los pasos F8.1 específicos, no inferirse del PASS de las regresiones históricas. **No declarar F8.1 cerrada sin evidencia de Linux y Windows, auditar fallo/depuración y CI postmerge cuando corresponda**.
+
 ## 7. AUDITAR 2 — CONTRASTE DE VERIFICADORES REALES
 
 La auditoría de segunda pasada comprueba directamente la implementación de los verificadores existentes:
