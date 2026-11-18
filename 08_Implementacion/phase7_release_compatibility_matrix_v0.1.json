@@ -1,0 +1,70 @@
+{
+  "schema": "EIOS_RELEASE_COMPATIBILITY_MATRIX/v0.1",
+  "phase": "F7.2",
+  "baseline_main_sha": "f4e0b5f112abb109b85ea93ef57502e3840bc222",
+  "policy": {
+    "default": "REJECT_UNLISTED",
+    "semver_implies_compatibility": false,
+    "partial_tuple_inference_forbidden": true,
+    "mixed_release_inference_forbidden": true,
+    "candidate_requires_explicit_evidence": true
+  },
+  "dimensions": [
+    "eios-kernel",
+    "eios-input-contracts",
+    "eios-capability-catalog",
+    "eios-catalog-governance"
+  ],
+  "certified_combinations": [
+    {
+      "id": "NEUTRAL_STACK_0_1_0",
+      "status": "CERTIFIED",
+      "versions": {
+        "eios-kernel": "0.1.0",
+        "eios-input-contracts": "0.1.0",
+        "eios-capability-catalog": "0.1.0",
+        "eios-catalog-governance": "0.1.0"
+      },
+      "baseline_manifest": "08_Implementacion/phase7_public_api_baseline_v0.1.json",
+      "evidence": [
+        "F7.1_PUBLIC_API_BASELINE_PASS",
+        "F5.9_THIRD_DOMAIN_PORTABILITY",
+        "F5.10_PORTABLE_EXTERNAL_DEPLOYMENT",
+        "F6.11_PHASE6_CLOSURE_ACCEPTANCE"
+      ],
+      "production_authorized": false,
+      "decision_authority": false,
+      "operational_path": "FORBIDDEN"
+    }
+  ],
+  "explicitly_rejected_examples": [
+    {
+      "reason": "UNVERIFIED_MIXED_RELEASE",
+      "versions": {
+        "eios-kernel": "0.2.0",
+        "eios-input-contracts": "0.1.0",
+        "eios-capability-catalog": "0.1.0",
+        "eios-catalog-governance": "0.1.0"
+      }
+    },
+    {
+      "reason": "UNVERIFIED_FULL_STACK",
+      "versions": {
+        "eios-kernel": "0.2.0",
+        "eios-input-contracts": "0.2.0",
+        "eios-capability-catalog": "0.2.0",
+        "eios-catalog-governance": "0.2.0"
+      }
+    }
+  ],
+  "candidate_admission_requirements": [
+    "PUBLIC_API_BASELINE_FOR_CANDIDATE",
+    "EXACT_DEPENDENCY_GRAPH",
+    "FRESH_INSTALLATION_TEST",
+    "EXISTING_CONSUMER_REGRESSION",
+    "THIRD_DOMAIN_REGRESSION",
+    "LINUX_CERTIFICATION",
+    "WINDOWS_PYTHON_3_12_CERTIFICATION",
+    "NO_AUTHORITY_ESCALATION"
+  ]
+}
