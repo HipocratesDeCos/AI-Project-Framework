@@ -130,6 +130,8 @@ jobs:
         run: python tools/verify_f5_10_release_kit.py --kit-dir dist/release-kit
       - name: F6.2 independently install external company adapter and test two tenants
         run: python tools/verify_f6_2_external_company_adapter.py --kit-dir dist/release-kit
+      - name: F8.1 exercise fourth-domain energy client from unchanged F5.10 kit (Linux)
+        run: python tools/verify_f8_1_fourth_domain.py --kit-dir dist/release-kit
       - name: F6.3 independently install synthetic documentary boundary and audit two tenants
         run: python tools/verify_f6_3_documentary_boundary.py --kit-dir dist/release-kit
       - name: F6.4 certify synthetic custody on Linux
@@ -205,6 +207,9 @@ jobs:
       - name: F6.2 certify external company adapter on Windows with two isolated tenants
         shell: pwsh
         run: python tools/verify_f6_2_external_company_adapter.py --kit-dir dist/release-kit
+      - name: F8.1 exercise fourth-domain energy client from unchanged F5.10 kit (Windows)
+        shell: pwsh
+        run: python tools/verify_f8_1_fourth_domain.py --kit-dir dist/release-kit
       - name: F6.3 certify independent documentary identity review boundary on Windows
         shell: pwsh
         run: python tools/verify_f6_3_documentary_boundary.py --kit-dir dist/release-kit

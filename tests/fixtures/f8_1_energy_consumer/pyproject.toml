@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=64", "wheel>=0.42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eios-energy-example"
+version = "0.1.0"
+description = "Independent synthetic energy monitoring consumer; no procurement or maintenance logic"
+requires-python = ">=3.12"
+dependencies = [
+  "pydantic>=2,<3",
+  "eios-kernel==0.1.0",
+  "eios-input-contracts==0.1.0",
+  "eios-capability-catalog==0.1.0",
+  "eios-catalog-governance==0.1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["eios_energy_example"]
