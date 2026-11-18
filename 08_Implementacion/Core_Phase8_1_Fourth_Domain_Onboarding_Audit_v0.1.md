@@ -1,0 +1,73 @@
+# EIOS — F8.1 · AUDITORÍA DE ARRANQUE DE UN CUARTO DOMINIO
+
+**Fecha:** 2026-11-18  
+**Baseline inmutable de auditoría:** `main @ a4bfbd0a08d7755c5f24e136f421f09c6821d351`  
+**Estado:** AUDITORÍA DOCUMENTAL COMPLETADA; PR/CI Y VALIDACIÓN PRÁCTICA PENDIENTES.  
+**Clasificación:** evidencia de diseño, NO certificación técnica del cuarto dominio ni cierre formal de F8.1.
+
+## 1. Pregunta y límite
+
+¿Puede crearse y certificarse un cuarto consumidor independiente utilizando solamente las distribuciones neutrales EIOS 0.1.0 y documentación pública, sin copiar código del repositorio ni alterar el núcleo? Distinguir **instalación y certificación del kit** de **certificación del proyecto externo**. No generar un dominio artificial para justificar trabajo ni crear una nueva API por estética.
+
+Esta revisión es de código y documentación a SHA exacto; **no equivale a haber ejecutado una prueba externa fresca**.
+
+## 2. Elementos cubiertos que NO deben reimplementarse
+
+- F4: `eios.kernel.execution` y consumidores externos.
+- F5.6: `eios.input_contracts`, modelo tipado e identidad contextual.
+- F5.7: `eios.capability_catalog`, versiones explícitas y compatibilidad de esquemas sin inferencia por SemVer.
+- F5.8: `eios.catalog_governance`, selección autorizada y ledger por proyecto.
+- F5.9: consumidor de mantenimiento empaquetado, instalado y ejecutado independientemente.
+- F5.10/F6.1: kit offline específico de plataforma, Python minor, hashes y ejecución del ejemplo.
+- F6.2–F6.11: adaptadores externos, controles sintéticos de ciclo y cierre de la fase.
+- F7.1–F7.6: API, matriz `REJECT_UNLISTED`, migración, deprecación, identidad y cierre.
+
+La combinación neutral certificada sigue siendo exactamente `eios-kernel==0.1.0`, `eios-input-contracts==0.1.0`, `eios-capability-catalog==0.1.0` y `eios-catalog-governance==0.1.0`.
+
+## 3. Evidencia y hallazgo
+
+**E1 — distribución portable existente.** `tools/build_f5_10_release_kit.py` agrupa las cuatro ruedas neutrales, dependencias bloqueadas y `eios-maintenance-example==0.1.0`; preserva un manifiesto de hashes. `tests/fixtures/f5_10_deployment_kit/README.md` enseña a crear un proyecto separado, pero declara explícitamente: F5.10 certifica automáticamente **solo** el consumidor de ejemplo.
+
+**E2 — certificador anclado a un consumidor específico.** `tools/f5_10_certify_deployment.py` exige `SAMPLE = {"eios-maintenance-example": "0.1.0"}`, define `MODULES` con el paquete de mantenimiento, rechaza inventarios extra y ejecuta `python -I -m eios_maintenance_example.consumer`. Cambiar el nombre del ejemplo dentro de un ZIP no da un certificado válido.
+
+**E3 — consumidor de referencia no es plantilla universal.** `tests/fixtures/f5_9_maintenance_consumer/src/eios_maintenance_example/consumer.py` tiene modelo, productores, versiones, catálogo y autorizador de prueba sintético propio. Copiarlo cambiando identificadores no acredita independencia del dominio.
+
+**Hallazgo F8.1-H01 (material; alcance: herramientas EXTERNAS, no núcleo):** no existe en el procedimiento F5.10 un certificador parametrizable y neutral para el paquete del cuarto dominio. La validación de F5.10 **no puede reutilizarse como un certificado de cualquier consumidor** sin diseñar controles propios. Es una limitación reconocida, no una regresión ni defecto de F5.10.
+
+**Hallazgo F8.1-H02 (mejora condicional):** el procedimiento de construcción/admisión de un nuevo consumidor está documentado por pasos, pero no constituye una plantilla de validación automatizada que detecte de forma estandarizada imports privados, dependencia del checkout, versiones sin fijar y falso aumento de autoridad. Comprobar primero si los verificadores de F5.9 y F6.2 ya pueden cubrirlo mediante una reutilización externa pequeña antes de añadir herramientas.
+
+## 4. Separación de responsabilidades
+
+| Necesidad | Titular |
+|---|---|
+| Ejecución, contratos, catálogo, gobierno | APIs neutrales existentes; NO modificar |
+| Empaquetado e instalación de wheels neutrales | F5.10/F6.1; NO duplicar |
+| Modelo, productores, reglas y trazabilidad del caso | Nuevo vertical |
+| Autenticación real, firmas, identidad documental y admisión operacional | Infraestructura y autoridad externa; NO simular |
+| Validación técnica de un consumidor independiente arbitrario | Posible utilidad EXTERNA post-F7 sujeta a prueba |
+
+Queda excluido crear un gestor dinámico de plugins, API nueva, SDK invasivo, instalación online, auto-descubrimiento, permisos reales, certificación productiva, UI, nuevas capacidades de negocio, 0.2.0 artificial o alteraciones de F4–F7.
+
+## 5. Test de decisión para la siguiente unidad (no ejecutado aún)
+
+**P1 — positivo:** un nuevo paquete con un modelo y dos productores que no representan Compra/Venta/Mantenimiento, dependencias exactas y imports públicos, instala fuera del checkout y ejecuta datos exclusivamente sintéticos con estados observables sin autorizar decisiones.
+
+**P2 — negativo:** rechazar dependencia de `eios.core`, `eios.pricing`, `eios.tco`, `eios.company_app`, importación desde checkout, versión mezclada o no declarada, esquema no registrado y productor faltante.
+
+**P3 — adversario:** rechazar reutilización de ledger cruzado, autorizador ausente/booleano/scope incorrecto, modificación de wheel/lock/manifest, elevación de `decision_authority` o `operational_path`, e intento de presentar certificado de mantenimiento como certificado del cuarto dominio.
+
+**P4 — independencia:** entradas y resultados idénticos en dos directorios limpios separados, sin estado, datos ni código compartidos de verticales; Windows Python 3.12 y Linux cuando exista paquete compatible para cada plataforma.
+
+**P5 — no-regresión:** mantener F4–F7 íntegros; `git diff -- eios/` vacío; verificar hashes e identidad de release certificada.
+
+**Decisión binaria después de ejecutar:** si se obtiene P1–P5 reutilizando herramientas y documentación existentes, NO implementar F8.2. Si un paso común resulta imposible sin reconstruir lógica de verificación o acceder al checkout, justificar el mínimo verificador EXTERNO reutilizable y únicamente entonces abrir implementación.
+
+## 6. Estado y autorización
+
+- `production_authorized=false`
+- `decision_authority=false`
+- `real_pilot_admitted=false`
+- `operational_path=FORBIDDEN`
+- `REFERENCE_OPERATIONAL_SIMULATION` sigue siendo sintético.
+
+**No declarar F8.1 cerrada sin PR integrada, CI premerge en SHA exacto y CI postmerge de main en SHA exacto**. La integración de este documento no acredita por sí sola P1–P5. Mantener una única prioridad: evitar duplicar las barreras ya certificadas, documentar el problema y comprobarlo de forma externa.
