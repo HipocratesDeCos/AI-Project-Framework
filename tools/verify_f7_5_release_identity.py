@@ -148,10 +148,27 @@ def build_identity(
         fail("PHASE_CHANGED")
     if policy.get("baseline_main_sha") != "7a2de895505de1fe8066aff9f58c7a9529a4f714":
         fail("BASELINE_MAIN_SHA_CHANGED")
+    if policy.get("candidate_label") != "EIOS_MOTOR_RC_0_1_0":
+        fail("CANDIDATE_LABEL_CHANGED")
     if policy.get("release_status") != "RELEASE_CANDIDATE":
         fail("RELEASE_STATUS_CHANGED")
     if policy.get("identity_scheme") != "SHA256_CANONICAL_JSON_V1":
         fail("IDENTITY_SCHEME_CHANGED")
+    if policy.get("source_identity") != {
+        "git_commit_required": True,
+        "exact_40_hex_sha_required": True,
+        "source_release_id_is_content_addressed": True,
+    }:
+        fail("SOURCE_IDENTITY_POLICY_CHANGED")
+    if policy.get("artifact_policy") != {
+        "f5_10_kit_required": True,
+        "artifact_identity_is_platform_specific": True,
+        "kit_sha256_required": True,
+        "kit_manifest_sha256_required": True,
+        "python_minor_required": "3.12",
+        "same_release_id_different_payload_forbidden": True,
+    }:
+        fail("ARTIFACT_POLICY_CHANGED")
 
     expected_stack = policy.get("neutral_stack")
     actual_stack = _package_versions(root)
@@ -191,6 +208,7 @@ def build_identity(
         "candidate_label": policy["candidate_label"],
         "release_status": policy["release_status"],
         "source_sha": source_sha,
+        "release_identity_policy_sha256": digest_file(root / POLICY.relative_to(ROOT)),
         "neutral_stack": actual_stack,
         "governance_evidence": evidence,
         "authority": authority,
@@ -224,6 +242,7 @@ def validate_receipt(receipt: dict[str, Any]) -> None:
         "candidate_label": receipt.get("candidate_label"),
         "release_status": receipt.get("release_status"),
         "source_sha": receipt.get("source_sha"),
+        "release_identity_policy_sha256": receipt.get("release_identity_policy_sha256"),
         "neutral_stack": receipt.get("neutral_stack"),
         "governance_evidence": receipt.get("governance_evidence"),
         "authority": receipt.get("authority"),
