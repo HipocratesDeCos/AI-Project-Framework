@@ -1,0 +1,115 @@
+name: EIOS temporary post-merge Actions evidence
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/eios_postmerge_evidence_temporary.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  audit_push_runs:
+    name: Audit push CI for EIOS merge SHAs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query GitHub Actions authenticated metadata for both merges
+        env:
+          GH_READ_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+
+          repo = os.environ["GITHUB_REPOSITORY"]
+          token = os.environ["GH_READ_TOKEN"]
+          base = "https://api.github.com/repos/" + repo
+          shas = (
+              "80b0c368bd3da8b4c369a0f9ae9a6c85258d8167",
+              "0e5a98b64a99d837c8ae94f0763cc9c80133c314",
+          )
+          expected_jobs = (
+              "test",
+              "F6.1 Windows offline certification (Python 3.12)",
+          )
+
+          def get(path, query=None):
+              if query:
+                  path += "?" + urlencode(query)
+              req = Request(
+                  base + path,
+                  headers={
+                      "Authorization": "Bearer " + token,
+                      "Accept": "application/vnd.github+json",
+                      "X-GitHub-Api-Version": "2022-11-28",
+                      "User-Agent": "EIOS-0.1.0-Closure-Evidence",
+                  },
+              )
+              with urlopen(req, timeout=30) as resp:
+                  return json.load(resp)
+
+          result = []
+          passed = True
+          for sha in shas:
+              runs = get(
+                  "/actions/runs",
+                  {"event": "push", "branch": "main", "head_sha": sha, "per_page": 100},
+              )["workflow_runs"]
+              matching = [
+                  x for x in runs
+                  if x["head_sha"] == sha
+                  and x.get("event") == "push"
+                  and x.get("head_branch") == "main"
+                  and str(x.get("path", "")).endswith("tests.yml")
+              ]
+              matching.sort(key=lambda x: x["id"], reverse=True)
+              evidence = {
+                  "sha": sha,
+                  "found": bool(matching),
+                  "workflow_run_id": None,
+                  "run_url": None,
+                  "run_status": None,
+                  "run_conclusion": None,
+                  "jobs": {},
+              }
+              if matching:
+                  run = matching[0]
+                  evidence.update({
+                      "workflow_run_id": run["id"],
+                      "run_url": run["html_url"],
+                      "run_status": run["status"],
+                      "run_conclusion": run["conclusion"],
+                  })
+                  jobs = get(
+                      "/actions/runs/" + str(run["id"]) + "/jobs",
+                      {"per_page": 100},
+                  )["jobs"]
+                  evidence["jobs"] = {
+                      job: {
+                          "status": next((x["status"] for x in jobs if x["name"] == job), "MISSING"),
+                          "conclusion": next((x["conclusion"] for x in jobs if x["name"] == job), "MISSING"),
+                      }
+                      for job in expected_jobs
+                  }
+              accepted = (
+                  evidence["found"]
+                  and evidence["run_status"] == "completed"
+                  and evidence["run_conclusion"] == "success"
+                  and all(
+                      item["status"] == "completed" and item["conclusion"] == "success"
+                      for item in evidence["jobs"].values()
+                  )
+              )
+              evidence["verified_success"] = bool(accepted)
+              passed = passed and accepted
+              result.append(evidence)
+          print("EIOS_POSTMERGE_AUDIT=" + json.dumps(result, sort_keys=True), flush=True)
+          if not passed:
+              print("EIOS_POSTMERGE_AUDIT_FAIL: exact-SHA push CI evidence incomplete or unsuccessful")
+              sys.exit(1)
+          print("EIOS_POSTMERGE_AUDIT_PASS", flush=True)
+          PY
