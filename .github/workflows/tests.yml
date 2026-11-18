@@ -146,6 +146,17 @@ jobs:
         run: python tools/verify_f7_3_upgrade_migration.py
       - name: F7.4 verify deprecation and support lifecycle policy
         run: python tools/verify_f7_4_deprecation_lifecycle.py
+      - name: F7.5 generate immutable Linux release identity receipt
+        run: |
+          mkdir -p dist/release-identity
+          python tools/verify_f7_5_release_identity.py --kit-dir dist/release-kit --output dist/release-identity/EIOS_Motor_RC_0.1.0_release_identity.json
+      - name: F7.5 retain Linux release identity receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: EIOS-F7-5-Linux-Release-Identity
+          path: dist/release-identity/EIOS_Motor_RC_0.1.0_release_identity.json
+          if-no-files-found: error
+          retention-days: 14
       - name: F5.10 retain independently installable onboarding kit
         uses: actions/upload-artifact@v4
         with:
@@ -201,6 +212,18 @@ jobs:
       - name: F6.5–F6.10 certify onboarding through retry safety on Windows
         shell: pwsh
         run: python tools/verify_f6_5_provider_onboarding.py --kit-dir dist/release-kit
+      - name: F7.5 generate immutable Windows release identity receipt
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist/release-identity | Out-Null
+          python tools/verify_f7_5_release_identity.py --kit-dir dist/release-kit --output dist/release-identity/EIOS_Motor_RC_0.1.0_release_identity.json
+      - name: F7.5 retain Windows release identity receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: EIOS-F7-5-Windows-Release-Identity
+          path: dist/release-identity/EIOS_Motor_RC_0.1.0_release_identity.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Upload Windows-specific certified ZIP
         uses: actions/upload-artifact@v4
         with:
