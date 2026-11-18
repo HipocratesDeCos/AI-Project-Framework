@@ -150,6 +150,8 @@ jobs:
         run: |
           mkdir -p dist/release-identity
           python tools/verify_f7_5_release_identity.py --kit-dir dist/release-kit --output dist/release-identity/EIOS_Motor_RC_0.1.0_release_identity.json
+      - name: F7.6 verify formal Phase 7 closure acceptance
+        run: python tools/verify_f7_phase7_closure.py
       - name: F7.5 retain Linux release identity receipt
         uses: actions/upload-artifact@v4
         with:
