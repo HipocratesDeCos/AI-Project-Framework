@@ -1,0 +1,173 @@
+{
+  "schema": "EIOS_PUBLIC_API_BASELINE/v0.1",
+  "phase": "F7.1",
+  "baseline_main_sha": "f4f5add8aba2ad9ddcb041e6b1db6d6a50c58a34",
+  "policy": {
+    "public_surface_only": true,
+    "unlisted_symbols_are_internal": true,
+    "semver_does_not_imply_compatibility": true,
+    "breaking_change_requires_new_compatibility_evidence": true
+  },
+  "packages": [
+    {
+      "distribution": "eios-kernel",
+      "version": "0.1.0",
+      "pyproject": "packaging/eios-kernel/pyproject.toml",
+      "module": "eios.kernel.execution",
+      "exports": [
+        "KernelCapabilityResult",
+        "KernelCapabilityStatus",
+        "KernelContext",
+        "KernelExecutionError",
+        "KernelInvoker",
+        "KernelOperation",
+        "KernelOutcome",
+        "KernelPlan",
+        "KernelStatus",
+        "execute_kernel"
+      ],
+      "functions": {
+        "execute_kernel": [
+          ["operation","POSITIONAL_OR_KEYWORD",false],
+          ["context","POSITIONAL_OR_KEYWORD",false],
+          ["plan","POSITIONAL_OR_KEYWORD",false],
+          ["invokers","POSITIONAL_OR_KEYWORD",false]
+        ]
+      },
+      "pydantic_models": {
+        "KernelContext": ["project_id","decision_id","scenario_id","rules_version","parameters_version","data_snapshot_id"],
+        "KernelOperation": ["decision_id","scenario_id","payload"],
+        "KernelPlan": ["capabilities","policy_version"],
+        "KernelCapabilityResult": ["capability","status","result_available","trace_references","unresolved_items","failure_reason"],
+        "KernelOutcome": ["status","project_id","decision_id","scenario_id","policy_version","capability_results","unresolved_items","failure_reason","provenance_status","decision_authority","operational_path"]
+      },
+      "dataclasses": {},
+      "enums": {
+        "KernelStatus": ["READY","RUNNING","COMPLETED","PARTIALLY_COMPLETED","NOT_EVALUABLE","BLOCKED","FAILED"],
+        "KernelCapabilityStatus": ["READY","RUNNING","COMPLETED","BLOCKED","PARTIALLY_COMPLETED","NOT_EVALUABLE","FAILED"]
+      },
+      "constants": {}
+    },
+    {
+      "distribution": "eios-input-contracts",
+      "version": "0.1.0",
+      "pyproject": "packaging/eios-input-contracts/pyproject.toml",
+      "module": "eios.input_contracts",
+      "exports": [
+        "CapabilityInputBinding",
+        "CapabilityInputEnvelope",
+        "CapabilityInputSpec",
+        "InputContractError",
+        "bind_capability_inputs"
+      ],
+      "functions": {
+        "bind_capability_inputs": [
+          ["operation","KEYWORD_ONLY",false],
+          ["context","KEYWORD_ONLY",false],
+          ["plan","KEYWORD_ONLY",false],
+          ["bindings","KEYWORD_ONLY",false]
+        ]
+      },
+      "pydantic_models": {
+        "CapabilityInputEnvelope": ["project_id","capability","schema_id","schema_version","decision_id","scenario_id","rules_version","parameters_version","data_snapshot_id","payload","provenance_status"]
+      },
+      "dataclasses": {
+        "CapabilityInputSpec": ["project_id","capability","schema_id","schema_version","payload_type"],
+        "CapabilityInputBinding": ["spec","envelope","invoker"]
+      },
+      "enums": {},
+      "constants": {}
+    },
+    {
+      "distribution": "eios-capability-catalog",
+      "version": "0.1.0",
+      "pyproject": "packaging/eios-capability-catalog/pyproject.toml",
+      "module": "eios.capability_catalog",
+      "exports": [
+        "CapabilityCatalog",
+        "CapabilityCatalogError",
+        "CapabilityRelease",
+        "INPUT_CONTRACT_API_VERSION",
+        "KERNEL_API_VERSION",
+        "bind_catalog_plan"
+      ],
+      "functions": {
+        "bind_catalog_plan": [
+          ["catalog","KEYWORD_ONLY",false],
+          ["requested_releases","KEYWORD_ONLY",false],
+          ["operation","KEYWORD_ONLY",false],
+          ["context","KEYWORD_ONLY",false],
+          ["plan","KEYWORD_ONLY",false],
+          ["bindings","KEYWORD_ONLY",false]
+        ]
+      },
+      "pydantic_models": {},
+      "dataclasses": {
+        "CapabilityRelease": ["project_id","capability","release_version","schema_id","compatible_schema_versions","payload_type","policy_version","required_kernel_api","required_input_contract_api","enabled"],
+        "CapabilityCatalog": ["project_id","catalog_version","releases"]
+      },
+      "enums": {},
+      "constants": {
+        "KERNEL_API_VERSION": "0.1.0",
+        "INPUT_CONTRACT_API_VERSION": "0.1.0"
+      }
+    },
+    {
+      "distribution": "eios-catalog-governance",
+      "version": "0.1.0",
+      "pyproject": "packaging/eios-catalog-governance/pyproject.toml",
+      "module": "eios.catalog_governance",
+      "exports": [
+        "AuthorizationGrant",
+        "CatalogChange",
+        "CatalogGovernanceError",
+        "GovernedState",
+        "bind_governed_plan",
+        "commit_catalog_change",
+        "fingerprint_catalog",
+        "load_governed_state"
+      ],
+      "functions": {
+        "fingerprint_catalog": [
+          ["catalog","POSITIONAL_OR_KEYWORD",false]
+        ],
+        "load_governed_state": [
+          ["path","POSITIONAL_OR_KEYWORD",false],
+          ["project_id","KEYWORD_ONLY",false]
+        ],
+        "commit_catalog_change": [
+          ["path","POSITIONAL_OR_KEYWORD",false],
+          ["change","POSITIONAL_OR_KEYWORD",false],
+          ["authorize","POSITIONAL_OR_KEYWORD",false]
+        ],
+        "bind_governed_plan": [
+          ["path","KEYWORD_ONLY",false],
+          ["catalog","KEYWORD_ONLY",false],
+          ["expected_revision","KEYWORD_ONLY",false],
+          ["expected_head_hash","KEYWORD_ONLY",false],
+          ["operation","KEYWORD_ONLY",false],
+          ["context","KEYWORD_ONLY",false],
+          ["plan","KEYWORD_ONLY",false],
+          ["bindings","KEYWORD_ONLY",false]
+        ]
+      },
+      "pydantic_models": {},
+      "dataclasses": {
+        "AuthorizationGrant": ["project_id","actor_id","authorization_ref","authorization_policy","allowed_actions"],
+        "CatalogChange": ["project_id","catalog","desired_releases","expected_revision","expected_head_hash","reason","allow_rollback"],
+        "GovernedState": ["project_id","revision","head_hash","catalog_version","catalog_digest","active_releases"]
+      },
+      "enums": {},
+      "constants": {}
+    }
+  ],
+  "excluded_from_public_baseline": [
+    "eios.core",
+    "eios.pricing",
+    "eios.tco",
+    "eios.company_app",
+    "tests.fixtures",
+    "tools",
+    "private_or_underscore_symbols"
+  ]
+}
