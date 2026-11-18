@@ -144,6 +144,8 @@ jobs:
         run: python tools/verify_f7_2_release_compatibility.py
       - name: F7.3 verify upgrade and migration contract
         run: python tools/verify_f7_3_upgrade_migration.py
+      - name: F7.4 verify deprecation and support lifecycle policy
+        run: python tools/verify_f7_4_deprecation_lifecycle.py
       - name: F5.10 retain independently installable onboarding kit
         uses: actions/upload-artifact@v4
         with:
