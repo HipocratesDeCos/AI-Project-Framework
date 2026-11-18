@@ -138,6 +138,8 @@ jobs:
         run: python tools/verify_f6_5_provider_onboarding.py --kit-dir dist/release-kit
       - name: F6.11 verify formal Phase 6 closure acceptance
         run: python tools/verify_f6_phase6_closure.py
+      - name: F7.1 verify neutral public API baseline
+        run: python tools/verify_f7_1_public_api_baseline.py
       - name: F5.10 retain independently installable onboarding kit
         uses: actions/upload-artifact@v4
         with:
