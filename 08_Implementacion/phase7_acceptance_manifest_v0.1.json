@@ -1,0 +1,34 @@
+{
+  "schema": "EIOS_PHASE7_ACCEPTANCE/v0.1",
+  "phase": "F7",
+  "status": "CLOSURE_CANDIDATE",
+  "baseline_main_sha": "6de352fda51dd95431e6778d41530f9531949ff9",
+  "synthetic_only": true,
+  "production_authorized": false,
+  "decision_authority": false,
+  "real_pilot_admitted": false,
+  "operational_path": "FORBIDDEN",
+  "units": [
+    {"id":"F7.1","artifact":"08_Implementacion/Core_Phase7_1_Public_API_Baseline_v0.1.md","test":"tests/test_f7_1_public_api_baseline.py","verifier":"tools/verify_f7_1_public_api_baseline.py"},
+    {"id":"F7.2","artifact":"08_Implementacion/Core_Phase7_2_Release_Compatibility_Matrix_v0.1.md","test":"tests/test_f7_2_release_compatibility.py","verifier":"tools/verify_f7_2_release_compatibility.py"},
+    {"id":"F7.3","artifact":"08_Implementacion/Core_Phase7_3_Upgrade_Migration_Contract_v0.1.md","test":"tests/test_f7_3_upgrade_migration.py","verifier":"tools/verify_f7_3_upgrade_migration.py"},
+    {"id":"F7.4","artifact":"08_Implementacion/Core_Phase7_4_Deprecation_Support_Lifecycle_v0.1.md","test":"tests/test_f7_4_deprecation_lifecycle.py","verifier":"tools/verify_f7_4_deprecation_lifecycle.py"},
+    {"id":"F7.5","artifact":"08_Implementacion/Core_Phase7_5_Immutable_Release_Identity_v0.1.md","test":"tests/test_f7_5_release_identity.py","verifier":"tools/verify_f7_5_release_identity.py"}
+  ],
+  "required_policy_artifacts": [
+    "08_Implementacion/phase7_public_api_baseline_v0.1.json",
+    "08_Implementacion/phase7_release_compatibility_matrix_v0.1.json",
+    "08_Implementacion/phase7_upgrade_migration_contract_v0.1.json",
+    "08_Implementacion/phase7_deprecation_support_lifecycle_v0.1.json",
+    "08_Implementacion/phase7_release_identity_policy_v0.1.json"
+  ],
+  "required_ci_markers": [
+    "F7.1 verify neutral public API baseline",
+    "F7.2 verify exact neutral release compatibility matrix",
+    "F7.3 verify upgrade and migration contract",
+    "F7.4 verify deprecation and support lifecycle policy",
+    "F7.5 generate immutable Linux release identity receipt",
+    "F7.5 generate immutable Windows release identity receipt"
+  ],
+  "closure_statement": "F7 public API baseline, exact compatibility matrix, safe migration contract, deprecation lifecycle and immutable release identity are complete for this phase. This does not authorize production or operational execution."
+}
