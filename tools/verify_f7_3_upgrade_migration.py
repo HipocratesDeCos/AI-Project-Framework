@@ -5,7 +5,10 @@ import json
 from pathlib import Path
 from typing import Any
 
-from tools.verify_f7_2_release_compatibility import classify_versions
+if __package__:
+    from .verify_f7_2_release_compatibility import classify_versions
+else:
+    from verify_f7_2_release_compatibility import classify_versions
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "08_Implementacion" / "phase7_upgrade_migration_contract_v0.1.json"
