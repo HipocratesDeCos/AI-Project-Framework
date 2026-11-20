@@ -822,6 +822,12 @@ from eios.company_purchase_cash_ui import CSS as PURCHASE_CASH_CSS, JS as PURCHA
 from eios.company_purchase_comparison_ui import JS as PURCHASE_COMPARISON_JS, CSS as PURCHASE_COMPARISON_CSS
 PAGE=PAGE.replace('</style>',PURCHASE_CASH_CSS+PURCHASE_COMPARISON_CSS+'</style>',1).replace('</script>',PURCHASE_CASH_JS+PURCHASE_COMPARISON_JS+'</script>',1)
 
+from eios.company_odoo_import_ui import HTML as ODOO_IMPORT_HTML, JS as ODOO_IMPORT_JS, CSS as ODOO_IMPORT_CSS
+PAGE = PAGE.replace('<div data-view="archivos" hidden>',
+                    '<div data-view="archivos" hidden>' + ODOO_IMPORT_HTML, 1)
+PAGE = PAGE.replace('</style>', ODOO_IMPORT_CSS + '</style>', 1)
+PAGE = PAGE.replace('</script>', ODOO_IMPORT_JS + '</script>', 1)
+
 
 def main():
     parser = argparse.ArgumentParser(description='EIOS: empresa y entrada local de propuestas de compra')
@@ -897,11 +903,11 @@ def main():
                 return self.send(403, dict(error='Host no permitido'))
             if self.headers.get('X-EIOS-Token') != token:
                 return self.send(403, dict(error='Sesión no válida. Recarga la pantalla.'))
-            if self.path not in {'/api/workbook-source/options','/api/workbook-source/activate','/api/sales-proposals/quality/read','/api/sales-proposals/quality/save','/api/sales-proposals/treasury/options','/api/sales-proposals/treasury/select','/api/reception/workbook/preview','/api/reception/workbook/commit','/api/reception/issues/export','/api/sales-history/preview','/api/sales-history/commit','/api/sales-history/clear','/api/reception/sales-reconcile','/api/reception/sales-collections/export','/api/purchase-history/preview','/api/purchase-history/commit','/api/purchase-history/clear','/api/inventory/preview','/api/inventory/commit','/api/inventory/clear','/api/catalogue/preview','/api/catalogue/commit','/api/catalogue/clear','/api/sales-proposals/tariff/template', '/api/sales-proposals/tariff', '/api/sales-proposals/link', '/api/sales-proposals/cash-plan', '/api/sales-proposals/cash-plan/read', '/api/sales-proposals', '/api/sales-proposals/preview', '/api/sales-proposals/context', '/api/sales-proposals/report', '/api/purchases/reviewer-designation/observation', '/api/purchases/reviewer-designation', '/api/purchases/treasury/observation', '/api/purchases/treasury/context', '/api/purchases/treasury/support', '/api/purchases/finance-quality/prepare', '/api/purchases/payments/calendar', '/api/purchases/payments/review', '/api/purchases/payments/document', '/api/purchases/payments/associate', '/api/parameters/finance/activate', '/api/parameters', '/api/stock/minimums', '/api/purchases', '/api/purchases/quote', '/api/purchases/comparisons', '/api/purchases/comparisons/read', '/api/purchases/cash-preview', '/api/purchases/review', '/api/purchases/report', '/api/purchases/commercial-draft', '/api/import/preview', '/api/import/commit', '/api/reception/read', '/api/reception/preview', '/api/reception/commit', '/api/reception/check', '/api/reception/original', '/api/reception/articles', '/api/reception/financials', '/api/reception/versions/save', '/api/reception/version', '/api/reception/version/export', '/api/reception/versions/compare', '/api/reception/records', '/api/reception/purchase/options', '/api/reception/purchase/prepare'}:
+            if self.path not in {'/api/workbook-source/options','/api/workbook-source/activate','/api/sales-proposals/quality/read','/api/sales-proposals/quality/save','/api/sales-proposals/treasury/options','/api/sales-proposals/treasury/select','/api/odoo/purchase-orders/preview','/api/reception/workbook/preview','/api/reception/workbook/commit','/api/reception/issues/export','/api/sales-history/preview','/api/sales-history/commit','/api/sales-history/clear','/api/reception/sales-reconcile','/api/reception/sales-collections/export','/api/purchase-history/preview','/api/purchase-history/commit','/api/purchase-history/clear','/api/inventory/preview','/api/inventory/commit','/api/inventory/clear','/api/catalogue/preview','/api/catalogue/commit','/api/catalogue/clear','/api/sales-proposals/tariff/template', '/api/sales-proposals/tariff', '/api/sales-proposals/link', '/api/sales-proposals/cash-plan', '/api/sales-proposals/cash-plan/read', '/api/sales-proposals', '/api/sales-proposals/preview', '/api/sales-proposals/context', '/api/sales-proposals/report', '/api/purchases/reviewer-designation/observation', '/api/purchases/reviewer-designation', '/api/purchases/treasury/observation', '/api/purchases/treasury/context', '/api/purchases/treasury/support', '/api/purchases/finance-quality/prepare', '/api/purchases/payments/calendar', '/api/purchases/payments/review', '/api/purchases/payments/document', '/api/purchases/payments/associate', '/api/parameters/finance/activate', '/api/parameters', '/api/stock/minimums', '/api/purchases', '/api/purchases/quote', '/api/purchases/comparisons', '/api/purchases/comparisons/read', '/api/purchases/cash-preview', '/api/purchases/review', '/api/purchases/report', '/api/purchases/commercial-draft', '/api/import/preview', '/api/import/commit', '/api/reception/read', '/api/reception/preview', '/api/reception/commit', '/api/reception/check', '/api/reception/original', '/api/reception/articles', '/api/reception/financials', '/api/reception/versions/save', '/api/reception/version', '/api/reception/version/export', '/api/reception/versions/compare', '/api/reception/records', '/api/reception/purchase/options', '/api/reception/purchase/prepare'}:
                 return self.send(404, dict(error='No encontrado'))
             try:
                 size = int(self.headers.get('Content-Length', '0'))
-                limit = 262144 if self.path == '/api/sales-proposals/quality/save' else 131072 if self.path == '/api/parameters' else MAX_UPLOAD_BYTES if self.path == '/api/import/preview' else MAX_BYTES if self.path in ('/api/reception/read','/api/catalogue/preview','/api/reception/workbook/preview') else 16384
+                limit = 262144 if self.path == '/api/sales-proposals/quality/save' else 131072 if self.path == '/api/parameters' else MAX_UPLOAD_BYTES if self.path == '/api/import/preview' else MAX_BYTES if self.path in ('/api/reception/read','/api/catalogue/preview','/api/reception/workbook/preview','/api/odoo/purchase-orders/preview') else 16384
                 if not 0 < size <= limit:
                     raise ValueError('Solicitud demasiado grande o vacía.')
                 if self.path == '/api/catalogue/preview':
@@ -912,6 +918,16 @@ def main():
                     from urllib.parse import unquote
                     options=json.loads(unquote(self.headers.get('X-EIOS-Workbook','{}')))
                     return self.send(200,workbook_reception.preview(self.rfile.read(size),unquote(self.headers.get('X-EIOS-Filename','')),options))
+                if self.path == '/api/odoo/purchase-orders/preview':
+                    from urllib.parse import unquote
+                    from integrations.odoo.purchase_order_export_v02 import preview_file
+                    filename = unquote(self.headers.get('X-EIOS-Filename', '')).replace(chr(92), '/').rsplit('/', 1)[-1][:200]
+                    if not filename.lower().endswith(('.xlsx', '.csv')):
+                        raise ValueError('Selecciona una exportación XLSX o CSV de pedidos de Odoo.')
+                    result = preview_file(self.rfile.read(size), filename)
+                    result['filename'] = filename
+                    result['checked_at'] = datetime.now(timezone.utc).isoformat()
+                    return self.send(200, result)
                 if self.path == '/api/reception/read':
                     from urllib.parse import unquote
                     delimiter = self.headers.get('X-EIOS-Delimiter', 'auto')
