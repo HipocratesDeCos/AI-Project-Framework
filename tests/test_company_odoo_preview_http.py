@@ -15,7 +15,32 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-from tests.test_company_odoo_import_ui import build_csv
+import csv
+from io import StringIO
+
+
+def build_csv():
+    stream = StringIO(newline='')
+    writer = csv.writer(stream, delimiter=';')
+    writer.writerow([
+        'ID', 'Referencia del pedido', 'Proveedor', 'Fecha del pedido',
+        'Estado', 'Moneda/Nombre', 'Líneas del pedido/ID',
+        'Líneas del pedido/Producto', 'Producto/Referencia interna',
+        'Líneas del pedido/Cantidad', 'Líneas del pedido/Precio unitario',
+        'Líneas del pedido/Subtotal', 'Impuestos', 'Total',
+    ])
+    writer.writerow([
+        '__export__.purchase_order_1', 'EIOS-DEMO-PO-2026-001',
+        'Proveedor 1', '', 'SdP', 'Euro', 'eios_demo.line_1',
+        '[ILU-0012] Producto de prueba', 'ILU-0012',
+        6, 28, 168, 35.28, 203.28,
+    ])
+    writer.writerow([
+        '__export__.purchase_order_2', 'EIOS-DEMO-PO-2026-002',
+        'Proveedor 2', '', 'SdP', 'Euro', '', '', '',
+        '', '', '', 0, 0,
+    ])
+    return stream.getvalue().encode('utf-8-sig')
 
 
 class OdooPreviewHttpTests(unittest.TestCase):
@@ -70,9 +95,9 @@ class OdooPreviewHttpTests(unittest.TestCase):
                     result = json.load(response)
                 self.assertEqual(result['filename'], 'Pedidos Odoo.csv')
                 self.assertTrue(result['checked_at'])
-                self.assertEqual(result['summary']['complete_orders'], 9)
+                self.assertEqual(result['summary']['complete_orders'], 1)
                 self.assertEqual(result['summary']['pending_orders'], 1)
-                self.assertEqual(result['summary']['total'], '3608.94')
+                self.assertEqual(result['summary']['total'], '203.28')
                 self.assertFalse(result['accepted'])
                 self.assertFalse(result['persistence_allowed'])
                 self.assertEqual(result['operational_path'], 'FORBIDDEN')
